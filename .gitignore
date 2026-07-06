@@ -36,3 +36,7 @@ supabase/.temp/
 
 # PWA dev artifacts
 dev-dist/
+
+# Claude Code local settings
+.claude/settings.local.json
+MEMORY_*.md
