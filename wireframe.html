@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭旅遊分帳｜Phase 1 Wireframe</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --hdr:#7C2D12;
+  --bg:#FFFBEB;
+  --ink:#1C0A00;
+  --mid:#92603A;
+  --fx:#B8977A;
+  --pend:#C2410C;
+  --pend-bg:#FFF7F5;
+  --border:#E8D5B7;
+  --card:#FFFFFF;
+  --ok:#15803D;
+  --ok-bg:#DCFCE7;
+  --chip:#F5EBD9;
+  --font:'Inter',system-ui,sans-serif;
+  --r8:8px; --r12:12px; --r14:14px; --r16:16px; --r24:24px;
+}
+body{font-family:var(--font);background:#E8E0D8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:28px 16px 48px;gap:0}
+/* ─── top label ─── */
+.wf-meta{font-size:12px;color:#6B5A4E;margin-bottom:14px;text-align:center;line-height:1.6}
+.wf-meta strong{color:#7C2D12}
+/* ─── screen nav ─── */
+.snav{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:620px;margin-bottom:14px}
+.snav button{font-size:11px;font-family:var(--font);padding:5px 11px;border-radius:20px;border:1.5px solid #C8B8AA;background:#FFF8F3;color:#5C3D2A;cursor:pointer;transition:all .15s}
+.snav button:hover{border-color:#7C2D12;color:#7C2D12}
+.snav button.on{background:#7C2D12;color:#fff;border-color:#7C2D12}
+/* ─── phone shell ─── */
+.phone{width:375px;height:812px;border-radius:48px;background:#111;box-shadow:0 0 0 2px #333,0 32px 80px rgba(0,0,0,.35);overflow:hidden;position:relative;flex-shrink:0}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:32px;background:#111;border-radius:0 0 22px 22px;z-index:200}
+.screen-wrap{width:100%;height:100%;border-radius:48px;overflow:hidden;position:relative}
+/* ─── screens ─── */
+.scr{display:none;flex-direction:column;width:100%;height:100%;background:var(--bg);position:absolute;inset:0}
+.scr.on{display:flex}
+/* ─── status bar ─── */
+.sbar{height:44px;display:flex;align-items:flex-end;padding:0 26px 7px;font-size:12px;font-weight:600;flex-shrink:0}
+.sbar.dark{background:var(--hdr);color:#fff}
+.sbar.lt{background:var(--bg);color:var(--ink)}
+.sbar-r{margin-left:auto;display:flex;gap:5px;font-size:11px}
+/* ─── nav bar ─── */
+.nb{height:52px;display:flex;align-items:center;padding:0 14px;gap:0;flex-shrink:0;background:var(--hdr);color:#fff}
+.nb-back{display:flex;align-items:center;gap:3px;font-size:15px;color:rgba(255,255,255,.9);cursor:pointer;min-width:56px}
+.nb-title{flex:1;text-align:center;font-size:16px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
+.nb-acts{display:flex;gap:4px;min-width:56px;justify-content:flex-end}
+.icon-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;font-size:17px;color:rgba(255,255,255,.9)}
+/* ─── scroll area ─── */
+.sa{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sa::-webkit-scrollbar{display:none}
+/* ─── stats card ─── */
+.stats{background:var(--card);margin:12px;border-radius:var(--r16);padding:15px;box-shadow:0 2px 10px rgba(28,10,0,.07)}
+.stats-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.stat-lbl{font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.stat-val{font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-.5px}
+.stat-warn{font-size:11px;color:var(--pend);margin-top:2px;font-weight:600}
+.stat-cur{font-size:10px;color:var(--fx);margin-bottom:8px}
+.mem-row{display:flex;gap:10px}
+.mem-chip{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.mem-icon{width:42px;height:42px;border-radius:var(--r12);background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:21px;border:2px solid transparent}
+.mem-icon.sel{background:var(--hdr);border-color:var(--hdr)}
+.mem-lbl{font-size:10px;color:var(--mid);font-weight:500}
+.mem-lbl.sel{color:var(--hdr);font-weight:700}
+/* ─── day section ─── */
+.day-hd{display:flex;justify-content:space-between;align-items:center;padding:10px 16px 6px}
+.day-lbl{font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.7px}
+.day-tot{font-size:12px;color:var(--mid)}
+/* ─── expense row ─── */
+.exp{display:flex;align-items:center;background:var(--card);padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.exp:hover{background:#FFF6EC}
+.exp.pend{background:var(--pend-bg);border-left:3px solid var(--pend)}
+.exp-ico{width:38px;height:38px;border-radius:10px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;margin-right:10px}
+.exp-info{flex:1;min-width:0}
+.exp-title{font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exp-meta{font-size:11px;color:var(--mid);margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.exp-amts{text-align:right;flex-shrink:0;padding-left:8px}
+.exp-twd{font-size:16px;font-weight:700;color:var(--ink)}
+.exp-twd.pend{color:var(--pend)}
+.exp-fx{font-size:11px;color:var(--fx);margin-top:2px}
+/* ─── badges ─── */
+.badge{display:inline-flex;align-items:center;gap:3px;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700}
+.badge-type{background:var(--chip);color:var(--mid)}
+.badge-pend{background:#FFEDD5;color:var(--pend)}
+.badge-ok{background:var(--ok-bg);color:var(--ok)}
+/* ─── FAB ─── */
+.fab{position:absolute;bottom:90px;right:16px;width:56px;height:56px;border-radius:18px;background:var(--hdr);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 14px rgba(124,45,18,.45);cursor:pointer;z-index:10;user-select:none}
+/* ─── bottom bar ─── */
+.btm-bar{position:absolute;bottom:0;left:0;right:0;padding:12px 16px 30px;background:var(--card);border-top:1px solid var(--border)}
+.btn-p{width:100%;height:52px;border-radius:var(--r14);background:var(--hdr);color:#fff;font-size:16px;font-weight:700;border:none;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-s{width:100%;height:50px;border-radius:var(--r14);background:transparent;color:var(--hdr);font-size:15px;font-weight:700;border:2px solid var(--hdr);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-row{display:flex;gap:10px}
+.btn-row .btn-s,.btn-row .btn-p{flex:1}
+/* ─── sheet ─── */
+.sheet-bg{position:absolute;inset:0;background:rgba(28,10,0,.42);display:flex;flex-direction:column;justify-content:flex-end;z-index:50}
+.sheet{background:var(--card);border-radius:24px 24px 0 0;max-height:91%;overflow-y:auto;padding-bottom:2px}
+.sheet::-webkit-scrollbar{display:none}
+.sheet-drag{width:36px;height:4px;background:#E0D0BC;border-radius:2px;margin:12px auto 0}
+.sheet-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}
+.sheet-title{font-size:18px;font-weight:800;color:var(--ink)}
+.sheet-x{width:32px;height:32px;border-radius:50%;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--mid);cursor:pointer;font-weight:700}
+/* ─── form ─── */
+.fsec{padding:0 16px 12px}
+.flbl{font-size:10px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
+.finput{height:48px;border-radius:var(--r12);border:1.5px solid var(--border);padding:0 14px;font-size:16px;color:var(--ink);background:var(--card);font-family:var(--font);display:flex;align-items:center;width:100%}
+.finput-lg{height:56px;font-size:20px;font-weight:700;flex:1}
+.emoji-wrap{display:flex;gap:10px;align-items:center}
+.ebox{width:56px;height:56px;border-radius:var(--r14);border:1.5px solid var(--border);background:#FFF7ED;display:flex;align-items:center;justify-content:center;font-size:27px;flex-shrink:0;cursor:pointer}
+.seg{display:flex;background:var(--chip);border-radius:10px;padding:3px;gap:2px}
+.seg-opt{flex:1;height:37px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:var(--mid);cursor:pointer;transition:all .15s}
+.seg-opt.on{background:var(--card);color:var(--ink);font-weight:700;box-shadow:0 1px 5px rgba(0,0,0,.1)}
+.mem-sel{display:flex;gap:8px}
+.mem-sel-chip{flex:1;height:48px;border-radius:var(--r12);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:23px;cursor:pointer;transition:all .15s}
+.mem-sel-chip.on{border-color:var(--hdr);background:#FFF2EC}
+.cb-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border)}
+.cb-row:last-child{border-bottom:none}
+.cb-left{display:flex;align-items:center;gap:9px}
+.cb{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.cb.on{background:var(--hdr);border-color:var(--hdr)}
+/* ─── amount row ─── */
+.amt-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.amt-cur{width:28px;font-size:15px;font-weight:800;color:var(--mid);flex-shrink:0;text-align:right}
+.amt-in{flex:1;height:50px;border-radius:var(--r12);border:1.5px solid var(--border);padding:0 14px;font-size:20px;font-weight:700;color:var(--ink);background:var(--card);display:flex;align-items:center}
+.pend-tog{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:9px;background:#FFF7ED;border:1.5px solid #FDDCB5;cursor:pointer;flex-shrink:0;font-size:11px;font-weight:700;color:var(--pend)}
+/* ─── settle ─── */
+.sett-card{background:var(--card);margin:0 12px;border-radius:var(--r16);padding:16px;box-shadow:0 2px 10px rgba(28,10,0,.07);margin-bottom:10px}
+.sett-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border)}
+.sett-row:last-child{border-bottom:none}
+.sett-who{display:flex;align-items:center;gap:10px}
+.sett-emo{font-size:26px}
+.sett-name{font-size:15px;font-weight:700;color:var(--ink)}
+.sett-role{font-size:11px;color:var(--mid);margin-top:1px}
+.sett-amt{font-size:22px;font-weight:800;line-height:1.1}
+.sett-amt.r{color:var(--ok)}
+.sett-amt.p{color:var(--pend)}
+.sett-note{font-size:10px;color:var(--mid);text-align:right;margin-top:2px}
+.mark-btn{margin-top:5px;padding:5px 13px;border-radius:8px;border:2px solid var(--hdr);background:transparent;color:var(--hdr);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:block}
+/* ─── trip card ─── */
+/* ─── trip cards (photo style) ─── */
+.tc{position:relative;border-radius:var(--r16);margin:0 12px 12px;height:152px;overflow:hidden;cursor:pointer;transition:transform .18s,box-shadow .18s;box-shadow:0 3px 14px rgba(28,10,0,.14)}
+.tc:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(28,10,0,.2)}
+.tc-grad{position:absolute;inset:0;width:100%;height:100%}
+.tc-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,rgba(0,0,0,.12) 56%,transparent 100%)}
+.tc.arch .tc-overlay{background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.35) 60%,rgba(0,0,0,.08) 100%)}
+.tc.arch .tc-grad{filter:saturate(.25) brightness(.85)}
+.tc-body{position:absolute;bottom:0;left:0;right:0;padding:11px 14px 13px}
+.tc-name{font-size:17px;font-weight:800;color:#fff;margin-bottom:2px;text-shadow:0 1px 4px rgba(0,0,0,.5);line-height:1.2}
+.tc-dates{font-size:12px;color:rgba(255,255,255,.72);margin-bottom:9px}
+.tc-ft{display:flex;align-items:center;justify-content:space-between}
+.tc-mems{display:flex;gap:4px;font-size:20px}
+.tc-pend{font-size:12px;color:#FED7AA;font-weight:700}
+.tc-unlock{font-size:11px;color:rgba(255,255,255,.6);font-weight:600;text-decoration:underline;cursor:pointer}
+.tc-tot{font-size:12px;color:rgba(255,255,255,.7)}
+.tc-status{position:absolute;top:11px;right:11px;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;letter-spacing:.15px}
+.tc-status.prep{background:rgba(109,40,217,.86);color:#fff}   /* 準備旅遊 */
+.tc-status.go2{background:rgba(220,75,10,.92);color:#fff}     /* 旅遊中 */
+.tc-status.ok{background:rgba(21,128,61,.9);color:#fff}       /* 已結算 */
+.tc-status.ar{background:rgba(71,85,105,.84);color:#fff}      /* 封存 */
+/* ─── login ─── */
+.login-bg{flex:1;background:var(--hdr);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px}
+.login-logo{font-size:60px;margin-bottom:14px}
+.login-name{font-size:30px;font-weight:800;color:#fff;margin-bottom:8px}
+.login-tag{font-size:15px;color:rgba(255,255,255,.75);text-align:center;line-height:1.55;margin-bottom:44px}
+.login-box{width:100%;background:rgba(255,255,255,.13);border-radius:20px;padding:22px;backdrop-filter:blur(8px)}
+.goog-btn{width:100%;height:52px;border-radius:var(--r14);background:#fff;display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px;font-weight:700;color:var(--ink);cursor:pointer;font-family:var(--font);border:none}
+/* ─── share page ─── */
+.share-hd{background:var(--hdr);padding:44px 20px 24px;text-align:center}
+.share-emo{font-size:46px;margin-bottom:8px}
+.share-name{font-size:22px;font-weight:800;color:#fff;margin-bottom:5px}
+.share-meta{font-size:13px;color:rgba(255,255,255,.72)}
+/* ─── settings ─── */
+.settings-av{width:80px;height:80px;border-radius:50%;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:38px;margin:28px auto 10px}
+.settings-nm{text-align:center;font-size:21px;font-weight:800;color:var(--ink);margin-bottom:3px}
+.settings-em{text-align:center;font-size:13px;color:var(--mid);margin-bottom:28px}
+.set-item{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:var(--card);border-bottom:1px solid var(--border)}
+.set-item:first-child{border-top:1px solid var(--border)}
+.set-lbl{font-size:16px;color:var(--ink)}
+.set-lbl.danger{color:#DC2626}
+.set-val{font-size:13px;color:var(--mid)}
+/* ─── detail accordion ─── */
+.acc{background:var(--card);border-radius:var(--r16);margin:0 12px 10px;box-shadow:0 2px 10px rgba(28,10,0,.07);overflow:hidden}
+.acc-hd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer}
+.acc-title{font-size:14px;font-weight:700;color:var(--ink)}
+.acc-toggle{font-size:12px;color:var(--mid)}
+.acc-body{border-top:1px solid var(--border);padding:12px 16px}
+.acc-line{display:flex;justify-content:space-between;font-size:12px;color:var(--mid);line-height:1.9}
+.acc-line span:last-child{color:var(--ink);font-weight:600}
+/* ─── Aria panel ─── */
+.aria-wrap{max-width:375px;margin-top:14px;padding:14px 16px;background:#FFF8F2;border-radius:14px;border:1.5px solid #F0D5B8;width:100%}
+.aria-title{font-size:12px;font-weight:800;color:var(--hdr);margin-bottom:8px;font-family:var(--font)}
+.aria-line{font-size:11px;color:#5C3D2A;line-height:1.65;margin-bottom:1px;font-family:var(--font)}
+/* ─── Interaction panel ─── */
+.ixn-wrap{max-width:375px;margin-top:10px;padding:14px 16px;background:#F0F4FF;border-radius:14px;border:1.5px solid #C7D4F5;width:100%}
+.ixn-title{font-size:12px;font-weight:800;color:#1E3A8A;margin-bottom:8px;font-family:var(--font)}
+.ixn-line{font-size:11px;color:#1E3A8A;line-height:1.65;margin-bottom:1px;font-family:var(--font);opacity:.85}
+/* ─── PM panel ─── */
+.pm-wrap{max-width:375px;margin-top:10px;padding:14px 16px;background:#F0FDF4;border-radius:14px;border:1.5px solid #BBF7D0;width:100%}
+.pm-title{font-size:12px;font-weight:800;color:#166534;margin-bottom:8px;font-family:var(--font)}
+.pm-line{font-size:11px;color:#166534;line-height:1.65;margin-bottom:1px;font-family:var(--font);opacity:.9}
+/* ─── empty state ─── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;text-align:center;flex:1}
+.empty-ico{font-size:56px;margin-bottom:16px;opacity:.6}
+.empty-title{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.empty-sub{font-size:14px;color:var(--mid);line-height:1.6;margin-bottom:24px}
+/* ─── toast ─── */
+.toast{position:absolute;bottom:110px;left:16px;right:16px;background:var(--ink);color:#fff;border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+/* ─── warning banner ─── */
+.warn-banner{background:#FFF3CD;border-bottom:2px solid #F59E0B;padding:10px 16px;display:flex;align-items:flex-start;gap:8px}
+.warn-text{font-size:13px;color:#92400E;line-height:1.45}
+/* ─── completion state ─── */
+.done-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center}
+.done-spark{font-size:60px;margin-bottom:12px}
+.done-title{font-size:24px;font-weight:800;color:var(--ok);margin-bottom:6px}
+.done-sub{font-size:14px;color:var(--mid);margin-bottom:28px}
+/* ─── nav group labels ─── */
+.snav-group{font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;width:100%;text-align:center;margin-top:6px;margin-bottom:2px;font-family:var(--font)}
+</style>
+</head>
+<body>
+
+<div class="wf-meta">
+  <strong>家庭旅遊分帳｜Phase 1 Wireframe</strong><br>
+  UX Lead 稿 v3 · 決策 A–D 落地 + Growth G-02/G-06/G-08 + 缺漏畫面補入（S-04C 自付 / S-02幣別 / S-02Emoji / S-02日期選擇器 / S-03A 自付 badge）· 2026-06-29
+</div>
+
+<!-- Screen nav -->
+<div class="snav">
+  <div class="snav-group">主要畫面</div>
+  <button class="on" onclick="show('s00',this)">S-00 登入</button>
+  <button onclick="show('s01',this)">S-01 主頁</button>
+  <button onclick="show('s02',this)">S-02 新增行程</button>
+  <button onclick="show('s03a',this)">S-03 進行中</button>
+  <button onclick="show('s03b',this)">S-03 已結算</button>
+  <button onclick="show('s04a',this)">S-04 共同消費</button>
+  <button onclick="show('s04b',this)">S-04 各自消費</button>
+  <button onclick="show('s04c',this)">S-04 自付模式</button>
+  <button onclick="show('s05',this)">S-05 結算</button>
+  <button onclick="show('s06',this)">S-06 唯讀分享</button>
+  <button onclick="show('s07',this)">S-07 設定</button>
+  <div class="snav-group">邊界狀態（補審後新增）</div>
+  <button onclick="show('s02cur',this)">S-02 幣別選擇</button>
+  <button onclick="show('s02emo',this)">S-02 Emoji 選擇器</button>
+  <button onclick="show('s02date',this)">S-02 日期選擇器</button>
+  <button onclick="show('s02mem',this)">S-02 新增成員</button>
+  <button onclick="show('s01e',this)">S-01 空白狀態</button>
+  <button onclick="show('s03e',this)">S-03 新行程空白</button>
+  <button onclick="show('s03share',this)">S-03 分享 Sheet</button>
+  <button onclick="show('s05warn',this)">S-05 待填警示</button>
+  <button onclick="show('s05done',this)">S-05 全員付清</button>
+</div>
+
+<!-- Phone -->
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen-wrap">
+
+    <!-- S-00 Login -->
+    <div class="scr on" id="s00">
+      <div class="login-bg">
+        <div class="login-logo">✈️</div>
+        <div class="login-name">旅遊分帳</div>
+        <div class="login-tag">記下旅行的每一刻<br>帳，只是其中一部分</div>
+        <div class="login-box">
+          <button class="goog-btn">
+            <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.3 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6c1.8-5.4 6.8-9.8 13.6-9.8z"/><path fill="#4285F4" d="M46.6 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.2-9.9 7.2-17z"/><path fill="#FBBC05" d="M10.4 28.8A14.5 14.5 0 0 1 9.5 24c0-1.7.3-3.3.8-4.8l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-5.9z"/><path fill="#34A853" d="M24 48c6.3 0 11.6-2.1 15.5-5.7l-7.5-5.8c-2.1 1.4-4.8 2.2-8 2.2-6.7 0-12.4-4.5-14.4-10.6l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+            以 Google 帳號登入
+          </button>
+          <!-- G-01 新用戶跳轉路徑標注 -->
+          <div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);text-align:left">
+            <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:.6px;margin-bottom:4px">G-01｜GROWTH PHASE 1｜新用戶跳轉路徑</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.8);line-height:1.5">
+              登入後判斷：<br>
+              有行程 → S-01 主頁（現有流程）<br>
+              <strong style="color:#FCD34D">無行程（新用戶）→ 直接跳轉 S-02 建立第一趟</strong>
+            </div>
+          </div>
+          <!-- G-02 幽靈行程預覽卡 -->
+          <div style="margin-top:16px;font-size:12px;font-weight:600;color:rgba(255,255,255,.85);text-align:left;margin-bottom:6px">登入後開始你的第一趟</div>
+          <div style="position:relative;border-radius:16px;height:88px;overflow:hidden;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px)">
+            <!-- 模糊化內容層 -->
+            <div style="position:absolute;inset:0;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;filter:blur(3px);opacity:.6">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <div style="font-size:15px;font-weight:800;color:#fff">北海道●●●  🏔️</div>
+                <div style="background:rgba(220,75,10,.9);border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;color:#fff">進行中 ●</div>
+              </div>
+              <div>
+                <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:6px">2025/●●/●● – ●●/●●</div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="font-size:18px">🍋🐟🐵🐱</div>
+                  <div style="font-size:11px;color:#FED7AA;font-weight:700">⏳ ● 筆待填</div>
+                </div>
+              </div>
+            </div>
+            <!-- pulse 動效覆蓋層 -->
+            <div style="position:absolute;inset:0;border-radius:16px" class="ghost-pulse"></div>
+          </div>
+          <div style="margin-top:6px;font-size:9px;font-weight:800;color:rgba(255,255,255,.6);letter-spacing:.5px;text-align:center">▲ G-02｜Growth Phase 1：幽靈卡降低新用戶陌生感</div>
+          <style>.ghost-pulse{animation:ghostPulse 1.8s ease-in-out infinite}.@keyframes ghostPulse{0%,100%{opacity:.4}50%{opacity:.7}}</style>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-01 Home -->
+    <div class="scr" id="s01">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb">
+        <span style="min-width:56px"></span>
+        <div class="nb-title">我的旅遊</div>
+        <div class="nb-acts"><div class="icon-btn">👤</div></div>
+      </div>
+      <!-- section label -->
+      <div style="padding:14px 14px 6px;font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.6px">進行中</div>
+      <div class="sa" style="padding-bottom:100px">
+        <!-- 旅遊中：北海道（小樽運河意象：水藍＋磚紅反光） -->
+        <div class="tc">
+          <div class="tc-grad" style="background:linear-gradient(160deg,#5B8FA8 0%,#3A6E8C 35%,#8B5E52 75%,#6B4A3E 100%)"></div>
+          <div class="tc-overlay"></div>
+          <div style="position:absolute;top:0;right:0;bottom:0;left:0;background:url('') center/cover no-repeat;opacity:.0" data-photo="小樽運河"></div><!-- 📸 Rozi photo slot -->
+          <div class="tc-status go2">旅遊中</div>
+          <div class="tc-body">
+            <div class="tc-name">北海道四寶團 🏔️</div>
+            <div class="tc-dates">2025/06/14 – 06/21 &nbsp;·&nbsp; Day 4</div>
+            <div class="tc-ft"><div class="tc-mems">🍋🐟🐵🐱</div><div class="tc-pend">⏳ 2 筆待填</div></div>
+          </div>
+        </div>
+        <!-- 準備旅遊：沖繩（珊瑚礁海藍＋白沙） -->
+        <div class="tc">
+          <div class="tc-grad" style="background:linear-gradient(160deg,#38BDF8 0%,#0EA5E9 30%,#0284C7 60%,#BAE6FD 100%)"></div>
+          <div class="tc-overlay"></div>
+          <div class="tc-status prep">準備旅遊</div>
+          <div class="tc-body">
+            <div class="tc-name">沖繩三寶團 🌺</div>
+            <div class="tc-dates">2026/08/01 – 08/07 &nbsp;·&nbsp; 倒數 36 天</div>
+            <div class="tc-ft"><div class="tc-mems">🍋🐟🐵</div><div style="font-size:12px;color:rgba(255,255,255,.65)">尚無消費記錄</div></div>
+          </div>
+        </div>
+        <!-- 已結算 section -->
+        <div style="padding:8px 14px 6px;font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.6px">已結算</div>
+        <!-- 濟州島（玄武岩海岸意象：深藍海洋＋暗石） -->
+        <div class="tc">
+          <div class="tc-grad" style="background:linear-gradient(160deg,#1E4C6B 0%,#2D6A8A 35%,#3D7A6A 65%,#2A5050 100%)"></div>
+          <div class="tc-overlay"></div>
+          <div style="position:absolute;top:0;right:0;bottom:0;left:0;background:url('') center/cover no-repeat;opacity:.0" data-photo="濟州島玄武岩"></div><!-- 📸 Rozi photo slot -->
+          <div class="tc-status ok">✓ 已結算</div>
+          <div class="tc-body">
+            <div class="tc-name">濟州島四寶團 🏝️</div>
+            <div class="tc-dates">2026/02/08 – 02/13</div>
+            <div class="tc-ft"><div class="tc-mems">🍋🐟🐵🐱</div><div class="tc-tot">$89,240</div></div>
+          </div>
+        </div>
+        <!-- 首爾（景福宮意象：藍屋頂＋土牆暖色） -->
+        <div class="tc">
+          <div class="tc-grad" style="background:linear-gradient(160deg,#8B6914 0%,#6B4E2E 40%,#3A5A6B 70%,#2D4A5E 100%)"></div>
+          <div class="tc-overlay"></div>
+          <div style="position:absolute;top:0;right:0;bottom:0;left:0;background:url('') center/cover no-repeat;opacity:.0" data-photo="景福宮"></div><!-- 📸 Rozi photo slot -->
+          <div class="tc-status ok">✓ 已結算</div>
+          <div class="tc-body">
+            <div class="tc-name">首爾七天 🇰🇷</div>
+            <div class="tc-dates">2024/08/10 – 08/17</div>
+            <div class="tc-ft"><div class="tc-mems">🐟🌸</div><div class="tc-tot">$43,810</div></div>
+          </div>
+        </div>
+        <!-- 封存 section -->
+        <div style="padding:8px 14px 6px;font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.6px">封存</div>
+        <!-- 東京富士山（富士山＋港口意象：藍天＋雪白＋水色） -->
+        <div class="tc arch">
+          <div class="tc-grad" style="background:linear-gradient(160deg,#6BAED6 0%,#4A90B8 30%,#2E6A9B 60%,#5B8FA8 100%)"></div>
+          <div class="tc-overlay"></div>
+          <div style="position:absolute;top:0;right:0;bottom:0;left:0;background:url('') center/cover no-repeat;opacity:.0" data-photo="富士山港口"></div><!-- 📸 Rozi photo slot -->
+          <div class="tc-status ar">封存</div>
+          <div class="tc-body">
+            <div class="tc-name">東京富士山五寶團 🗻</div>
+            <div class="tc-dates">2024/04/07 – 04/14</div>
+            <div class="tc-ft"><div class="tc-mems">🍋🌷🐟🐵🐱</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="tc-tot">$124,880</div><div class="tc-unlock">重新開啟行程</div></div></div>
+          </div>
+        </div>
+        <div style="height:16px"></div>
+      </div>
+      <div class="fab">＋</div>
+    </div>
+
+    <!-- S-02 New Trip Sheet -->
+    <div class="scr" id="s02">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb"><span style="min-width:56px"></span><div class="nb-title">我的旅遊</div><div class="nb-acts"><div class="icon-btn">👤</div></div></div>
+      <div style="flex:1;background:var(--bg);opacity:.35"></div>
+      <div class="sheet-bg">
+        <div class="sheet">
+          <div class="sheet-drag"></div>
+          <div class="sheet-hd"><div class="sheet-title">這趟去哪？</div><div class="sheet-x">✕</div></div>
+          <div class="fsec">
+            <div class="flbl">行程名稱</div>
+            <div class="emoji-wrap">
+              <div style="position:relative;flex-shrink:0">
+                <div class="ebox">🏔️</div>
+                <div style="position:absolute;bottom:0;right:0;width:20px;height:20px;border-radius:50%;background:var(--hdr);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff">✎</div>
+              </div>
+              <div class="finput finput-lg">北海道四寶團</div>
+            </div>
+            <div style="font-size:10px;color:var(--fx);margin-top:4px;padding-left:66px">點 emoji 可自訂行程封面</div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">旅遊幣別</div>
+            <div class="finput" style="justify-content:space-between">
+              <span>¥ 日幣（JPY）</span>
+              <span style="color:var(--mid)">▾</span>
+            </div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">旅遊日期</div>
+            <div style="display:flex;gap:9px;align-items:center">
+              <div class="finput" style="flex:1;justify-content:center;font-weight:700">06/14</div>
+              <span style="color:var(--mid);font-size:15px">→</span>
+              <div class="finput" style="flex:1;justify-content:center;font-weight:700">06/21</div>
+            </div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">成員</div>
+            <div style="font-size:10px;color:var(--fx);margin-bottom:6px">點成員，標記哪位是你</div>
+            <div style="border-radius:var(--r12);border:1.5px solid var(--border);overflow:hidden;margin-bottom:8px">
+              <!-- 未選中：右側顯示空圓圈 tap indicator -->
+              <div class="cb-row" style="cursor:pointer"><div class="cb-left"><span style="font-size:22px">🍋</span><span style="font-size:15px;font-weight:600;color:var(--ink)">Ning</span></div><div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--mid)"></div></div>
+              <!-- 已選中：高亮行 + badge + 填滿圓 -->
+              <div class="cb-row" style="background:#FFF7F2;cursor:pointer"><div class="cb-left"><span style="font-size:22px">🐟</span><span style="font-size:15px;font-weight:600;color:var(--ink)">Ziyu</span></div><div style="display:flex;align-items:center;gap:7px"><div style="background:var(--hdr);color:#fff;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700">這是我 ✓</div><div style="width:20px;height:20px;border-radius:50%;background:var(--hdr);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:800">✓</div></div></div>
+              <div class="cb-row" style="cursor:pointer"><div class="cb-left"><span style="font-size:22px">🐵</span><span style="font-size:15px;font-weight:600;color:var(--ink)">Xiu</span></div><div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--mid)"></div></div>
+              <div class="cb-row" style="cursor:pointer"><div class="cb-left"><span style="font-size:22px">🐱</span><span style="font-size:15px;font-weight:600;color:var(--ink)">Mei</span></div><div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--mid)"></div></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:5px;height:40px;color:var(--hdr);font-size:14px;font-weight:700;cursor:pointer;border:1.5px dashed var(--border);border-radius:var(--r12)">＋ 新增成員</div>
+            <!-- G-09 Phase 1.5 佔位 -->
+            <div style="margin-top:6px;padding:8px 12px;border-radius:8px;background:#F0F4FF;border:1.5px dashed #C7D4F5;display:flex;align-items:center;gap:6px">
+              <span style="font-size:10px;font-weight:800;color:#1E3A8A;letter-spacing:.4px">PHASE 1.5</span>
+              <span style="font-size:11px;color:#1E3A8A;opacity:.8">G-09｜預填上趟旅遊成員清單</span>
+            </div>
+          </div>
+          <div class="fsec" style="padding-bottom:34px">
+            <button class="btn-p">建立行程</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-03A Trip Main In Progress -->
+    <div class="scr" id="s03a">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb">
+        <div class="nb-back">‹ 返回</div>
+        <div class="nb-title" style="font-size:14px">北海道四寶團 🏔️</div>
+        <div class="nb-acts">
+          <div class="icon-btn" title="分享">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+          </div>
+          <div class="icon-btn" title="設定">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="sa" style="padding-bottom:130px">
+        <!-- Stats -->
+        <div class="stats">
+          <div class="stats-row">
+            <div>
+              <div class="stat-lbl">全行程</div>
+              <div class="stat-val">82,470</div>
+              <div class="stat-warn">⚠ 含 2 筆待填，僅供參考</div>
+            </div>
+            <div style="text-align:right">
+              <div class="stat-lbl">我的花費</div>
+              <div class="stat-val">18,540</div>
+            </div>
+          </div>
+          <div class="stat-cur">$</div>
+          <div class="mem-row">
+            <div class="mem-chip"><div class="mem-icon">🍋</div><div class="mem-lbl">Ning</div></div>
+            <div class="mem-chip"><div class="mem-icon sel">🐟</div><div class="mem-lbl sel">我</div></div>
+            <div class="mem-chip"><div class="mem-icon">🐵</div><div class="mem-lbl">Xiu</div></div>
+            <div class="mem-chip"><div class="mem-icon">🐱</div><div class="mem-lbl">Mei</div></div>
+          </div>
+        </div>
+        <!-- 行前 -->
+        <div class="day-hd"><div class="day-lbl">行前</div><div class="day-tot">$63,600</div></div>
+        <!-- 機票：共同，4人平分 62,400÷4=15,600 -->
+        <div class="exp"><div class="exp-ico">✈️</div><div class="exp-info"><div class="exp-title">機票</div><div class="exp-meta"><span>🍋</span><span style="color:var(--mid)">每人 $15,600</span></div></div><div class="exp-amts"><div class="exp-twd">62,400</div><div class="exp-fx">刷卡</div></div></div>
+        <!-- eSIM：🐟 自付，不顯示每人 -->
+        <div class="exp"><div class="exp-ico">📶</div><div class="exp-info"><div class="exp-title">eSIM</div><div class="exp-meta"><span>🐟</span><span class="badge badge-type" style="background:#FEF3C7;color:#92400E">自付</span></div></div><div class="exp-amts"><div class="exp-twd">1,200</div><div class="exp-fx">刷卡</div></div></div>
+        <!-- Day 1 -->
+        <div class="day-hd"><div class="day-lbl">Day 1 · 06/14</div><div class="day-tot">$12,680+</div></div>
+        <!-- 午餐：共同，¥8,400÷4=¥2,100 -->
+        <div class="exp"><div class="exp-ico">🍜</div><div class="exp-info"><div class="exp-title">午餐（小樽）</div><div class="exp-meta"><span>🍋</span><span style="color:var(--mid)">每人 ¥2,100</span></div></div><div class="exp-amts"><div class="exp-twd">1,890</div><div class="exp-fx">¥8,400</div></div></div>
+        <!-- JR Pass：待填，不顯示每人 -->
+        <div class="exp pend"><div class="exp-ico">🚃</div><div class="exp-info"><div class="exp-title">JR Pass</div><div class="exp-meta"><span>🍋</span><span class="badge badge-pend">⏳ 台幣待填</span></div></div><div class="exp-amts"><div class="exp-twd pend">待填</div><div class="exp-fx">¥50,000</div></div></div>
+        <!-- 住宿：共同，10,790÷4≈2,698 -->
+        <div class="exp"><div class="exp-ico">🏨</div><div class="exp-info"><div class="exp-title">住宿 Night 1</div><div class="exp-meta"><span>🍋</span><span style="color:var(--mid)">每人 $2,698</span></div></div><div class="exp-amts"><div class="exp-twd">10,790</div><div class="exp-fx">¥48,000</div></div></div>
+        <!-- Day 2 -->
+        <div class="day-hd"><div class="day-lbl">Day 2 · 06/15</div><div class="day-tot">$920+</div></div>
+        <!-- 早餐：共同，920÷4=230 -->
+        <div class="exp"><div class="exp-ico">☕</div><div class="exp-info"><div class="exp-title">早餐</div><div class="exp-meta"><span>🐟</span><span style="color:var(--mid)">每人 $230</span></div></div><div class="exp-amts"><div class="exp-twd">920</div><div class="exp-fx">¥4,100</div></div></div>
+        <div class="exp pend"><div class="exp-ico">🛍️</div><div class="exp-info"><div class="exp-title">Uniqlo 購物</div><div class="exp-meta"><span>🍋</span><span class="badge badge-type">各自</span><span class="badge badge-pend">⏳ 台幣待填</span></div></div><div class="exp-amts"><div class="exp-twd pend">待填</div><div class="exp-fx">¥24,000</div></div></div>
+        <!-- 自付示例：opacity 降低 + 自付 badge，視覺上與分帳項目有所區分 -->
+        <div class="exp" style="opacity:.72"><div class="exp-ico">💊</div><div class="exp-info"><div class="exp-title">藥妝購物（自己用）</div><div class="exp-meta"><span>🐟</span><span class="badge badge-type" style="background:#FEF3C7;color:#92400E">自付</span></div></div><div class="exp-amts"><div class="exp-twd">720</div><div class="exp-fx">¥3,200</div></div></div>
+        <div style="padding:4px 16px;font-size:10px;color:var(--fx);font-style:italic">▲ 自付費用略微淡化（opacity .72）—— 不進入分帳，視覺上與共同/各自明顯有別</div>
+      </div>
+      <div class="fab">＋</div>
+      <div class="btm-bar"><button class="btn-p">前往結算</button></div>
+    </div>
+
+    <!-- S-03B Trip Main Settled -->
+    <div class="scr" id="s03b">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb">
+        <div class="nb-back">‹ 返回</div>
+        <div class="nb-title" style="font-size:14px">濟州島四寶團 🏝️</div>
+        <div class="nb-acts">
+          <div class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+          <div class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+        </div>
+      </div>
+      <div class="sa" style="padding-bottom:130px">
+        <div class="stats">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div class="badge badge-ok">✓ 已結算 · 02/18</div></div>
+          <div class="stats-row">
+            <div><div class="stat-lbl">全行程</div><div class="stat-val">89,240</div></div>
+            <div style="text-align:right"><div class="stat-lbl">我的花費</div><div class="stat-val">22,310</div></div>
+          </div>
+          <div class="stat-cur">$</div>
+          <div class="mem-row">
+            <div class="mem-chip"><div class="mem-icon">🍋</div></div>
+            <div class="mem-chip"><div class="mem-icon sel">🐟</div></div>
+            <div class="mem-chip"><div class="mem-icon">🐵</div></div>
+            <div class="mem-chip"><div class="mem-icon">🐱</div></div>
+          </div>
+        </div>
+        <div class="day-hd"><div class="day-lbl">行前</div><div class="day-tot">$52,400</div></div>
+        <div class="exp" style="opacity:.88"><div class="exp-ico">✈️</div><div class="exp-info"><div class="exp-title">機票</div><div class="exp-meta"><span>🍋</span></div></div><div class="exp-amts"><div class="exp-twd">52,400</div></div></div>
+        <div class="day-hd"><div class="day-lbl">Day 1 · 02/08</div><div class="day-tot">$36,840</div></div>
+        <div class="exp" style="opacity:.88"><div class="exp-ico">🏨</div><div class="exp-info"><div class="exp-title">住宿（5晚）</div><div class="exp-meta"><span>🍋</span></div></div><div class="exp-amts"><div class="exp-twd">32,400</div><div class="exp-fx">₩1,296,000</div></div></div>
+        <div class="exp" style="opacity:.88"><div class="exp-ico">🍗</div><div class="exp-info"><div class="exp-title">炸雞晚餐</div><div class="exp-meta"><span>🐟</span></div></div><div class="exp-amts"><div class="exp-twd">1,240</div><div class="exp-fx">₩50,000</div></div></div>
+      </div>
+      <div class="btm-bar">
+        <div class="btn-row"><button class="btn-s">查看結算</button><button class="btn-p">封存行程</button></div>
+      </div>
+    </div>
+
+    <!-- S-04A Add Expense (共同) -->
+    <div class="scr" id="s04a">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb"><div class="nb-back">‹ 返回</div><div class="nb-title" style="font-size:14px">北海道四寶團 🏔️</div><div class="nb-acts"></div></div>
+      <div style="flex:1;background:var(--bg);opacity:.35"></div>
+      <div class="sheet-bg">
+        <div class="sheet">
+          <div class="sheet-drag"></div>
+          <div class="sheet-hd"><div class="sheet-title">新增消費</div><div class="sheet-x">✕</div></div>
+          <div class="fsec">
+            <div class="emoji-wrap">
+              <div class="ebox">🍜</div>
+              <div class="finput finput-lg">午餐</div>
+            </div>
+            <div style="font-size:11px;color:var(--mid);margin-top:5px;padding-left:66px">自動比對類別，點 emoji 可手動更改</div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">金額</div>
+            <div class="amt-row">
+              <div class="amt-cur">¥</div>
+              <div class="amt-in">8,400</div>
+              <span style="color:var(--mid);font-size:13px">→</span>
+              <div class="amt-in" style="font-size:16px;color:var(--mid)">$ 1,890</div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:5px">
+              <div class="pend-tog">⏳ 台幣稍後補填</div>
+            </div>
+            <div style="font-size:11px;color:var(--fx)">匯率回推：1¥ ≈ $0.225</div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">付款方式 <span style="color:var(--pend);font-size:10px">必填</span></div>
+            <div class="seg"><div class="seg-opt">現金</div><div class="seg-opt on">信用卡</div><div class="seg-opt">儲值卡</div></div>
+            <div style="font-size:11px;color:var(--mid);margin-top:5px">儲值卡：Wowpass、Suica、Icoca 等</div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">備註</div>
+            <div class="finput" style="color:var(--mid)">e.g. 玉山 Pi 卡、Ning 的 Suica…</div>
+          </div>
+          <div class="fsec" style="display:flex;gap:12px">
+            <div style="flex:1"><div class="flbl">日期</div><div class="finput" style="justify-content:center;font-weight:700">06/14 Thu</div></div>
+            <div style="flex:1"><div class="flbl">支付者</div><div class="mem-sel"><div class="mem-sel-chip on">🍋</div><div class="mem-sel-chip">🐟</div><div class="mem-sel-chip">🐵</div><div class="mem-sel-chip">🐱</div></div></div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">費用類型</div>
+            <div class="seg"><div class="seg-opt on">共同</div><div class="seg-opt">各自</div><div class="seg-opt">自付</div></div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">分帳成員</div>
+            <div style="border-radius:var(--r12);border:1.5px solid var(--border);overflow:hidden;margin-bottom:8px">
+              <div class="cb-row"><div class="cb-left"><div class="cb on">✓</div><span style="font-size:19px">🍋</span><span style="font-size:14px;font-weight:600;color:var(--ink)">Ning</span></div></div>
+              <div class="cb-row"><div class="cb-left"><div class="cb on">✓</div><span style="font-size:19px">🐟</span><span style="font-size:14px;font-weight:600;color:var(--ink)">Ziyu</span></div></div>
+              <div class="cb-row"><div class="cb-left"><div class="cb on">✓</div><span style="font-size:19px">🐵</span><span style="font-size:14px;font-weight:600;color:var(--ink)">Xiu</span></div></div>
+              <div class="cb-row"><div class="cb-left"><div class="cb on">✓</div><span style="font-size:19px">🐱</span><span style="font-size:14px;font-weight:600;color:var(--ink)">Mei</span></div></div>
+            </div>
+            <div style="text-align:center;font-size:13px;color:var(--mid)">4 人均分 · 每人 <strong style="color:var(--ink)">¥2,100</strong></div>
+          </div>
+          <div class="fsec" style="padding-bottom:34px"><button class="btn-p">儲存</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-04B Add Expense (各自) -->
+    <div class="scr" id="s04b">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb"><div class="nb-back">‹ 返回</div><div class="nb-title" style="font-size:14px">北海道四寶團 🏔️</div><div class="nb-acts"></div></div>
+      <div style="flex:1;background:var(--bg);opacity:.35"></div>
+      <div class="sheet-bg">
+        <div class="sheet">
+          <div class="sheet-drag"></div>
+          <div class="sheet-hd"><div class="sheet-title">新增消費</div><div class="sheet-x">✕</div></div>
+          <div class="fsec">
+            <div class="emoji-wrap">
+              <div class="ebox">🛍️</div>
+              <div class="finput finput-lg">Uniqlo 購物</div>
+            </div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">金額</div>
+            <div class="amt-row">
+              <div class="amt-cur">¥</div>
+              <div class="amt-in">24,000</div>
+              <div class="pend-tog">⏳ 台幣稍後補填</div>
+            </div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">付款方式 <span style="color:var(--pend);font-size:10px">必填</span></div>
+            <div class="seg"><div class="seg-opt">現金</div><div class="seg-opt on">信用卡</div><div class="seg-opt">儲值卡</div></div>
+            <div style="font-size:11px;color:var(--mid);margin-top:5px">儲值卡：Wowpass、Suica、Icoca 等</div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">備註</div>
+            <div class="finput" style="color:var(--mid)">e.g. 玉山 Pi 卡、Ning 的 Suica…</div>
+          </div>
+          <div class="fsec" style="display:flex;gap:12px">
+            <div style="flex:1"><div class="flbl">日期</div><div class="finput" style="justify-content:center;font-weight:700">06/15 Fri</div></div>
+            <div style="flex:1"><div class="flbl">支付者</div><div class="mem-sel"><div class="mem-sel-chip on">🍋</div><div class="mem-sel-chip">🐟</div><div class="mem-sel-chip">🐵</div><div class="mem-sel-chip">🐱</div></div></div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">費用類型</div>
+            <div class="seg"><div class="seg-opt">共同</div><div class="seg-opt on">各自</div><div class="seg-opt">自付</div></div>
+          </div>
+          <!-- 各自展開模式 -->
+          <div class="fsec">
+            <div class="flbl">各人金額</div>
+            <!-- 加總比對列（固定在頂部） -->
+            <div style="background:#FFF7F2;border-radius:10px;padding:8px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;border:1.5px solid #FDDCB5">
+              <span style="font-size:12px;color:var(--mid);font-weight:600">已填加總</span>
+              <span style="font-size:14px;font-weight:800;color:var(--pend)">¥23,500 / ¥24,000</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <span style="font-size:20px">🍋</span>
+              <div class="amt-in" style="flex:1;font-size:17px">8,000</div>
+              <span style="font-size:12px;color:var(--mid);min-width:24px">¥</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <span style="font-size:20px">🐟</span>
+              <div class="amt-in" style="flex:1;font-size:17px">6,500</div>
+              <span style="font-size:12px;color:var(--mid);min-width:24px">¥</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <span style="font-size:20px">🐵</span>
+              <div class="amt-in" style="flex:1;font-size:17px">5,000</div>
+              <span style="font-size:12px;color:var(--mid);min-width:24px">¥</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <span style="font-size:20px">🐱</span>
+              <div class="amt-in" style="flex:1;border-color:var(--pend);font-size:17px;color:var(--mid)">待填...</div>
+              <span style="font-size:12px;color:var(--mid);min-width:24px">¥</span>
+            </div>
+            <div style="background:#FFF7F2;border-radius:9px;padding:8px 12px;font-size:12px;color:var(--pend);font-weight:600">⚠ 差額 ¥500，允許儲存（模糊分帳）</div>
+          </div>
+          <div class="fsec" style="padding-bottom:34px"><button class="btn-p">儲存</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-05 Settlement -->
+    <div class="scr" id="s05">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb"><div class="nb-back">‹ 返回</div><div class="nb-title">結算</div><div class="nb-acts"></div></div>
+      <div class="sa" style="padding-bottom:105px">
+        <div style="padding:12px 12px 0">
+          <div style="background:var(--card);border-radius:var(--r16);padding:14px;margin-bottom:10px;box-shadow:0 2px 10px rgba(28,10,0,.07)">
+            <div style="font-size:13px;color:var(--mid);margin-bottom:5px">北海道四寶團 · 2025/06/14–06/21</div>
+            <div style="font-size:26px;font-weight:800;color:var(--ink);letter-spacing:-.5px">$132,400</div>
+            <div style="font-size:12px;color:var(--mid);margin-top:2px">全行程總支出（台幣）</div>
+          </div>
+        </div>
+        <div class="sett-card">
+          <div style="font-size:10px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">應收 / 應付</div>
+          <div class="sett-row">
+            <div class="sett-who"><div class="sett-emo">🍋</div><div><div class="sett-name">Ning</div><div class="sett-role">大家付給她</div></div></div>
+            <div><div class="sett-amt r">＋82,470</div><div class="sett-note">應收 $</div></div>
+          </div>
+          <div class="sett-row">
+            <div class="sett-who"><div class="sett-emo">🐟</div><div><div class="sett-name">Ziyu（我）</div><div class="sett-role">應付給 Ning</div></div></div>
+            <div><div class="sett-amt p">－18,540</div><div class="sett-note">應付 $</div><div class="badge badge-ok" style="margin-top:5px">✓ 已付清</div></div>
+          </div>
+          <div class="sett-row">
+            <div class="sett-who"><div class="sett-emo">🐵</div><div><div class="sett-name">Xiu</div><div class="sett-role">應付給 Ning</div></div></div>
+            <div><div class="sett-amt p">－32,490</div><div class="sett-note">應付 $</div><button class="mark-btn">標記付清</button></div>
+          </div>
+          <div class="sett-row">
+            <div class="sett-who"><div class="sett-emo">🐱</div><div><div class="sett-name">Mei</div><div class="sett-role">應付給 Ning</div></div></div>
+            <div><div class="sett-amt p">－31,440</div><div class="sett-note">應付 $</div><button class="mark-btn">標記付清</button></div>
+          </div>
+        </div>
+        <div class="acc">
+          <div class="acc-hd"><div class="acc-title">計算依據</div><div class="acc-toggle">展開 ▾</div></div>
+          <div class="acc-body">
+            <div class="acc-line"><span>🍋 Ning 實付</span><span>$115,660</span></div>
+            <div class="acc-line"><span>🍋 Ning 應分攤</span><span>$33,190</span></div>
+            <div style="border-top:1px dashed var(--border);margin:4px 0"></div>
+            <div class="acc-line"><span>🐟 Ziyu 實付</span><span>$1,200</span></div>
+            <div class="acc-line"><span>🐟 Ziyu 應分攤</span><span>$19,740</span></div>
+            <div style="border-top:1px dashed var(--border);margin:4px 0"></div>
+            <div class="acc-line"><span>🐵 Xiu 實付</span><span>$0</span></div>
+            <div class="acc-line"><span>🐵 Xiu 應分攤</span><span>$32,490</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="btm-bar"><button class="btn-s">📋 複製結算摘要</button></div>
+    </div>
+
+    <!-- S-06 Read-only Share -->
+    <div class="scr" id="s06">
+      <div style="height:44px;background:var(--hdr)"></div>
+      <div class="share-hd">
+        <div class="share-emo">🏔️</div>
+        <div class="share-name">北海道四寶團</div>
+        <div class="share-meta">2025/06/14 – 06/21 &nbsp;·&nbsp; 🍋🐟🐵🐱</div>
+      </div>
+      <div class="sa" style="padding-bottom:32px">
+        <div style="padding:12px">
+          <div style="background:var(--card);border-radius:var(--r16);padding:16px;box-shadow:0 2px 10px rgba(28,10,0,.07)">
+            <div style="font-size:10px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">結算摘要</div>
+            <div style="font-size:14px;color:var(--ink);line-height:2.1">
+              <div>🍋 Ning &nbsp;應收 <strong>$82,470</strong></div>
+              <div>🐟 Ziyu &nbsp;應付 <strong style="color:var(--pend)">$18,540</strong> → Ning</div>
+              <div>🐵 Xiu &nbsp;&nbsp;應付 <strong style="color:var(--pend)">$32,490</strong> → Ning</div>
+              <div>🐱 Mei &nbsp;&nbsp;應付 <strong style="color:var(--pend)">$31,440</strong> → Ning</div>
+            </div>
+          </div>
+        </div>
+        <div class="day-hd"><div class="day-lbl">行前</div><div class="day-tot">$63,600</div></div>
+        <div class="exp"><div class="exp-ico">✈️</div><div class="exp-info"><div class="exp-title">機票</div><div class="exp-meta"><span>🍋</span></div></div><div class="exp-amts"><div class="exp-twd">62,400</div></div></div>
+        <div class="exp"><div class="exp-ico">📶</div><div class="exp-info"><div class="exp-title">eSIM</div><div class="exp-meta"><span>🐟</span></div></div><div class="exp-amts"><div class="exp-twd">1,200</div></div></div>
+        <div class="day-hd"><div class="day-lbl">Day 1 · 06/14</div><div class="day-tot">$12,680</div></div>
+        <div class="exp"><div class="exp-ico">🍜</div><div class="exp-info"><div class="exp-title">午餐（小樽）</div><div class="exp-meta"><span>🍋</span></div></div><div class="exp-amts"><div class="exp-twd">1,890</div><div class="exp-fx">¥8,400</div></div></div>
+        <!-- G-06 頁尾下載 CTA 強化區塊 -->
+        <div style="margin:16px 16px 16px;border-radius:16px;background:var(--hdr);padding:20px;max-height:160px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">✈️</div>
+            <div>
+              <div style="font-size:18px;font-weight:800;color:#fff">Tripay</div>
+              <div style="font-size:13px;color:rgba(255,255,255,.75)">每一趟，都記得</div>
+            </div>
+          </div>
+          <div style="border-top:1px solid rgba(255,255,255,.15);margin-bottom:14px"></div>
+          <button style="width:100%;height:48px;border-radius:12px;background:#fff;color:var(--hdr);font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:var(--font)">想自己記帳？免費下載 Tripay</button>
+          <div style="margin-top:6px;font-size:9px;font-weight:800;color:rgba(255,255,255,.5);letter-spacing:.4px;text-align:center">▲ G-06｜Growth Phase 1：分享頁引導下載</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-01-E Empty State (First Use) -->
+    <div class="scr" id="s01e">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb">
+        <div class="nb-title">旅遊分帳</div>
+        <div class="nb-acts">
+          <div class="icon-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="sa">
+        <div class="empty-state">
+          <div class="empty-ico">✈️</div>
+          <div class="empty-title">開始你的第一趟旅程</div>
+          <div class="empty-sub">建立行程、記下每一筆消費，<br>回來後自動幫你算清楚誰欠誰。</div>
+          <button class="btn-p" style="font-size:15px;padding:14px 28px">＋ 新增行程</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-03-E Empty Trip (New Trip, No Expenses) -->
+    <div class="scr" id="s03e">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb">
+        <div class="nb-back">‹ 返回</div>
+        <div class="nb-title">北海道四寶團 🏔️</div>
+        <div class="nb-acts">
+          <div class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></div>
+          <div class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
+        </div>
+      </div>
+      <div class="sa">
+        <div class="stats">
+          <div class="stats-row">
+            <div><div class="stat-lbl">我的開支</div><div class="stat-val" style="font-size:18px;color:var(--fx)">—</div></div>
+            <div style="text-align:right"><div class="stat-lbl">總支出</div><div class="stat-val" style="font-size:18px;color:var(--fx)">—</div></div>
+          </div>
+          <div style="font-size:10px;color:var(--fx);margin-bottom:8px">記第一筆後顯示金額</div>
+          <div style="border-top:1px solid var(--border);margin:8px 0 10px"></div>
+          <div style="display:flex;gap:12px">
+            <div class="mem-chip"><div class="mem-icon sel">🐟</div><div class="mem-lbl sel">我</div></div>
+            <div class="mem-chip"><div class="mem-icon">🍋</div></div>
+            <div class="mem-chip"><div class="mem-icon">🐵</div></div>
+            <div class="mem-chip"><div class="mem-icon">🐱</div></div>
+          </div>
+        </div>
+        <div class="empty-state" style="padding:28px 32px 48px">
+          <div class="empty-ico" style="font-size:44px">🧾</div>
+          <div class="empty-title" style="font-size:16px">還沒有任何消費</div>
+          <div class="empty-sub" style="font-size:13px">點右下角 ＋ 開始記第一筆帳<br><span style="color:var(--fx)">出發前的費用歸到「行前」區段</span></div>
+        </div>
+      </div>
+      <div class="fab">＋</div>
+    </div>
+
+    <!-- S-03-SHARE Share Action Sheet -->
+    <div class="scr" id="s03share">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb">
+        <div class="nb-back">‹ 返回</div>
+        <div class="nb-title">北海道四寶團 🏔️</div>
+        <div class="nb-acts">
+          <div class="icon-btn" style="background:rgba(255,255,255,.2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></div>
+          <div class="icon-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
+        </div>
+      </div>
+      <div style="flex:1;background:rgba(0,0,0,.4);position:relative">
+        <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg);border-radius:24px 24px 0 0;padding:12px 0 28px">
+          <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px"></div>
+          <div style="font-size:13px;font-weight:800;color:var(--mid);text-align:center;margin-bottom:14px;letter-spacing:.4px">分享 · 北海道四寶團</div>
+          <div style="display:flex;align-items:center;gap:14px;padding:13px 20px;cursor:pointer">
+            <div style="width:40px;height:40px;background:var(--chip);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--hdr)" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></div>
+            <div><div style="font-size:15px;font-weight:600;color:var(--ink)">複製結算文字</div><div style="font-size:12px;color:var(--mid);margin-top:1px">貼到 LINE 群組</div></div>
+            <svg style="margin-left:auto" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fx)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:13px 20px;cursor:pointer">
+            <div style="width:40px;height:40px;background:var(--chip);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--hdr)" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+            <div><div style="font-size:15px;font-weight:600;color:var(--ink)">複製分享連結</div><div style="font-size:12px;color:var(--mid);margin-top:1px">任何人免登入可看</div></div>
+            <svg style="margin-left:auto" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fx)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:13px 20px;cursor:pointer">
+            <div style="width:40px;height:40px;background:var(--chip);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--hdr)" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <div><div style="font-size:15px;font-weight:600;color:var(--ink)">預覽分享頁</div><div style="font-size:12px;color:var(--mid);margin-top:1px">在瀏覽器中開啟</div></div>
+            <svg style="margin-left:auto" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fx)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div style="margin:10px 16px 0"><button class="btn-s" style="width:100%;background:transparent;border:1.5px solid var(--border);color:var(--mid)">取消</button></div>
+        </div>
+      </div>
+      <!-- toast示意 -->
+      <div class="toast" style="bottom:auto;top:auto;display:none" id="copyToast">✓ 已複製到剪貼板</div>
+    </div>
+
+    <!-- S-05-WARN Settlement Warning (pending items exist) -->
+    <div class="scr" id="s05warn">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb"><div class="nb-back">‹ 返回</div><div class="nb-title">結算</div><div class="nb-acts"></div></div>
+      <div class="warn-banner">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div class="warn-text"><strong>仍有 2 筆待填金額</strong>，結算結果以 $0 計入，數字僅供參考。<br><span style="font-size:11px;opacity:.8">可返回補填後再結算，或繼續以目前數字結算。</span></div>
+      </div>
+      <div class="sa">
+        <div style="padding:12px 12px 4px;font-size:11px;font-weight:700;color:var(--pend);text-transform:uppercase;letter-spacing:.5px">待填消費（2 筆）</div>
+        <div class="exp pend" style="margin:0 12px 6px;border-radius:var(--r12);background:var(--pend-bg)">
+          <div class="exp-ico">🛍️</div>
+          <div class="exp-info"><div class="exp-title">Uniqlo 購物</div><div class="exp-meta"><span>🍋</span><span class="badge badge-type">各自</span><span class="badge badge-pend">⏳ 各自金額待填</span></div></div>
+          <div class="exp-amts"><div class="exp-twd" style="color:var(--pend)">—</div></div>
+        </div>
+        <div class="exp pend" style="margin:0 12px 6px;border-radius:var(--r12);background:var(--pend-bg)">
+          <div class="exp-ico">💊</div>
+          <div class="exp-info"><div class="exp-title">藥妝店</div><div class="exp-meta"><span>🍋</span><span class="badge badge-pend">⏳ 台幣待填</span></div></div>
+          <div class="exp-amts"><div class="exp-twd" style="color:var(--pend)">—</div></div>
+        </div>
+        <div style="margin:20px 12px">
+          <button class="btn-p" style="width:100%;margin-bottom:10px">← 返回補填</button>
+          <button class="btn-s" style="width:100%;color:var(--pend);border-color:var(--pend)">繼續結算（含⚠估算數字）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-05-DONE All Paid Completion -->
+    <div class="scr" id="s05done">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb"><div class="nb-back">‹ 返回</div><div class="nb-title">結算</div><div class="nb-acts"></div></div>
+      <div class="sa">
+        <div class="done-state">
+          <div class="done-spark">✨</div>
+          <div class="done-title">全員結清！</div>
+          <div class="done-sub">北海道四寶團 · $116,860<br>所有成員均已標記付清</div>
+          <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px">
+            <button class="btn-p">📦 封存行程</button>
+            <button class="btn-p" style="background:#15803D">＋ 建立新行程</button>
+            <button class="btn-s">📋 複製結算摘要</button>
+          </div>
+          <!-- G-07 Phase 1 -->
+          <div style="margin-top:8px;font-size:10px;color:#15803D;font-weight:700;letter-spacing:.4px">▲ G-07｜Growth Phase 1：結算完成後直接引導下一趟旅遊</div>
+        </div>
+        <!-- G-08 旅程 Highlights 數據卡 -->
+        <div style="margin:0 16px 12px;background:var(--chip);border-radius:var(--r16);padding:16px">
+          <div style="font-size:10px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">這趟的紀錄</div>
+          <div style="display:flex;align-items:stretch">
+            <div style="flex:1;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--ink)">8<span style="font-size:12px;font-weight:600;color:var(--mid)"> 天</span></div>
+              <div style="font-size:10px;font-weight:600;color:var(--mid);margin-top:2px">出遊</div>
+            </div>
+            <div style="width:1px;background:var(--border);margin:0 4px"></div>
+            <div style="flex:1;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--ink)">34<span style="font-size:12px;font-weight:600;color:var(--mid)"> 筆</span></div>
+              <div style="font-size:10px;font-weight:600;color:var(--mid);margin-top:2px">共記了</div>
+            </div>
+            <div style="width:1px;background:var(--border);margin:0 4px"></div>
+            <div style="flex:1;text-align:center">
+              <div style="font-size:17px;font-weight:800;color:var(--ink)">32,490 <span style="font-size:11px;font-weight:600;color:var(--mid)">$</span></div>
+              <div style="font-size:10px;font-weight:600;color:var(--mid);margin-top:2px">最大手筆</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:9px;font-weight:800;color:var(--mid);letter-spacing:.4px;text-align:center;opacity:.7">▲ G-08｜Growth Phase 1：旅程亮點數據</div>
+        </div>
+        <div style="margin:0 16px 28px;background:var(--ok-bg);border-radius:var(--r16);padding:16px">
+          <div style="font-size:10px;font-weight:800;color:var(--ok);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">最終結算</div>
+          <div style="font-size:14px;color:var(--ink);line-height:2.1">
+            <div>🍋 Ning &nbsp;應收 <strong>$82,470</strong> &nbsp;<span style="color:var(--ok);font-size:12px">✓ 已收清</span></div>
+            <div>🐟 Ziyu &nbsp;已付 <strong>$18,540</strong> &nbsp;<span style="color:var(--ok);font-size:12px">✓ 已付清</span></div>
+            <div>🐵 Xiu &nbsp;&nbsp;已付 <strong>$32,490</strong> &nbsp;<span style="color:var(--ok);font-size:12px">✓ 已付清</span></div>
+            <div>🐱 Mei &nbsp;&nbsp;已付 <strong>$31,440</strong> &nbsp;<span style="color:var(--ok);font-size:12px">✓ 已付清</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-04C Add Expense (自付) -->
+    <div class="scr" id="s04c">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb"><div class="nb-back">‹ 返回</div><div class="nb-title" style="font-size:14px">北海道四寶團 🏔️</div><div class="nb-acts"></div></div>
+      <div style="flex:1;background:var(--bg);opacity:.35"></div>
+      <div class="sheet-bg">
+        <div class="sheet">
+          <div class="sheet-drag"></div>
+          <div class="sheet-hd"><div class="sheet-title">新增消費</div><div class="sheet-x">✕</div></div>
+          <div class="fsec">
+            <div class="emoji-wrap">
+              <div class="ebox">💊</div>
+              <div class="finput finput-lg">藥妝店</div>
+            </div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">金額</div>
+            <div class="amt-row">
+              <div class="amt-cur">¥</div>
+              <div class="amt-in">3,200</div>
+              <span style="color:var(--mid);font-size:13px">→</span>
+              <div class="amt-in" style="font-size:16px;color:var(--mid)">$ 720</div>
+            </div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">付款方式 <span style="color:var(--pend);font-size:10px">必填</span></div>
+            <div class="seg"><div class="seg-opt on">現金</div><div class="seg-opt">信用卡</div><div class="seg-opt">儲值卡</div></div>
+          </div>
+          <div class="fsec" style="display:flex;gap:12px">
+            <div style="flex:1"><div class="flbl">日期</div><div class="finput" style="justify-content:center;font-weight:700">06/15 Fri</div></div>
+            <div style="flex:1"><div class="flbl">誰請客？</div><div class="mem-sel"><div class="mem-sel-chip on">🐟</div><div class="mem-sel-chip">🍋</div><div class="mem-sel-chip">🐵</div><div class="mem-sel-chip">🐱</div></div></div>
+          </div>
+          <div class="fsec">
+            <div class="flbl">費用類型</div>
+            <div class="seg"><div class="seg-opt">共同</div><div class="seg-opt">各自</div><div class="seg-opt on">自付</div></div>
+          </div>
+          <!-- 自付模式說明 -->
+          <div class="fsec">
+            <div style="background:#FFF7ED;border-radius:12px;border:1.5px solid #FDDCB5;padding:12px 14px">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+                <span style="font-size:14px">🧍</span>
+                <span style="font-size:13px;font-weight:700;color:var(--pend)">這筆不分帳</span>
+              </div>
+              <div style="font-size:12px;color:var(--mid);line-height:1.6">這筆費用只記給自己，不進入任何分帳計算。<br>適合紀念品、個人藥品，或不想讓大家一起分的花費。</div>
+            </div>
+            <div style="margin-top:6px;font-size:9px;font-weight:800;color:var(--pend);letter-spacing:.4px;text-align:center">▲ 自付費用不列入結算，對分帳無影響</div>
+          </div>
+          <div class="fsec" style="padding-bottom:34px"><button class="btn-p">記下來</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-02-CUR 幣別選擇 -->
+    <div class="scr" id="s02cur">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb"><div class="nb-back">‹ 返回</div><div class="nb-title">我的旅遊</div><div class="nb-acts"><div class="icon-btn">👤</div></div></div>
+      <div style="flex:1;background:var(--bg);opacity:.35"></div>
+      <div class="sheet-bg">
+        <div class="sheet">
+          <div class="sheet-drag"></div>
+          <div class="sheet-hd"><div class="sheet-title">選擇幣別</div><div class="sheet-x">✕</div></div>
+          <!-- 搜尋列 -->
+          <div class="fsec">
+            <div style="height:44px;border-radius:var(--r12);border:1.5px solid var(--border);background:var(--chip);padding:0 14px;display:flex;align-items:center;gap:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mid)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <span style="color:var(--fx);font-size:14px">搜尋幣別或國家</span>
+            </div>
+          </div>
+          <!-- 常用幣別 -->
+          <div style="padding:4px 16px 6px;font-size:10px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.6px">常用</div>
+          <div style="border-top:1px solid var(--border)">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:#FFF2EC">
+              <div><div style="font-size:15px;font-weight:700;color:var(--ink)">¥ 日幣（JPY）</div><div style="font-size:12px;color:var(--mid);margin-top:1px">日本</div></div>
+              <div style="color:var(--hdr);font-size:16px;font-weight:800">✓</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)">
+              <div><div style="font-size:15px;font-weight:700;color:var(--ink)">₩ 韓幣（KRW）</div><div style="font-size:12px;color:var(--mid);margin-top:1px">韓國</div></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)">
+              <div><div style="font-size:15px;font-weight:700;color:var(--ink)">$ 美金（USD）</div><div style="font-size:12px;color:var(--mid);margin-top:1px">美國</div></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)">
+              <div><div style="font-size:15px;font-weight:700;color:var(--ink)">€ 歐元（EUR）</div><div style="font-size:12px;color:var(--mid);margin-top:1px">歐洲</div></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px">
+              <div><div style="font-size:15px;font-weight:700;color:var(--ink)">$ 港幣（HKD）</div><div style="font-size:12px;color:var(--mid);margin-top:1px">香港</div></div>
+            </div>
+          </div>
+          <div style="padding:4px 16px 6px;font-size:10px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;border-top:1px solid var(--border);margin-top:8px">更多幣別</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-02-EMO Emoji 選擇器 -->
+    <div class="scr" id="s02emo">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb"><div class="nb-back">‹ 返回</div><div class="nb-title">我的旅遊</div><div class="nb-acts"><div class="icon-btn">👤</div></div></div>
+      <div style="flex:1;background:var(--bg);opacity:.35"></div>
+      <div class="sheet-bg">
+        <div class="sheet">
+          <div class="sheet-drag"></div>
+          <div class="sheet-hd"><div class="sheet-title">選一個封面</div><div class="sheet-x">✕</div></div>
+          <!-- 自訂輸入 -->
+          <div class="fsec" style="padding-bottom:10px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="height:46px;flex:1;border-radius:var(--r12);border:1.5px solid var(--border);background:var(--chip);padding:0 14px;display:flex;align-items:center;gap:8px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mid)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <span style="color:var(--fx);font-size:14px">搜尋或貼上任何 emoji</span>
+              </div>
+              <div style="width:46px;height:46px;border-radius:var(--r12);border:1.5px dashed var(--border);background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--mid);text-align:center;line-height:1.3;cursor:pointer">自訂<br>貼上</div>
+            </div>
+          </div>
+          <div style="padding:0 16px 8px;font-size:10px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.6px">旅遊 ✈️</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:0 16px 14px">
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;border:2px solid var(--hdr)">🏔️</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🏖️</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🗼</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🗻</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🏝️</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🌺</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🌸</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">⛩️</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🍜</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🍣</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🏯</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🎎</div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding:8px 16px 6px;font-size:10px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.6px">成員</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:0 16px 14px">
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🍋</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🐟</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🐵</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🐱</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🌷</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer">🌸</div>
+          </div>
+          <div class="fsec" style="padding-bottom:34px">
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--chip);border-radius:var(--r12);padding:12px 14px;margin-bottom:12px">
+              <span style="font-size:13px;color:var(--mid)">目前選擇</span>
+              <span style="font-size:28px">🏔️</span>
+            </div>
+            <button class="btn-p">確認</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-02-DATE 日期選擇器 -->
+    <div class="scr" id="s02date">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb"><div class="nb-back">‹ 返回</div><div class="nb-title">我的旅遊</div><div class="nb-acts"><div class="icon-btn">👤</div></div></div>
+      <div style="flex:1;background:var(--bg);opacity:.35"></div>
+      <div class="sheet-bg">
+        <div class="sheet">
+          <div class="sheet-drag"></div>
+          <div class="sheet-hd"><div class="sheet-title">旅遊日期</div><div class="sheet-x">✕</div></div>
+          <!-- 出發 / 回程 tab -->
+          <div style="padding:0 16px 12px">
+            <div style="display:flex;gap:0;background:var(--chip);border-radius:10px;padding:3px">
+              <div style="flex:1;height:38px;border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--ink);box-shadow:0 1px 5px rgba(0,0,0,.1)">出發 06/14</div>
+              <div style="flex:1;height:38px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--mid)">回程 06/21</div>
+            </div>
+          </div>
+          <!-- 月份導覽 -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px 10px">
+            <div style="font-size:17px;font-weight:800;color:var(--ink)">2025 年 6 月</div>
+            <div style="display:flex;gap:6px">
+              <div style="width:32px;height:32px;border-radius:8px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--mid);cursor:pointer">‹</div>
+              <div style="width:32px;height:32px;border-radius:8px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--mid);cursor:pointer">›</div>
+            </div>
+          </div>
+          <!-- 星期列 -->
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);padding:0 16px;margin-bottom:6px">
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--mid);padding:4px 0">日</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--mid);padding:4px 0">一</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--mid);padding:4px 0">二</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--mid);padding:4px 0">三</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--mid);padding:4px 0">四</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:var(--mid);padding:4px 0">五</div>
+            <div style="text-align:center;font-size:11px;font-weight:700;color:#DC2626;padding:4px 0">六</div>
+          </div>
+          <!-- 日期格 -->
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);padding:0 16px;gap:2px;margin-bottom:8px">
+            <!-- Week 1: 空格+1,2,3,4,5,6,7 -->
+            <div></div><div></div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--mid)">1</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--mid)">2</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--mid)">3</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--mid)">4</div><div style="text-align:center;padding:7px 0;font-size:14px;color:#DC2626">5</div>
+            <!-- Week 2 -->
+            <div style="text-align:center;padding:7px 0;font-size:14px;color:var(--mid)">6</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">7</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">8</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">9</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">10</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">11</div><div style="text-align:center;padding:7px 0;font-size:14px;color:#DC2626">12</div>
+            <!-- Week 3: 14選取 -->
+            <div style="text-align:center;padding:7px 0;font-size:14px;color:var(--mid)">13</div>
+            <div style="position:relative;text-align:center;padding:7px 0">
+              <div style="position:absolute;inset:0;background:var(--hdr);border-radius:8px 0 0 8px"></div>
+              <span style="position:relative;font-size:14px;font-weight:700;color:#fff">14</span>
+            </div>
+            <div style="position:relative;text-align:center;padding:7px 0;background:#FFEEE5">
+              <span style="font-size:14px;color:var(--hdr)">15</span>
+            </div>
+            <div style="position:relative;text-align:center;padding:7px 0;background:#FFEEE5">
+              <span style="font-size:14px;color:var(--hdr)">16</span>
+            </div>
+            <div style="position:relative;text-align:center;padding:7px 0;background:#FFEEE5">
+              <span style="font-size:14px;color:var(--hdr)">17</span>
+            </div>
+            <div style="position:relative;text-align:center;padding:7px 0;background:#FFEEE5">
+              <span style="font-size:14px;color:var(--hdr)">18</span>
+            </div>
+            <div style="position:relative;text-align:center;padding:7px 0">
+              <span style="font-size:14px;color:#DC2626">19</span>
+            </div>
+            <!-- Week 4 -->
+            <div style="text-align:center;padding:7px 0;font-size:14px;color:var(--mid)">20</div>
+            <div style="position:relative;text-align:center;padding:7px 0">
+              <div style="position:absolute;inset:0;background:var(--hdr);border-radius:0 8px 8px 0"></div>
+              <span style="position:relative;font-size:14px;font-weight:700;color:#fff">21</span>
+            </div>
+            <div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">22</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">23</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">24</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">25</div><div style="text-align:center;padding:7px 0;font-size:14px;color:#DC2626">26</div>
+            <!-- Week 5 -->
+            <div style="text-align:center;padding:7px 0;font-size:14px;color:var(--mid)">27</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">28</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">29</div><div style="text-align:center;padding:7px 0;font-size:14px;color:var(--ink)">30</div>
+          </div>
+          <!-- 選擇結果 + 確認 -->
+          <div style="margin:0 16px;padding:10px 14px;background:var(--chip);border-radius:var(--r12);display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div><div style="font-size:10px;font-weight:700;color:var(--mid)">出發 → 回程</div><div style="font-size:14px;font-weight:700;color:var(--ink)">06/14 → 06/21 &nbsp;<span style="font-size:12px;color:var(--mid);font-weight:500">共 8 天</span></div></div>
+          </div>
+          <div class="fsec" style="padding-bottom:34px"><button class="btn-p">確認</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-07 Settings -->
+    <div class="scr" id="s07">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb"><div class="nb-back">‹ 返回</div><div class="nb-title">個人設定</div><div class="nb-acts"></div></div>
+      <div class="sa">
+        <div class="settings-av">🐟</div>
+        <div class="settings-nm">Ziyu</div>
+        <div class="settings-em">msziyu@gmail.com</div>
+        <div style="margin:0 12px;border-radius:var(--r16);overflow:hidden;box-shadow:0 2px 10px rgba(28,10,0,.07)">
+          <div class="set-item"><div class="set-lbl">Google 帳號連結</div><div class="set-val">✓ 已連結</div></div>
+          <div class="set-item"><div class="set-lbl">App 版本</div><div class="set-val">v1.0.0</div></div>
+          <div class="set-item" style="border-bottom:none"><div class="set-lbl danger">登出</div><div style="font-size:16px;color:#DC2626">→</div></div>
+        </div>
+      </div>
+    </div>
+    <!-- S-02MEM 新增成員 -->
+    <div class="scr" id="s02mem">
+      <div class="sbar dark">9:41<div class="sbar-r">●●●  WiFi  🔋</div></div>
+      <div class="nb dark"><div class="nb-back" style="color:#fff">✕ 取消</div><div class="nb-title" style="color:#fff">加一個人</div><div class="nb-acts"><div class="icon-btn" style="color:#fff;font-size:14px;font-weight:700">完成</div></div></div>
+      <div class="sa" style="background:var(--bg)">
+        <!-- 姓名輸入 -->
+        <div class="fsec" style="padding:16px 16px 0">
+          <div class="flbl">成員名稱</div>
+          <div class="finput" style="gap:10px">
+            <span style="font-size:22px">🍋</span>
+            <input style="border:none;background:transparent;font-size:16px;font-weight:600;color:var(--ink);flex:1;outline:none" placeholder="叫什麼名字？" value="Ning">
+          </div>
+          <div style="font-size:10px;color:var(--fx);margin-top:5px">最多 10 個字</div>
+        </div>
+
+        <!-- Emoji 選擇（簡版 inline） -->
+        <div class="fsec" style="padding:16px 16px 0">
+          <div class="flbl">選一個代表 emoji</div>
+          <!-- 目前選中（輕量行內顯示） -->
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;border-radius:10px;background:#FFF7F2;border:1px solid #FDDCB5">
+            <div style="width:36px;height:36px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:22px">🍋</div>
+            <div style="font-size:12px;color:var(--fx);font-weight:600">目前選擇</div>
+            <div style="margin-left:auto;font-size:12px;color:var(--hdr);font-weight:600;cursor:pointer">更換 ›</div>
+          </div>
+          <!-- 快選 grid -->
+          <div style="font-size:11px;color:var(--mid);font-weight:600;margin-bottom:8px;letter-spacing:.5px">大家常用</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px">
+            <!-- 選中：深色邊框 -->
+            <div style="aspect-ratio:1;border-radius:12px;background:#FFF7F2;border:2px solid var(--hdr);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">🍋</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">🐟</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">🐵</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">🐱</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">🌷</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">🌸</div>
+          </div>
+          <div style="font-size:11px;color:var(--mid);font-weight:600;margin-bottom:8px;letter-spacing:.5px">旅遊風格</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px">
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">🏔️</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">🌺</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">🍜</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">☕</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">✈️</div>
+            <div style="aspect-ratio:1;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer">🎒</div>
+          </div>
+          <!-- 更多入口 -->
+          <div style="text-align:center;font-size:12px;color:var(--fx);font-weight:600;cursor:pointer;padding:10px 0;border-top:1px solid var(--border)">瀏覽全部 Emoji →</div>
+        </div>
+
+        <!-- 儲存 -->
+        <div class="fsec" style="padding:16px 16px 32px">
+          <button class="btn-p">加進來</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Aria Notes -->
+<div class="aria-wrap" id="aria-wrap">
+  <div class="aria-title" id="aria-title">🎨 Aria 審查備注｜S-00 登入頁</div>
+  <div id="aria-body"></div>
+</div>
+
+<!-- Interaction Annotations -->
+<div class="ixn-wrap" id="ixn-wrap">
+  <div class="ixn-title" id="ixn-title">🔵 互動標注｜S-00 登入頁</div>
+  <div id="ixn-body"></div>
+</div>
+
+<!-- PM Scope Confirmation -->
+<div class="pm-wrap" id="pm-wrap">
+  <div class="pm-title" id="pm-title">✅ PM 範疇確認｜S-00 登入頁</div>
+  <div id="pm-body"></div>
+</div>
+
+<script>
+/* ── Aria review notes ── */
+const aria = {
+  s00:['✅ 暖棕全屏符合旅遊日記敘事核心','✅ Google 登入按鈕白底，符合 Google 品牌規範','🔶 App 名稱待定，wireframe 暫用「旅遊分帳」佔位','🔶 App icon/logo 待設計，暫以 ✈️ emoji 佔位'],
+  s01:['✅ 行程照片卡片設計 — 旅遊日記敘事感，符合視覺方向定案','✅ 四種狀態（準備旅遊/旅遊中/已結算/封存）均有獨立色彩識別，backdrop blur badge','✅ 分組 section header（進行中/已結算/封存），視覺分層清晰','✅ 封存行程降飽和 + 「解除封存」link（決策 B 已確認）','✅ 無 emoji 成員替代方案：首字字母彩色圓形頭像（待 Aria 精修）','🔶 照片目前為 CSS gradient 佔位，Rozi 提供的四張照片需在精修階段套入','🔶 Google 大頭貼右上角，Phase 1 以 emoji 佔位','📊 卡片金額說明：tc-tot（右下角 $ 數字）= SELECT SUM(amount_twd) FROM expenses WHERE trip_id=... → 此數字僅在「已結算」和「封存」行程顯示；進行中的行程改顯示「⏳ N 筆待填」（因金額仍在累積，顯示總額會有誤導）'],
+  s01e:['✅ 空白狀態文案「開始你的第一趟旅程」呼應旅遊日記核心敘事','✅ 主 CTA「＋ 新增行程」直接在 empty state 中呈現，降低首次使用門檻','✅ 無 FAB：僅一個進入點，行動明確','🔶 ✈️ emoji 為佔位，正式插圖需設計師製作（可參考日記封面、地圖等意象）'],
+  s02:['✅「這是我 ✓」標記有背景高亮，一眼識別；每列右側空圓圈 → 點擊選取「這是我」，互動邏輯同 radio group（單選）','✅ Bottom Sheet 圓角 24px，符合 Aria §1 建議','✅ 幣別下拉、日期欄位版型簡潔','✅ emoji box 右下角有 ✎ 編輯角標 + 說明文字，點擊觸發 S-02EMO 選擇器','✅ 「新增成員」改為有邊框的 tappable row，互動意圖更明確','🔶 emoji picker 展開互動待 Stage 2 細化','🔶 S-02MEM 新增成員頁面已加入 wireframe，Aria 需補 UI 審查'],
+  s03a:['✅ 分享 ⬆ + 設定 ⚙ 同在右上角工具列（全行程狀態常駐）','✅ 待填橘紅左邊框（決策 C：不再加 badge，邊框已足夠傳達）','✅ 統計卡⚠警示小字不蓋主數字，符合方案 C','✅ FAB 56×56 避開 bottom bar','✅ 消費列去除「共同」badge（決策 C）——僅「各自」「自付」有 badge，降低視覺噪音','🔶 「各自」badge 橘底顯示，需與 Aria 確認顏色是否足夠區分於「自付」'],
+  s03b:['✅ 已結算 badge 綠色清楚','✅ 分享右上角仍常駐（全狀態一致）','✅ 底部改「查看結算 ＋ 封存行程」，符合畫面地圖定案','🔶 唯讀列表若點擊建議顯示 toast：「修改將重新計算結算結果」'],
+  s03e:['✅ 空白統計卡仍保留成員 chip row（引導用戶先切換成員視角的意識）','✅ Empty state 說明文字提示「行前區段」概念，正確設定期望','✅ FAB 常駐右下角，入口唯一，操作明確','🔶 倒數天數文案「出發前的費用歸到行前區段」需確認是否在出發後自動消失'],
+  s03share:['✅ Action Sheet 三選項邏輯完整：複製文字 / 唯讀連結 / 開啟瀏覽器預覽','✅ 半透明 overlay + bottom sheet，符合 iOS 系統原生互動語言','✅ 取消按鈕位置正確（底部），符合大拇指操作區','✅ 每個選項都有 icon + 主副文字說明，不靠圖示猜功能','🔶 三個選項在 Phase 1 MVP 中均需實作，需確認 Tech Lead 排程'],
+  s04a:['✅ 付款方式更新為三選一：現金 / 信用卡 / 儲值卡，Phase 1 必填','✅ 儲值卡說明文字列舉 Wowpass、Suica 等，降低認知負擔','✅ 備註欄 placeholder 示範「刷哪張卡」使用情境','✅「共同」模式下每人 ¥2,100 即時顯示於成員列表下方','✅「稍後補填」toggle 設計清晰不強制','🔶 付款方式未選取時的 validation toast 文案需定稿（建議：「請選擇付款方式後再儲存」）'],
+  s04b:['✅ 付款方式同步更新為三選一（與 S-04A 一致）','✅「各自」模式頂部固定加總比對列（已填 vs 總額），符合 Aria §3 建議','✅ 差額⚠警示允許儲存，符合「模糊分帳」設計決策','🔶 Mei 的欄位「稍後補填」互動需在 Stage 2 細化（點 toggle 切換為 input vs 空白）'],
+  s05:['✅ 應收綠色 / 應付橘紅，同時有文字標示不靠顏色傳達語意（符合 WCAG）','✅ 計算依據 accordion 折疊，減少初始資訊量','✅「複製結算摘要」次要按鈕在底部，邏輯正確','✅ Ziyu 已付清有 badge 標示，未付清有「標記付清」按鈕，對比清楚'],
+  s05warn:['✅ Warning banner 用 Amber 色系（#F59E0B 邊框）而非 error 紅色，語意準確（非錯誤，是提醒）','✅ 待填清單直接列出哪幾筆讓用戶快速定位','✅ 雙選項按鈕設計：「返回補填」為主 CTA（Primary），「繼續結算」為次要（Secondary），順序正確','🔶 Banner 文案「數字僅供參考」措辭需 PM 最終拍板'],
+  s05done:['✅「全員結清！」標題 + ✨ 搭配完成感，符合情緒設計目標','✅ Primary CTA「封存行程」，Secondary「複製摘要」，層級清晰','✅ 最終結算數字保留在頁面下方，可截圖留存','🔶 ✨ emoji 為動效佔位，實作時可加入簡單 confetti 或縮放動畫（≤200ms，避免過度炫目）'],
+  s06:['✅ 無任何操作 CTA，純瀏覽模式','✅ Header 無 App logo（符合 Aria §5 決策），品牌小字在 footer','✅ 結算摘要在頁面頂部，家人開啟第一眼即看到重點','🔶 375px 手機寬度響應式需開發階段確認，特別是雙幣別欄位換行'],
+  s07:['✅ 登出按鈕紅色警示，與其他設定項視覺分離','✅ Phase 1 設定頁極簡合理，避免 scope creep','🔶 Google 大頭貼來自 OAuth，wireframe 以 emoji 佔位'],
+  s04c:['✅「自付」說明卡米色底＋橘邊框，語意準確（提示而非警告）','✅ 支付者欄位仍保留（Phase 1 預設自己），不需展開成員選擇','✅「誰請客？」在自付模式維持原標籤，因自付語境清楚','🔶 自付費用建議在 S-03 列表加淡化處理（opacity .7），提示不進入分帳'],
+  s02cur:['✅ Bottom sheet 搜尋列設計一致，不跳頁','✅ 常用幣別（日幣/韓幣/美金/歐元/港幣）直接列出，降低選擇成本','✅ 當前選取以 ✓ + 高亮列標示，視覺清楚','🔶 「更多幣別」展開列表需定義完整幣別清單（建議 Tech Lead 提供排序依據：使用頻率或字母序）'],
+  s02emo:['✅ 6×N grid 排版，觸碰目標足夠（每格 ≥44px）','✅ 分「旅遊」和「成員」兩個類別，符合 Tripay 使用情境','✅ 目前選擇預覽在底部，確認前可以看到效果','🔶 Phase 1 可限制 emoji picker 僅顯示 36–48 個精選 emoji，降低開發成本'],
+  s02date:['✅ 出發／回程切換 tab 設計，一個 picker 解決兩個日期，避免兩次跳頁','✅ 選取範圍高亮（深棕首尾 + 淺橘中間段），視覺直覺','✅ 底部顯示「出發 → 回程 共 N 天」即時回饋，讓用戶確認選擇正確','🔶 六（週六）用紅色，符合台灣日曆慣例；週日用淡色，建議 Aria 確認對比度']
+};
+
+/* ── Interaction annotations ── */
+const ixn = {
+  s00:['點「以 Google 帳號登入」→ 觸發 OAuth 彈窗 → 成功後判斷：有行程 → S-01；無行程（新用戶）→ 直接跳 S-02（G-01 Phase 1）','載入時間 > 2s → 顯示 loading spinner 替換按鈕文字','OAuth 失敗 → toast：「登入失敗，請再試一次」（3s 後消失）'],
+  s01:['點行程卡片任意區域 → 推入 S-03（對應行程狀態：旅遊中→S-03A，已結算→S-03B）','點 FAB ＋ → 展開 S-02 bottom sheet（slide-up 300ms）','點右上角 👤 → 推入 S-07 個人設定','行程卡片 ⏳ badge 點擊 → 同點卡片，導入 S-03（scroll 至第一筆待填）','點「解除封存」→ 確認 dialog「解除封存後可再次編輯，確定？」→ 確認後行程回到已結算狀態','狀態自動判斷邏輯（純前端/DB）：出發日 > 今天 → 準備旅遊；出發日 ≤ 今天 ≤ 回程日 → 旅遊中；手動觸發結算 → 已結算；手動封存 → 封存'],
+  s01e:['點「＋ 新增行程」→ 展開 S-02 bottom sheet（同 FAB 行為）','首次進入此頁不顯示 FAB（僅 empty state CTA，避免重複入口）'],
+  s02:['點幣別下拉 → inline dropdown 展開（非跳頁），選取後收合','點成員列 emoji 圖示 → 展開 emoji picker（bottom sheet，Phase 1 可先做 6×6 常用格）','點「這是我 ✓」→ 同列高亮 + 其他成員取消高亮（單選）；首次點擊時顯示 tooltip：「標記後 App 可以顯示你的個人花費」（tooltip 自動消失 3s）','點「建立行程」→ 若行程名稱空白則欄位紅框 + 下方 hint：「請輸入行程名稱」；驗證通過則關閉 sheet + 導入新行程的 S-03E','Sheet 外側遮罩點擊 / 向下 swipe → 關閉 sheet（需確認是否自動儲存草稿）','G-09 Phase 1.5 佔位：成員區下方「預填上趟成員」功能入口，Phase 1 不實作，僅保留空間'],
+  s03a:['點右上角 ⬆ 分享 → 展開 S-03SHARE action sheet（slide-up 300ms）','點右上角 ⚙ 設定 → 推入 S-07（此為行程設定，Phase 1 簡化，實際指個人設定頁）','點成員 chip（🍋🐟等）→ 統計卡數字即時切換為該成員的「我的開支」，不需重新載入（純前端計算）','點待填消費列（橘紅左邊框）→ 展開 S-04 sheet 進入編輯模式，滾至金額欄位 focus','點一般消費列 → 展開 S-04 sheet 進入編輯模式','點 FAB ＋ → 展開 S-04A sheet（預設共同模式）','點底部「前往結算」→ 判斷：有待填筆 → 導入 S-05WARN；無待填筆 → 直接導入 S-05'],
+  s03b:['點右上角 ⬆ 分享 → 展開 S-03SHARE action sheet','點消費列 → 展開 S-04 sheet 編輯模式 + toast：「修改後將重新計算結算結果」（4s）','點底部「查看結算」→ 推入 S-05','點底部「封存行程」→ 確認 dialog：「封存後可繼續查看，但無法修改。確定封存？」→ 確認後行程變封存狀態返回 S-01'],
+  s03e:['點 FAB ＋ → 展開 S-04A sheet','點統計卡成員 chip → 切換視角（全為 $0，但行為一致，幫助用戶熟悉操作）'],
+  s03share:['點「複製結算文字」→ 複製純文字到剪貼板 → sheet 收合 + toast：「已複製，可貼到 LINE」（3s）','點「產生唯讀連結」→ 觸發 Supabase token 產生（loading 動畫 1-2s）→ 連結複製到剪貼板 → toast：「連結已複製」','點「開啟唯讀頁面」→ 在預設瀏覽器開啟 S-06（external link）','點「取消」或 overlay 或向下 swipe → 關閉 sheet'],
+  s04a:['段落控制（共同/各自/自付）點擊 → 即時切換表單佈局（動效 150ms）','付款方式三選一點擊 → 即時選取，未選取時按「儲存」顯示欄位底線紅 + toast','點「稍後補填」toggle → 對應金額 input 隱藏 + 替換成灰底標示「⏳ 待填」','點「儲存」→ sheet 從底部 slide-down 消失（200ms）→ 新消費出現在列表頂端（flash highlight #FFFBEB→白 500ms）','點 ✕ 關閉 → 若已有輸入則確認 dialog「放棄修改？」；否則直接關閉'],
+  s04b:['加總列即時更新：任一成員金額輸入後立即重算「已填 $X / 總額 $Y」','差額存在（加總 ≠ 總額）時⚠警示出現，但「儲存」按鈕不 disable','點「稍後補填」（Mei）→ Mei 的 input 替換為「⏳ 待填」badge，差額警示消失（因此人不參與此次計算）'],
+  s05:['點「標記付清」→ 按鈕替換為「✓ 已付清」badge（綠色，200ms transition）→ 若所有成員均已付清 → 頁面自動過渡到 S-05DONE（slide 動效或 confetti 覆蓋）','點「計算依據」accordion → 展開/收合（height animation 200ms）','點底部「複製結算摘要」→ 複製純文字 + toast「已複製」'],
+  s05warn:['點「← 返回補填」→ pop 回 S-03A，自動 scroll 至第一筆待填消費','點「繼續結算」→ 推入 S-05（含⚠估算標示）','待填消費列點擊 → pop 回 S-03A 並進入該筆編輯模式'],
+  s05done:['點「封存行程」→ 確認 dialog → 確認後導回 S-01（行程變封存狀態）','點「＋ 建立新行程」（G-07 Phase 1）→ 直接展開 S-02 bottom sheet，開始建立下一趟旅遊','點「複製結算摘要」→ 複製 + toast','✨ 進入此頁時觸發一次性動效：confetti 或放大縮小（duration ≤400ms，不可循環）'],
+  s06:['整頁純滾動，無可點擊互動（唯讀）','頁面右上角 iOS 系統分享按鈕（非 App 製造）→ 可另存 PDF、AirDrop 等'],
+  s07:['點「登出」→ 確認 dialog：「確定登出？登出後需重新登入。」→ 確認後清除 session 導回 S-00','所有 set-item 目前無二級頁面，Phase 1 僅顯示狀態值'],
+  s04c:['費用類型切換至「自付」→ 成員選擇區塊隱藏（自付無需分帳）、說明卡出現（150ms fade-in）','支付者欄位仍保留，預設帶入 owner（自己），不可勾選其他人','點「記下來」→ 儲存成功，S-03 列表中自付消費顯示「自付」badge + 略微降低 opacity（.75）表示不計入分帳'],
+  s02cur:['點幣別下拉欄位（S-02）→ 展開此 bottom sheet','搜尋欄即時過濾（前端字串匹配，不需 API）','點幣別列 → 選取、勾 ✓、bottom sheet 收合、S-02 幣別欄位更新'],
+  s02emo:['點行程封面 emoji box（S-02）→ 展開此 bottom sheet','點 grid 中任一 emoji → 底部「目前選擇」即時更新（不關閉 sheet）','點「確認」→ sheet 收合，S-02 emoji box 更新'],
+  s02date:['點出發日欄位（S-02）→ 展開此 bottom sheet，預設 focus「出發」tab','點日期 → 若在「出發」模式，選取出發日後自動切換到「回程」tab','點「回程」選取後，底部日數即時更新','點「確認」→ sheet 收合，S-02 出發/回程欄位同步更新','點 ‹/› → 切換月份（不關閉 sheet）']
+};
+
+/* ── PM scope confirmations ── */
+const pm = {
+  s00:['✅ Phase 1 MVP 範疇：S-00 已確認，Google OAuth 唯一登入方式','✅ 錯誤狀態（OAuth 失敗）列入 Phase 1 基本實作','🟡 App 名稱待 Rozi 決策，不 block 開發'],
+  s01:['✅ Phase 1 MVP 範疇：S-01 已確認，三種行程狀態均在 Phase 1','✅ 行程卡片封面照片列入 Phase 1.5，已在文件記錄'],
+  s01e:['✅ 首次使用空白狀態在 Phase 1 必做（影響新用戶 onboarding 轉換率）','✅ 插圖內容（旅遊意象）UI 階段定案，開發前需準備','🟡 Max 補充：此畫面是 Growth 的關鍵陣地，文案需在開發前與 Growth 再確認'],
+  s02:['✅ Phase 1 必做：行程建立全流程，含「這是我」設定','🟡 Emoji picker 互動複雜度待 Tech Lead 評估，必要時 Phase 1 可簡化為 emoji 清單'],
+  s03a:['✅ Phase 1 核心畫面：即時統計 + 成員視角切換 + 待填列表均在範疇內','✅ 待填筆結算前判斷路由（有待填 → S-05WARN）在 Phase 1 必做'],
+  s03b:['✅ Phase 1 必做：已結算狀態含修改 toast 提示','✅ 封存確認 dialog 在 Phase 1 必做'],
+  s03e:['✅ Phase 1 必做：新行程空白狀態是正常使用路徑','✅ 倒數天數顯示邏輯（出發前顯示，出發後消失）在 Phase 1 必做'],
+  s03share:['✅ Phase 1 必做：複製結算文字 + 唯讀連結 + 開啟瀏覽器三個功能均在 MVP 範疇','🟡 唯讀連結的 Supabase RLS token 實作需 Tech Lead 確認工時'],
+  s04a:['✅ Phase 1 核心表單：付款方式三選一 + 備註欄為定案規格','✅ 付款方式 validation 邏輯（未選 → 提示）在 Phase 1 必做'],
+  s04b:['✅ Phase 1 核心表單：各自模式加總比對 + 差額警示均在範疇','🟡「稍後補填」toggle 行為細節留 Stage 2 細化（不 block Phase 1 開發）'],
+  s05:['✅ Phase 1 必做：結算計算 + 標記付清 + 全員完成過渡到 S-05DONE','✅ 計算依據 accordion 在 Phase 1 必做'],
+  s05warn:['✅ Phase 1 必做：待填筆存在時的結算前警示流程','✅ Banner 文案「數字僅供參考」= 方案 C 已確認，不需再決策'],
+  s05done:['✅ Phase 1 必做：全員付清完成狀態 + 封存 CTA','🟡 Confetti 動效為 nice-to-have，Phase 1 可先用 ✨ emoji 靜態呈現'],
+  s06:['✅ Phase 1 必做：唯讀頁含結算摘要 + 完整消費列表','🟡 Tech Lead 待確認 S-06 URL 結構（唯讀 token 設計）'],
+  s07:['✅ Phase 1 極簡：登出 + 帳號資訊，無其他功能，不擴充'],
+  s04c:['✅ Phase 1 必做：自付模式是三種費用類型之一，核心功能','✅ 說明卡文案清楚：「不進入分帳計算」避免用戶誤解'],
+  s02cur:['✅ Phase 1 必做：幣別選擇是建立行程的必填步驟','🟡 Phase 1 幣別清單範疇待定（建議先限制 10–15 種常用幣別，Phase 1.5 再擴充）'],
+  s02emo:['✅ Phase 1 必做：emoji 選擇器降低成員個性化門檻','🟡 Phase 1 可限制 36 個精選 emoji，Phase 1.5 再擴充'],
+  s02date:['✅ Phase 1 必做：日期是行程建立的必填欄位','✅ 出發→回程連續選取設計，比兩個獨立 picker 少一個操作步驟','🟡 建議使用 React DayPicker 或 flatpickr 降低日曆元件開發成本（Tech Lead 評估）']
+};
+
+const labels = {
+  s00:'S-00 登入頁',s01:'S-01 主頁',s01e:'S-01 空白狀態（首次使用）',
+  s02:'S-02 新增行程',s03a:'S-03 行程主頁（進行中）',s03b:'S-03 行程主頁（已結算）',
+  s03e:'S-03 新行程空白狀態',s03share:'S-03 分享 Action Sheet',
+  s04a:'S-04 新增消費（共同）',s04b:'S-04 新增消費（各自）',s04c:'S-04 新增消費（自付）',
+  s05:'S-05 結算頁',s05warn:'S-05 結算前待填警示',s05done:'S-05 全員付清完成',
+  s06:'S-06 分享頁（唯讀）',s07:'S-07 個人設定',
+  s02cur:'S-02 幣別選擇器',s02emo:'S-02 Emoji 選擇器',s02date:'S-02 日期選擇器',s02mem:'S-02 新增成員'
+};
+
+function show(id,btn){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  document.querySelectorAll('.snav button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const lbl = labels[id] || id;
+  document.getElementById('aria-title').textContent = '🎨 Aria 審查備注｜' + lbl;
+  document.getElementById('aria-body').innerHTML = (aria[id]||[]).map(n=>`<div class="aria-line">${n}</div>`).join('');
+  document.getElementById('ixn-title').textContent = '🔵 互動標注｜' + lbl;
+  document.getElementById('ixn-body').innerHTML = (ixn[id]||[]).map(n=>`<div class="ixn-line">• ${n}</div>`).join('');
+  document.getElementById('pm-title').textContent = '✅ PM 範疇確認｜' + lbl;
+  document.getElementById('pm-body').innerHTML = (pm[id]||[]).map(n=>`<div class="pm-line">${n}</div>`).join('');
+}
+// init
+show('s00',document.querySelector('.snav button'));
+</script>
+</body>
+</html>

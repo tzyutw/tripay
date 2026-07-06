@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tripay Prototype v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════ */
+:root {
+  /* Primitives */
+  --brick-900: #7C2D12;
+  --brick-700: #9A3412;
+  --brick-500: #C2410C;
+  --amber-600: #B45309;
+  --cream-50:  #FEF9EE;
+  --stone-900: #1C1917;
+  --stone-800: #292524;
+  --stone-600: #57534E;
+  --stone-400: #A8A29E;
+  --stone-200: #E7E5E4;
+  --stone-100: #F5F4F2;
+  --green-700: #15803D;
+  --white:     #FFFFFF;
+
+  /* Semantic */
+  --primary:  var(--brick-900);
+  --accent:   var(--amber-600);
+  --surface:  var(--cream-50);
+  --warn:     var(--brick-500);
+  --ok:       var(--green-700);
+  --ink:      var(--stone-800);
+  --mid:      var(--stone-600);
+  --muted:    var(--stone-400);
+  --bg:       var(--stone-100);
+
+  /* Fonts */
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'Noto Sans TC', 'PingFang TC', 'PingFang SC', 'Heiti TC', 'Heiti SC',
+           'Microsoft JhengHei', '微軟正黑體', sans-serif;
+
+  /* Type scale */
+  --t-xs:   11px;
+  --t-sm:   13px;
+  --t-base: 16px;
+  --t-md:   18px;
+  --t-lg:   20px;
+  --t-xl:   24px;
+  --t-2xl:  30px;
+
+  /* Radii */
+  --r-card:   16px;
+  --r-btn:    12px;
+  --r-badge:  999px;
+  --r-sheet:  22px;
+
+  /* Shadows */
+  --sh-card: 0 2px 10px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
+  --sh-up:   0 8px 32px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.07);
+}
+
+/* ═══════════════════════════════════
+   RESET + BODY
+═══════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--sans);
+  background: linear-gradient(140deg, #C4A882 0%, #D4B896 50%, #BFA880 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+/* ═══════════════════════════════════
+   PHONE FRAME
+═══════════════════════════════════ */
+.phone {
+  width: 375px;
+  height: 812px;
+  border-radius: 52px;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow:
+    0 0 0 2px #3A2A20,
+    0 0 0 11px #1E1410,
+    0 50px 100px rgba(0,0,0,0.5),
+    inset 0 0 0 1px rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+/* Dynamic island */
+.phone::before {
+  content: '';
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  width: 100px; height: 30px;
+  background: #1E1410;
+  border-radius: 20px;
+  z-index: 300;
+}
+
+/* ═══════════════════════════════════
+   SCREEN SYSTEM
+═══════════════════════════════════ */
+.screens { position: relative; width: 100%; height: 100%; overflow: hidden; }
+
+.scr {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform .35s cubic-bezier(.4,0,.2,1), opacity .3s ease;
+  will-change: transform, opacity;
+}
+.scr.active  { transform: translateX(0); opacity: 1; }
+.scr.leaving { transform: translateX(-28%); opacity: 0; }
+
+/* ═══════════════════════════════════
+   STATUS BAR
+═══════════════════════════════════ */
+.sb {
+  height: 48px;
+  padding: 14px 24px 0;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+  font-size: 13px; font-weight: 600;
+  color: var(--mid);
+  position: relative; z-index: 10;
+}
+.sb .time { font-size: 15px; font-weight: 700; color: var(--ink); }
+.sb-light .time { color: #fff; }
+.sb-light { color: rgba(255,255,255,0.75); }
+
+/* ═══════════════════════════════════
+   NAV BAR
+═══════════════════════════════════ */
+.nb {
+  height: 50px; padding: 0 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; position: relative; z-index: 10;
+}
+.nb-back {
+  font-size: var(--t-sm); font-weight: 500;
+  color: var(--primary); cursor: pointer;
+  padding: 8px 4px; display: flex; align-items: center; gap: 4px;
+}
+.nb-title {
+  font-family: var(--serif);
+  font-size: var(--t-xl); font-weight: 600;
+  color: var(--ink); letter-spacing: .01em;
+}
+.nb-acts { display: flex; gap: 8px; }
+.nb-icon {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: rgba(255,255,255,0.18); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; cursor: pointer;
+}
+.nb-icon svg { display: block; }
+
+/* ═══════════════════════════════════
+   SCROLL AREA
+═══════════════════════════════════ */
+.sa {
+  flex: 1; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.sa::-webkit-scrollbar { display: none; }
+
+/* ═══════════════════════════════════
+   S-00  LOGIN
+═══════════════════════════════════ */
+#s00 {
+  background: linear-gradient(155deg, #3A1508 0%, #7C2D12 38%, #B45309 72%, #D97706 100%);
+}
+.s00-body {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 36px 56px; gap: 0;
+}
+.s00-icon {
+  width: 76px; height: 76px; border-radius: 22px;
+  background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 38px; margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.s00-wordmark {
+  font-family: var(--sans);
+  font-size: 52px; font-weight: 700; letter-spacing: -.02em;
+  color: #fff; line-height: 1; margin-bottom: 10px;
+}
+.s00-slogan {
+  font-family: var(--serif);
+  font-size: 17px; font-style: italic;
+  color: rgba(255,255,255,0.78); letter-spacing: .06em;
+  margin-bottom: 36px;
+}
+.s00-tagline {
+  font-size: 15px; color: rgba(255,255,255,0.65);
+  text-align: center; line-height: 1.65; margin-bottom: 44px;
+  max-width: 230px;
+}
+.btn-google {
+  width: 100%; max-width: 280px; height: 54px;
+  background: #fff; border-radius: var(--r-btn);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-size: 15px; font-weight: 600; color: var(--stone-800);
+  cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+  transition: transform .15s ease;
+}
+.btn-google:active { transform: scale(0.97); }
+.g-icon {
+  width: 20px; height: 20px; flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%234285F4' d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'/%3E%3Cpath fill='%2334A853' d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'/%3E%3Cpath fill='%23FBBC05' d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'/%3E%3Cpath fill='%23EA4335' d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'/%3E%3C/svg%3E");
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+}
+
+/* ═══════════════════════════════════
+   S-01  TRIP LIST
+═══════════════════════════════════ */
+#s01 { background: var(--surface); }
+.s01-head {
+  padding: 4px 20px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.s01-logo {
+  font-family: var(--sans);
+  font-size: 28px; font-weight: 700; letter-spacing: -.02em;
+  color: var(--primary);
+}
+.btn-add {
+  height: 36px; padding: 0 16px;
+  background: var(--primary); color: #fff; border-radius: var(--r-btn);
+  font-size: var(--t-sm); font-weight: 700;
+  display: flex; align-items: center; gap: 4px;
+  cursor: pointer; box-shadow: 0 2px 8px rgba(124,45,18,.32);
+  transition: transform .15s;
+}
+.btn-add:active { transform: scale(0.96); }
+
+/* Trip Card */
+.cards-wrap { padding: 14px 20px 24px; display: flex; flex-direction: column; gap: 13px; }
+
+.tc {
+  border-radius: var(--r-card); overflow: hidden;
+  box-shadow: var(--sh-card); cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.tc:active { transform: scale(0.985); box-shadow: var(--sh-up); }
+
+.tc-bg {
+  height: 142px; position: relative;
+  display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 14px 16px;
+}
+.tc-emoji { position: absolute; top: 14px; right: 16px; font-size: 34px; line-height: 1; }
+
+.tc-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: var(--r-badge);
+  font-size: var(--t-xs); font-weight: 700; letter-spacing: .04em;
+  width: fit-content; margin-bottom: 6px;
+}
+.badge-active  { background: rgba(255,255,255,.22); color:#fff; border:1px solid rgba(255,255,255,.35); backdrop-filter:blur(4px); }
+.badge-before  { background: rgba(255,255,255,.16); color:rgba(255,255,255,.9); border:1px solid rgba(255,255,255,.25); }
+.badge-pend    { background: #FEF2F2; color:#DC2626; }
+.badge-settled { background: rgba(255,255,255,.13); color:rgba(255,255,255,.8); }
+
+.tc-name {
+  font-family: var(--sans);
+  font-size: 22px; font-weight: 700; color: #fff;
+  letter-spacing: -.01em; line-height: 1.2;
+  text-shadow: 0 1px 6px rgba(0,0,0,.35);
+}
+
+.tc-foot {
+  background: #fff; padding: 11px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.tc-members { font-size: 19px; display: flex; gap: 2px; flex-shrink: 0; }
+.tc-right   { text-align: right; min-width: 100px; flex-shrink: 0; }
+.tc-amount  {
+  font-size: 17px; font-weight: 700; color: var(--ink);
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+.tc-date    { font-size: var(--t-xs); color: var(--muted); margin-top: 2px; text-align: right; }
+
+/* Card Gradients */
+.g-hkd { background: linear-gradient(148deg, #1A3558 0%, #2B5590 42%, #684533 100%); }
+.g-ok  { background: linear-gradient(148deg, #0A6060 0%, #19999A 42%, #D96040 100%); }
+.g-jj  { background: linear-gradient(148deg, #264C10 0%, #457A28 50%, #88AA58 100%); }
+.g-sel { background: linear-gradient(148deg, #38266A 0%, #644A96 50%, #B09050 100%); opacity:.72; }
+
+/* G-02 Ghost */
+.ghost-wrap {
+  border-radius: var(--r-card); overflow: hidden;
+  box-shadow: var(--sh-card);
+  filter: blur(1.8px); opacity: .5;
+  animation: ghostPulse 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes ghostPulse {
+  0%,100% { opacity:.5; }
+  50%      { opacity:.28; }
+}
+.ghost-inner {
+  height: 96px;
+  background: linear-gradient(135deg, #D6C4B5, #C2AFA0);
+  display: flex; align-items: center; justify-content: center;
+}
+.ghost-text {
+  font-family: var(--serif); font-size: 18px; font-style: italic;
+  color: rgba(80,55,42,.5);
+}
+
+/* ═══════════════════════════════════
+   S-02  CREATE TRIP (Sheet)
+═══════════════════════════════════ */
+#s02 { background: transparent; }
+
+.overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.42); backdrop-filter: blur(3px);
+  cursor: pointer;
+}
+.sheet {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  display: flex; flex-direction: column;
+  max-height: 91%;
+  box-shadow: var(--sh-up);
+  animation: sheetUp .35s cubic-bezier(.4,0,.2,1);
+}
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.sheet-drag { width: 36px; height: 4px; background: #D0CBC5; border-radius: 2px; margin: 12px auto 0; }
+
+.sheet-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px 0;
+}
+.sheet-ttl { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--ink); }
+.sheet-x {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #EAE6E1; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--mid); cursor: pointer;
+}
+
+.sheet-sa { flex: 1; overflow-y: auto; padding: 18px 20px 0; scrollbar-width: none; }
+.sheet-sa::-webkit-scrollbar { display: none; }
+
+/* Form */
+.ff { margin-bottom: 18px; }
+.fl {
+  font-size: var(--t-sm); font-weight: 700; color: var(--mid);
+  letter-spacing: .03em; margin-bottom: 7px;
+  display: flex; align-items: center; gap: 5px;
+}
+.fi {
+  width: 100%; height: 46px; padding: 0 14px;
+  background: #fff; border-radius: 12px;
+  border: 1.5px solid #E4DFD9; outline: none;
+  font-size: var(--t-base); font-family: var(--sans); color: var(--ink);
+  transition: border-color .2s;
+}
+.fi:focus { border-color: var(--primary); }
+.fi::placeholder { color: var(--muted); }
+
+.frow { display: flex; gap: 10px; }
+.frow .ff { flex: 1; }
+
+/* Emoji strip */
+.emj-strip { display: flex; flex-wrap: wrap; gap: 8px; }
+.emj-opt {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: #fff; border: 1.5px solid #E4DFD9;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; cursor: pointer;
+}
+.emj-opt.sel { border-color: var(--primary); background: #FFF5F0; }
+
+/* Member rows */
+.mem-rows { display: flex; flex-direction: column; gap: 8px; }
+.mem-row {
+  background: #fff; border-radius: 12px; padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; border: 1.5px solid transparent;
+  transition: border-color .2s, background .2s;
+}
+.mem-row.me { border-color: var(--primary); background: #FFF6F1; }
+.mem-radio {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid #C8BFB8;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0;
+}
+.mem-row.me .mem-radio { background: var(--primary); border-color: var(--primary); color: #fff; }
+.mem-name { font-size: var(--t-base); font-weight: 600; color: var(--ink); }
+.mem-me-tag {
+  font-size: 10px; font-weight: 700; color: var(--primary);
+  background: rgba(124,45,18,.08); padding: 2px 8px; border-radius: var(--r-badge);
+}
+.mem-hint { font-size: var(--t-xs); color: var(--muted); text-align: center; margin-top: 6px; }
+
+.sheet-cta { padding: 14px 20px 32px; }
+
+/* ═══════════════════════════════════
+   S-03  EXPENSE LIST
+═══════════════════════════════════ */
+#s03 { background: var(--surface); }
+
+.s03-hero {
+  height: 164px; flex-shrink: 0; position: relative;
+  background: linear-gradient(148deg, #1A3558 0%, #2B5590 42%, #684533 100%);
+  padding: 94px 20px 0;
+}
+.s03-title {
+  font-family: var(--sans); font-size: 26px; font-weight: 700;
+  color: #fff; letter-spacing: -.01em;
+}
+.s03-sub {
+  font-size: var(--t-sm); color: rgba(255,255,255,.7); margin-top: 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.s03-sub-mems { font-size: 17px; line-height: 1; }
+
+/* Stats strip */
+.stats {
+  background: #fff; flex-shrink: 0;
+  display: flex; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.stat {
+  flex: 1; text-align: center; padding: 12px 8px;
+}
+.stat + .stat { border-left: 1px solid #EFEBE6; }
+.stat-val { font-size: 17px; font-weight: 700; color: var(--ink); }
+.stat-lbl { font-size: var(--t-xs); color: var(--muted); margin-top: 2px; }
+.stat-warn { font-size: 10px; color: var(--warn); margin-top: 3px; }
+
+/* Currency toggle */
+.stat-curr {
+  width: 68px; flex-shrink: 0; border-left: 1px solid #EFEBE6;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 10px 4px;
+}
+.curr-chip {
+  width: 56px; height: 22px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  transition: background .2s, color .2s;
+  color: var(--muted); background: transparent;
+  letter-spacing: .02em;
+}
+.curr-chip.on { background: var(--primary); color: #fff; }
+
+/* Day groups */
+.dg { padding: 0 20px; }
+.dg-hd {
+  font-size: var(--t-xs); font-weight: 700; color: var(--muted);
+  letter-spacing: .09em; text-transform: uppercase;
+  padding: 14px 0 8px;
+}
+
+/* Expense row */
+.er {
+  background: #fff; border-radius: 12px; padding: 11px 13px;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px; box-shadow: var(--sh-card);
+  cursor: pointer; position: relative; overflow: hidden;
+}
+.er.pend { border-left: 3px solid #EA580C; }
+
+.er-icon { font-size: 22px; width: 34px; text-align: center; flex-shrink: 0; }
+.er-body { flex: 1; min-width: 0; }
+.er-title { font-size: var(--t-base); font-weight: 600; color: var(--ink); line-height: 1.2; }
+.er-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+.er-payer { font-size: var(--t-xs); color: var(--muted); }
+.er-pp { font-size: var(--t-xs); color: var(--mid); }
+
+.ebadge {
+  display: inline-flex; align-items: center;
+  padding: 2px 7px; border-radius: var(--r-badge);
+  font-size: 10px; font-weight: 700; letter-spacing: .03em;
+}
+.eb-kojin  { background:#FEF3C7; color:#92400E; }
+.eb-jibun  { background:#FEF2F2; color:#991B1B; }
+.eb-pend   { background:#FFF7ED; color:#C2410C; }
+
+.er-right { text-align: right; flex-shrink: 0; }
+.er-amt   { font-size: 16px; font-weight: 700; color: var(--ink); }
+.er-sub   { font-size: var(--t-xs); color: var(--muted); margin-top: 1px; }
+
+/* Bottom bar */
+.bb {
+  padding: 12px 20px 30px; flex-shrink: 0;
+  background: var(--surface); display: flex; gap: 10px;
+  border-top: 1px solid rgba(0,0,0,.05);
+}
+.btn-p {
+  flex: 1; height: 50px;
+  background: var(--primary); color: #fff;
+  border-radius: var(--r-btn);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 3px 14px rgba(124,45,18,.36);
+  transition: transform .15s;
+}
+.btn-p:active { transform: scale(0.97); }
+.btn-s {
+  flex: 1; height: 50px;
+  background: #fff; color: var(--primary);
+  border-radius: var(--r-btn);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  border: 1.5px solid var(--primary);
+  transition: transform .15s;
+}
+.btn-s:active { transform: scale(0.97); }
+
+/* ═══════════════════════════════════
+   S-05DONE  SETTLEMENT
+═══════════════════════════════════ */
+#s05done { background: var(--surface); }
+
+.cel-body {
+  flex: 1; overflow-y: auto; scrollbar-width: none;
+  padding: 4px 20px 24px;
+}
+.cel-body::-webkit-scrollbar { display: none; }
+
+/* Mini trip card */
+.mini-tc {
+  border-radius: var(--r-card); overflow: hidden;
+  box-shadow: var(--sh-card); margin-bottom: 20px;
+}
+.mini-bg {
+  height: 76px;
+  background: linear-gradient(148deg, #1A3558 0%, #2B5590 42%, #684533 100%);
+  display: flex; align-items: center; padding: 0 16px; gap: 12px;
+}
+.mini-emoji { font-size: 28px; }
+.mini-name {
+  font-family: var(--sans); font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -.01em;
+}
+.mini-date { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 2px; }
+.mini-foot {
+  background: #fff; padding: 9px 16px;
+  font-size: 12px; color: var(--muted);
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* Celebrate */
+.cel-center { text-align: center; padding: 16px 0 24px; }
+.cel-emo {
+  font-size: 60px; display: block; margin-bottom: 14px;
+  animation: popIn .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popIn {
+  from { transform: scale(0) rotate(-12deg); opacity:0; }
+  to   { transform: scale(1) rotate(0);     opacity:1; }
+}
+.cel-h1 {
+  font-family: var(--serif); font-size: 30px; font-weight: 700;
+  color: var(--ink); margin-bottom: 6px;
+}
+.cel-h2 {
+  font-family: var(--serif); font-size: 18px; font-style: italic;
+  color: var(--mid);
+}
+
+/* G-08 Highlights */
+.hl-card {
+  background: #fff; border-radius: var(--r-card); padding: 18px 16px;
+  box-shadow: var(--sh-card); margin-bottom: 20px;
+}
+.hl-hd {
+  font-size: var(--t-xs); font-weight: 700; color: var(--muted);
+  letter-spacing: .1em; text-transform: uppercase;
+  text-align: center; margin-bottom: 14px;
+}
+.hl-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.hl-item { text-align: center; padding: 0 6px; }
+.hl-item + .hl-item { border-left: 1px solid #EEEBE6; }
+.hl-num {
+  font-family: var(--sans);
+  font-size: 24px; font-weight: 800; color: var(--ink); line-height: 1; letter-spacing: -.02em;
+}
+.hl-unit { font-size: 11px; font-weight: 600; color: var(--mid); }
+.hl-lbl { font-size: 10px; font-weight: 600; color: var(--muted); margin-top: 4px; }
+
+/* Settlement rows */
+.stl-hd {
+  font-size: var(--t-xs); font-weight: 700; color: var(--muted);
+  letter-spacing: .09em; text-transform: uppercase; margin-bottom: 10px;
+}
+.stl-row {
+  background: #fff; border-radius: 12px; padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: var(--sh-card); margin-bottom: 8px;
+}
+.stl-who { display: flex; align-items: center; gap: 6px; font-size: 15px; }
+.stl-arr { font-size: 13px; color: var(--muted); }
+.stl-amt { font-size: 17px; font-weight: 700; color: var(--ok); }
+.stl-paid { font-size: 11px; font-weight: 700; color: var(--ok); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+<div class="screens">
+
+<!-- ════════════════════════════
+     S-00  LOGIN
+════════════════════════════ -->
+<div class="scr active" id="s00">
+  <div class="sb sb-light" style="position:absolute;top:0;left:0;right:0;z-index:10">
+    <span class="time">9:41</span>
+    <span>●●● ▲ 🔋</span>
+  </div>
+  <div class="s00-body">
+    <div class="s00-icon">✈️</div>
+    <div class="s00-wordmark">Tripay</div>
+    <div class="s00-slogan">每一趟，都記得</div>
+    <div class="s00-tagline">大家一起出發，帳交給 Tripay。</div>
+    <div class="btn-google" onclick="go('s01')">
+      <div class="g-icon"></div>
+      用 Google 帳號繼續
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     S-01  TRIP LIST
+════════════════════════════ -->
+<div class="scr" id="s01">
+  <div class="sb">
+    <span class="time">9:41</span>
+    <span style="color:var(--mid)">●●● 📶 🔋</span>
+  </div>
+  <div class="s01-head">
+    <div class="s01-logo">Tripay</div>
+    <div class="btn-add" onclick="go('s02')">＋ 新增行程</div>
+  </div>
+  <div class="sa">
+    <div class="cards-wrap">
+
+      <!-- Card 1 北海道 旅途中 -->
+      <div class="tc" onclick="go('s03')">
+        <div class="tc-bg g-hkd">
+          <div class="tc-emoji">🌨️</div>
+          <span class="tc-badge badge-active">旅途中</span>
+          <div class="tc-name">北海道家庭行</div>
+        </div>
+        <div class="tc-foot">
+          <div class="tc-members">🧑🏻‍🦱👩🏻🧒🏻</div>
+          <div class="tc-right">
+            <div class="tc-amount">¥ 187,400</div>
+            <div class="tc-date">2/1 – 2/8 · 2025</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 沖繩 出發前 -->
+      <div class="tc">
+        <div class="tc-bg g-ok">
+          <div class="tc-emoji">🌺</div>
+          <span class="tc-badge badge-before">出發前</span>
+          <div class="tc-name">沖繩四人行</div>
+        </div>
+        <div class="tc-foot">
+          <div class="tc-members">🧑🏻‍🦱👩🏻🧒🏻👧🏻</div>
+          <div class="tc-right">
+            <div class="tc-amount">¥ 32,100</div>
+            <div class="tc-date">7/12 – 7/17 · 2025</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 濟州 待填 -->
+      <div class="tc">
+        <div class="tc-bg g-jj">
+          <div class="tc-emoji">🍊</div>
+          <span class="tc-badge badge-pend">⏳ 3 筆待填</span>
+          <div class="tc-name">濟州島三天</div>
+        </div>
+        <div class="tc-foot">
+          <div class="tc-members">🧑🏻‍🦱👩🏻</div>
+          <div class="tc-right">
+            <div class="tc-amount">₩ 420,000</div>
+            <div class="tc-date">4/5 – 4/8 · 2025</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4 首爾 已結算 -->
+      <div class="tc">
+        <div class="tc-bg g-sel">
+          <div class="tc-emoji">🏙️</div>
+          <span class="tc-badge badge-settled">✅ 已結算</span>
+          <div class="tc-name">首爾追星行</div>
+        </div>
+        <div class="tc-foot" style="background:#F6F4F2">
+          <div class="tc-members" style="opacity:.55">🧑🏻‍🦱👩🏻👩🏻‍🦰</div>
+          <div class="tc-right">
+            <div class="tc-amount" style="color:var(--muted)">₩ 680,000</div>
+            <div class="tc-date">11/20 – 11/24 · 2024</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- G-02 Ghost card -->
+      <div class="ghost-wrap">
+        <div class="ghost-inner">
+          <div class="ghost-text">你的下一趟在哪？</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     S-02  CREATE TRIP
+════════════════════════════ -->
+<div class="scr" id="s02" style="background:transparent">
+  <div class="sb" style="visibility:hidden">
+    <span class="time">9:41</span>
+  </div>
+  <div class="overlay" onclick="back()"></div>
+  <div class="sheet">
+    <div class="sheet-drag"></div>
+    <div class="sheet-hd">
+      <div class="sheet-ttl">這趟去哪？</div>
+      <div class="sheet-x" onclick="back()">✕</div>
+    </div>
+    <div class="sheet-sa">
+
+      <div class="ff" style="margin-top:14px">
+        <div class="fl">去哪？</div>
+        <input class="fi" placeholder="例如：沖繩四人行 ☀️">
+      </div>
+
+      <div class="ff">
+        <div class="fl">封面 <span style="font-size:11px;font-weight:400;color:var(--muted)">點 emoji 可自訂行程封面</span></div>
+        <div class="emj-strip">
+          <div class="emj-opt sel">🌨️</div>
+          <div class="emj-opt">🌺</div>
+          <div class="emj-opt">🍊</div>
+          <div class="emj-opt">🏙️</div>
+          <div class="emj-opt">🏖️</div>
+          <div class="emj-opt">🗻</div>
+          <div class="emj-opt">🍜</div>
+          <div class="emj-opt">✈️</div>
+        </div>
+      </div>
+
+      <div class="ff">
+        <div class="fl">當地幣別</div>
+        <select class="fi" style="appearance:none">
+          <option value="" disabled selected>選擇幣別</option>
+          <option>🇯🇵 JPY 日圓</option>
+          <option>🇰🇷 KRW 韓圜</option>
+          <option>🇪🇺 EUR 歐元</option>
+          <option>🇺🇸 USD 美元</option>
+        </select>
+      </div>
+
+      <div class="frow">
+        <div class="ff">
+          <div class="fl">出發</div>
+          <input class="fi" value="2025/02/01" type="text">
+        </div>
+        <div class="ff">
+          <div class="fl">回程</div>
+          <input class="fi" value="2025/02/08" type="text">
+        </div>
+      </div>
+
+      <div class="ff">
+        <div class="fl">誰一起去？</div>
+        <div class="mem-rows">
+          <div class="mem-row me">
+            <div class="mem-radio">✓</div>
+            <span style="font-size:20px">🧑🏻‍🦱</span>
+            <span class="mem-name">Rozi</span>
+            <span class="mem-me-tag">這是我 ✓</span>
+          </div>
+          <div class="mem-row">
+            <div class="mem-radio"></div>
+            <span style="font-size:20px">👩🏻</span>
+            <span class="mem-name" style="color:var(--mid);font-weight:500">Ning</span>
+          </div>
+          <div class="mem-row">
+            <div class="mem-radio"></div>
+            <span style="font-size:20px">🧒🏻</span>
+            <span class="mem-name" style="color:var(--mid);font-weight:500">小白</span>
+          </div>
+        </div>
+        <div class="mem-hint">點成員，標記哪位是你</div>
+        <div style="margin-top:10px;font-size:14px;font-weight:600;color:var(--primary);cursor:pointer">
+          ＋ 新增成員
+        </div>
+      </div>
+
+    </div>
+    <div class="sheet-cta">
+      <div class="btn-p" onclick="go('s03')">出發！</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     S-03  EXPENSE LIST
+════════════════════════════ -->
+<div class="scr" id="s03">
+  <div class="sb sb-light" style="position:absolute;top:0;left:0;right:0;z-index:10">
+    <span class="time">9:41</span>
+    <span>●●● 📶 🔋</span>
+  </div>
+  <div class="nb" style="position:absolute;top:44px;left:0;right:0;z-index:10">
+    <div class="nb-back" style="color:rgba(255,255,255,.9)" onclick="back()">‹ 行程</div>
+    <div class="nb-acts">
+      <!-- Share icon: iOS upload arrow -->
+      <div class="nb-icon">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 8 12 4 8 8"/>
+          <line x1="12" y1="4" x2="12" y2="16"/>
+          <path d="M20 16v3a2 2 0 01-2 2H6a2 2 0 01-2-2v-3"/>
+        </svg>
+      </div>
+      <!-- Settings icon: outline gear -->
+      <div class="nb-icon">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83
+            2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33
+            1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09
+            A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06
+            a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06
+            A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3
+            a2 2 0 010-4h.09A1.65 1.65 0 004.6 9
+            a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83
+            2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68
+            a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09
+            a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06
+            a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06
+            A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21
+            a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s03-hero">
+    <div class="s03-title">北海道家庭行</div>
+    <div class="s03-sub">
+      <span>2025/2/1 – 2/8</span>
+      <span class="s03-sub-mems">🧑🏻‍🦱👩🏻🧒🏻</span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" id="stat-total">$ 40,500</div>
+      <div class="stat-lbl">總花費</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="stat-mine">$ 15,400</div>
+      <div class="stat-lbl">我的花費</div>
+      <div class="stat-warn">⚠️ 含 1 筆待填</div>
+    </div>
+    <div class="stat-curr">
+      <div class="curr-chip on" id="chip-twd" onclick="setCurr('twd')">$ 台幣</div>
+      <div class="curr-chip" id="chip-jpy" onclick="setCurr('jpy')">¥ 外幣</div>
+    </div>
+  </div>
+
+  <div class="sa">
+
+    <!-- 出發前 -->
+    <div class="dg">
+      <div class="dg-hd">出發前</div>
+
+      <div class="er">
+        <div class="er-icon">✈️</div>
+        <div class="er-body">
+          <div class="er-title">機票</div>
+          <div class="er-meta">
+            <span class="er-payer">🧑🏻‍🦱 付</span>
+            <span class="ebadge eb-kojin">各自</span>
+          </div>
+        </div>
+        <div class="er-right">
+          <div class="er-amt">¥ 42,000</div>
+          <div class="er-sub">各自付</div>
+        </div>
+      </div>
+
+      <div class="er">
+        <div class="er-icon">📱</div>
+        <div class="er-body">
+          <div class="er-title">eSIM</div>
+          <div class="er-meta">
+            <span class="er-payer">🧑🏻‍🦱 付</span>
+            <span class="ebadge eb-jibun">自付</span>
+          </div>
+        </div>
+        <div class="er-right">
+          <div class="er-amt">$ 490</div>
+          <div class="er-sub">台幣</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第 1 天 -->
+    <div class="dg">
+      <div class="dg-hd">第 1 天 · 2/1（六）</div>
+
+      <div class="er">
+        <div class="er-icon">🍜</div>
+        <div class="er-body">
+          <div class="er-title">午餐（小樽）</div>
+          <div class="er-meta">
+            <span class="er-payer">🧑🏻‍🦱 付</span>
+            <span class="er-pp">每人 ¥ 2,100</span>
+          </div>
+        </div>
+        <div class="er-right">
+          <div class="er-amt">¥ 6,300</div>
+        </div>
+      </div>
+
+      <div class="er">
+        <div class="er-icon">🍪</div>
+        <div class="er-body">
+          <div class="er-title">白色戀人公園</div>
+          <div class="er-meta">
+            <span class="er-payer">👩🏻 付</span>
+            <span class="er-pp">每人 ¥ 800</span>
+          </div>
+        </div>
+        <div class="er-right">
+          <div class="er-amt">¥ 2,400</div>
+        </div>
+      </div>
+
+      <div class="er pend">
+        <div class="er-icon">🍺</div>
+        <div class="er-body">
+          <div class="er-title">晚餐（すすきの）</div>
+          <div class="er-meta">
+            <span class="ebadge eb-pend">待補填</span>
+          </div>
+        </div>
+        <div class="er-right">
+          <div class="er-amt" style="color:var(--muted)">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第 2 天 -->
+    <div class="dg">
+      <div class="dg-hd">第 2 天 · 2/2（日）</div>
+
+      <div class="er">
+        <div class="er-icon">🥐</div>
+        <div class="er-body">
+          <div class="er-title">早餐（旅館）</div>
+          <div class="er-meta">
+            <span class="er-payer">🧑🏻‍🦱 付</span>
+            <span class="er-pp">每人 ¥ 1,500</span>
+          </div>
+        </div>
+        <div class="er-right">
+          <div class="er-amt">¥ 4,500</div>
+        </div>
+      </div>
+
+      <div class="er">
+        <div class="er-icon">🦁</div>
+        <div class="er-body">
+          <div class="er-title">旭山動物園</div>
+          <div class="er-meta">
+            <span class="er-payer">👩🏻 付</span>
+            <span class="er-pp">每人 ¥ 820</span>
+          </div>
+        </div>
+        <div class="er-right">
+          <div class="er-amt">¥ 2,460</div>
+        </div>
+      </div>
+
+      <div class="er">
+        <div class="er-icon">🦀</div>
+        <div class="er-body">
+          <div class="er-title">螃蟹晚餐</div>
+          <div class="er-meta">
+            <span class="er-payer">🧑🏻‍🦱 付</span>
+            <span class="er-pp">每人 ¥ 6,800</span>
+          </div>
+        </div>
+        <div class="er-right">
+          <div class="er-amt">¥ 20,400</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:12px"></div>
+  </div>
+
+  <div class="bb">
+    <div class="btn-s">＋ 新增消費</div>
+    <div class="btn-p" onclick="go('s05done')">前往結算</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     S-05DONE  SETTLEMENT ✨
+════════════════════════════ -->
+<div class="scr" id="s05done">
+  <div class="sb">
+    <span class="time">9:41</span>
+    <span style="color:var(--mid)">●●● 📶 🔋</span>
+  </div>
+  <div class="nb">
+    <div class="nb-back" onclick="back()">‹ 北海道</div>
+    <div style="font-size:13px;color:var(--muted)">結算</div>
+  </div>
+
+  <div class="cel-body">
+
+    <!-- Mini trip card -->
+    <div class="mini-tc">
+      <div class="mini-bg">
+        <div class="mini-emoji">🌨️</div>
+        <div>
+          <div class="mini-name">北海道家庭行</div>
+          <div class="mini-date">2025/2/1 – 2/8</div>
+        </div>
+      </div>
+      <div class="mini-foot">
+        <span>🧑🏻‍🦱</span><span>👩🏻</span><span>🧒🏻</span>
+        <span style="margin-left:4px">3 人同行</span>
+      </div>
+    </div>
+
+    <!-- Celebrate -->
+    <div class="cel-center">
+      <span class="cel-emo">✨</span>
+      <div class="cel-h1">帳算清楚了 ✨</div>
+      <div class="cel-h2">下次去哪？</div>
+    </div>
+
+    <!-- G-08 Highlights -->
+    <div class="hl-card">
+      <div class="hl-hd">這趟的數字</div>
+      <div class="hl-grid">
+        <div class="hl-item">
+          <div class="hl-num">8<span class="hl-unit"> 天</span></div>
+          <div class="hl-lbl">出遊</div>
+        </div>
+        <div class="hl-item">
+          <div class="hl-num">24<span class="hl-unit"> 筆</span></div>
+          <div class="hl-lbl">共記了</div>
+        </div>
+        <div class="hl-item">
+          <div class="hl-num">20,400<span class="hl-unit"> ¥</span></div>
+          <div class="hl-lbl">最大手筆</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settlement -->
+    <div class="stl-hd">誰付給誰</div>
+
+    <div class="stl-row">
+      <div class="stl-who">
+        <span>👩🏻 Ning</span>
+        <span class="stl-arr">→</span>
+        <span>🧑🏻‍🦱 Rozi</span>
+      </div>
+      <div style="text-align:right">
+        <div class="stl-amt">¥ 12,400</div>
+        <div class="stl-paid">✅ 已付清</div>
+      </div>
+    </div>
+
+    <div class="stl-row">
+      <div class="stl-who">
+        <span>🧒🏻 小白</span>
+        <span class="stl-arr">→</span>
+        <span>🧑🏻‍🦱 Rozi</span>
+      </div>
+      <div style="text-align:right">
+        <div class="stl-amt">¥ 8,200</div>
+        <div class="stl-paid">✅ 已付清</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bb">
+    <div class="btn-p" onclick="go('s01')">封存行程</div>
+  </div>
+</div>
+
+</div><!-- /screens -->
+</div><!-- /phone -->
+
+<script>
+/* ── Currency toggle ── */
+const STATS = {
+  total: { twd: '$ 40,500', jpy: '¥ 187,400' },
+  mine:  { twd: '$ 15,400', jpy: '¥ 71,200'  }
+};
+let currMode = 'twd';
+
+function setCurr(mode) {
+  currMode = mode;
+  document.getElementById('stat-total').textContent = STATS.total[mode];
+  document.getElementById('stat-mine').textContent  = STATS.mine[mode];
+  document.getElementById('chip-twd').classList.toggle('on', mode === 'twd');
+  document.getElementById('chip-jpy').classList.toggle('on', mode === 'jpy');
+}
+
+/* ── Navigation ── */
+const hist = [];
+
+function go(id) {
+  const cur = document.querySelector('.scr.active');
+  const nxt = document.getElementById(id);
+  if (!nxt || nxt === cur) return;
+  hist.push(cur.id);
+  cur.classList.add('leaving');
+  nxt.style.cssText = 'transform:translateX(100%);opacity:0;transition:none';
+  nxt.classList.add('active');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    nxt.style.cssText = '';
+  }));
+  setTimeout(() => { cur.classList.remove('active','leaving'); }, 400);
+}
+
+function back() {
+  if (!hist.length) return;
+  const pid = hist.pop();
+  const cur = document.querySelector('.scr.active');
+  const prv = document.getElementById(pid);
+  if (!prv) return;
+  prv.style.cssText = 'transform:translateX(-28%);opacity:0.7;transition:none';
+  prv.classList.add('active');
+  cur.style.cssText = 'transform:translateX(0);opacity:1;transition:none';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    prv.style.cssText = '';
+    cur.style.transition = 'transform .35s cubic-bezier(.4,0,.2,1), opacity .3s ease';
+    cur.style.transform = 'translateX(100%)';
+    cur.style.opacity = '0';
+  }));
+  setTimeout(() => {
+    cur.classList.remove('active');
+    cur.style.cssText = '';
+    prv.style.cssText = '';
+  }, 400);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tripay · Prototype v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────── */
+:root {
+  --brick-900: #7C2D12;
+  --brick-700: #9A3412;
+  --brick-500: #C2410C;
+  --amber-600: #B45309;
+  --cream-50:  #FEF9EE;
+  --stone-900: #1C1917;
+  --stone-800: #292524;
+  --stone-700: #3C3330;
+  --stone-600: #57534E;
+  --stone-400: #A8A29E;
+  --stone-200: #E7E5E4;
+  --stone-100: #F5F4F2;
+  --green-700: #15803D;
+  --white:     #FFFFFF;
+
+  --primary: var(--brick-900);
+  --accent:  var(--amber-600);
+  --surface: var(--cream-50);
+  --warn:    var(--brick-500);
+  --ok:      var(--green-700);
+  --ink:     var(--stone-800);
+  --mid:     var(--stone-600);
+  --muted:   var(--stone-400);
+
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'Noto Sans TC', 'PingFang TC', 'PingFang SC', 'Heiti TC', 'Heiti SC',
+           'Microsoft JhengHei', '微軟正黑體', sans-serif;
+
+  --t-xs:   11px;
+  --t-sm:   13px;
+  --t-base: 16px;
+  --t-md:   18px;
+  --t-lg:   20px;
+  --t-xl:   24px;
+  --t-2xl:  30px;
+
+  --r-card:  16px;
+  --r-btn:   12px;
+  --r-badge: 999px;
+  --r-sheet: 22px;
+
+  --sh-card: 0 2px 10px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.05);
+  --sh-up:   0 8px 32px rgba(0,0,0,.14), 0 2px 8px rgba(0,0,0,.07);
+  --sh-fab:  0 4px 20px rgba(124,45,18,.5), 0 1px 6px rgba(124,45,18,.25);
+}
+
+/* ─────────────────────────────────
+   RESET
+───────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--sans);
+  background: linear-gradient(140deg, #C4A882 0%, #D4B896 50%, #BFA880 100%);
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 20px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─────────────────────────────────
+   PHONE FRAME  (iPhone 14, 390×844)
+───────────────────────────────── */
+.phone {
+  width: 390px; height: 844px;
+  border-radius: 52px;
+  position: relative; flex-shrink: 0;
+  box-shadow:
+    0 0 0 2px #3A2A20,
+    0 0 0 11px #1E1410,
+    0 50px 100px rgba(0,0,0,.5),
+    inset 0 0 0 1px rgba(255,255,255,.08);
+  overflow: hidden;
+  background: var(--stone-900);
+}
+/* Dynamic island */
+.phone::before {
+  content: '';
+  position: absolute; top: 12px; left: 50%;
+  transform: translateX(-50%);
+  width: 100px; height: 30px;
+  background: #1E1410; border-radius: 20px; z-index: 300;
+}
+
+/* ─────────────────────────────────
+   SCREEN SYSTEM
+───────────────────────────────── */
+.screens { position: relative; width: 100%; height: 100%; overflow: hidden; }
+
+.scr {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  transform: translateX(100%); opacity: 0;
+  transition: transform .35s cubic-bezier(.4,0,.2,1), opacity .3s ease;
+  will-change: transform, opacity;
+}
+.scr.active  { transform: translateX(0);    opacity: 1; }
+.scr.leaving { transform: translateX(-28%); opacity: 0; }
+
+/* ─────────────────────────────────
+   STATUS BAR
+───────────────────────────────── */
+.sb {
+  height: 48px; padding: 14px 24px 0;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; z-index: 10; position: relative;
+}
+.sb .time { font-size: 15px; font-weight: 700; }
+.sb .icons { font-size: 13px; }
+.sb-dark .time  { color: #fff; }
+.sb-dark .icons { color: rgba(255,255,255,.75); }
+.sb-light .time  { color: var(--ink); }
+.sb-light .icons { color: var(--mid); }
+
+/* ─────────────────────────────────
+   NAV BAR
+───────────────────────────────── */
+.nb {
+  height: 50px; padding: 0 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; z-index: 10; position: relative;
+}
+.nb-back {
+  font-size: var(--t-sm); font-weight: 500;
+  cursor: pointer; padding: 8px 4px;
+  display: flex; align-items: center; gap: 3px;
+}
+.nb-back-dark  { color: rgba(255,255,255,.9); }
+.nb-back-light { color: var(--primary); }
+.nb-label { font-size: 13px; font-weight: 600; color: var(--mid); }
+.nb-acts  { display: flex; gap: 8px; }
+.nb-icon {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: rgba(255,255,255,.18); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; cursor: pointer;
+}
+
+/* ─────────────────────────────────
+   SCROLL AREA
+───────────────────────────────── */
+.sa {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.sa::-webkit-scrollbar { display: none; }
+
+/* ─────────────────────────────────
+   BUTTONS
+───────────────────────────────── */
+.btn-p {
+  flex: 1; height: 50px;
+  background: var(--primary); color: #fff; border-radius: var(--r-btn);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 3px 14px rgba(124,45,18,.36);
+  transition: transform .15s; user-select: none;
+}
+.btn-p:active { transform: scale(0.97); }
+.btn-p.dim {
+  background: var(--stone-200); color: var(--muted);
+  box-shadow: none; cursor: default;
+  pointer-events: none;
+}
+.btn-s {
+  flex: 1; height: 50px;
+  background: #fff; color: var(--primary); border-radius: var(--r-btn);
+  border: 1.5px solid var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: transform .15s; user-select: none;
+}
+.btn-s:active { transform: scale(0.97); }
+
+/* Bottom action bar */
+.bb {
+  padding: 12px 20px 30px; flex-shrink: 0;
+  background: var(--surface); display: flex; gap: 10px;
+  border-top: 1px solid rgba(0,0,0,.05);
+}
+
+/* ─────────────────────────────────
+   SHEET COMPONENTS
+───────────────────────────────── */
+.overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.44); backdrop-filter: blur(3px);
+  cursor: pointer;
+}
+.sheet {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  display: flex; flex-direction: column; max-height: 93%;
+  box-shadow: var(--sh-up);
+}
+.drag-bar {
+  width: 36px; height: 4px; background: #D0CBC5;
+  border-radius: 2px; margin: 12px auto 0; flex-shrink: 0;
+}
+.sheet-hd {
+  padding: 14px 20px 0;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.sheet-ttl {
+  font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--ink);
+}
+.sheet-x {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #EAE6E1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--mid); cursor: pointer;
+}
+.sheet-sa {
+  flex: 1; overflow-y: auto; padding: 16px 20px 0; scrollbar-width: none;
+}
+.sheet-sa::-webkit-scrollbar { display: none; }
+.sheet-cta { padding: 14px 20px 32px; flex-shrink: 0; }
+
+/* Form */
+.ff { margin-bottom: 18px; }
+.fl {
+  font-size: var(--t-sm); font-weight: 700; color: var(--mid);
+  letter-spacing: .03em; margin-bottom: 7px;
+  display: flex; align-items: center; gap: 5px;
+}
+.opt-tag { font-weight: 400; color: var(--muted); }
+.fi {
+  width: 100%; height: 46px; padding: 0 14px;
+  background: #fff; border-radius: 12px;
+  border: 1.5px solid #E4DFD9; outline: none;
+  font-size: var(--t-base); font-family: var(--sans); color: var(--ink);
+  transition: border-color .2s;
+}
+.fi:focus { border-color: var(--primary); }
+.fi::placeholder { color: var(--muted); }
+
+/* ─────────────────────────────────
+   COMMON: Mini trip card
+───────────────────────────────── */
+.mini-tc {
+  border-radius: var(--r-card); overflow: hidden;
+  box-shadow: var(--sh-card); margin-bottom: 20px;
+}
+.mini-bg {
+  height: 76px;
+  background: linear-gradient(148deg, #1A3558 0%, #2B5590 42%, #684533 100%);
+  display: flex; align-items: center; padding: 0 16px; gap: 12px;
+}
+.mini-emo  { font-size: 28px; }
+.mini-name { font-family: var(--sans); font-size: 18px; font-weight: 700; color: #fff; }
+.mini-date { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 2px; }
+.mini-foot {
+  background: #fff; padding: 9px 16px;
+  font-size: 12px; color: var(--muted);
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* ─────────────────────────────────
+   COMMON: Settlement rows
+───────────────────────────────── */
+.stl-hd {
+  font-size: var(--t-xs); font-weight: 700; color: var(--muted);
+  letter-spacing: .09em; text-transform: uppercase; margin-bottom: 10px;
+}
+.stl-row {
+  background: #fff; border-radius: 12px; padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: var(--sh-card); margin-bottom: 8px;
+}
+.stl-who { display: flex; align-items: center; gap: 6px; font-size: 15px; }
+.stl-arr { font-size: 13px; color: var(--muted); }
+.stl-amt {
+  font-size: 17px; font-weight: 700; color: var(--ok);
+  font-variant-numeric: tabular-nums; text-align: right;
+}
+.stl-paid {
+  font-size: 11px; font-weight: 700; color: var(--ok);
+  margin-top: 4px; text-align: right;
+}
+.mark-btn {
+  font-size: 11px; font-weight: 700; color: var(--primary);
+  border: 1.5px solid var(--primary); border-radius: 8px;
+  padding: 4px 10px; cursor: pointer; margin-top: 4px;
+  display: inline-block; transition: background .15s, color .15s;
+}
+.mark-btn:active { background: var(--primary); color: #fff; }
+
+/* ─────────────────────────────────
+   S-00  LOGIN
+───────────────────────────────── */
+#s00 {
+  background: linear-gradient(155deg, #3A1508 0%, #7C2D12 38%, #B45309 72%, #D97706 100%);
+}
+.s00-body {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 36px 60px;
+}
+.s00-icon {
+  width: 76px; height: 76px; border-radius: 22px;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 38px; margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.22);
+}
+.s00-wordmark {
+  font-family: var(--sans); font-size: 52px; font-weight: 700;
+  letter-spacing: -.025em; color: #fff; line-height: 1; margin-bottom: 10px;
+}
+.s00-slogan {
+  font-family: var(--serif); font-size: 17px; font-style: italic;
+  color: rgba(255,255,255,.78); letter-spacing: .06em; margin-bottom: 36px;
+}
+.s00-tagline {
+  font-size: 15px; color: rgba(255,255,255,.65); text-align: center;
+  line-height: 1.65; margin-bottom: 44px; max-width: 230px;
+}
+.btn-google {
+  width: 100%; max-width: 280px; height: 54px;
+  background: #fff; border-radius: var(--r-btn);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-size: 15px; font-weight: 600; color: var(--stone-800); cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0,0,0,.22); transition: transform .15s;
+}
+.btn-google:active { transform: scale(0.97); }
+.g-icon {
+  width: 20px; height: 20px; flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%234285F4' d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'/%3E%3Cpath fill='%2334A853' d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'/%3E%3Cpath fill='%23FBBC05' d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'/%3E%3Cpath fill='%23EA4335' d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'/%3E%3C/svg%3E");
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+}
+
+/* ─────────────────────────────────
+   S-01  TRIP LIST
+───────────────────────────────── */
+#s01 { background: var(--surface); }
+.s01-head {
+  padding: 4px 20px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.s01-logo {
+  font-family: var(--sans); font-size: 28px; font-weight: 700;
+  letter-spacing: -.02em; color: var(--primary);
+}
+.btn-add {
+  height: 36px; padding: 0 16px;
+  background: var(--primary); color: #fff; border-radius: var(--r-btn);
+  font-size: var(--t-sm); font-weight: 700;
+  display: flex; align-items: center; gap: 4px;
+  cursor: pointer; box-shadow: 0 2px 8px rgba(124,45,18,.32);
+  transition: transform .15s;
+}
+.btn-add:active { transform: scale(0.96); }
+
+/* Trip cards */
+.cards-wrap {
+  padding: 14px 20px 16px; display: flex; flex-direction: column; gap: 13px;
+}
+.tc {
+  border-radius: var(--r-card); overflow: hidden;
+  box-shadow: var(--sh-card); cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.tc:active { transform: scale(0.986); box-shadow: var(--sh-up); }
+.tc-bg {
+  height: 142px; position: relative;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 14px 16px;
+}
+.tc-emo { position: absolute; top: 14px; right: 16px; font-size: 34px; line-height: 1; }
+.tc-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: var(--r-badge);
+  font-size: var(--t-xs); font-weight: 700; letter-spacing: .04em;
+  width: fit-content; margin-bottom: 6px;
+}
+.b-active   { background: rgba(255,255,255,.22); color:#fff; border:1px solid rgba(255,255,255,.35); backdrop-filter:blur(4px); }
+.b-before   { background: rgba(255,255,255,.16); color:rgba(255,255,255,.9); border:1px solid rgba(255,255,255,.25); }
+.b-pending  { background: #FEF2F2; color:#DC2626; }
+.b-settled  { background: rgba(255,255,255,.13); color:rgba(255,255,255,.8); }
+.tc-name {
+  font-family: var(--sans); font-size: 22px; font-weight: 700; color: #fff;
+  letter-spacing: -.01em; line-height: 1.2;
+  text-shadow: 0 1px 6px rgba(0,0,0,.35);
+}
+.tc-foot {
+  background: #fff; padding: 11px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.tc-members { font-size: 19px; display: flex; gap: 2px; flex-shrink: 0; }
+.tc-right   { text-align: right; min-width: 110px; flex-shrink: 0; }
+.tc-amount  { font-size: 17px; font-weight: 700; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+.tc-date    { font-size: var(--t-xs); color: var(--muted); margin-top: 2px; text-align: right; }
+
+/* Card gradients */
+.g-hkd { background: linear-gradient(148deg, #1A3558 0%, #2B5590 42%, #684533 100%); }
+.g-ok  { background: linear-gradient(148deg, #0A6060 0%, #19999A 42%, #D96040 100%); }
+.g-jj  { background: linear-gradient(148deg, #264C10 0%, #457A28 50%, #88AA58 100%); }
+.g-sel { background: linear-gradient(148deg, #38266A 0%, #644A96 50%, #B09050 100%); opacity:.72; }
+
+/* G-02 Ghost card */
+.ghost-wrap {
+  border-radius: var(--r-card); overflow: hidden;
+  box-shadow: var(--sh-card); filter: blur(1.8px); opacity: .5;
+  animation: ghostPulse 3.2s ease-in-out infinite; pointer-events: none;
+}
+@keyframes ghostPulse { 0%,100%{opacity:.5} 50%{opacity:.28} }
+.ghost-inner {
+  height: 96px;
+  background: linear-gradient(135deg, #D6C4B5, #C2AFA0);
+  display: flex; align-items: center; justify-content: center;
+}
+.ghost-text {
+  font-family: var(--serif); font-size: 18px; font-style: italic;
+  color: rgba(80,55,42,.5);
+}
+
+/* G-06 Share banner */
+.g06-banner {
+  background: var(--cream-50); border: 1px solid var(--stone-200);
+  border-radius: 14px; padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  margin: 6px 20px 24px;
+}
+.g06-icon { font-size: 28px; flex-shrink: 0; }
+.g06-text { flex: 1; font-size: var(--t-sm); color: var(--mid); line-height: 1.55; }
+.g06-btn {
+  flex-shrink: 0; padding: 7px 12px; border-radius: 8px;
+  border: 1.5px solid var(--primary); color: var(--primary);
+  font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+
+/* ─────────────────────────────────
+   S-02  CREATE TRIP (sheet)
+───────────────────────────────── */
+#s02 { background: transparent; }
+.emj-strip { display: flex; flex-wrap: wrap; gap: 8px; }
+.emj-opt {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: #fff; border: 1.5px solid #E4DFD9;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; cursor: pointer;
+}
+.emj-opt.sel { border-color: var(--primary); background: #FFF5F0; }
+.mem-rows  { display: flex; flex-direction: column; gap: 8px; }
+.mem-row {
+  background: #fff; border-radius: 12px; padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; border: 1.5px solid transparent;
+  transition: border-color .2s, background .2s;
+}
+.mem-row.me { border-color: var(--primary); background: #FFF6F1; }
+.mem-radio {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid #C8BFB8;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0;
+}
+.mem-row.me .mem-radio { background: var(--primary); border-color: var(--primary); color: #fff; }
+.mem-name { font-size: var(--t-base); font-weight: 600; color: var(--ink); }
+.mem-me-tag {
+  font-size: 10px; font-weight: 700; color: var(--primary);
+  background: rgba(124,45,18,.08); padding: 2px 8px; border-radius: var(--r-badge);
+}
+
+/* ─────────────────────────────────
+   S-03  EXPENSE LIST
+───────────────────────────────── */
+#s03 { background: var(--surface); }
+.s03-hero {
+  height: 156px; flex-shrink: 0; position: relative;
+  background: linear-gradient(148deg, #1A3558 0%, #2B5590 42%, #684533 100%);
+  padding: 92px 20px 0;
+}
+.s03-title {
+  font-family: var(--sans); font-size: 26px; font-weight: 700;
+  color: #fff; letter-spacing: -.01em;
+}
+.s03-sub {
+  font-size: var(--t-sm); color: rgba(255,255,255,.7); margin-top: 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.s03-mems { font-size: 17px; line-height: 1; }
+
+/* Stats strip */
+.stats {
+  background: #fff; flex-shrink: 0;
+  display: flex; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.stat { flex: 1; text-align: center; padding: 12px 8px; }
+.stat + .stat { border-left: 1px solid #EFEBE6; }
+.stat-val {
+  font-size: 17px; font-weight: 700; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.stat-lbl  { font-size: var(--t-xs); color: var(--muted); margin-top: 2px; }
+.stat-warn { font-size: 10px; color: var(--warn); margin-top: 3px; }
+.stat-curr {
+  width: 68px; flex-shrink: 0; border-left: 1px solid #EFEBE6;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 10px 4px;
+}
+.curr-chip {
+  width: 56px; height: 22px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  transition: background .2s, color .2s; color: var(--muted); letter-spacing: .02em;
+}
+.curr-chip.on { background: var(--primary); color: #fff; }
+
+/* Day groups */
+.dg { padding: 0 20px; }
+.dg-hd {
+  font-size: var(--t-xs); font-weight: 700; color: var(--muted);
+  letter-spacing: .09em; text-transform: uppercase; padding: 14px 0 8px;
+}
+
+/* Expense row */
+.er {
+  background: #fff; border-radius: 12px; padding: 11px 13px;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px; box-shadow: var(--sh-card);
+  cursor: pointer; position: relative; overflow: hidden;
+}
+.er.pend { border-left: 3px solid #EA580C; }
+.er-icon { font-size: 22px; width: 34px; text-align: center; flex-shrink: 0; }
+.er-body { flex: 1; min-width: 0; }
+.er-title { font-size: var(--t-base); font-weight: 600; color: var(--ink); line-height: 1.2; }
+.er-meta  { display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+.er-payer { font-size: var(--t-xs); color: var(--muted); }
+.er-pp    { font-size: var(--t-xs); color: var(--mid); }
+.ebadge   {
+  display: inline-flex; align-items: center;
+  padding: 2px 7px; border-radius: var(--r-badge);
+  font-size: 10px; font-weight: 700; letter-spacing: .03em;
+}
+.eb-kojin { background:#FEF3C7; color:#92400E; }
+.eb-jibun { background:#FEF2F2; color:#991B1B; }
+.eb-pend  { background:#FFF7ED; color:#C2410C; }
+.er-right { text-align: right; flex-shrink: 0; }
+.er-amt   { font-size: 16px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.er-sub   { font-size: var(--t-xs); color: var(--muted); margin-top: 1px; }
+
+/* FAB */
+.fab {
+  position: absolute; bottom: 80px; right: 20px;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 300;
+  box-shadow: var(--sh-fab); cursor: pointer; z-index: 5;
+  transition: transform .15s, box-shadow .15s;
+}
+.fab:active { transform: scale(0.91); box-shadow: 0 2px 10px rgba(124,45,18,.38); }
+
+/* ─────────────────────────────────
+   S-04  ADD EXPENSE (sheet)
+───────────────────────────────── */
+#s04 { background: transparent; }
+
+.s04-amt-area {
+  background: var(--stone-100); border-radius: 16px;
+  padding: 16px 16px 14px;
+  margin: 14px 20px 0; text-align: center;
+}
+.s04-curr-row {
+  display: flex; justify-content: center; gap: 8px; margin-bottom: 14px;
+}
+.s04-chip {
+  padding: 5px 18px; border-radius: var(--r-badge);
+  font-size: var(--t-sm); font-weight: 700; cursor: pointer;
+  background: #fff; color: var(--muted); border: 1.5px solid #E4DFD9;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.s04-chip.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+.s04-amt {
+  font-size: 48px; font-weight: 700; color: var(--ink);
+  letter-spacing: -.03em; line-height: 1;
+  display: flex; align-items: baseline; justify-content: center; gap: 6px;
+}
+.s04-sym { font-size: 28px; color: var(--mid); }
+.s04-hint { font-size: var(--t-xs); color: var(--muted); margin-top: 8px; }
+
+/* Category chips */
+.cat-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.cat-row::-webkit-scrollbar { display: none; }
+.cat-chip {
+  flex-shrink: 0; padding: 7px 14px; border-radius: var(--r-badge);
+  background: var(--stone-100); color: var(--mid);
+  font-size: var(--t-sm); font-weight: 600; cursor: pointer;
+  border: 1.5px solid transparent; white-space: nowrap;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.cat-chip.on { background: var(--primary); color: #fff; }
+
+/* Payer chips */
+.payer-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.payer-chip {
+  padding: 7px 14px; border-radius: var(--r-badge);
+  background: #fff; color: var(--mid);
+  font-size: var(--t-sm); font-weight: 600; cursor: pointer;
+  border: 1.5px solid #E4DFD9;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.payer-chip.on { border-color: var(--primary); background: var(--cream-50); color: var(--primary); }
+
+/* Split toggle */
+.split-toggle {
+  display: flex; border-radius: 10px; overflow: hidden;
+  border: 1.5px solid #E4DFD9; background: var(--stone-100);
+}
+.split-opt {
+  flex: 1; text-align: center; padding: 9px 0;
+  font-size: var(--t-sm); font-weight: 600; color: var(--muted); cursor: pointer;
+  transition: background .2s, color .2s;
+}
+.split-opt.on { background: var(--primary); color: #fff; }
+
+/* Split sub-states */
+.split-sub { margin-top: 12px; }
+.sub-label {
+  font-size: var(--t-sm); font-weight: 700; color: var(--mid);
+  letter-spacing: .03em; margin-bottom: 8px;
+}
+
+/* 一起分: member checkboxes */
+.mem-check-rows { display: flex; flex-direction: column; gap: 6px; }
+.mem-check-row {
+  background: #fff; border-radius: 10px; padding: 9px 12px;
+  display: flex; align-items: center; gap: 10px;
+  border: 1.5px solid #E4DFD9; cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.mem-check-row.on { border-color: var(--primary); background: var(--cream-50); }
+.check-box {
+  width: 20px; height: 20px; border-radius: 6px;
+  border: 2px solid #C8BFB8; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff;
+  transition: background .2s, border-color .2s;
+}
+.mem-check-row.on .check-box { background: var(--primary); border-color: var(--primary); }
+.per-person-hint {
+  margin-top: 10px; text-align: center;
+  font-size: var(--t-sm); font-weight: 700; color: var(--ok);
+  background: rgba(21,128,61,.08); border-radius: 8px; padding: 7px 0;
+}
+
+/* 各付各的: individual inputs */
+.indiv-rows { display: flex; flex-direction: column; gap: 6px; }
+.indiv-row {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; border-radius: 10px; padding: 8px 12px;
+  border: 1.5px solid #E4DFD9;
+}
+.indiv-who { font-size: 14px; font-weight: 500; color: var(--ink); flex: 1; }
+.indiv-input {
+  width: 108px; height: 36px; padding: 0 10px;
+  background: var(--stone-100); border-radius: 8px;
+  border: 1.5px solid transparent; outline: none;
+  font-size: 15px; font-weight: 700; color: var(--ink);
+  font-family: var(--sans); text-align: right;
+  font-variant-numeric: tabular-nums;
+  transition: border-color .2s, background .2s;
+}
+.indiv-input:focus { border-color: var(--primary); background: #fff; }
+.indiv-input::placeholder { color: var(--muted); font-weight: 400; font-size: 13px; }
+.total-hint {
+  margin-top: 8px; font-size: 12px; font-weight: 600;
+  text-align: right; padding-right: 2px;
+  transition: color .2s;
+}
+.total-ok   { color: var(--ok); }
+.total-warn { color: var(--warn); }
+
+/* 只算我: info card */
+.personal-card {
+  background: #FFF7F0; border: 1px solid #FFD9C0;
+  border-radius: 12px; padding: 14px 16px;
+}
+.personal-ttl  { font-size: 15px; font-weight: 700; color: var(--brick-700); margin-bottom: 5px; }
+.personal-desc { font-size: 13px; color: var(--mid); line-height: 1.65; }
+
+/* ─────────────────────────────────
+   S-05  SETTLEMENT (in progress)
+───────────────────────────────── */
+#s05 { background: var(--surface); }
+.s05-sa { flex: 1; overflow-y: auto; padding: 4px 20px 16px; scrollbar-width: none; }
+.s05-sa::-webkit-scrollbar { display: none; }
+
+/* Progress bar */
+.prog-card {
+  background: #fff; border-radius: 12px; padding: 14px 16px;
+  box-shadow: var(--sh-card); margin-bottom: 8px;
+}
+.prog-label { font-size: var(--t-sm); font-weight: 600; color: var(--mid); margin-bottom: 8px; }
+.prog-track { height: 6px; background: var(--stone-100); border-radius: 3px; overflow: hidden; }
+.prog-fill  { height: 100%; background: var(--ok); border-radius: 3px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+
+/* ─────────────────────────────────
+   S-05DONE  SETTLEMENT COMPLETE
+───────────────────────────────── */
+#s05done { background: var(--surface); }
+.cel-sa { flex: 1; overflow-y: auto; padding: 4px 20px 24px; scrollbar-width: none; }
+.cel-sa::-webkit-scrollbar { display: none; }
+.cel-center { text-align: center; padding: 14px 0 22px; }
+.cel-emo {
+  font-size: 62px; display: block; margin-bottom: 14px;
+  animation: popIn .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popIn {
+  from { transform: scale(0) rotate(-12deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0);     opacity: 1; }
+}
+.cel-h1 { font-family: var(--serif); font-size: 30px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+.cel-h2 { font-family: var(--serif); font-size: 18px; font-style: italic; color: var(--mid); }
+
+/* G-08 Highlights */
+.hl-card {
+  background: #fff; border-radius: var(--r-card); padding: 18px 16px;
+  box-shadow: var(--sh-card); margin-bottom: 20px;
+}
+.hl-hd {
+  font-size: var(--t-xs); font-weight: 700; color: var(--muted);
+  letter-spacing: .1em; text-transform: uppercase;
+  text-align: center; margin-bottom: 14px;
+}
+.hl-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.hl-item { text-align: center; padding: 0 6px; }
+.hl-item + .hl-item { border-left: 1px solid #EEEBE6; }
+.hl-num {
+  font-family: var(--sans); font-size: 24px; font-weight: 800;
+  color: var(--ink); line-height: 1; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.hl-unit { font-size: 12px; font-weight: 600; color: var(--mid); }
+.hl-lbl  { font-size: 10px; font-weight: 600; color: var(--muted); margin-top: 5px; }
+
+/* ─────────────────────────────────
+   S-06  READ-ONLY SHARE
+───────────────────────────────── */
+#s06 { background: var(--surface); }
+.ro-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--stone-200); color: var(--mid);
+  font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: var(--r-badge);
+}
+.s06-sa { flex: 1; overflow-y: auto; padding: 4px 20px 0; scrollbar-width: none; }
+.s06-sa::-webkit-scrollbar { display: none; }
+
+/* Stats row */
+.s06-stats {
+  background: #fff; border-radius: 12px; padding: 14px 0;
+  display: flex; box-shadow: var(--sh-card); margin-bottom: 16px;
+}
+.s06-stat { flex: 1; text-align: center; }
+.s06-stat + .s06-stat { border-left: 1px solid #EFEBE6; }
+.s06-stat-val { font-size: 18px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.s06-stat-lbl { font-size: var(--t-xs); color: var(--muted); margin-top: 3px; }
+
+/* Expense rows (read-only) */
+.s06-er {
+  background: #fff; border-radius: 12px; padding: 11px 13px;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px; box-shadow: var(--sh-card);
+}
+.s06-er-icon  { font-size: 20px; width: 32px; text-align: center; flex-shrink: 0; }
+.s06-er-body  { flex: 1; min-width: 0; }
+.s06-er-title { font-size: var(--t-base); font-weight: 600; color: var(--ink); }
+.s06-er-payer { font-size: var(--t-xs); color: var(--muted); margin-top: 2px; }
+.s06-er-right { text-align: right; flex-shrink: 0; }
+.s06-er-amt   { font-size: 16px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* G-06 download CTA */
+.g06-cta {
+  background: var(--cream-50); border-top: 1px solid var(--stone-200);
+  padding: 16px 20px 32px; flex-shrink: 0;
+}
+.g06-cta-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.g06-cta-text { font-size: var(--t-sm); color: var(--mid); line-height: 1.5; }
+.g06-cta-btn {
+  flex-shrink: 0; height: 36px; padding: 0 16px;
+  background: var(--primary); color: #fff; border-radius: var(--r-btn);
+  font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(124,45,18,.3);
+  display: flex; align-items: center;
+}
+</style>
+</head>
+<body>
+<div class="phone">
+<div class="screens">
+
+<!-- ══════════════════════════════════════
+     S-00  LOGIN
+══════════════════════════════════════ -->
+<div class="scr active" id="s00">
+  <div class="sb sb-dark">
+    <span class="time">9:41</span>
+    <span class="icons">●●● ▲ 🔋</span>
+  </div>
+  <div class="s00-body">
+    <div class="s00-icon">✈️</div>
+    <div class="s00-wordmark">Tripay</div>
+    <div class="s00-slogan">每一趟，都記得</div>
+    <div class="s00-tagline">大家一起出發，帳交給 Tripay。</div>
+    <div class="btn-google" onclick="go('s01')">
+      <div class="g-icon"></div>
+      用 Google 帳號繼續
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S-01  TRIP LIST
+══════════════════════════════════════ -->
+<div class="scr" id="s01">
+  <div class="sb sb-light">
+    <span class="time">9:41</span>
+    <span class="icons">●●● 📶 🔋</span>
+  </div>
+  <div class="s01-head">
+    <div class="s01-logo">Tripay</div>
+    <div class="btn-add" onclick="go('s02')">＋ 新增行程</div>
+  </div>
+  <div class="sa">
+    <div class="cards-wrap">
+
+      <!-- 北海道（旅途中） -->
+      <div class="tc" onclick="go('s03')">
+        <div class="tc-bg g-hkd">
+          <div class="tc-emo">🌨️</div>
+          <span class="tc-badge b-active">旅途中</span>
+          <div class="tc-name">北海道家庭行</div>
+        </div>
+        <div class="tc-foot">
+          <div class="tc-members">🧑🏻‍🦱👩🏻🧒🏻</div>
+          <div class="tc-right">
+            <div class="tc-amount">¥ 187,400</div>
+            <div class="tc-date">2/1 – 2/8 · 2025</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 沖繩（出發前） -->
+      <div class="tc">
+        <div class="tc-bg g-ok">
+          <div class="tc-emo">🌺</div>
+          <span class="tc-badge b-before">出發前</span>
+          <div class="tc-name">沖繩四人行</div>
+        </div>
+        <div class="tc-foot">
+          <div class="tc-members">🧑🏻‍🦱👩🏻🧒🏻👧🏻</div>
+          <div class="tc-right">
+            <div class="tc-amount">¥ 32,100</div>
+            <div class="tc-date">7/12 – 7/17 · 2025</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 濟州（待填） -->
+      <div class="tc">
+        <div class="tc-bg g-jj">
+          <div class="tc-emo">🍊</div>
+          <span class="tc-badge b-pending">⏳ 3 筆待填</span>
+          <div class="tc-name">濟州島三天</div>
+        </div>
+        <div class="tc-foot">
+          <div class="tc-members">🧑🏻‍🦱👩🏻</div>
+          <div class="tc-right">
+            <div class="tc-amount">₩ 420,000</div>
+            <div class="tc-date">4/5 – 4/8 · 2025</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 首爾（已結算） -->
+      <div class="tc">
+        <div class="tc-bg g-sel">
+          <div class="tc-emo">🏙️</div>
+          <span class="tc-badge b-settled">✅ 已結算</span>
+          <div class="tc-name">首爾追星行</div>
+        </div>
+        <div class="tc-foot" style="background:#F6F4F2">
+          <div class="tc-members" style="opacity:.55">🧑🏻‍🦱👩🏻👩🏻‍🦰</div>
+          <div class="tc-right">
+            <div class="tc-amount" style="color:var(--muted)">₩ 680,000</div>
+            <div class="tc-date">11/20 – 11/24 · 2024</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- G-02 Ghost card -->
+      <div class="ghost-wrap">
+        <div class="ghost-inner">
+          <div class="ghost-text">你的下一趟在哪？</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- G-06 Share banner -->
+    <div class="g06-banner">
+      <div class="g06-icon">🗺️</div>
+      <div class="g06-text">分享行程連結，<br>朋友免下載就能看帳</div>
+      <div class="g06-btn">複製連結</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S-02  CREATE TRIP (sheet)
+══════════════════════════════════════ -->
+<div class="scr" id="s02" style="background:transparent">
+  <div class="overlay" onclick="back()"></div>
+  <div class="sheet">
+    <div class="drag-bar"></div>
+    <div class="sheet-hd">
+      <div class="sheet-ttl">這趟去哪？</div>
+      <div class="sheet-x" onclick="back()">✕</div>
+    </div>
+    <div class="sheet-sa">
+      <div class="ff" style="margin-top:14px">
+        <div class="fl">去哪？</div>
+        <input class="fi" placeholder="例如：沖繩四人行 ☀️">
+      </div>
+      <div class="ff">
+        <div class="fl">封面 <span style="font-size:11px;font-weight:400;color:var(--muted)">選 emoji 自訂</span></div>
+        <div class="emj-strip">
+          <div class="emj-opt sel">🌨️</div>
+          <div class="emj-opt">🌺</div>
+          <div class="emj-opt">🍊</div>
+          <div class="emj-opt">🏙️</div>
+          <div class="emj-opt">🏖️</div>
+          <div class="emj-opt">🗻</div>
+          <div class="emj-opt">🍜</div>
+          <div class="emj-opt">✈️</div>
+        </div>
+      </div>
+      <div class="ff">
+        <div class="fl">當地幣別</div>
+        <select class="fi" style="appearance:none">
+          <option value="" disabled selected>選擇幣別</option>
+          <option>🇯🇵 JPY 日圓</option>
+          <option>🇰🇷 KRW 韓圜</option>
+          <option>🇪🇺 EUR 歐元</option>
+          <option>🇺🇸 USD 美元</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div class="ff" style="flex:1">
+          <div class="fl">出發</div>
+          <input class="fi" value="2025/02/01" type="text">
+        </div>
+        <div class="ff" style="flex:1">
+          <div class="fl">回程</div>
+          <input class="fi" value="2025/02/08" type="text">
+        </div>
+      </div>
+      <div class="ff">
+        <div class="fl">誰一起去？</div>
+        <div class="mem-rows">
+          <div class="mem-row me">
+            <div class="mem-radio">✓</div>
+            <span style="font-size:20px">🧑🏻‍🦱</span>
+            <span class="mem-name">Rozi</span>
+            <span class="mem-me-tag">這是我 ✓</span>
+          </div>
+          <div class="mem-row">
+            <div class="mem-radio"></div>
+            <span style="font-size:20px">👩🏻</span>
+            <span class="mem-name" style="color:var(--mid);font-weight:500">Ning</span>
+          </div>
+          <div class="mem-row">
+            <div class="mem-radio"></div>
+            <span style="font-size:20px">🧒🏻</span>
+            <span class="mem-name" style="color:var(--mid);font-weight:500">小白</span>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px">點成員標記哪位是你</div>
+        <div style="margin-top:10px;font-size:14px;font-weight:600;color:var(--primary);cursor:pointer">＋ 新增成員</div>
+      </div>
+    </div>
+    <div class="sheet-cta">
+      <div class="btn-p" onclick="go('s03')">出發！</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S-03  EXPENSE LIST
+══════════════════════════════════════ -->
+<div class="scr" id="s03">
+  <!-- Overlaid status & nav -->
+  <div class="sb sb-dark" style="position:absolute;top:0;left:0;right:0;z-index:10">
+    <span class="time">9:41</span>
+    <span class="icons">●●● 📶 🔋</span>
+  </div>
+  <div class="nb" style="position:absolute;top:44px;left:0;right:0;z-index:10">
+    <div class="nb-back nb-back-dark" onclick="back()">‹ 行程</div>
+    <div class="nb-acts">
+      <div class="nb-icon">
+        <!-- Share icon -->
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 8 12 4 8 8"/>
+          <line x1="12" y1="4" x2="12" y2="16"/>
+          <path d="M20 16v3a2 2 0 01-2 2H6a2 2 0 01-2-2v-3"/>
+        </svg>
+      </div>
+      <div class="nb-icon">
+        <!-- Settings icon -->
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="s03-hero">
+    <div class="s03-title">北海道家庭行</div>
+    <div class="s03-sub">
+      <span>2025/2/1 – 2/8</span>
+      <span class="s03-mems">🧑🏻‍🦱👩🏻🧒🏻</span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" id="stat-total">$ 40,500</div>
+      <div class="stat-lbl">總花費</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="stat-mine">$ 15,400</div>
+      <div class="stat-lbl">我的花費</div>
+      <div class="stat-warn">⚠ 含 1 筆待填</div>
+    </div>
+    <div class="stat-curr">
+      <div class="curr-chip on" id="chip-twd" onclick="setCurr('twd')">$ 台幣</div>
+      <div class="curr-chip"    id="chip-jpy" onclick="setCurr('jpy')">¥ 外幣</div>
+    </div>
+  </div>
+
+  <div class="sa" style="padding-bottom:84px">
+    <div class="dg">
+      <div class="dg-hd">出發前</div>
+      <div class="er">
+        <div class="er-icon">✈️</div>
+        <div class="er-body">
+          <div class="er-title">機票</div>
+          <div class="er-meta">
+            <span class="er-payer">🧑🏻‍🦱 付</span>
+            <span class="ebadge eb-kojin">各自</span>
+          </div>
+        </div>
+        <div class="er-right">
+          <div class="er-amt">¥ 42,000</div>
+          <div class="er-sub">各自付</div>
+        </div>
+      </div>
+      <div class="er">
+        <div class="er-icon">📱</div>
+        <div class="er-body">
+          <div class="er-title">eSIM</div>
+          <div class="er-meta">
+            <span class="er-payer">🧑🏻‍🦱 付</span>
+            <span class="ebadge eb-jibun">自付</span>
+          </div>
+        </div>
+        <div class="er-right">
+          <div class="er-amt">$ 490</div>
+          <div class="er-sub">台幣</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dg">
+      <div class="dg-hd">第 1 天 · 2/1（六）</div>
+      <div class="er">
+        <div class="er-icon">🍜</div>
+        <div class="er-body">
+          <div class="er-title">午餐（小樽）</div>
+          <div class="er-meta">
+            <span class="er-payer">🧑🏻‍🦱 付</span>
+            <span class="er-pp">每人 ¥ 2,100</span>
+          </div>
+        </div>
+        <div class="er-right"><div class="er-amt">¥ 6,300</div></div>
+      </div>
+      <div class="er">
+        <div class="er-icon">🍪</div>
+        <div class="er-body">
+          <div class="er-title">白色戀人公園</div>
+          <div class="er-meta">
+            <span class="er-payer">👩🏻 付</span>
+            <span class="er-pp">每人 ¥ 800</span>
+          </div>
+        </div>
+        <div class="er-right"><div class="er-amt">¥ 2,400</div></div>
+      </div>
+      <div class="er pend">
+        <div class="er-icon">🍺</div>
+        <div class="er-body">
+          <div class="er-title">晚餐（すすきの）</div>
+          <div class="er-meta"><span class="ebadge eb-pend">待補填</span></div>
+        </div>
+        <div class="er-right"><div class="er-amt" style="color:var(--muted)">—</div></div>
+      </div>
+    </div>
+
+    <div class="dg">
+      <div class="dg-hd">第 2 天 · 2/2（日）</div>
+      <div class="er">
+        <div class="er-icon">🥐</div>
+        <div class="er-body">
+          <div class="er-title">早餐（旅館）</div>
+          <div class="er-meta">
+            <span class="er-payer">🧑🏻‍🦱 付</span>
+            <span class="er-pp">每人 ¥ 1,500</span>
+          </div>
+        </div>
+        <div class="er-right"><div class="er-amt">¥ 4,500</div></div>
+      </div>
+      <div class="er">
+        <div class="er-icon">🦁</div>
+        <div class="er-body">
+          <div class="er-title">旭山動物園</div>
+          <div class="er-meta">
+            <span class="er-payer">👩🏻 付</span>
+            <span class="er-pp">每人 ¥ 820</span>
+          </div>
+        </div>
+        <div class="er-right"><div class="er-amt">¥ 2,460</div></div>
+      </div>
+      <div class="er">
+        <div class="er-icon">🦀</div>
+        <div class="er-body">
+          <div class="er-title">螃蟹晚餐</div>
+          <div class="er-meta">
+            <span class="er-payer">🧑🏻‍🦱 付</span>
+            <span class="er-pp">每人 ¥ 6,800</span>
+          </div>
+        </div>
+        <div class="er-right"><div class="er-amt">¥ 20,400</div></div>
+      </div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- FAB -->
+  <div class="fab" onclick="go('s04')">＋</div>
+
+  <!-- Bottom bar (settlement only) -->
+  <div class="bb" style="padding-right:88px">
+    <div class="btn-p" onclick="go('s05')">前往結算</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S-04  ADD EXPENSE (sheet)
+══════════════════════════════════════ -->
+<div class="scr" id="s04" style="background:transparent">
+  <div class="overlay" onclick="back()"></div>
+  <div class="sheet">
+    <div class="drag-bar"></div>
+    <div class="sheet-hd">
+      <div class="sheet-ttl">記一筆</div>
+      <div class="sheet-x" onclick="back()">✕</div>
+    </div>
+
+    <!-- Amount area -->
+    <div class="s04-amt-area">
+      <div class="s04-curr-row">
+        <div class="s04-chip on" id="s4-twd" onclick="s4Curr('twd')">$ 台幣</div>
+        <div class="s04-chip"    id="s4-jpy" onclick="s4Curr('jpy')">¥ 外幣</div>
+      </div>
+      <div class="s04-amt">
+        <span class="s04-sym" id="s4-sym">$</span>
+        <span>1,200</span>
+      </div>
+      <div class="s04-hint">點擊輸入金額</div>
+    </div>
+
+    <div class="sheet-sa">
+      <!-- Name -->
+      <div class="ff">
+        <div class="fl">品名</div>
+        <input class="fi" placeholder="如：午餐、計程車" value="午餐">
+      </div>
+      <!-- Category -->
+      <div class="ff">
+        <div class="fl">分類</div>
+        <div class="cat-row" id="cat-row">
+          <div class="cat-chip on" onclick="catPick(this)">🍜 餐飲</div>
+          <div class="cat-chip"    onclick="catPick(this)">🚌 交通</div>
+          <div class="cat-chip"    onclick="catPick(this)">🏨 住宿</div>
+          <div class="cat-chip"    onclick="catPick(this)">🎡 玩樂</div>
+          <div class="cat-chip"    onclick="catPick(this)">🛍️ 購物</div>
+          <div class="cat-chip"    onclick="catPick(this)">➕ 其他</div>
+        </div>
+      </div>
+      <!-- Payer -->
+      <div class="ff">
+        <div class="fl">付款人</div>
+        <div class="payer-row" id="payer-row">
+          <div class="payer-chip on" onclick="payerPick(this)">🧑🏻‍🦱 Rozi</div>
+          <div class="payer-chip"    onclick="payerPick(this)">👩🏻 Ning</div>
+          <div class="payer-chip"    onclick="payerPick(this)">🧒🏻 小白</div>
+        </div>
+      </div>
+      <!-- Split method -->
+      <div class="ff" style="margin-bottom:10px">
+        <div class="fl">分帳方式</div>
+        <div class="split-toggle" id="split-toggle">
+          <div class="split-opt on" onclick="splitPick(this,'shared')">一起分</div>
+          <div class="split-opt"    onclick="splitPick(this,'individual')">各付各的</div>
+          <div class="split-opt"    onclick="splitPick(this,'personal')">只算我</div>
+        </div>
+      </div>
+
+      <!-- Sub: 一起分 -->
+      <div class="split-sub ff" id="sub-shared">
+        <div class="sub-label">分給誰？</div>
+        <div class="mem-check-rows">
+          <div class="mem-check-row on" onclick="toggleMem(this)">
+            <div class="check-box">✓</div>
+            <span style="font-size:18px">🧑🏻‍🦱</span>
+            <span style="font-size:14px;font-weight:600;color:var(--ink)">Rozi</span>
+          </div>
+          <div class="mem-check-row on" onclick="toggleMem(this)">
+            <div class="check-box">✓</div>
+            <span style="font-size:18px">👩🏻</span>
+            <span style="font-size:14px;font-weight:600;color:var(--ink)">Ning</span>
+          </div>
+          <div class="mem-check-row on" onclick="toggleMem(this)">
+            <div class="check-box">✓</div>
+            <span style="font-size:18px">🧒🏻</span>
+            <span style="font-size:14px;font-weight:600;color:var(--ink)">小白</span>
+          </div>
+        </div>
+        <div class="per-person-hint" id="per-person-hint">每人 $ 400</div>
+      </div>
+
+      <!-- Sub: 各付各的 -->
+      <div class="split-sub ff" id="sub-individual" style="display:none">
+        <div class="sub-label">各自多少？</div>
+        <div class="indiv-rows">
+          <div class="indiv-row">
+            <div class="indiv-who"><span style="font-size:17px">🧑🏻‍🦱</span> Rozi</div>
+            <input class="indiv-input" type="number" placeholder="輸入金額" oninput="updateIndivTotal()">
+          </div>
+          <div class="indiv-row">
+            <div class="indiv-who"><span style="font-size:17px">👩🏻</span> Ning</div>
+            <input class="indiv-input" type="number" placeholder="輸入金額" oninput="updateIndivTotal()">
+          </div>
+          <div class="indiv-row">
+            <div class="indiv-who"><span style="font-size:17px">🧒🏻</span> 小白</div>
+            <input class="indiv-input" type="number" placeholder="輸入金額" oninput="updateIndivTotal()">
+          </div>
+        </div>
+        <div class="total-hint total-warn" id="indiv-total-hint">已填 $0 ／ 總額 $ 1,200</div>
+      </div>
+
+      <!-- Sub: 只算我 -->
+      <div class="split-sub ff" id="sub-personal" style="display:none">
+        <div class="personal-card">
+          <div class="personal-ttl">這筆不分帳</div>
+          <div class="personal-desc">這筆費用只記給自己，不進入任何分帳計算。適合紀念品、個人藥品，或不想跟大家一起分的花費。</div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="ff">
+        <div class="fl">備註 <span class="opt-tag">選填</span></div>
+        <textarea class="fi"
+          style="height:64px;resize:none;padding-top:10px;line-height:1.5"
+          placeholder="有什麼想記的？"></textarea>
+      </div>
+    </div>
+    <div class="sheet-cta">
+      <div class="btn-p" onclick="back()">新增消費</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S-05  SETTLEMENT (in progress)
+══════════════════════════════════════ -->
+<div class="scr" id="s05">
+  <div class="sb sb-light">
+    <span class="time">9:41</span>
+    <span class="icons">●●● 📶 🔋</span>
+  </div>
+  <div class="nb">
+    <div class="nb-back nb-back-light" onclick="back()">‹ 北海道</div>
+    <div class="nb-label">結算</div>
+    <div style="width:34px"></div>
+  </div>
+
+  <div class="s05-sa">
+    <div class="mini-tc">
+      <div class="mini-bg">
+        <div class="mini-emo">🌨️</div>
+        <div>
+          <div class="mini-name">北海道家庭行</div>
+          <div class="mini-date">2025/2/1 – 2/8</div>
+        </div>
+      </div>
+      <div class="mini-foot">🧑🏻‍🦱 👩🏻 🧒🏻 &nbsp;3 人同行</div>
+    </div>
+
+    <div class="stl-hd">誰付給誰</div>
+
+    <!-- Row 1: Ning → Rozi (pending) -->
+    <div class="stl-row" id="stl-r1">
+      <div class="stl-who">
+        <span>👩🏻 Ning</span>
+        <span class="stl-arr">→</span>
+        <span>🧑🏻‍🦱 Rozi</span>
+      </div>
+      <div>
+        <div class="stl-amt">¥ 12,400</div>
+        <div id="stl-btn-1"><div class="mark-btn" onclick="markPaid(1)">標記已收款</div></div>
+      </div>
+    </div>
+
+    <!-- Row 2: 小白 → Rozi (already paid) -->
+    <div class="stl-row">
+      <div class="stl-who">
+        <span>🧒🏻 小白</span>
+        <span class="stl-arr">→</span>
+        <span>🧑🏻‍🦱 Rozi</span>
+      </div>
+      <div>
+        <div class="stl-amt">¥ 8,200</div>
+        <div class="stl-paid">✅ 已付清</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="prog-card" style="margin-top:8px">
+      <div class="prog-label" id="prog-label">1 / 2 筆已確認</div>
+      <div class="prog-track">
+        <div class="prog-fill" id="prog-fill" style="width:50%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bb">
+    <div class="btn-s" onclick="go('s06')">分享對帳單</div>
+    <div class="btn-p dim" id="settle-btn" onclick="trySettle()">全部結清</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S-05DONE  SETTLEMENT COMPLETE
+══════════════════════════════════════ -->
+<div class="scr" id="s05done">
+  <div class="sb sb-light">
+    <span class="time">9:41</span>
+    <span class="icons">●●● 📶 🔋</span>
+  </div>
+  <div class="nb">
+    <div class="nb-back nb-back-light" onclick="back()">‹ 北海道</div>
+    <div class="nb-label">結算完成</div>
+    <div style="width:34px"></div>
+  </div>
+
+  <div class="cel-sa">
+    <div class="mini-tc">
+      <div class="mini-bg">
+        <div class="mini-emo">🌨️</div>
+        <div>
+          <div class="mini-name">北海道家庭行</div>
+          <div class="mini-date">2025/2/1 – 2/8</div>
+        </div>
+      </div>
+      <div class="mini-foot">🧑🏻‍🦱 👩🏻 🧒🏻 &nbsp;3 人同行</div>
+    </div>
+
+    <div class="cel-center">
+      <span class="cel-emo">✨</span>
+      <div class="cel-h1">帳算清楚了 ✨</div>
+      <div class="cel-h2">下次去哪？</div>
+    </div>
+
+    <!-- G-08 Highlights -->
+    <div class="hl-card">
+      <div class="hl-hd">這趟的數字</div>
+      <div class="hl-grid">
+        <div class="hl-item">
+          <div class="hl-num">8<span class="hl-unit"> 天</span></div>
+          <div class="hl-lbl">出遊</div>
+        </div>
+        <div class="hl-item">
+          <div class="hl-num">24<span class="hl-unit"> 筆</span></div>
+          <div class="hl-lbl">共記了</div>
+        </div>
+        <div class="hl-item">
+          <div class="hl-num">20,400<span class="hl-unit"> ¥</span></div>
+          <div class="hl-lbl">最大手筆</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stl-hd">誰付給誰</div>
+    <div class="stl-row">
+      <div class="stl-who">
+        <span>👩🏻 Ning</span>
+        <span class="stl-arr">→</span>
+        <span>🧑🏻‍🦱 Rozi</span>
+      </div>
+      <div>
+        <div class="stl-amt">¥ 12,400</div>
+        <div class="stl-paid">✅ 已付清</div>
+      </div>
+    </div>
+    <div class="stl-row">
+      <div class="stl-who">
+        <span>🧒🏻 小白</span>
+        <span class="stl-arr">→</span>
+        <span>🧑🏻‍🦱 Rozi</span>
+      </div>
+      <div>
+        <div class="stl-amt">¥ 8,200</div>
+        <div class="stl-paid">✅ 已付清</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bb">
+    <div class="btn-p" onclick="go('s01')">封存行程</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S-06  READ-ONLY SHARE
+══════════════════════════════════════ -->
+<div class="scr" id="s06">
+  <div class="sb sb-light">
+    <span class="time">9:41</span>
+    <span class="icons">●●● 📶 🔋</span>
+  </div>
+  <div class="nb">
+    <div class="nb-back nb-back-light" onclick="back()">‹ 返回</div>
+    <div style="font-size:14px;font-weight:600;color:var(--ink)">北海道家庭行</div>
+    <div class="ro-badge">朋友檢視 👁</div>
+  </div>
+
+  <div class="s06-sa">
+    <div style="height:4px"></div>
+    <div class="mini-tc">
+      <div class="mini-bg">
+        <div class="mini-emo">🌨️</div>
+        <div>
+          <div class="mini-name">北海道家庭行</div>
+          <div class="mini-date">2025/2/1 – 2/8 · 🧑🏻‍🦱👩🏻🧒🏻</div>
+        </div>
+      </div>
+      <div class="mini-foot">3 人同行 · 8 天</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="s06-stats">
+      <div class="s06-stat">
+        <div class="s06-stat-val">$ 40,500</div>
+        <div class="s06-stat-lbl">總花費</div>
+      </div>
+      <div class="s06-stat">
+        <div class="s06-stat-val">$ 13,500</div>
+        <div class="s06-stat-lbl">人均</div>
+      </div>
+    </div>
+
+    <div style="font-size:var(--t-xs);font-weight:700;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;margin-bottom:10px">消費明細</div>
+
+    <div class="s06-er">
+      <div class="s06-er-icon">✈️</div>
+      <div class="s06-er-body">
+        <div class="s06-er-title">機票</div>
+        <div class="s06-er-payer">🧑🏻‍🦱 Rozi 付</div>
+      </div>
+      <div class="s06-er-right"><div class="s06-er-amt">¥ 42,000</div></div>
+    </div>
+    <div class="s06-er">
+      <div class="s06-er-icon">🍜</div>
+      <div class="s06-er-body">
+        <div class="s06-er-title">午餐（小樽）</div>
+        <div class="s06-er-payer">🧑🏻‍🦱 Rozi 付</div>
+      </div>
+      <div class="s06-er-right"><div class="s06-er-amt">¥ 6,300</div></div>
+    </div>
+    <div class="s06-er">
+      <div class="s06-er-icon">🍪</div>
+      <div class="s06-er-body">
+        <div class="s06-er-title">白色戀人公園</div>
+        <div class="s06-er-payer">👩🏻 Ning 付</div>
+      </div>
+      <div class="s06-er-right"><div class="s06-er-amt">¥ 2,400</div></div>
+    </div>
+    <div class="s06-er">
+      <div class="s06-er-icon">🥐</div>
+      <div class="s06-er-body">
+        <div class="s06-er-title">早餐（旅館）</div>
+        <div class="s06-er-payer">🧑🏻‍🦱 Rozi 付</div>
+      </div>
+      <div class="s06-er-right"><div class="s06-er-amt">¥ 4,500</div></div>
+    </div>
+    <div class="s06-er">
+      <div class="s06-er-icon">🦁</div>
+      <div class="s06-er-body">
+        <div class="s06-er-title">旭山動物園</div>
+        <div class="s06-er-payer">👩🏻 Ning 付</div>
+      </div>
+      <div class="s06-er-right"><div class="s06-er-amt">¥ 2,460</div></div>
+    </div>
+    <div class="s06-er">
+      <div class="s06-er-icon">🦀</div>
+      <div class="s06-er-body">
+        <div class="s06-er-title">螃蟹晚餐</div>
+        <div class="s06-er-payer">🧑🏻‍🦱 Rozi 付</div>
+      </div>
+      <div class="s06-er-right"><div class="s06-er-amt">¥ 20,400</div></div>
+    </div>
+    <div style="height:16px"></div>
+  </div>
+
+  <!-- G-06 Download CTA -->
+  <div class="g06-cta">
+    <div class="g06-cta-row">
+      <div class="g06-cta-text">自己出遊也想這樣記帳？</div>
+      <div class="g06-cta-btn">免費下載 Tripay →</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /screens -->
+</div><!-- /phone -->
+
+<script>
+/* ─────────────────────────────────
+   NAVIGATION
+───────────────────────────────── */
+const hist = [];
+
+function go(id) {
+  const cur = document.querySelector('.scr.active');
+  const nxt = document.getElementById(id);
+  if (!nxt || nxt === cur) return;
+  hist.push(cur.id);
+  cur.classList.add('leaving');
+  nxt.style.cssText = 'transform:translateX(100%);opacity:0;transition:none';
+  nxt.classList.add('active');
+  requestAnimationFrame(() => requestAnimationFrame(() => { nxt.style.cssText = ''; }));
+  setTimeout(() => { cur.classList.remove('active', 'leaving'); }, 400);
+}
+
+function back() {
+  if (!hist.length) return;
+  const pid = hist.pop();
+  const cur = document.querySelector('.scr.active');
+  const prv = document.getElementById(pid);
+  if (!prv) return;
+  prv.style.cssText = 'transform:translateX(-28%);opacity:0.7;transition:none';
+  prv.classList.add('active');
+  cur.style.transition = 'transform .35s cubic-bezier(.4,0,.2,1), opacity .3s ease';
+  cur.style.transform   = 'translateX(100%)';
+  cur.style.opacity     = '0';
+  requestAnimationFrame(() => requestAnimationFrame(() => { prv.style.cssText = ''; }));
+  setTimeout(() => {
+    cur.classList.remove('active');
+    cur.style.cssText = '';
+    prv.style.cssText = '';
+  }, 400);
+}
+
+/* ─────────────────────────────────
+   S-03  CURRENCY TOGGLE
+───────────────────────────────── */
+const STATS = {
+  total: { twd: '$ 40,500',  jpy: '¥ 187,400' },
+  mine:  { twd: '$ 15,400',  jpy: '¥ 71,200'  }
+};
+
+function setCurr(mode) {
+  document.getElementById('stat-total').textContent = STATS.total[mode];
+  document.getElementById('stat-mine').textContent  = STATS.mine[mode];
+  document.getElementById('chip-twd').classList.toggle('on', mode === 'twd');
+  document.getElementById('chip-jpy').classList.toggle('on', mode === 'jpy');
+}
+
+/* ─────────────────────────────────
+   S-04  INTERACTIVE CHIPS
+───────────────────────────────── */
+function s4Curr(mode) {
+  document.getElementById('s4-sym').textContent = mode === 'twd' ? '$' : '¥';
+  document.getElementById('s4-twd').classList.toggle('on', mode === 'twd');
+  document.getElementById('s4-jpy').classList.toggle('on', mode === 'jpy');
+}
+function catPick(el) {
+  document.querySelectorAll('#cat-row .cat-chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+}
+function payerPick(el) {
+  document.querySelectorAll('#payer-row .payer-chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+}
+function splitPick(el, mode) {
+  document.querySelectorAll('#split-toggle .split-opt').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  ['shared', 'individual', 'personal'].forEach(m => {
+    document.getElementById('sub-' + m).style.display = (m === mode) ? 'block' : 'none';
+  });
+}
+function toggleMem(el) {
+  el.classList.toggle('on');
+  el.querySelector('.check-box').textContent = el.classList.contains('on') ? '✓' : '';
+  updatePerPerson();
+}
+function updatePerPerson() {
+  const count = document.querySelectorAll('#sub-shared .mem-check-row.on').length;
+  const hint = document.getElementById('per-person-hint');
+  if (count === 0) {
+    hint.textContent = '請至少選一位成員';
+  } else {
+    hint.textContent = '每人 $ ' + Math.round(1200 / count).toLocaleString();
+  }
+}
+function updateIndivTotal() {
+  let filled = 0;
+  document.querySelectorAll('#sub-individual .indiv-input').forEach(i => {
+    filled += parseFloat(i.value) || 0;
+  });
+  const total = 1200;
+  const diff = total - filled;
+  const hint = document.getElementById('indiv-total-hint');
+  if (diff === 0) {
+    hint.textContent = '已填 $' + filled.toLocaleString() + '／總額 $' + total.toLocaleString() + ' ✓';
+    hint.className = 'total-hint total-ok';
+  } else {
+    hint.textContent = '已填 $' + filled.toLocaleString() + '／總額 $' + total.toLocaleString() + '，差 $' + Math.abs(diff).toLocaleString();
+    hint.className = 'total-hint total-warn';
+  }
+}
+
+/* ─────────────────────────────────
+   S-05  MARK PAID + PROGRESS
+───────────────────────────────── */
+let paidCount  = 1;   // 小白 already paid at load
+const totalRows = 2;
+
+function markPaid(id) {
+  const slot = document.getElementById('stl-btn-' + id);
+  if (!slot) return;
+  const paid = document.createElement('div');
+  paid.className = 'stl-paid';
+  paid.textContent = '✅ 已付清';
+  slot.replaceWith(paid);
+  paidCount++;
+  renderProgress();
+}
+
+function renderProgress() {
+  document.getElementById('prog-label').textContent =
+    paidCount + ' / ' + totalRows + ' 筆已確認';
+  document.getElementById('prog-fill').style.width =
+    (paidCount / totalRows * 100) + '%';
+  if (paidCount >= totalRows) {
+    const btn = document.getElementById('settle-btn');
+    btn.classList.remove('dim');
+    btn.style.pointerEvents = 'auto';
+  }
+}
+
+function trySettle() {
+  if (!document.getElementById('settle-btn').classList.contains('dim')) {
+    go('s05done');
+  }
+}
+</script>
+</body>
+</html>

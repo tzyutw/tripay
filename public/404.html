@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8" />
+  <title>Tripay</title>
+  <script>
+    // SPA fallback for GitHub Pages
+    // Redirects /tripay/path?query#hash to /tripay/?/path&q=query#hash
+    // so BrowserRouter can read it back
+    var l = window.location;
+    var segmentsToKeep = 1; // Number of path segments in base (/tripay)
+    l.replace(
+      l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+      l.pathname.split('/').slice(0, 1 + segmentsToKeep).join('/') + '/?/' +
+      l.pathname.slice(1).split('/').slice(segmentsToKeep).join('/').replace(/&/g, '~and~') +
+      (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+      l.hash
+    );
+  </script>
+</head>
+<body></body>
+</html>

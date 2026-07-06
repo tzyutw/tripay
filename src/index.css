@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #7C2D12;
+  --color-accent:  #B45309;
+  --color-surface: #FEF9EE;
+  --color-ink:     #292524;
+  --color-mid:     #57534E;
+  --color-muted:   #A8A29E;
+  --color-bg:      #F5F4F2;
+  --color-ok:      #15803D;
+  --color-warn:    #C2410C;
+}
+
+body {
+  font-family: 'Noto Sans TC', 'PingFang TC', 'PingFang SC', 'Heiti TC', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Screen slide-in ──────────────── */
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.animate-slide-in {
+  animation: slideInRight 200ms ease forwards;
+}
+
+/* ── Bottom Sheet ─────────────────── */
+@keyframes slideInUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes slideOutDown {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(100%); opacity: 0; }
+}
+.animate-sheet-up   { animation: slideInUp    250ms ease-out forwards; }
+.animate-sheet-down { animation: slideOutDown 200ms ease-in  forwards; }
+
+/* ── Overlay fade ─────────────────── */
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+.animate-fade-in  { animation: fadeIn  200ms ease forwards; }
+.animate-fade-out { animation: fadeOut 200ms ease forwards; }
+
+/* ── Toast ───────────────────────── */
+@keyframes toastIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+.animate-toast-in { animation: toastIn 150ms ease forwards; }
+
+/* ── Ghost card pulse (G-02) ─────── */
+@keyframes ghostPulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 0.28; }
+}
+.animate-ghost-pulse { animation: ghostPulse 3.2s ease-in-out infinite; }
+
+/* ── Celebration pop ─────────────── */
+@keyframes popIn {
+  from { transform: scale(0) rotate(-12deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0);      opacity: 1; }
+}
+.animate-pop-in { animation: popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+/* ── Scrollbar hide ────────────── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { scrollbar-width: none; }
+
+/* ── Shadows ─────────────────────── */
+.shadow-sheet { box-shadow: 0 8px 32px rgba(0,0,0,.14), 0 2px 8px rgba(0,0,0,.07); }
+.shadow-card  { box-shadow: 0 2px 10px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.05); }
+.shadow-fab   { box-shadow: 0 4px 20px rgba(124,45,18,.5), 0 1px 6px rgba(124,45,18,.25); }
