@@ -1,0 +1,26 @@
+name: Supabase Keep-Alive
+
+# 免費 Supabase 專案閒置逾 7 天會被自動暫停。
+# 此 workflow 每 3 天對 REST API 發一次輕量請求，讓專案保持活躍。
+# 使用既有的 repo secrets：VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY
+
+on:
+  schedule:
+    - cron: '17 3 */3 * *'   # 每 3 天 03:17 UTC
+  workflow_dispatch:          # 也可在 Actions 頁手動觸發
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST endpoint
+        run: |
+          code=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/trips?select=id&limit=1" \
+            -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.VITE_SUPABASE_ANON_KEY }}")
+          echo "Supabase responded with HTTP $code"
+          # 2xx / 4xx 都代表 DNS 與服務有回應（專案活著）；只有連不上才視為失敗
+          if [ "$code" -ge 500 ] || [ "$code" -eq 000 ]; then
+            echo "Keep-alive ping failed"; exit 1
+          fi
