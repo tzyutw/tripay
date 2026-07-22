@@ -257,6 +257,9 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
     if (!form.payerMemberId)      errs.payer         = '這欄還沒填喔';
     if (form.expenseType === 'shared' && form.participating.size === 0)
       errs.participating = '至少選一位參與成員';
+    // Bug #5：不可存入「台幣空白且未標記待填」的消費（會變成 null 又不計入統計/結算）
+    if (!form.twdPending && !form.twdAmount.trim())
+      errs.twdAmount = '填台幣金額，或開啟「之後再填」';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -335,9 +338,10 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
               value={form.twdAmount}
               pending={form.twdPending}
               onChange={v => update('twdAmount', v)}
-              onToggle={() => update('twdPending', !form.twdPending)}
+              onToggle={() => { update('twdPending', !form.twdPending); setErrors(e => ({ ...e, twdAmount: '' })); }}
               placeholder="稍後再填也可以"
             />
+            {errors.twdAmount && <p className="text-[11px] text-warn mt-1">{errors.twdAmount}</p>}
             {/* Exchange rate display */}
             {!form.foreignPending && !form.twdPending && form.foreignAmount && form.twdAmount && (
               <p className="text-[11px] text-muted mt-1 text-right">

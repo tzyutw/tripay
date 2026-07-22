@@ -37,8 +37,9 @@ export function usePostLoginRedirect() {
         const { count, error } = await supabase
           .from('trips')
           .select('id', { count: 'exact', head: true })
-          .eq('owner_id', session.user.id)
-          .is('deleted_at', null); // 排除軟刪除行程
+          .eq('owner_id', session.user.id);
+        // 註：trips 無 deleted_at 欄位（封存以 status='archived' 表示），
+        // 原本的 .is('deleted_at', null) 會導致 42703 查詢失敗、G-01 跳轉失效，已移除。
 
         if (error) {
           console.error('[usePostLoginRedirect] failed to count trips:', error);
