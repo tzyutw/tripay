@@ -308,7 +308,7 @@ export default function ExpenseListPage() {
       <div className="bg-white flex-shrink-0 flex" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <div className="flex-1 text-center py-3 px-2">
           <p className="text-[17px] font-bold text-ink tabular-nums">
-            {symbol} {stats.totalTwd.toLocaleString()}
+            $ {stats.totalTwd.toLocaleString()}
           </p>
           <p className="text-[11px] text-muted mt-[2px]">總花費</p>
           {stats.pendingCount > 0 && (
@@ -317,7 +317,7 @@ export default function ExpenseListPage() {
         </div>
         <div className="flex-1 text-center py-3 px-2 border-l border-[#EFEBE6]">
           <p className="text-[17px] font-bold text-ink tabular-nums">
-            {symbol} {stats.myCost.toLocaleString()}
+            $ {stats.myCost.toLocaleString()}
           </p>
           <p className="text-[11px] text-muted mt-[2px]">我的花費</p>
         </div>
