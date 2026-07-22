@@ -51,7 +51,7 @@ export default function SharePage() {
       if (!token) return null;
       const { data, error } = await supabase
         .from('trips')
-        .select('*, trip_members(*)')
+        .select('*, trip_members!trip_members_trip_id_fkey(*)')
         .eq('share_token', token)
         .single();
       if (error) throw error;

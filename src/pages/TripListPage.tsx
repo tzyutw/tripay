@@ -44,7 +44,7 @@ export default function TripListPage() {
       if (!user) return [];
       const { data, error } = await supabase
         .from('trips')
-        .select('*, trip_members(*)')
+        .select('*, trip_members!trip_members_trip_id_fkey(*)')
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
       if (error) throw error;

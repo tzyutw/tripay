@@ -43,7 +43,7 @@ export default function SettlementPage() {
     queryFn: async () => {
       if (!tripId) return null;
       const { data, error } = await supabase
-        .from('trips').select('*, trip_members(*)')
+        .from('trips').select('*, trip_members!trip_members_trip_id_fkey(*)')
         .eq('id', tripId).single();
       if (error) throw error;
       return data as TripWithMembers;

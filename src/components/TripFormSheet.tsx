@@ -28,7 +28,7 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
       if (!tripId) return null;
       const { data, error } = await supabase
         .from('trips')
-        .select('*, trip_members(*)')
+        .select('*, trip_members!trip_members_trip_id_fkey(*)')
         .eq('id', tripId)
         .single();
       if (error) throw error;
