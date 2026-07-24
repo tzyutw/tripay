@@ -69,11 +69,12 @@ serve(async (req) => {
         .order("sort_order"),
       supabase
         .from("expenses")
-        .select("id, payer_member_id, twd_amount, expense_type")
+        .select("id, payer_member_id, twd_amount, expense_type, is_sponsor")
         .eq("trip_id", trip_id)
         .is("deleted_at", null)          // CR Issue #2：排除軟刪除費用
         .neq("expense_type", "personal") // personal 費用不進結算
-        .eq("twd_pending", false),       // 台幣待填的筆排除
+        .eq("twd_pending", false)        // 台幣待填的筆排除
+        .eq("settled_on_spot", false),   // 路線1：當場各付各的不進結算
     ]);
 
     if (membersRes.error) throw membersRes.error;
@@ -82,9 +83,11 @@ serve(async (req) => {
     const members: Member[]   = membersRes.data  ?? [];
     const expenses: Expense[] = expensesRes.data ?? [];
 
-    // CR Issue #7：金額型別驗證（非有限數或負數 → 422）
+    // CR Issue #7：金額型別驗證（非有限數 → 422）。
+    // 路線1：贊助/回饋（is_sponsor）為負額共同項，放行負數；其餘仍禁負數。
     for (const exp of expenses) {
-      if (!Number.isFinite(exp.twd_amount) || exp.twd_amount < 0) {
+      const sponsorOk = (exp as { is_sponsor?: boolean }).is_sponsor === true;
+      if (!Number.isFinite(exp.twd_amount) || (exp.twd_amount < 0 && !sponsorOk)) {
         return json({ error: "invalid_amount", expense_id: exp.id }, 422);
       }
     }

@@ -200,7 +200,8 @@ export default function ExpenseListPage() {
   const stats = useMemo(() => {
     const myMemberId    = trip?.owner_member_id ?? null;
     const activeExpenses = expenses.filter(e => !e.twd_pending && e.twd_amount !== null);
-    const totalTwd      = activeExpenses.reduce((s, e) => s + (e.twd_amount ?? 0), 0);
+    // 總花費排除贊助（負額），避免把總支出灌低；settled_on_spot 仍計入（確實花了）
+    const totalTwd      = activeExpenses.reduce((s, e) => s + (e.is_sponsor ? 0 : (e.twd_amount ?? 0)), 0);
     const pendingCount  = expenses.filter(e => e.twd_pending || e.foreign_pending).length;
 
     let myCost = 0;

@@ -45,6 +45,8 @@ export interface Expense {
   twd_pending: boolean;
   payment_method: PaymentMethod;
   expense_type: ExpenseType;
+  settled_on_spot: boolean;   // 共同但當場各付各的：記錄但不進結算
+  is_sponsor: boolean;        // 外部贊助/回饋：負額共同項，平均扣進每人應付
   card_id: string | null;
   deleted_at: string | null;
   created_at: string;

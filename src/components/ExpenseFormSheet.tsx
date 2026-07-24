@@ -42,6 +42,8 @@ interface FormState {
   payerMemberId:    string;
   participating:    Set<string>;          // for shared
   individualAmts:   Record<string, string>; // member_id → amount string
+  settledOnSpot:    boolean;              // 共同但當場各付各的（不進結算）
+  isSponsor:        boolean;              // 贊助/回饋（負額共同項）
 }
 
 function initState(members: TripWithMembers['trip_members']): FormState {
@@ -58,6 +60,8 @@ function initState(members: TripWithMembers['trip_members']): FormState {
     payerMemberId:  members[0]?.id ?? '',
     participating:  new Set(members.map(m => m.id)),
     individualAmts: {},
+    settledOnSpot:  false,
+    isSponsor:      false,
   };
 }
 
@@ -83,6 +87,8 @@ function stateFromExpense(exp: ExpenseWithSplits, members: TripWithMembers['trip
     payerMemberId:  exp.payer_member_id,
     participating:  participating.size > 0 ? participating : new Set(members.map(m => m.id)),
     individualAmts,
+    settledOnSpot:  (exp as { settled_on_spot?: boolean }).settled_on_spot ?? false,
+    isSponsor:      (exp as { is_sponsor?: boolean }).is_sponsor ?? false,
   };
 }
 
@@ -154,6 +160,8 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('未登入');
 
+      // 贊助/回饋：金額轉負、強制 shared（負額共同項，平均扣進每人應付）
+      const sign = form.isSponsor ? -1 : 1;
       const expData = {
         trip_id:          tripId,
         payer_member_id:  form.payerMemberId,
@@ -161,13 +169,15 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
         title:            form.title.trim(),
         category_emoji:   form.categoryEmoji,
         expense_date:     form.expenseDate,
-        foreign_amount:   form.foreignPending ? null : (form.foreignAmount ? parseFloat(form.foreignAmount) : null),
-        twd_amount:       form.twdPending     ? null : (form.twdAmount     ? parseFloat(form.twdAmount)     : null),
+        foreign_amount:   form.foreignPending ? null : (form.foreignAmount ? sign * parseFloat(form.foreignAmount) : null),
+        twd_amount:       form.twdPending     ? null : (form.twdAmount     ? sign * parseFloat(form.twdAmount)     : null),
         exchange_rate:    null as number | null,
         foreign_pending:  form.foreignPending,
         twd_pending:      form.twdPending,
         payment_method:   form.paymentMethod as PaymentMethod,
-        expense_type:     form.expenseType,
+        expense_type:     form.isSponsor ? 'shared' as ExpenseType : form.expenseType,
+        settled_on_spot:  form.isSponsor ? false : form.settledOnSpot,
+        is_sponsor:       form.isSponsor,
       };
 
       // Auto-compute exchange_rate
@@ -216,10 +226,11 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
   });
 
   async function insertSplits(eid: string) {
-    if (form.expenseType === 'personal') return;
+    const effType = form.isSponsor ? 'shared' : form.expenseType; // 贊助＝負額共同項
+    if (effType === 'personal') return;
 
     const rows = (() => {
-      if (form.expenseType === 'shared') {
+      if (effType === 'shared') {
         return members
           .filter(m => form.participating.has(m.id))
           .map(m => ({
@@ -472,8 +483,34 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
             )}
           </Field>
 
+          {/* 當場各付各的（共同、非贊助時可選）*/}
+          {form.expenseType === 'shared' && !form.isSponsor && (
+            <button
+              onClick={() => update('settledOnSpot', !form.settledOnSpot)}
+              className={`w-full flex items-center gap-[10px] rounded-xl px-3 py-[10px] border-[1.5px] transition-colors ${form.settledOnSpot ? 'border-primary bg-[#FFF6F1]' : 'border-[#E4DFD9] bg-white'}`}
+            >
+              <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center text-[11px] font-bold text-white ${form.settledOnSpot ? 'bg-primary border-primary' : 'border-[#C8BFB8]'}`}>{form.settledOnSpot ? '✓' : ''}</div>
+              <span className="text-[14px] font-semibold text-ink flex-1 text-left">大家當場各付各的，不用結算</span>
+              <span className="text-[11px] text-muted">記錄但不算欠款</span>
+            </button>
+          )}
+
+          {/* 贊助 / 回饋（負額共同項）*/}
+          <button
+            onClick={() => setForm(f => ({ ...f, isSponsor: !f.isSponsor, expenseType: !f.isSponsor ? 'shared' : f.expenseType, settledOnSpot: false }))}
+            className={`w-full flex items-center gap-[10px] rounded-xl px-3 py-[10px] border-[1.5px] transition-colors ${form.isSponsor ? 'border-ok bg-ok/10' : 'border-[#E4DFD9] bg-white'}`}
+          >
+            <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center text-[11px] font-bold text-white ${form.isSponsor ? 'bg-ok border-ok' : 'border-[#C8BFB8]'}`}>{form.isSponsor ? '✓' : ''}</div>
+            <span className="text-[14px] font-semibold text-ink flex-1 text-left">這是贊助／回饋（從大家帳上平均扣掉）</span>
+          </button>
+          {form.isSponsor && (
+            <p className="text-[12px] text-mid leading-relaxed -mt-1 px-1">
+              金額會自動記為負數、4 人均分扣抵；「誰請客？」請選<b>實際代收這筆錢的人</b>。
+            </p>
+          )}
+
           {/* Payer */}
-          <Field label={form.expenseType === 'individual' ? '誰付的？' : '誰請客？'} error={errors.payer}>
+          <Field label={form.isSponsor ? '誰代收贊助？' : (form.expenseType === 'individual' ? '誰付的？' : '誰請客？')} error={errors.payer}>
             <div className="flex flex-wrap gap-2">
               {members.map(m => (
                 <button
