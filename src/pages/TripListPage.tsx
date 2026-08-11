@@ -4,8 +4,21 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { deriveDisplayStatus, STATUS_LABEL, STATUS_BADGE_CLASS } from '@/lib/deriveStatus';
 import { getCurrencySymbol } from '@/lib/currencies';
-import type { TripWithMembers } from '@/types/database';
+import type { TripWithMembers, Expense } from '@/types/database';
 import TripFormSheet from '@/components/TripFormSheet';
+
+// 列表頁只需要金額相關欄位來加總總花費
+type TripExpenseLite = Pick<Expense, 'twd_amount' | 'twd_pending' | 'is_sponsor' | 'deleted_at'>;
+type TripWithTotals = TripWithMembers & { expenses: TripExpenseLite[] };
+
+// 與詳情頁 (ExpenseListPage) 相同的總花費邏輯：
+// 排除待填 (twd_pending)、無金額 (null)、已刪除 (deleted_at)，贊助 (is_sponsor) 不計入支出
+function tripTotal(expenses: TripExpenseLite[] = []): number {
+  return expenses.reduce((sum, e) => {
+    if (e.deleted_at || e.twd_pending || e.twd_amount === null) return sum;
+    return sum + (e.is_sponsor ? 0 : e.twd_amount);
+  }, 0);
+}
 
 const GRADIENTS = [
   'linear-gradient(148deg, #1A3558 0%, #2B5590 42%, #684533 100%)',
@@ -37,18 +50,18 @@ export default function TripListPage() {
     if (location.pathname === '/trips/new') setFormOpen(true);
   }, [location.pathname]);
 
-  const { data: trips = [], isLoading } = useQuery<TripWithMembers[]>({
+  const { data: trips = [], isLoading } = useQuery<TripWithTotals[]>({
     queryKey: ['trips'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       const { data, error } = await supabase
         .from('trips')
-        .select('*, trip_members!trip_members_trip_id_fkey(*)')
+        .select('*, trip_members!trip_members_trip_id_fkey(*), expenses(twd_amount, twd_pending, is_sponsor, deleted_at)')
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data ?? []) as TripWithMembers[];
+      return (data ?? []) as TripWithTotals[];
     },
   });
 
@@ -102,6 +115,7 @@ export default function TripListPage() {
               .sort((a, b) => a.sort_order - b.sort_order)
               .map(m => m.emoji)
               .join('');
+            const total = tripTotal(trip.expenses);
 
             return (
               <div
@@ -133,7 +147,9 @@ export default function TripListPage() {
                   <span className="text-[19px] tracking-wider">{memberEmojis}</span>
                   <div className="text-right">
                     <p className="text-[17px] font-bold text-ink tabular-nums">
-                      {getCurrencySymbol(trip.currency)} —
+                      {total > 0
+                        ? `${getCurrencySymbol(trip.currency)} ${total.toLocaleString()}`
+                        : `${getCurrencySymbol(trip.currency)} —`}
                     </p>
                     <p className="text-[11px] text-muted mt-[2px]">
                       {formatDateRange(trip.start_date, trip.end_date)}
