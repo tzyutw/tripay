@@ -67,7 +67,9 @@ function ShareSheet({
     staleTime: 30_000,
   });
 
-  const shareUrl = `${window.location.origin}/share/${trip.share_token}`;
+  // BASE_URL 在 production 是 '/tripay/'、dev 是 '/'（結尾一定有斜線）。
+  // 原本漏掉它，複製出去的連結變成 tzyutw.github.io/share/… 少了 /tripay，開起來是空白頁。
+  const shareUrl = `${window.location.origin}${import.meta.env.BASE_URL}share/${trip.share_token}`;
   const memberMap = Object.fromEntries(members.map(m => [m.id, m]));
 
   function buildSummary(): string {

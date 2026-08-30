@@ -507,7 +507,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
           </button>
           {form.isSponsor && (
             <p className="text-[12px] text-mid leading-relaxed -mt-1 px-1">
-              金額會自動記為負數、4 人均分扣抵；「誰請客？」請選<b>實際代收這筆錢的人</b>。
+              金額會自動記為負數、{form.participating.size} 人均分扣抵；「誰請客？」請選<b>實際代收這筆錢的人</b>。
             </p>
           )}
 
