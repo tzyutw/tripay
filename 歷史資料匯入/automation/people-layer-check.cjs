@@ -6,11 +6,26 @@
 const fs = require('fs'); const path = require('path');
 const ENV = fs.readFileSync(path.resolve(__dirname, '../../.env'), 'utf8');
 const URL = ENV.match(/VITE_SUPABASE_URL=(.+)/)[1].trim(), KEY = ENV.match(/VITE_SUPABASE_ANON_KEY=(.+)/)[1].trim();
-const H = { apikey: KEY, Authorization: `Bearer ${KEY}` };
+// people 的 RLS 是 auth.uid() = owner_id（通訊錄不該公開可讀），
+// 所以必須用登入者的 token，不能用 anon key。
+const stFile = path.resolve(__dirname, '../../.auth/state.json');
+const tok = JSON.parse(JSON.parse(fs.readFileSync(stFile, 'utf8')).origins[0].localStorage.find(x => x.name.startsWith('sb-')).value);
+let H = { apikey: KEY, Authorization: `Bearer ${KEY}` };
 const R = []; const ck = (n, ok, d = '') => { R.push({ n, ok }); console.log(`   ${ok ? '✅' : '❌'} ${n}${d ? ' — ' + d : ''}`); };
 const get = async (q) => { const r = await fetch(`${URL}/rest/v1/${q}`, { headers: H }); return { ok: r.ok, status: r.status, json: await r.json().catch(() => null) }; };
 
 (async () => {
+  let access = tok.access_token;
+  if (!(await fetch(`${URL}/auth/v1/user`, { headers: { apikey: KEY, Authorization: `Bearer ${access}` } })).ok) {
+    const j = await (await fetch(`${URL}/auth/v1/token?grant_type=refresh_token`, { method: 'POST', headers: { apikey: KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: tok.refresh_token }) })).json();
+    access = j.access_token;
+  }
+  H = { apikey: KEY, Authorization: `Bearer ${access}` };
+
+  console.log('\n══ 0 RLS：anon 不得讀到 people（通訊錄隱私）');
+  const anonRead = await (await fetch(`${URL}/rest/v1/people?select=id`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } })).json();
+  ck('anon key 讀 people 回 0 筆（RLS 正確擋住）', Array.isArray(anonRead) && anonRead.length === 0, `${Array.isArray(anonRead) ? anonRead.length : '?'} 筆`);
+
   console.log('\n══ 1 people 表與回填');
   const pe = await get('people?select=id,name,emoji,owner_id');
   ck('people 表存在且可讀', pe.ok, pe.ok ? `${pe.json.length} 筆` : `HTTP ${pe.status}`);
