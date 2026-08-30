@@ -1,0 +1,1790 @@
+<title>Tripay 全畫面完整稿</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ═══ 文件外框 tokens（沿用 打磨輪_tokens 的同一組名稱）═══ */
+:root{
+  --pg:#141A1E; --pg2:#1B2329; --pg3:#232D34;
+  --pgink:#E8EDF0; --pgink2:#9FB0BA; --pgink3:#6B7C87;
+  --pgrule:#2A353C; --mark:#4EA3E8; --ok:#63B588; --no:#E0714E;
+  --sans:"PingFang TC","Noto Sans TC","Hiragino Sans",system-ui,sans-serif;
+  --mono:'IBM Plex Mono',"PingFang TC",ui-monospace,monospace;
+}
+:root[data-theme="light"]{--pg:#E7E9E4;--pg2:#FFF;--pg3:#F2F3EF;--pgink:#151C21;
+  --pgink2:#4C5B64;--pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--ok:#276E45;--no:#B03A22}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --pg:#E7E9E4;--pg2:#FFF;--pg3:#F2F3EF;--pgink:#151C21;
+  --pgink2:#4C5B64;--pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--ok:#276E45;--no:#B03A22}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg);color:var(--pgink);font-family:var(--sans);font-size:15px;
+  line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+h1,h2,h3,h4{margin:0;text-wrap:balance}
+code{font-family:var(--mono);font-size:.88em;color:var(--mark)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--mark);margin:0 0 10px}
+header{padding:64px 0 34px}
+header h1{font-size:clamp(30px,4.6vw,42px);font-weight:700;line-height:1.14;letter-spacing:-.02em;max-width:20ch}
+header .lede{margin-top:16px;max-width:70ch;color:var(--pgink2);font-size:15.5px}
+.callout{margin-top:20px;padding:15px 19px;background:var(--pg2);border-left:2px solid var(--mark);
+  border-radius:2px;font-size:13.5px;color:var(--pgink2);max-width:76ch}
+.callout+.callout{margin-top:10px}
+.callout b{color:var(--pgink)}
+.callout.warn{border-left-color:var(--no)}
+
+/* ═══ 目錄 ═══ */
+.toc{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:1px;
+  background:var(--pgrule);border:1px solid var(--pgrule);border-radius:3px;overflow:hidden;margin-top:26px}
+.toc a{background:var(--pg2);padding:11px 13px;text-decoration:none;color:var(--pgink);display:block}
+.toc a:hover{background:var(--pg3)}
+.toc .k{font-family:var(--mono);font-size:10px;color:var(--mark);letter-spacing:.08em;display:block}
+.toc .t{font-size:13px;font-weight:600}
+.toc .n{font-size:11px;color:var(--pgink3);font-family:var(--mono)}
+.toc a.new .k{color:var(--ok)}
+
+/* ═══ 每個畫面的版面 ═══ */
+.scr{padding:46px 0;border-top:1px solid var(--pgrule);display:grid;
+  grid-template-columns:352px minmax(0,1fr);gap:34px;align-items:start}
+@media(max-width:1000px){.scr{grid-template-columns:1fr}}
+.scrhd{grid-column:1/-1;margin-bottom:4px}
+.scrhd .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--mark)}
+.scrhd .k.new{color:var(--ok)}
+.scrhd h2{font-size:25px;font-weight:700;letter-spacing:-.01em;margin-top:5px}
+.scrhd .rt{font-family:var(--mono);font-size:11.5px;color:var(--pgink3);margin-top:6px}
+.scrhd .rt b{color:var(--pgink2);font-weight:400}
+.scrhd p.d{color:var(--pgink2);font-size:14px;margin:9px 0 0;max-width:80ch}
+.stick{position:sticky;top:14px;align-self:start}
+
+/* ═══ 手機框 ═══ */
+.ph{width:340px;border-radius:22px;overflow:hidden;border:1px solid var(--pgrule);
+  box-shadow:0 18px 40px rgba(0,0,0,.36)}
+.phcap{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--pgink3);
+  margin:0 0 8px;text-transform:uppercase}
+.stack{display:flex;flex-direction:column;gap:22px}
+
+/* ═══ 產品 UI kit（日記精裝）═══ */
+.ui{background:#EDEEE8;color:#151C21;font-family:var(--sans);font-size:12.5px;line-height:1.55;
+  --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#B03A22;
+  --ln:#DFE1DA;--gr:#78878F;--md:#4C5B64;--cd:#fff;position:relative}
+.ui *{box-sizing:border-box}
+.ui .mono,.ui .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* 編號徽章 */
+.b{position:relative}
+.b::after{content:attr(data-n);position:absolute;top:2px;left:2px;z-index:9;
+  font-family:var(--mono);font-size:8px;letter-spacing:.04em;line-height:1;
+  padding:2.5px 4px;border-radius:2px;background:rgba(18,118,196,.92);color:#fff;
+  pointer-events:none;opacity:1;transition:opacity .15s}
+.b.rt::after{left:auto;right:2px}
+html.nonum .b::after{opacity:0}
+.numtoggle{position:fixed;right:16px;bottom:16px;z-index:99;font-family:var(--mono);font-size:11px;
+  background:var(--pg2);color:var(--pgink);border:1px solid var(--pgrule);border-radius:3px;
+  padding:8px 12px;cursor:pointer}
+.numtoggle:hover{background:var(--pg3)}
+
+/* 通用元件 */
+.ui .bar{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;
+  background:#fff;border-bottom:1px solid var(--ln)}
+.ui .bk{color:var(--wi);font-size:11.5px;font-weight:600}
+.ui .ttl{font-size:12.5px;font-weight:600;color:var(--md)}
+.ui .btn{background:var(--w);color:#fff;font-size:11.5px;font-weight:600;padding:9px 0;border-radius:3px;
+  text-align:center;flex:1}
+.ui .btn.gh{background:#fff;color:var(--wi);border:1px solid var(--w)}
+.ui .btn.qt{background:#fff;color:var(--md);border:1px solid var(--ln)}
+.ui .btn.dg{background:var(--dg);color:#fff}
+.ui .btn.dis{opacity:.4}
+.ui .btnrow{display:flex;gap:8px;padding:11px 13px;background:#EDEEE8;border-top:1px solid var(--ln)}
+.ui .fixnote{font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;color:var(--gr);
+  text-align:center;padding:3px 0 0;background:#EDEEE8}
+.ui .sec{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gr);padding:14px 13px 6px}
+.ui .card{background:#fff;border:1px solid var(--ln);border-radius:3px}
+.ui .lbl{font-size:11px;font-weight:600;color:var(--md);margin-bottom:5px;display:block}
+.ui .inp{background:#fff;border:1px solid var(--ln);border-radius:3px;padding:9px 10px;font-size:12px;
+  color:#151C21}
+.ui .inp.ph2{color:#A9B2B7}
+.ui .fld{padding:0 13px 13px}
+.ui .hint{font-size:10px;color:var(--gr);margin-top:4px}
+.ui .err{font-size:10px;color:var(--out);margin-top:4px}
+.ui .chiprow{display:flex;gap:6px;flex-wrap:wrap}
+.ui .chip{font-size:10.5px;padding:5px 9px;border-radius:999px;border:1px solid var(--ln);background:#fff;color:var(--md)}
+.ui .chip.on{background:var(--w);border-color:var(--w);color:#fff}
+.ui .seg{display:flex;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
+.ui .seg>i{flex:1;text-align:center;font-style:normal;font-size:11px;padding:7px 0;background:#fff;color:var(--gr);
+  border-right:1px solid var(--ln)}
+.ui .seg>i:last-child{border-right:0}
+.ui .seg>i.on{background:var(--w);color:#fff}
+.ui .sw{width:30px;height:17px;border-radius:999px;background:#C6CCC8;position:relative;flex:none}
+.ui .sw.on{background:var(--w)}
+.ui .sw::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff}
+.ui .sw.on::after{left:15px}
+.ui .ck{width:16px;height:16px;border-radius:3px;border:1.5px solid #B9C1C5;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff}
+.ui .ck.on{background:var(--w);border-color:var(--w)}
+.ui .ck.rd{border-radius:50%}
+.ui .stamp{display:inline-block;border:1px solid rgba(255,255,255,.72);color:#fff;font-family:var(--mono);
+  font-size:8px;letter-spacing:.1em;padding:1.5px 6px;border-radius:2px}
+.ui .pill{font-size:9px;font-weight:600;padding:2px 6px;border-radius:999px;border:1px solid;line-height:1.5}
+.ui .pill.ind{color:var(--wi);border-color:#BFD9EE;background:#EEF5FB}
+.ui .pill.per{color:var(--md);border-color:var(--ln);background:#F4F5F1}
+.ui .pill.pen{color:var(--out);border-color:#E8C4B8;background:#FBF0EC}
+.ui .in{color:var(--in)} .ui .out{color:var(--out)} .ui .dgt{color:var(--dg)}
+.ui .g{color:var(--gr)} .ui .m{color:var(--md)}
+.ui .sheet{background:#EDEEE8;border-top:1px solid var(--ln);border-radius:14px 14px 0 0;
+  box-shadow:0 -6px 18px rgba(20,30,38,.12);overflow:hidden}
+.ui .grab{width:30px;height:3px;border-radius:2px;background:#CBD1CC;margin:9px auto 0}
+.ui .shd{display:flex;align-items:center;justify-content:space-between;padding:11px 13px 9px}
+.ui .shd h3{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.ui .x{width:22px;height:22px;border-radius:50%;background:#E2E5DE;color:var(--md);font-size:10px;
+  display:flex;align-items:center;justify-content:center;flex:none}
+.ui .scrim{background:rgba(20,28,33,.45);padding:16px 0 0}
+.ui .dlg{background:#fff;border:1px solid var(--ln);border-radius:4px;margin:0 18px;padding:16px}
+.ui .row{display:flex;align-items:center;gap:9px}
+.ui .rowb{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
+  border-radius:3px;padding:9px 10px}
+.ui .gap{display:flex;flex-direction:column;gap:6px}
+
+/* hero（目的地色調） */
+.ui .hero{padding:30px 13px 12px;color:#fff;position:relative}
+.ui .hero .nav{position:absolute;top:9px;left:11px;right:11px;display:flex;align-items:center;justify-content:space-between}
+.ui .hero .ic{width:24px;height:24px;border-radius:4px;background:rgba(255,255,255,.2);display:flex;
+  align-items:center;justify-content:center;font-size:11px}
+.ui .hero h1{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.g-jeju{background:linear-gradient(160deg,#1E4C6B,#2D6A8A 35%,#3D7A6A 65%,#2A5050)}
+.g-tokyo{background:linear-gradient(160deg,#6BAED6,#4A90B8 30%,#2E6A9B 60%,#5B8FA8)}
+.g-hok{background:linear-gradient(160deg,#5B8FA8,#3A6E8C 35%,#8B5E52 75%,#6B4A3E)}
+.g-fuk{background:linear-gradient(160deg,#7A4B3A,#A8663F 35%,#C98A4B 70%,#5E3A2E)}
+.g-def{background:linear-gradient(148deg,#1A3558,#2B5590 42%,#684533)}
+.ui .scrimg{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 38%,rgba(0,0,0,.46))}
+
+/* 行程卡 */
+.ui .tcard{margin:11px 13px 0;background:#fff;padding:4px;border:1px solid var(--ln);border-radius:3px}
+.ui .tcard .img{height:118px;position:relative;padding:9px;display:flex;flex-direction:column;justify-content:flex-end;
+  border-radius:2px;overflow:hidden}
+.ui .tcard .em{position:absolute;top:7px;right:9px;font-size:22px}
+.ui .tcard .nm{position:relative;color:#fff;font-size:15px;font-weight:700;letter-spacing:-.01em;margin-top:5px}
+.ui .tcard .mt{position:relative;display:flex;align-items:center;gap:6px;margin-top:3px}
+.ui .tcard .mt .em2{font-size:12px;letter-spacing:.06em}
+.ui .tcard .mt .dt{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.9)}
+
+/* 統計條 */
+.ui .stats{display:flex;background:#fff;border-bottom:1px solid var(--ln)}
+.ui .stats>div{flex:1;padding:10px 6px;text-align:center;border-right:1px solid #EDEEE8}
+.ui .stats>div:last-child{border-right:0}
+.ui .stats b{display:block;font-family:var(--mono);font-size:14px;font-weight:600;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.ui .stats span{font-family:var(--mono);font-size:8px;color:var(--gr);letter-spacing:.09em;text-transform:uppercase}
+
+/* 消費列 */
+.ui .exp{margin:0 13px 5px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:8px 9px;
+  display:flex;align-items:center;gap:8px}
+.ui .exp.pend{border-left:2px solid var(--out)}
+.ui .exp .ic{font-size:17px;width:24px;text-align:center;flex:none}
+.ui .exp .mid{flex:1;min-width:0}
+.ui .exp .t{font-size:12.5px;font-weight:600}
+.ui .exp .s{font-size:9.5px;color:var(--gr);margin-top:2px;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.ui .exp .a{font-family:var(--mono);font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em;text-align:right}
+.ui .empty{padding:38px 24px;text-align:center}
+.ui .empty p{margin:0;font-size:13px;font-weight:600}
+.ui .empty p+p{font-size:11px;color:var(--gr);font-weight:400;margin-top:5px}
+.ui .spin{padding:36px 0;text-align:center}
+.ui .spin i{display:inline-block;width:18px;height:18px;border:2px solid var(--w);border-top-color:transparent;
+  border-radius:50%;font-style:normal}
+
+/* 盤點表 */
+.tblwrap{overflow-x:auto;border:1px solid var(--pgrule);border-radius:3px;background:var(--pg2)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--pgrule);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--pgink3);font-weight:400;white-space:nowrap;background:var(--pg3)}
+td.n{font-family:var(--mono);font-size:10.5px;color:var(--mark);white-space:nowrap;font-weight:500}
+td.src{font-family:var(--mono);font-size:9.5px;color:var(--pgink3);white-space:nowrap}
+td.el{font-weight:600;white-space:nowrap}
+.tag{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;padding:1px 5px;
+  border-radius:2px;border:1px solid;line-height:1.6;white-space:nowrap}
+.tag.new{color:var(--ok);border-color:var(--ok)}
+.tag.chg{color:var(--mark);border-color:var(--mark)}
+.tag.bug{color:var(--no);border-color:var(--no)}
+.cnt{font-family:var(--mono);font-size:11px;color:var(--pgink3);margin:14px 0 8px}
+footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(--mono);
+  border-top:1px solid var(--pgrule)}
+@media(prefers-reduced-motion:no-preference){.ui .spin i{animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}}
+</style>
+
+<button class="numtoggle" onclick="document.documentElement.classList.toggle('nonum');this.textContent=document.documentElement.classList.contains('nonum')?'顯示編號':'隱藏編號'">隱藏編號</button>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">路線 3 打磨輪 · Wireframe v5 · 完整長度版</p>
+  <h1>十四個畫面，從頁頂到頁底一格不漏</h1>
+  <p class="lede">
+    v4 每頁只畫了首屏，沒辦法逐頁回饋。v5 改成<b>照實際長度整頁畫出來</b>——所有區塊、按鈕、列表、
+    空狀態、彈窗入口全部在場。內容不是憑印象重畫，是<b>逐行讀 <code>src/pages</code> 與
+    <code>src/components</code> 共 3,302 行</b>盤點出來的，每個編號都附原始碼出處。
+  </p>
+  <div class="callout">
+    <b>怎麼給我回饋：</b>每個區塊左上角有編號（<code>S-03-9</code> 這種）。直接寫
+    「S-03-9 改成⋯」「S-04-12 拿掉」就行，我照編號改。
+    右下角可切「隱藏編號」看乾淨的版面。
+  </div>
+  <div class="callout warn">
+    <b>危險動作用色（你上一輪指定要標清楚）：</b>金錢的「要給出」和危險動作共用同一個色相
+    <code>#B03A22</code>，靠<b>形態</b>分辨，不是靠顏色：
+    <b>金錢方向只出現在文字上</b>（永遠不填底、不做成按鈕）；
+    <b>危險動作一定是實心填底的按鈕</b>，而且一定關在對話框裡、要再確認一次。
+    畫面上只要看到橘紅色的<b>底</b>，就是刪除等級的動作。
+  </div>
+  <div class="callout">
+    <b>盤點口徑：</b><span class="tag chg">改</span> ＝ 功能照舊、只換視覺；
+    <span class="tag new">新</span> ＝ 這輪新增；
+    <span class="tag bug">議</span> ＝ 我讀碼時發現的現況問題，等你裁示（彙整在最後一節）。
+  </div>
+
+  <div class="toc">
+    <a href="#s00"><span class="k">S-00</span><span class="t">登入</span><span class="n">7 項</span></a>
+    <a href="#s01"><span class="k">S-01</span><span class="t">首頁 · 行程列表</span><span class="n">13 項</span></a>
+    <a href="#s02"><span class="k">S-02</span><span class="t">新增行程</span><span class="n">18 項</span></a>
+    <a href="#s02b"><span class="k">S-02b</span><span class="t">編輯行程 · 封面</span><span class="n">9 項</span></a>
+    <a href="#s02c"><span class="k">S-02c</span><span class="t">Emoji 選擇器</span><span class="n">9 項</span></a>
+    <a href="#s03"><span class="k">S-03</span><span class="t">消費瀏覽</span><span class="n">26 項</span></a>
+    <a href="#s03b"><span class="k">S-03b·c</span><span class="t">分享選單／刪除</span><span class="n">14 項</span></a>
+    <a href="#s04"><span class="k">S-04</span><span class="t">記一筆</span><span class="n">28 項</span></a>
+    <a href="#s05"><span class="k">S-05</span><span class="t">結算 · 四態</span><span class="n">27 項</span></a>
+    <a href="#s06"><span class="k">S-06</span><span class="t">分享頁</span><span class="n">14 項</span></a>
+    <a href="#s07"><span class="k">S-07</span><span class="t">設定</span><span class="n">8 項</span></a>
+    <a href="#s08" class="new"><span class="k">S-08 新</span><span class="t">通訊錄</span><span class="n">11 項</span></a>
+    <a href="#s09" class="new"><span class="k">S-09 新</span><span class="t">卡片管理</span><span class="n">13 項</span></a>
+    <a href="#s10" class="new"><span class="k">S-10 新</span><span class="t">帳單週期</span><span class="n">12 項</span></a>
+    <a href="#s11" class="new"><span class="k">S-11 新</span><span class="t">副卡視角</span><span class="n">11 項</span></a>
+    <a href="#found"><span class="k">議</span><span class="t">讀碼發現的問題</span><span class="n">14 條</span></a>
+  </div>
+</header>
+
+<!-- ══════════ S-00 登入 ══════════ -->
+<section class="scr" id="s00">
+  <div class="scrhd">
+    <span class="k">S-00</span>
+    <h2>登入</h2>
+    <p class="rt"><b>路由</b> /login　<b>原始碼</b> src/pages/LoginPage.tsx（98 行）</p>
+    <p class="d">未登入者唯一入口。整頁只有一個動作。原本的暖棕漸層是舊色系，改為工作色富士青的深夜版；
+      情緒由大面積底色承擔，UI 元件保持安靜。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">/login · 完整長度</p>
+    <div class="ph">
+      <div class="ui" style="background:linear-gradient(158deg,#0B2233 0%,#0F5E9E 48%,#1276C4 100%);padding:46px 22px 18px;display:flex;flex-direction:column;align-items:center;min-height:520px">
+        <div class="b" data-n="S-00-1" style="width:60px;height:60px;border-radius:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:16px">✈️</div>
+        <div class="b" data-n="S-00-2" style="color:#fff;font-size:38px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-bottom:10px">Tripay</div>
+        <div class="b" data-n="S-00-3" style="color:rgba(255,255,255,.8);font-size:12px;letter-spacing:.3em;font-family:var(--mono);margin-bottom:26px">每一趟，都記得</div>
+        <div class="b" data-n="S-00-4" style="color:rgba(255,255,255,.66);font-size:12.5px;text-align:center;max-width:190px;margin-bottom:30px">大家一起出發，帳交給 Tripay。</div>
+        <div class="b" data-n="S-00-5" style="width:100%;max-width:236px;height:44px;background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px;font-weight:600;color:#151C21">
+          <span style="font-size:14px">◉</span> 用 Google 帳號繼續
+        </div>
+        <div style="flex:1;min-height:34px"></div>
+        <div class="b" data-n="S-00-6" style="width:100%;border-radius:3px;overflow:hidden;opacity:.62;border:1px solid rgba(255,255,255,.16)">
+          <div style="height:64px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2A3F4B,#1E313C)">
+            <p style="margin:0;color:rgba(255,255,255,.62);font-size:13px">你的下一趟在哪？</p>
+          </div>
+        </div>
+        <div class="b" data-n="S-00-7" style="margin-top:12px;color:rgba(255,255,255,.42);font-size:9px;font-family:var(--mono);letter-spacing:.08em">登入後若沒有任何行程 → 自動開啟 S-02</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 7 項　—　現況 6 項全數保留，1 項為隱形行為</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-00-1</td><td class="el">App icon ✈️</td><td>毛玻璃圓角方塊，76px，無互動</td><td><span class="tag chg">改</span> 圓角 22→14，隨 token 收斂</td><td class="src">LoginPage:20</td></tr>
+      <tr><td class="n">S-00-2</td><td class="el">Tripay 字標</td><td>52px 粗體白字</td><td><span class="tag chg">改</span> 系統字，不載中文 webfont</td><td class="src">LoginPage:33</td></tr>
+      <tr><td class="n">S-00-3</td><td class="el">Slogan</td><td>「每一趟，都記得」襯線斜體</td><td><span class="tag chg">改</span> 襯線斜體→等寬字＋字距，中文不用假斜體</td><td class="src">LoginPage:39</td></tr>
+      <tr><td class="n">S-00-4</td><td class="el">Tagline</td><td>「大家一起出發，帳交給 Tripay。」</td><td>照舊</td><td class="src">LoginPage:46</td></tr>
+      <tr><td class="n">S-00-5</td><td class="el">Google 登入鈕</td><td>唯一動作，含 Google 彩色 icon；<code>signInWithOAuth</code>，redirect 回 BASE_URL</td><td><span class="tag chg">改</span> 圓角 12→3</td><td class="src">LoginPage:4,54</td></tr>
+      <tr><td class="n">S-00-6</td><td class="el">G-02 幽靈卡</td><td>「你的下一趟在哪？」模糊 1.8px、透明度 0.5、<b>不可點</b>（<code>pointer-events:none</code>）</td><td><span class="tag chg">改</span> 底色由暖米改為冷灰藍，與新底色同溫層</td><td class="src">LoginPage:69</td></tr>
+      <tr><td class="n">S-00-7</td><td class="el">G-01 登入後跳轉</td><td>登入且無任何行程時自動導向 <code>/trips/new</code>。<b>無畫面</b>，此處僅標註</td><td>照舊</td><td class="src">usePostLoginRedirect</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-01 首頁 ══════════ -->
+<section class="scr" id="s01">
+  <div class="scrhd">
+    <span class="k">S-01</span>
+    <h2>首頁 · 行程列表</h2>
+    <p class="rt"><b>路由</b> / 與 /trips/new　<b>原始碼</b> src/pages/TripListPage.tsx（189 行）</p>
+    <p class="d">四種狀態全部畫出來：載入中、空、有行程、封存行程。
+      <b>依決策 22「首頁不顯金額」，卡片上沒有任何數字金額</b>——日期是唯一的數字。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">/ · 完整長度（含三種狀態）</p>
+    <div class="stack">
+    <div class="ph"><div class="ui">
+      <div class="b" data-n="S-01-1" style="display:flex;align-items:center;justify-content:space-between;padding:13px 13px 10px;border-bottom:1px solid var(--ln)">
+        <span style="font-size:19px;font-weight:700;letter-spacing:-.02em;color:var(--wi)">Tripay</span>
+        <span class="b rt" data-n="S-01-2" style="background:var(--w);color:#fff;font-size:10.5px;font-weight:600;padding:6px 10px;border-radius:3px">＋ 新增行程</span>
+      </div>
+
+      <div class="b spin" data-n="S-01-3" style="padding:26px 0;text-align:center"><i style="display:inline-block;width:18px;height:18px;border:2px solid var(--w);border-top-color:transparent;border-radius:50%"></i>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--gr);letter-spacing:.1em;margin-top:7px">載入中狀態</div></div>
+
+      <div class="b" data-n="S-01-4" style="padding:22px 24px;text-align:center;border-top:1px dashed var(--ln);border-bottom:1px dashed var(--ln)">
+        <p style="margin:0;font-size:13px;font-weight:600">還沒有行程。</p>
+        <p style="margin:5px 0 0;font-size:11px;color:var(--gr)">第一趟要去哪？</p>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--gr);letter-spacing:.1em;margin-top:8px">空狀態</div>
+      </div>
+
+      <div class="b tcard" data-n="S-01-5">
+        <div class="img g-jeju">
+          <div class="scrimg"></div>
+          <span class="em">🏝️</span>
+          <span class="b" data-n="S-01-6" style="position:relative;width:fit-content"><span class="stamp">旅途中</span></span>
+          <div class="nm">2026 濟州島四寶團</div>
+          <div class="mt"><span class="em2">🐵🐱🍋🐟</span><span class="dt">3/14 – 3/18 · 2026</span></div>
+        </div>
+      </div>
+
+      <div class="tcard">
+        <div class="img g-tokyo">
+          <div class="scrimg"></div>
+          <span class="em">🗻</span>
+          <span style="position:relative;width:fit-content"><span class="stamp">已結算</span></span>
+          <div class="nm">2024 東京富士山五寶團</div>
+          <div class="mt"><span class="em2">🐵🐱🍋🐟🐰</span><span class="dt">11/2 – 11/8 · 2024</span></div>
+        </div>
+      </div>
+
+      <div class="b tcard" data-n="S-01-7">
+        <div class="img g-fuk" style="filter:saturate(.5) brightness(.9)">
+          <div class="scrimg"></div>
+          <span class="em">🍜</span>
+          <span style="position:relative;width:fit-content"><span class="stamp">已封存</span></span>
+          <div class="nm">2023 福岡三人行</div>
+          <div class="mt"><span class="em2">🐵🐱🍋</span><span class="dt">4/6 – 4/11 · 2023</span></div>
+        </div>
+      </div>
+
+      <div class="b" data-n="S-01-8" style="margin:11px 13px 0;border:1px solid var(--ln);border-radius:3px;overflow:hidden;opacity:.78">
+        <div style="height:58px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#DCDED6,#C9CDC3)">
+          <p style="margin:0;font-size:13px;color:#5C6660">你的下一趟在哪？</p>
+        </div>
+      </div>
+
+      <div class="b" data-n="S-01-9" style="margin:11px 13px 14px;border:1px solid var(--ln);border-radius:3px;padding:11px;display:flex;align-items:center;gap:9px;background:#fff">
+        <span style="font-size:19px">🔗</span>
+        <p style="margin:0;flex:1;font-size:11px;color:var(--md);line-height:1.45">分享行程連結，朋友免下載就能看帳</p>
+        <span class="b rt" data-n="S-01-10" style="border:1px solid var(--w);color:var(--wi);font-size:10px;font-weight:600;padding:5px 8px;border-radius:3px;white-space:nowrap">複製連結</span>
+      </div>
+    </div></div>
+    </div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 13 項　—　現況 11 項全在，2 項待裁示</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-01-1</td><td class="el">標題列</td><td>Tripay 字標，28px，<b>不吸頂</b>（隨頁面捲走）</td><td><span class="tag chg">改</span> 加下緣分隔線</td><td class="src">TripListPage:65</td></tr>
+      <tr><td class="n">S-01-2</td><td class="el">＋ 新增行程</td><td>開 TripFormSheet（S-02），無預填 tripId</td><td><span class="tag chg">改</span> 工作色</td><td class="src">TripListPage:67</td></tr>
+      <tr><td class="n">S-01-3</td><td class="el">載入中</td><td>置中轉圈，py-12</td><td>照舊</td><td class="src">TripListPage:80</td></tr>
+      <tr><td class="n">S-01-4</td><td class="el">空狀態</td><td>「還沒有行程。／第一趟要去哪？」<b>沒有 CTA 按鈕</b>，要按右上角</td><td><span class="tag bug">議</span> 見發現 #2</td><td class="src">TripListPage:86</td></tr>
+      <tr><td class="n">S-01-5</td><td class="el">行程卡</td><td>184px 目的地 gradient（<code>destinationOf()</code> 依行程名關鍵字比對，對不到用 id 雜湊挑預設色）＋底部壓暗遮罩；整張可點 → <code>/trips/:id</code></td><td><span class="tag chg">改</span> 卡片加白邊像貼進本子；<span class="tag new">新</span> 有封面照時改放照片</td><td class="src">TripListPage:104</td></tr>
+      <tr><td class="n">S-01-6</td><td class="el">狀態徽章</td><td>四態：出發前／旅途中／✅ 已結算／已封存。由 <code>deriveDisplayStatus()</code> 推導，不是資料庫欄位</td><td><span class="tag chg">改</span> 膠囊底色→描邊章，✅ 拿掉（顏色已表意）</td><td class="src">deriveStatus.ts:10</td></tr>
+      <tr><td class="n">S-01-7</td><td class="el">封存卡樣式</td><td>整張 <code>saturate(.55) brightness(.9)</code></td><td>照舊</td><td class="src">TripListPage:110</td></tr>
+      <tr><td class="n">S-01-8</td><td class="el">G-02 幽靈卡</td><td>「你的下一趟在哪？」<b>可點</b>，開 S-02。blur 0.8／opacity .72</td><td><span class="tag chg">改</span> 暖米底→冷灰</td><td class="src">TripListPage:146</td></tr>
+      <tr><td class="n">S-01-9</td><td class="el">G-06 分享橫幅</td><td>常駐，說明分享價值</td><td>照舊</td><td class="src">TripListPage:169</td></tr>
+      <tr><td class="n">S-01-10</td><td class="el">「複製連結」鈕</td><td><b>沒有 onClick，按了沒反應</b>；且首頁沒有「哪一趟」的概念</td><td><span class="tag bug">議</span> 見發現 #1</td><td class="src">TripListPage:176</td></tr>
+      <tr><td class="n">S-01-11</td><td class="el">排序</td><td>出發日新→舊，同日以建立時間次要排序（決策 23）</td><td>照舊</td><td class="src">TripListPage:39</td></tr>
+      <tr><td class="n">S-01-12</td><td class="el">列表過濾</td><td><code>.eq('kind','trip')</code>——帳單週期不混進來（D1）；<code>.eq('owner_id', user.id)</code></td><td>照舊</td><td class="src">TripListPage:34</td></tr>
+      <tr><td class="n">—</td><td class="el">設定入口</td><td><b>首頁沒有</b>。⚙ 只存在於行程內頁 S-03，沒有行程就進不去設定</td><td><span class="tag bug">議</span> 見發現 #3</td><td class="src">—</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-02 新增行程 ══════════ -->
+<section class="scr" id="s02">
+  <div class="scrhd">
+    <span class="k">S-02</span>
+    <h2>新增行程</h2>
+    <p class="rt"><b>觸發</b> S-01 的＋鈕／G-02 幽靈卡／G-01 自動開啟　<b>原始碼</b> src/components/TripFormSheet.tsx（574 行，建立模式）</p>
+    <p class="d">底部彈出 sheet，最高 93% 螢幕高，內容區可捲。這裡把<b>幣別下拉展開</b>與<b>新增成員展開</b>
+      兩個平常收起來的次級狀態一起畫出來，實際使用時是收合的。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">sheet · 完整長度（含展開態）</p>
+    <div class="ph"><div class="ui">
+      <div class="b scrim" data-n="S-02-1" style="background:rgba(20,28,33,.45);padding:14px 0 0">
+        <div style="font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.7);letter-spacing:.1em;text-align:center;padding-bottom:10px">遮罩 · 點擊關閉</div>
+      </div>
+      <div class="sheet">
+        <div class="b grab" data-n="S-02-2"></div>
+        <div class="b shd" data-n="S-02-3"><h3>這趟去哪？</h3><span class="b rt x" data-n="S-02-4">✕</span></div>
+
+        <div class="b fld" data-n="S-02-5">
+          <span class="lbl">封面</span>
+          <div style="width:44px;height:44px;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:22px">✈️</div>
+          <p class="hint">點 emoji 可自訂行程封面</p>
+        </div>
+
+        <div class="b fld" data-n="S-02-6">
+          <span class="lbl">去哪？</span>
+          <div class="inp ph2">例如：沖繩四人行 ☀️</div>
+          <p class="err">這欄還沒填喔　<span class="g">← 未填時</span></p>
+        </div>
+
+        <div class="b fld" data-n="S-02-7">
+          <span class="lbl">當地幣別</span>
+          <div class="inp" style="display:flex;justify-content:space-between"><span>JPY</span><span class="g">▾</span></div>
+          <div class="b" data-n="S-02-8" style="margin-top:6px;border:1px solid var(--ln);background:#fff;border-radius:3px">
+            <div style="padding:8px;border-bottom:1px solid var(--ln)"><div class="inp ph2" style="background:#F1F2EE;padding:6px 8px;font-size:11px">搜尋幣別名稱或代碼</div></div>
+            <div style="padding:8px 10px;font-size:11.5px;color:var(--wi);font-weight:600;display:flex;justify-content:space-between">JPY · 日圓 <span class="g">¥</span></div>
+            <div style="padding:8px 10px;font-size:11.5px;display:flex;justify-content:space-between;border-top:1px solid #F1F2EE">KRW · 韓圜 <span class="g">₩</span></div>
+            <div style="padding:8px 10px;font-size:11.5px;display:flex;justify-content:space-between;border-top:1px solid #F1F2EE">TWD · 新台幣 <span class="g">$</span></div>
+          </div>
+        </div>
+
+        <div class="b fld" data-n="S-02-9">
+          <div style="display:flex;gap:9px">
+            <div style="flex:1"><span class="lbl">出發</span><div class="inp num">2026-03-14</div></div>
+            <div style="flex:1"><span class="lbl">回程</span><div class="inp num">2026-03-18</div></div>
+          </div>
+          <p class="hint">回程有 <code style="color:var(--md)">min=出發日</code> 限制；<code style="color:var(--md)">lang="en"</code> 避免中文 Chrome 弄亂格式</p>
+        </div>
+
+        <div class="b fld" data-n="S-02-10">
+          <span class="lbl">誰一起去？</span>
+          <p class="hint" style="margin:0 0 4px">點成員，標記哪位是你</p>
+          <p class="b" data-n="S-02-11" style="font-size:10px;color:var(--wi);margin:0 0 8px">已帶入上一趟的成員，可以改</p>
+
+          <div class="gap">
+            <div class="b rowb" data-n="S-02-12" style="border-color:var(--w);background:#F2F8FD">
+              <span class="ck on rd">✓</span>
+              <span class="b" data-n="S-02-13" style="width:26px;height:26px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:14px;background:#fff">🐵</span>
+              <span style="flex:1;font-size:12.5px;font-weight:600">Rozi</span>
+              <span class="pill ind">這是我</span>
+              <span class="b rt g" data-n="S-02-14" style="font-size:11px">✕</span>
+            </div>
+            <div class="rowb"><span class="ck rd"></span>
+              <span style="width:26px;height:26px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:14px;background:#fff">🐱</span>
+              <span style="flex:1;font-size:12.5px;font-weight:600">小美</span><span class="g" style="font-size:11px">✕</span></div>
+            <div class="rowb"><span class="ck rd"></span>
+              <span style="width:26px;height:26px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:14px;background:#fff">🍋</span>
+              <span style="flex:1;font-size:12.5px;font-weight:600">阿明</span><span class="g" style="font-size:11px">✕</span></div>
+          </div>
+          <p class="err">至少要有一位成員　<span class="g">← 全刪光時</span></p>
+
+          <div class="b card" data-n="S-02-15" style="margin-top:9px;padding:10px">
+            <p style="margin:0 0 7px;font-size:11px;font-weight:600;color:var(--md)">加一個人</p>
+            <div style="display:flex;gap:9px;align-items:center;margin-bottom:8px">
+              <div style="width:38px;height:38px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:19px">🙂</div>
+              <p style="margin:0;font-size:10px;color:var(--gr);line-height:1.4">點一下換 emoji<br>也可以貼上你自己的</p>
+            </div>
+            <div class="inp ph2" style="background:#F1F2EE;margin-bottom:5px">叫什麼名字？</div>
+            <p class="hint" style="margin:0 0 8px">最多 10 個字</p>
+            <div style="display:flex;gap:7px"><span class="btn qt">取消</span><span class="btn">加進來</span></div>
+          </div>
+
+          <div class="b" data-n="S-02-16" style="margin-top:9px;border:1px dashed #B9C1BB;border-radius:3px;text-align:center;padding:9px;font-size:11.5px;color:var(--md);font-weight:600">＋ 新增成員</div>
+        </div>
+
+        <div class="b fld" data-n="S-02-17"><p class="hint" style="margin:0">標記哪位是你，統計卡的「我的花費」就會算你這一份。</p></div>
+
+        <div class="b btnrow" data-n="S-02-18" style="background:#EDEEE8"><span class="btn gh">取消</span><span class="btn">出發！</span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 18 項　—　現況全數保留</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-02-1</td><td class="el">遮罩</td><td>黑 40%＋blur 3px，點擊關閉</td><td>照舊</td><td class="src">TripFormSheet:302</td></tr>
+      <tr><td class="n">S-02-2</td><td class="el">拖曳條</td><td>純裝飾，<b>不能真的拖</b></td><td>照舊</td><td class="src">TripFormSheet:312</td></tr>
+      <tr><td class="n">S-02-3</td><td class="el">標題</td><td>建立＝「這趟去哪？」／編輯＝「編輯行程」</td><td><span class="tag chg">改</span> 襯線→系統字</td><td class="src">TripFormSheet:316</td></tr>
+      <tr><td class="n">S-02-4</td><td class="el">關閉 ✕</td><td>同遮罩；<code>/trips/new</code> 進來時會 replace 回 <code>/</code></td><td>照舊</td><td class="src">TripListPage:57</td></tr>
+      <tr><td class="n">S-02-5</td><td class="el">封面 emoji</td><td>開 EmojiPicker（cover 模式）。預設 ✈️</td><td>照舊</td><td class="src">TripFormSheet:331</td></tr>
+      <tr><td class="n">S-02-6</td><td class="el">行程名稱</td><td>必填；驗證訊息「這欄還沒填喔」</td><td>照舊</td><td class="src">TripFormSheet:344</td></tr>
+      <tr><td class="n">S-02-7</td><td class="el">幣別選擇</td><td>預設 JPY，點開下拉</td><td>照舊</td><td class="src">TripFormSheet:358</td></tr>
+      <tr><td class="n">S-02-8</td><td class="el">幣別搜尋</td><td>可搜代碼或名稱（<code>searchCurrencies</code>），最高 52 列可捲</td><td>照舊</td><td class="src">currencies.ts</td></tr>
+      <tr><td class="n">S-02-9</td><td class="el">出發／回程</td><td>兩個原生 date input，皆必填，回程 <code>min=startDate</code></td><td>照舊</td><td class="src">TripFormSheet:392</td></tr>
+      <tr><td class="n">S-02-10</td><td class="el">成員區標題</td><td>「誰一起去？／點成員，標記哪位是你」</td><td>照舊</td><td class="src">TripFormSheet:421</td></tr>
+      <tr><td class="n">S-02-11</td><td class="el">G-09 預填提示</td><td>帶上一趟成員時顯示；複製行程時文案不同（「已帶入原本那趟的成員與幣別」）</td><td>照舊</td><td class="src">TripFormSheet:425</td></tr>
+      <tr><td class="n">S-02-12</td><td class="el">成員列 · 這是我</td><td>整列可點＝切換 owner_member_id；再點一次取消</td><td><span class="tag chg">改</span> 選取底色 #FFF6F1→工作色淺底</td><td class="src">TripFormSheet:437</td></tr>
+      <tr><td class="n">S-02-13</td><td class="el">成員 emoji 鈕</td><td>單獨可點，開 EmojiPicker（member 模式），<code>stopPropagation</code> 避免誤觸整列</td><td>照舊</td><td class="src">TripFormSheet:447</td></tr>
+      <tr><td class="n">S-02-14</td><td class="el">移除成員 ✕</td><td>建立模式一律可移除；<b>編輯模式若該成員已有消費／分帳／結算紀錄則 disabled</b></td><td>照舊</td><td class="src">TripFormSheet:461</td></tr>
+      <tr><td class="n">S-02-15</td><td class="el">新增成員展開表單</td><td>emoji 鈕＋名字（限 10 字）＋Enter 送出；取消／加進來</td><td>照舊</td><td class="src">TripFormSheet:478</td></tr>
+      <tr><td class="n">S-02-16</td><td class="el">＋ 新增成員</td><td>虛線鈕，展開上一項</td><td>照舊</td><td class="src">TripFormSheet:513</td></tr>
+      <tr><td class="n">S-02-17</td><td class="el">說明文</td><td>「標記哪位是你，統計卡的『我的花費』就會算你這一份。」<b>僅建立模式顯示</b></td><td>照舊</td><td class="src">TripFormSheet:523</td></tr>
+      <tr><td class="n">S-02-18</td><td class="el">取消／出發！</td><td>建立＝「出發！」，成功後導向新行程；編輯＝「儲存」，關閉 sheet</td><td>照舊</td><td class="src">TripFormSheet:530</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-02b 編輯行程 · 封面照片 ══════════ -->
+<section class="scr" id="s02b">
+  <div class="scrhd">
+    <span class="k new">S-02b</span>
+    <h2>編輯行程 · 更換封面照片</h2>
+    <p class="rt"><b>路由</b> /trips/:id/edit　<b>原始碼</b> TripFormSheet（編輯模式）＋<b>新</b> 封面上傳</p>
+    <p class="d">與 S-02 同一個元件，差別列在右表。<b>封面照片是本輪新增</b>：008 migration 已備好
+      （<code>covers</code> bucket、五條 RLS、<code>trips.cover_path</code>），排在第二批實作。
+      顯示規則——<b>有照片用照片，沒有就用目的地色調 gradient</b>，行程卡／行程 header／分享頁三處一致。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">/trips/:id/edit · 只畫差異區塊</p>
+    <div class="ph"><div class="ui">
+      <div class="sheet" style="border-radius:0">
+        <div class="grab"></div>
+        <div class="b shd" data-n="S-02b-1"><h3>編輯行程</h3><span class="x">✕</span></div>
+
+        <div class="b fld" data-n="S-02b-2">
+          <span class="lbl">封面照片</span>
+          <div style="border:1px solid var(--ln);border-radius:3px;overflow:hidden;background:#fff;padding:4px">
+            <div class="img g-jeju" style="height:96px;border-radius:2px;position:relative">
+              <div class="scrimg"></div>
+              <span style="position:absolute;left:8px;bottom:7px;font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.92);letter-spacing:.08em">目前：目的地色調</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:7px;margin-top:7px">
+            <span class="b btn gh" data-n="S-02b-3" style="padding:7px 0">換一張照片</span>
+            <span class="b btn qt" data-n="S-02b-4" style="padding:7px 0">改回色調</span>
+          </div>
+          <p class="b hint" data-n="S-02b-5">上傳後會自動壓成 webp、長邊 1600px。只有你和拿到分享連結的人看得到。</p>
+        </div>
+
+        <div class="b fld" data-n="S-02b-6">
+          <span class="lbl">封面 emoji</span>
+          <div style="width:44px;height:44px;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:22px">🏝️</div>
+          <p class="hint">emoji 與照片同時存在：照片是底，emoji 是右上角標記</p>
+        </div>
+
+        <div class="b fld" data-n="S-02b-7">
+          <span class="lbl">誰一起去？</span>
+          <div class="gap">
+            <div class="rowb" style="border-color:var(--w);background:#F2F8FD"><span class="ck on rd">✓</span>
+              <span style="width:26px;height:26px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:14px;background:#fff">🐵</span>
+              <span style="flex:1;font-size:12.5px;font-weight:600">Rozi</span><span class="pill ind">這是我</span>
+              <span style="font-size:11px;color:#CDD3D0">✕</span></div>
+            <div class="rowb"><span class="ck rd"></span>
+              <span style="width:26px;height:26px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:14px;background:#fff">🐱</span>
+              <span style="flex:1;font-size:12.5px;font-weight:600">小美</span>
+              <span style="font-size:11px;color:#CDD3D0">✕</span></div>
+          </div>
+          <p class="b err" data-n="S-02b-8" style="color:var(--md)">小美 已經有消費或分帳紀錄，不能移除。要拿掉的話，請先刪掉相關消費。</p>
+        </div>
+
+        <div class="b btnrow" data-n="S-02b-9"><span class="btn gh">取消</span><span class="btn">儲存</span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 9 項　—　與 S-02 的差異；S-02-5～18 全部同樣存在</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-02b-1</td><td class="el">標題</td><td>「編輯行程」；入口是 S-03 hero 的 ✎</td><td>照舊</td><td class="src">TripFormSheet:317</td></tr>
+      <tr><td class="n">S-02b-2</td><td class="el">封面照片欄</td><td><b>目前沒有這個欄位</b></td><td><span class="tag new">新</span> 有照片顯示照片＋「目前：自訂照片」；無照片顯示 gradient＋「目前：目的地色調」</td><td class="src">008 migration</td></tr>
+      <tr><td class="n">S-02b-3</td><td class="el">換一張照片</td><td>—</td><td><span class="tag new">新</span> 開系統相簿 → 前端壓 webp／長邊 1600px／≤200KB → 上傳 <code>covers/{owner}/{trip}/{version}.webp</code> → 寫回 <code>cover_path</code> → 刪舊檔</td><td class="src">008:第 3 節</td></tr>
+      <tr><td class="n">S-02b-4</td><td class="el">改回色調</td><td>—</td><td><span class="tag new">新</span> <code>cover_path=NULL</code> ＋刪 Storage 檔，回到 gradient</td><td class="src">008:實作注意 B</td></tr>
+      <tr><td class="n">S-02b-5</td><td class="el">上傳說明</td><td>—</td><td><span class="tag new">新</span> 交代壓縮規格與可見範圍（bucket 非公開，一律 signed URL）</td><td class="src">008:第 1 節</td></tr>
+      <tr><td class="n">S-02b-6</td><td class="el">封面 emoji</td><td>同 S-02-5</td><td><span class="tag new">新</span> 補說明：照片與 emoji 並存，不互斥</td><td class="src">TripFormSheet:331</td></tr>
+      <tr><td class="n">S-02b-7</td><td class="el">成員列（唯讀態）</td><td>已有紀錄的成員 ✕ 呈 disabled 灰，<code>title</code> 說明原因</td><td>照舊</td><td class="src">TripFormSheet:461</td></tr>
+      <tr><td class="n">S-02b-8</td><td class="el">移除被擋的訊息</td><td>點 disabled 的 ✕ 會顯示完整說明句</td><td><span class="tag chg">改</span> 這不是錯誤是限制，改用中性色不用橘紅</td><td class="src">TripFormSheet:283</td></tr>
+      <tr><td class="n">S-02b-9</td><td class="el">儲存</td><td>更新 trips，並逐項比對成員：改名／換 emoji／換排序才發 update；新增 insert；移除 delete（先擋有紀錄者）；owner_member_id 跟著走</td><td>照舊</td><td class="src">TripFormSheet:153</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-02c Emoji 選擇器 ══════════ -->
+<section class="scr" id="s02c">
+  <div class="scrhd">
+    <span class="k">S-02c</span>
+    <h2>Emoji 選擇器</h2>
+    <p class="rt"><b>觸發</b> S-02／S-02b 的封面與成員 emoji　<b>原始碼</b> src/components/EmojiPicker.tsx（168 行）</p>
+    <p class="d">封面與成員共用同一個元件，靠 <code>mode</code> 切換。<b>emoji 是唯一允許的圖形語彙</b>
+      （成員與封面），其他地方一律不用——這是反模板要求裡明訂的。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">sheet · 最高 80vh</p>
+    <div class="ph"><div class="ui">
+      <div class="scrim" style="padding:12px 0 0"><div style="font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.7);letter-spacing:.1em;text-align:center;padding-bottom:8px">遮罩 30%</div></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="b shd" data-n="S-02c-1"><h3>挑個封面</h3><span class="b rt x" data-n="S-02c-2">✕</span></div>
+        <div class="b" data-n="S-02c-3" style="padding:8px 13px 4px"><div class="chiprow"><span class="chip on">旅遊</span><span class="chip">人物</span></div></div>
+        <div class="b" data-n="S-02c-4" style="padding:8px 13px">
+          <div style="display:flex;gap:6px">
+            <div class="inp ph2" style="flex:1">搜尋，或直接貼上</div>
+            <div class="inp" style="font-size:10.5px;font-weight:600;color:var(--md);white-space:nowrap">直接貼上</div>
+          </div>
+          <p class="b err" data-n="S-02c-5">這看起來不是 emoji，換一個試試</p>
+        </div>
+        <div class="b" data-n="S-02c-6" style="padding:4px 13px 10px">
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px">
+            <span style="aspect-ratio:1;border:1px solid var(--w);background:#F2F8FD;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">✈️</span>
+            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🏝️</span>
+            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🗻</span>
+            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🍜</span>
+            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🚅</span>
+            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">⛩️</span>
+            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🏨</span>
+            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🎡</span>
+            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🛍️</span>
+            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🌸</span>
+            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🎿</span>
+            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🍁</span>
+          </div>
+        </div>
+        <div class="b" data-n="S-02c-7" style="padding:9px 13px 11px;border-top:1px solid var(--ln);background:#EDEEE8">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="font-size:10.5px;font-weight:600;color:var(--md)">選的是</span><span style="font-size:20px">✈️</span></div>
+          <div class="b btn" data-n="S-02c-8">就用這個</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 9 項　—　現況全數保留</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-02c-1</td><td class="el">標題</td><td>cover＝「挑個封面」／member＝「挑個 emoji」</td><td>照舊</td><td class="src">EmojiPicker:81</td></tr>
+      <tr><td class="n">S-02c-2</td><td class="el">關閉</td><td>✕／點遮罩／<b>Esc 鍵</b>（Aria 審查補上的）</td><td>照舊</td><td class="src">EmojiPicker:34</td></tr>
+      <tr><td class="n">S-02c-3</td><td class="el">分類 tab</td><td><b>只有 cover 模式有</b>：旅遊／人物。member 模式改成「大家常用／旅遊風格」兩區塊直接並排</td><td>照舊</td><td class="src">EmojiPicker:93</td></tr>
+      <tr><td class="n">S-02c-4</td><td class="el">搜尋／貼上</td><td>可輸入任意 emoji，含 ZWJ 組合、膚色修飾、國旗；以 grapheme cluster 取用不截斷。「直接貼上」讀剪貼簿，沒權限則退回手動</td><td>照舊</td><td class="src">EmojiPicker:107</td></tr>
+      <tr><td class="n">S-02c-5</td><td class="el">錯誤訊息</td><td>「這看起來不是 emoji，換一個試試」／無剪貼簿權限時「請直接在上面欄位貼上（⌘V）」</td><td>照舊</td><td class="src">EmojiPicker:44</td></tr>
+      <tr><td class="n">S-02c-6</td><td class="el">emoji 格</td><td><code>auto-fill minmax(44px,1fr)</code>，選中者描邊工作色</td><td><span class="tag chg">改</span> 選中底色 #FFF5F0→工作色淺底</td><td class="src">EmojiPicker:139</td></tr>
+      <tr><td class="n">S-02c-7</td><td class="el">預覽列</td><td>「選的是 ＋ 目前 emoji」；沒選時顯示 —</td><td>照舊</td><td class="src">EmojiPicker:154</td></tr>
+      <tr><td class="n">S-02c-8</td><td class="el">就用這個</td><td>自訂欄有值優先用自訂；Enter 亦可送出</td><td>照舊</td><td class="src">EmojiPicker:59</td></tr>
+      <tr><td class="n">S-02c-9</td><td class="el">portal 掛載</td><td>掛到 <code>document.body</code>——頁面根層的 <code>animate-slide-in</code> 帶 transform，會讓 <code>position:fixed</code> 以它為基準，sheet 被推到整頁最底部（P8 事故）</td><td>照舊</td><td class="src">EmojiPicker:76</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-03 消費瀏覽 ══════════ -->
+<section class="scr" id="s03">
+  <div class="scrhd">
+    <span class="k">S-03</span>
+    <h2>消費瀏覽 · 行程內頁</h2>
+    <p class="rt"><b>路由</b> /trips/:id　<b>原始碼</b> src/pages/ExpenseListPage.tsx（621 行）</p>
+    <p class="d">產品的主畫面，也是最長的一頁。底部操作列<b>依行程狀態有三種完全不同的內容</b>，
+      三種都畫出來（實際同時只會出現一種）。幣別切換依決策 34 改為<b>整頁一起切</b>——
+      統計卡的數字現在會跟著換，這是本輪的行為變更。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">/trips/:id · 完整長度</p>
+    <div class="ph"><div class="ui">
+      <div class="b hero g-jeju" data-n="S-03-1">
+        <div class="scrimg"></div>
+        <div class="nav">
+          <span class="b" data-n="S-03-2" style="color:rgba(255,255,255,.92);font-size:11px;font-weight:600;position:relative">‹ 返回</span>
+          <span style="display:flex;gap:5px;position:relative">
+            <span class="b ic" data-n="S-03-3">✎</span>
+            <span class="b ic" data-n="S-03-4">⧉</span>
+            <span class="b ic" data-n="S-03-5">↑</span>
+            <span class="b ic" data-n="S-03-6">⚙</span>
+          </span>
+        </div>
+        <h1 class="b" data-n="S-03-7" style="position:relative">2026 濟州島四寶團</h1>
+        <div class="b" data-n="S-03-8" style="position:relative;display:flex;align-items:center;gap:7px;margin-top:4px">
+          <span style="font-size:13px">🐵🐱🍋🐟</span>
+          <span class="mono" style="font-size:9.5px;color:rgba(255,255,255,.78)">2026-03-14 – 2026-03-18</span>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="b" data-n="S-03-9"><b>111,320</b><span>總花費</span>
+          <div class="b" data-n="S-03-10" style="font-size:8px;color:var(--out);margin-top:3px;line-height:1.3">⚠️ 含 2 筆待填，數字僅供參考</div></div>
+        <div class="b" data-n="S-03-11"><b>27,830</b><span>我的花費</span></div>
+        <div class="b" data-n="S-03-12" style="flex:0 0 66px;padding:8px 5px">
+          <div class="seg" style="flex-direction:column"><i class="on" style="border-right:0;border-bottom:1px solid var(--ln);padding:4px 0;font-size:9.5px">$ 台幣</i><i style="border-right:0;padding:4px 0;font-size:9.5px">₩ 外幣</i></div>
+        </div>
+      </div>
+
+      <div class="b" data-n="S-03-13" style="margin:11px 13px 0;border:1px solid var(--ln);background:#fff;border-radius:3px;padding:10px;display:flex;gap:9px;align-items:flex-start">
+        <span style="font-size:17px">🎉</span>
+        <div style="flex:1"><p style="margin:0;font-size:12px;font-weight:600">記完了嗎？讓大家看看。</p>
+          <p style="margin:3px 0 0;font-size:10px;color:var(--md)">把這趟的消費明細分享給大家，一起確認。</p></div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <span style="background:var(--w);color:#fff;font-size:9.5px;font-weight:600;padding:4px 8px;border-radius:3px">分享給大家</span>
+          <span style="font-size:9.5px;color:var(--gr)">之後再說</span></div>
+      </div>
+
+      <div class="b empty" data-n="S-03-14" style="padding:20px 22px;border-top:1px dashed var(--ln);border-bottom:1px dashed var(--ln);margin-top:11px">
+        <p>第一筆從哪裡開始？</p><p>早餐、計程車、門票，都可以記</p>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--gr);letter-spacing:.09em;margin-top:7px">空狀態 · 出發前另一組文案</div>
+      </div>
+
+      <div class="b sec" data-n="S-03-15">出發前</div>
+      <div class="exp"><span class="ic">✈️</span><div class="mid"><div class="t">機票 ×4</div>
+        <div class="s"><span>🐵 Rozi</span></div></div><div class="a">28,400</div></div>
+      <div class="b exp pend" data-n="S-03-17"><span class="ic">🏨</span><div class="mid"><div class="t">濟州飯店訂金</div>
+        <div class="s"><span>🐱 小美</span><span class="pill pen">待補填</span></div></div><div class="a g">—</div></div>
+
+      <div class="sec">第 1 天 · 3/14（六）</div>
+      <div class="b exp" data-n="S-03-16"><span class="ic">🍜</span><div class="mid"><div class="t">黑豬肉晚餐</div>
+        <div class="s"><span>🍋 阿明</span></div></div><div class="a">2,480</div></div>
+      <div class="b exp" data-n="S-03-18"><span class="ic">🎡</span><div class="mid"><div class="t">城山日出峰門票</div>
+        <div class="s"><span>🐟 小魚</span><span class="pill ind">各付各的</span></div></div><div class="a">1,200</div></div>
+      <div class="b exp" data-n="S-03-19"><span class="ic">🛍️</span><div class="mid"><div class="t">紀念品</div>
+        <div class="s"><span>🐵 Rozi</span><span class="pill per">只算我</span></div></div><div class="a">860</div></div>
+      <div class="b exp" data-n="S-03-20"><span class="ic">🚌</span><div class="mid"><div class="t">機場接送</div>
+        <div class="s"><span>🐵 Rozi</span><span class="pill per">當場各付</span></div></div><div class="a">1,600</div></div>
+      <div class="b exp" data-n="S-03-21"><span class="ic">💝</span><div class="mid"><div class="t">爸爸贊助</div>
+        <div class="s"><span>🐵 Rozi</span><span class="pill ind">贊助回饋</span></div></div><div class="a in">−50,000</div></div>
+
+      <div class="b btnrow" data-n="S-03-22"><span class="btn gh">前往結算</span><span class="btn">＋ 記一筆</span></div>
+      <div class="fixnote">底部操作列 A · 出發前／旅途中（固定在視窗底部）</div>
+
+      <div class="b btnrow" data-n="S-03-23"><span class="btn gh">查看結算</span><span class="btn qt">封存行程</span></div>
+      <div class="fixnote">底部操作列 B · 已結算</div>
+
+      <div class="b btnrow" data-n="S-03-24"><span class="btn gh">重新開啟</span></div>
+      <div class="fixnote">底部操作列 C · 已封存</div>
+
+      <div class="b" data-n="S-03-25" style="padding:14px 13px 18px;text-align:center;background:#EDEEE8;border-top:1px solid var(--ln)">
+        <span style="font-size:10.5px;color:var(--dgt);border-bottom:1px solid #D7BCB2;padding-bottom:1px;color:var(--dg)">刪除這趟行程</span>
+        <p class="hint" style="margin-top:6px">危險動作：文字連結，不是按鈕。點了先開確認對話框（S-03c）</p>
+      </div>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 26 項　—　現況 24 項全在，2 項為本輪行為變更</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-03-1</td><td class="el">Hero</td><td>目前<b>寫死</b>同一個藍棕 gradient，<b>沒有用 <code>destinationOf()</code></b>——所以首頁卡片是濟州島色，進來卻變成預設色</td><td><span class="tag bug">議</span> 見發現 #4；本稿已改為與卡片同色</td><td class="src">ExpenseListPage:292</td></tr>
+      <tr><td class="n">S-03-2</td><td class="el">‹ 返回</td><td><code>navigate(-1)</code>，走瀏覽器歷史</td><td>照舊</td><td class="src">ExpenseListPage:301</td></tr>
+      <tr><td class="n">S-03-3</td><td class="el">✎ 編輯行程</td><td>導向 <code>/trips/:id/edit</code> 開 S-02b。<b>封存時隱藏</b></td><td>照舊</td><td class="src">ExpenseListPage:309</td></tr>
+      <tr><td class="n">S-03-4</td><td class="el">⧉ 複製行程</td><td>以這趟為範本開新行程（帶名稱＋「的複本」、幣別、成員；<b>不帶消費</b>）</td><td>照舊</td><td class="src">ExpenseListPage:319</td></tr>
+      <tr><td class="n">S-03-5</td><td class="el">↑ 分享</td><td>開 S-03b 分享選單。<b>全狀態常駐</b>（決策 7）</td><td>照舊</td><td class="src">ExpenseListPage:329</td></tr>
+      <tr><td class="n">S-03-6</td><td class="el">⚙ 設定</td><td>導向 <code>/settings</code>。<b>這是全站唯一的設定入口</b></td><td><span class="tag bug">議</span> 見發現 #3</td><td class="src">ExpenseListPage:338</td></tr>
+      <tr><td class="n">S-03-7</td><td class="el">行程名稱</td><td>26px 白字</td><td>照舊</td><td class="src">ExpenseListPage:349</td></tr>
+      <tr><td class="n">S-03-8</td><td class="el">成員＋日期</td><td>成員 emoji 串接（依 sort_order）＋ <code>YYYY-MM-DD – YYYY-MM-DD</code></td><td><span class="tag chg">改</span> 日期改等寬數字</td><td class="src">ExpenseListPage:350</td></tr>
+      <tr><td class="n">S-03-9</td><td class="el">總花費</td><td>加總<b>已填的台幣</b>；<b>排除贊助</b>（負額不灌低總支出）；當場各付仍計入</td><td><span class="tag chg">改</span> 跟著幣別切換</td><td class="src">ExpenseListPage:238</td></tr>
+      <tr><td class="n">S-03-10</td><td class="el">待填警語</td><td>「⚠️ 含 N 筆待填，數字僅供參考」（決策 4 方案 C），N＝0 時不顯示</td><td>照舊</td><td class="src">ExpenseListPage:369</td></tr>
+      <tr><td class="n">S-03-11</td><td class="el">我的花費</td><td>依 <code>owner_member_id</code>：共同＝總額÷參與人數；各付各的＝我那格；<b>只算我＝不計入</b>。<b>沒標記「這是我」時恆為 0，且無提示</b></td><td><span class="tag bug">議</span> 見發現 #5</td><td class="src">ExpenseListPage:243</td></tr>
+      <tr><td class="n">S-03-12</td><td class="el">幣別切換</td><td>目前<b>只換消費列的金額</b>，統計卡兩格恆為台幣</td><td><span class="tag chg">改</span> 決策 34：整頁一起切，預設台幣。結算恆為台幣不受影響</td><td class="src">ExpenseListPage:387</td></tr>
+      <tr><td class="n">S-03-13</td><td class="el">G-05 分享橫幅</td><td><b>只在消費恰好 1 筆時出現</b>；「之後再說」寫入 sessionStorage，該分頁不再顯示</td><td>照舊</td><td class="src">ExpenseListPage:403</td></tr>
+      <tr><td class="n">S-03-14</td><td class="el">空狀態</td><td>兩組文案：出發前＝「出發前的費用也先記／訂票、換外幣、買行李，都算這趟的帳」；旅途中＝「第一筆從哪裡開始？／早餐、計程車、門票，都可以記」</td><td>照舊</td><td class="src">ExpenseListPage:437</td></tr>
+      <tr><td class="n">S-03-15</td><td class="el">日期分組標頭</td><td>出發日之前一律歸「出發前」；之後為「第 N 天 · M/D（週幾）」</td><td>照舊</td><td class="src">ExpenseListPage:16</td></tr>
+      <tr><td class="n">S-03-16</td><td class="el">消費列</td><td>整列可點 → 開 S-04 編輯。左側 emoji：有 <code>category_emoji</code> 用它，否則由標題關鍵字推斷</td><td>照舊</td><td class="src">ExpenseListPage:472</td></tr>
+      <tr><td class="n">S-03-17</td><td class="el">待填列</td><td>左側 3px 橘紅邊框＋「待補填」badge，金額顯示 —（決策 C）</td><td><span class="tag chg">改</span> 邊框 3→2px</td><td class="src">ExpenseListPage:478</td></tr>
+      <tr><td class="n">S-03-18</td><td class="el">「各付各的」badge</td><td><code>expense_type='individual'</code> 時顯示</td><td><span class="tag chg">改</span> 琥珀底→工作色淺底描邊</td><td class="src">ExpenseListPage:490</td></tr>
+      <tr><td class="n">S-03-19</td><td class="el">「只算我」badge</td><td><code>expense_type='personal'</code> 時顯示</td><td><span class="tag chg">改</span> 紅底→中性描邊（它不是警示）</td><td class="src">ExpenseListPage:493</td></tr>
+      <tr><td class="n">S-03-20</td><td class="el">「當場各付」</td><td><code>settled_on_spot</code> 的消費<b>列表上完全看不出來</b>，只有進 S-04 才知道</td><td><span class="tag new">新</span> 補 badge，與結算行為對齊</td><td class="src">ExpenseListPage:483</td></tr>
+      <tr><td class="n">S-03-21</td><td class="el">贊助列</td><td><code>is_sponsor</code> 的消費金額為負，<b>列表上也看不出來</b>，只顯示負數</td><td><span class="tag new">新</span> 補 badge＋負額用「收」綠</td><td class="src">ExpenseFormSheet:172</td></tr>
+      <tr><td class="n">S-03-22</td><td class="el">底部列 A</td><td>出發前／旅途中：前往結算｜＋ 記一筆</td><td>照舊</td><td class="src">ExpenseListPage:520</td></tr>
+      <tr><td class="n">S-03-23</td><td class="el">底部列 B</td><td>已結算：查看結算｜封存行程</td><td>照舊</td><td class="src">ExpenseListPage:539</td></tr>
+      <tr><td class="n">S-03-24</td><td class="el">底部列 C</td><td>已封存：重新開啟（走 <code>reopen-settlement</code> Edge Function，mode=unarchive）</td><td>照舊</td><td class="src">ExpenseListPage:571</td></tr>
+      <tr><td class="n">S-03-25</td><td class="el">刪除這趟行程</td><td>底部弱化文字連結。<b>目前封存狀態也照樣顯示，而且被固定底部列蓋住一部分</b></td><td><span class="tag bug">議</span> 見發現 #6</td><td class="src">ExpenseListPage:558</td></tr>
+      <tr><td class="n">S-03-26</td><td class="el">Toast</td><td>全域，畫面頂端膠囊，2.2 秒。訊息：「這趟封存了。下次再出發！」「重新開啟了，繼續記吧」「行程已刪除」</td><td><span class="tag chg">改</span> 膠囊→方角，與新 token 一致</td><td class="src">ToastContext:35</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-03b 分享選單 / S-03c 刪除行程 ══════════ -->
+<section class="scr" id="s03b">
+  <div class="scrhd">
+    <span class="k">S-03b · S-03c</span>
+    <h2>分享選單　與　刪除行程</h2>
+    <p class="rt"><b>觸發</b> S-03-5 的 ↑／S-03-25 的刪除連結　<b>原始碼</b> ExpenseListPage.tsx:48-131（ShareSheet）、ExpenseListPage.tsx:600（刪除對話框）</p>
+    <p class="d">兩個都是彈出層，放在一起對照——<b>左邊是安全動作、右邊是危險動作</b>，
+      形態差異就是本輪的用色規則：安全用工作色、危險用實心橘紅填底，而且要打字確認。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">兩個彈出層</p>
+    <div class="stack">
+    <div class="ph"><div class="ui">
+      <div class="scrim" style="padding:22px 0 0"><div style="font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.7);letter-spacing:.1em;text-align:center;padding-bottom:14px">遮罩 40%＋blur 3px</div></div>
+      <div class="sheet">
+        <div class="b grab" data-n="S-03b-1"></div>
+        <div style="padding:10px 13px 0">
+          <div class="b" data-n="S-03b-2" style="padding:11px 0;border-bottom:1px solid var(--ln)">
+            <p style="margin:0;font-size:12.5px;font-weight:600">複製結算摘要</p>
+            <p style="margin:2px 0 0;font-size:10px;color:var(--gr)">貼到 LINE 群組，讓大家知道誰付誰</p></div>
+          <div class="b" data-n="S-03b-3" style="padding:11px 0;border-bottom:1px solid var(--ln)">
+            <p style="margin:0;font-size:12.5px;font-weight:600">複製分享連結</p>
+            <p style="margin:2px 0 0;font-size:10px;color:var(--gr)">任何人打開都能看消費明細，不用登入</p></div>
+          <div class="b" data-n="S-03b-4" style="padding:11px 0">
+            <p style="margin:0;font-size:12.5px;font-weight:600">預覽分享頁面</p>
+            <p style="margin:2px 0 0;font-size:10px;color:var(--gr)">看看對方收到連結會看到什麼</p></div>
+        </div>
+        <div class="b" data-n="S-03b-5" style="padding:4px 13px 14px"><div class="btn qt">取消</div></div>
+      </div>
+    </div></div>
+
+    <div class="ph"><div class="ui">
+      <div class="scrim" style="padding:26px 0 26px">
+        <div class="b dlg" data-n="S-03c-1">
+          <p style="margin:0 0 8px;font-size:13.5px;font-weight:700;text-align:center">刪除「2026 濟州島四寶團」？</p>
+          <p class="b" data-n="S-03c-2" style="margin:0 0 7px;font-size:11px;color:var(--md);line-height:1.5">這會一併刪掉這趟的<b>全部資料</b>，而且救不回來：</p>
+          <ul class="b" data-n="S-03c-3" style="margin:0 0 11px;padding-left:16px;font-size:11px;color:var(--md);line-height:1.7">
+            <li>132 筆消費與分帳紀錄</li><li>4 位成員</li><li>結算結果與分享連結</li></ul>
+          <p class="b" data-n="S-03c-4" style="margin:0 0 5px;font-size:10.5px;color:var(--md)">確定的話，請輸入行程名稱：</p>
+          <div class="b inp ph2" data-n="S-03c-5" style="background:#F4F5F1;margin-bottom:11px">2026 濟州島四寶團</div>
+          <div style="display:flex;gap:8px">
+            <span class="b btn qt" data-n="S-03c-6">算了，留著</span>
+            <span class="b btn dg dis" data-n="S-03c-7">刪除</span></div>
+          <p class="b hint" data-n="S-03c-8" style="text-align:center">名稱沒打對之前，刪除鈕維持 disabled</p>
+        </div>
+      </div>
+    </div></div>
+    </div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 14 項（S-03b 6 項＋S-03c 8 項）</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-03b-1</td><td class="el">分享 sheet</td><td>底部彈出，三個選項＋取消</td><td>照舊</td><td class="src">ExpenseListPage:117</td></tr>
+      <tr><td class="n">S-03b-2</td><td class="el">複製結算摘要</td><td>從<b>已確認</b>的 settlement 組多行文字：「🐵Rozi 付給 🐟小魚：$ 3,633」。<b>沒結算過時只會複製到標題那一行</b></td><td><span class="tag bug">議</span> 見發現 #7</td><td class="src">ExpenseListPage:76</td></tr>
+      <tr><td class="n">S-03b-3</td><td class="el">複製分享連結</td><td><code>{origin}/share/{share_token}</code>；toast「連結已複製 ✓」</td><td><span class="tag bug">議</span> 見發現 #8（漏 BASE_URL）</td><td class="src">ExpenseListPage:73</td></tr>
+      <tr><td class="n">S-03b-4</td><td class="el">預覽分享頁</td><td><code>window.open</code> 開新分頁</td><td>照舊</td><td class="src">ExpenseListPage:108</td></tr>
+      <tr><td class="n">S-03b-5</td><td class="el">取消</td><td>關閉</td><td>照舊</td><td class="src">ExpenseListPage:127</td></tr>
+      <tr><td class="n">S-03b-6</td><td class="el">Toast</td><td>「已複製 ✓」／「連結已複製 ✓」</td><td>照舊</td><td class="src">ExpenseListPage:87</td></tr>
+      <tr><td class="n">S-03c-1</td><td class="el">刪除對話框</td><td>置中對話框，遮罩 50%</td><td><span class="tag chg">改</span> 危險動作專用形態：只有這裡出現實心橘紅填底</td><td class="src">ExpenseListPage:601</td></tr>
+      <tr><td class="n">S-03c-2</td><td class="el">後果說明</td><td>「會一併刪掉這趟的全部資料，而且救不回來」</td><td>照舊</td><td class="src">ExpenseListPage:605</td></tr>
+      <tr><td class="n">S-03c-3</td><td class="el">影響清單</td><td>即時帶入真實數字：N 筆消費、N 位成員、結算結果與分享連結</td><td>照舊</td><td class="src">ExpenseListPage:608</td></tr>
+      <tr><td class="n">S-03c-4</td><td class="el">確認提示</td><td>「確定的話，請輸入行程名稱：」</td><td>照舊</td><td class="src">ExpenseListPage:613</td></tr>
+      <tr><td class="n">S-03c-5</td><td class="el">名稱輸入</td><td>placeholder 就是行程名（可直接照抄）</td><td>照舊</td><td class="src">ExpenseListPage:614</td></tr>
+      <tr><td class="n">S-03c-6</td><td class="el">算了，留著</td><td>關閉，不做任何事</td><td>照舊</td><td class="src">ExpenseListPage:623</td></tr>
+      <tr><td class="n">S-03c-7</td><td class="el">刪除</td><td>名稱完全相符才 enable。先刪 settlements，再刪 trip，<b>並斷言影響列數＝1</b>，不是只看 HTTP 狀態（DELETE 靜默失敗已咬過三次）</td><td><span class="tag new">新</span> 加一步：連帶刪 Storage 封面檔（008 實作注意 A）</td><td class="src">ExpenseListPage:196</td></tr>
+      <tr><td class="n">S-03c-8</td><td class="el">失敗訊息</td><td>「刪除沒有生效（影響 0 列），請重試或回報」</td><td>照舊</td><td class="src">ExpenseListPage:203</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-04 記一筆 ══════════ -->
+<section class="scr" id="s04">
+  <div class="scrhd">
+    <span class="k">S-04</span>
+    <h2>記一筆 · 消費表單</h2>
+    <p class="rt"><b>觸發</b> S-03 的「＋ 記一筆」（新增）／點任一消費列（編輯）　<b>原始碼</b> src/components/ExpenseFormSheet.tsx（638 行）</p>
+    <p class="d">最複雜的一頁：分帳方式三選一，<b>每一種都有不同的子區塊</b>，三種子區塊全部畫出來
+      （實際同時只會出現一種）。另外兩個 checkbox（當場各付、贊助回饋）會再改變行為。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">sheet · 完整長度（三種分帳方式全展開）</p>
+    <div class="ph"><div class="ui">
+      <div class="scrim" style="padding:12px 0 0"><div style="font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.7);letter-spacing:.1em;text-align:center;padding-bottom:8px">遮罩 40%＋blur 3px</div></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="b shd" data-n="S-04-1"><h3>記一筆</h3><span class="x">✕</span></div>
+
+        <div class="b fld" data-n="S-04-2">
+          <span class="lbl">什麼花費？</span>
+          <div style="display:flex;gap:7px;align-items:center">
+            <span class="b" data-n="S-04-3" style="font-size:19px;width:28px;text-align:center">🍜</span>
+            <div class="inp ph2" style="flex:1">例如：午餐 🍜</div></div>
+        </div>
+
+        <div class="b fld" data-n="S-04-4">
+          <div style="background:#E4E7E0;border-radius:3px;padding:11px">
+            <div class="b" data-n="S-04-5">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <span style="font-size:10.5px;font-weight:600;color:var(--md)">外幣金額</span>
+                <span style="display:flex;align-items:center;gap:5px"><span class="sw"></span><span style="font-size:9.5px;color:var(--gr)">之後再填</span></span></div>
+              <div class="inp num" style="font-size:15px;font-weight:600">104,500</div></div>
+            <div class="b" data-n="S-04-6" style="margin-top:9px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <span style="font-size:10.5px;font-weight:600;color:var(--md)">台幣金額</span>
+                <span style="display:flex;align-items:center;gap:5px"><span class="sw"></span><span style="font-size:9.5px;color:var(--gr)">之後再填</span></span></div>
+              <div class="inp num" style="font-size:15px;font-weight:600">2,480</div></div>
+            <p class="b hint" data-n="S-04-7" style="text-align:right;margin-top:5px">匯率 ≈ 0.02</p>
+            <p class="b err" data-n="S-04-8">填台幣金額，或開啟「之後再填」</p>
+          </div>
+        </div>
+
+        <div class="b fld" data-n="S-04-9"><span class="lbl">怎麼付的？</span>
+          <div style="display:flex;gap:6px"><span class="chip on" style="flex:1;text-align:center;padding:8px 0">現金</span><span class="chip" style="flex:1;text-align:center;padding:8px 0">信用卡</span><span class="chip" style="flex:1;text-align:center;padding:8px 0">儲值卡</span></div></div>
+
+        <div class="b fld" data-n="S-04-10"><span class="lbl">日期</span><div class="inp num">2026-03-14</div></div>
+
+        <div class="b fld" data-n="S-04-11"><span class="lbl">分帳方式</span>
+          <div class="seg"><i class="on">一起分</i><i>各付各的</i><i>只算我</i></div>
+
+          <div class="b" data-n="S-04-12" style="margin-top:10px">
+            <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:var(--md)">分給誰？　<span class="g" style="font-weight:400">← 「一起分」子區塊</span></p>
+            <div class="gap">
+              <div class="rowb" style="border-color:var(--w);background:#F2F8FD"><span class="ck on">✓</span><span style="font-size:14px">🐵</span><span style="flex:1;font-size:12px;font-weight:600">Rozi</span></div>
+              <div class="rowb" style="border-color:var(--w);background:#F2F8FD"><span class="ck on">✓</span><span style="font-size:14px">🐱</span><span style="flex:1;font-size:12px;font-weight:600">小美</span></div>
+              <div class="rowb"><span class="ck"></span><span style="font-size:14px">🍋</span><span style="flex:1;font-size:12px;font-weight:600">阿明</span></div>
+              <div class="rowb" style="border-color:var(--w);background:#F2F8FD"><span class="ck on">✓</span><span style="font-size:14px">🐟</span><span style="flex:1;font-size:12px;font-weight:600">小魚</span></div>
+            </div>
+            <div class="b" data-n="S-04-13" style="margin-top:7px;text-align:center;background:#EAF3E9;border:1px solid #C9DFC8;border-radius:3px;padding:6px;font-size:11.5px;font-weight:600;color:var(--in);font-family:var(--mono)">每人 $ 827</div>
+            <p class="b err" data-n="S-04-14">至少選一位參與成員</p>
+          </div>
+
+          <div class="b" data-n="S-04-15" style="margin-top:12px;border-top:1px dashed var(--ln);padding-top:10px">
+            <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:var(--md)">各自多少？　<span class="g" style="font-weight:400">← 「各付各的」子區塊</span></p>
+            <div class="gap">
+              <div class="rowb"><span style="font-size:14px">🐵</span><span style="flex:1;font-size:12px">Rozi</span><span class="inp num" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1">1,200</span></div>
+              <div class="rowb"><span style="font-size:14px">🐱</span><span style="flex:1;font-size:12px">小美</span><span class="inp num" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1">1,280</span></div>
+              <div class="rowb"><span style="font-size:14px">🍋</span><span style="flex:1;font-size:12px">阿明</span><span class="inp ph2" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1;font-size:10px">輸入金額</span></div>
+            </div>
+            <p class="b" data-n="S-04-16" style="margin:6px 0 0;text-align:right;font-size:10.5px;font-weight:600;color:var(--out);font-family:var(--mono)">已填 $2,480 ／ 總額 $2,480，差 $0</p>
+          </div>
+
+          <div class="b" data-n="S-04-17" style="margin-top:12px;border-top:1px dashed var(--ln);padding-top:10px">
+            <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:var(--md)">「只算我」子區塊</p>
+            <div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+              <p style="margin:0 0 3px;font-size:12.5px;font-weight:700">這筆不分帳</p>
+              <p style="margin:0;font-size:11px;color:var(--md);line-height:1.5">這筆費用只記給自己，不進入任何分帳計算。<br>適合紀念品、個人藥品，或不想跟大家一起分的花費。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="b fld" data-n="S-04-18">
+          <div class="rowb"><span class="ck"></span><span style="flex:1;font-size:11.5px;font-weight:600">大家當場各付各的，不用結算</span><span class="g" style="font-size:9.5px">記錄但不算欠款</span></div>
+        </div>
+
+        <div class="b fld" data-n="S-04-19">
+          <div class="rowb" style="border-color:var(--in);background:#EFF5EE"><span class="ck on" style="background:var(--in);border-color:var(--in)">✓</span><span style="flex:1;font-size:11.5px;font-weight:600">這是贊助／回饋（從大家帳上平均扣掉）</span></div>
+          <p class="b hint" data-n="S-04-20">金額會自動記為負數、4 人均分扣抵；「誰請客？」請選<b>實際代收這筆錢的人</b>。</p>
+        </div>
+
+        <div class="b fld" data-n="S-04-21"><span class="lbl">誰請客？</span>
+          <div class="chiprow"><span class="chip on">🐵 Rozi</span><span class="chip">🐱 小美</span><span class="chip">🍋 阿明</span><span class="chip">🐟 小魚</span></div>
+          <p class="hint">標籤三態：一般＝「誰請客？」／各付各的＝「誰付的？」／贊助＝「誰代收贊助？」</p></div>
+
+        <div class="b btnrow" data-n="S-04-22" style="flex-direction:column;gap:7px">
+          <div style="display:flex;gap:8px;width:100%"><span class="btn gh">取消</span><span class="btn">記下來</span></div>
+          <span class="b" data-n="S-04-23" style="width:100%;text-align:center;font-size:11px;color:var(--dg);padding:4px 0">刪除這筆</span>
+        </div>
+        <div class="fixnote">「刪除這筆」僅編輯模式顯示</div>
+      </div>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 28 項　—　現況 26 項全在，2 項待裁示</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-04-1</td><td class="el">標題</td><td>新增＝「記一筆」／編輯＝「編輯消費」</td><td><span class="tag chg">改</span> 襯線→系統字</td><td class="src">ExpenseFormSheet:296</td></tr>
+      <tr><td class="n">S-04-2</td><td class="el">什麼花費？</td><td>必填</td><td>照舊</td><td class="src">ExpenseFormSheet:313</td></tr>
+      <tr><td class="n">S-04-3</td><td class="el">類別 emoji</td><td><b>只會自動推斷</b>：餐→🍜 交通→🚌 住→🏨 票→🎡 買→🛍️ 其他→➕。<b>使用者不能手動挑</b>，但這個 emoji 會顯示在 S-03 列表上</td><td><span class="tag bug">議</span> 見發現 #9</td><td class="src">ExpenseFormSheet:9</td></tr>
+      <tr><td class="n">S-04-4</td><td class="el">金額區塊</td><td>灰底容器，含外幣＋台幣兩列</td><td><span class="tag chg">改</span> 圓角 16→3</td><td class="src">ExpenseFormSheet:328</td></tr>
+      <tr><td class="n">S-04-5</td><td class="el">外幣金額</td><td>可留空。開「之後再填」→ 欄位 disabled、值存 null、<code>foreign_pending=true</code></td><td>照舊</td><td class="src">ExpenseFormSheet:330</td></tr>
+      <tr><td class="n">S-04-6</td><td class="el">台幣金額</td><td>同上。<b>結算只吃台幣</b></td><td>照舊</td><td class="src">ExpenseFormSheet:339</td></tr>
+      <tr><td class="n">S-04-7</td><td class="el">匯率顯示</td><td>兩欄都有值時顯示 <code>台幣÷外幣</code>，<b>唯讀衍生值、不能自己填</b>，存進 <code>exchange_rate</code></td><td>照舊</td><td class="src">ExpenseFormSheet:350</td></tr>
+      <tr><td class="n">S-04-8</td><td class="el">台幣驗證</td><td>「台幣空白且未開待填」擋下送出（Bug #5 修補）。後端 Edge Function 另有 422 防禦</td><td>照舊</td><td class="src">ExpenseFormSheet:257</td></tr>
+      <tr><td class="n">S-04-9</td><td class="el">怎麼付的？</td><td>現金／信用卡／儲值卡，<b>必填</b>（決策 8）</td><td>照舊</td><td class="src">ExpenseFormSheet:20</td></tr>
+      <tr><td class="n">S-04-10</td><td class="el">日期</td><td>預設今天。<b>沒有限制在行程區間內</b>，早於出發日會歸「出發前」組</td><td>照舊</td><td class="src">ExpenseFormSheet:373</td></tr>
+      <tr><td class="n">S-04-11</td><td class="el">分帳方式</td><td>一起分／各付各的／只算我，三選一</td><td>照舊</td><td class="src">ExpenseFormSheet:383</td></tr>
+      <tr><td class="n">S-04-12</td><td class="el">分給誰？</td><td>「一起分」子區塊。預設<b>全員勾選</b>，可個別取消</td><td>照舊</td><td class="src">ExpenseFormSheet:403</td></tr>
+      <tr><td class="n">S-04-13</td><td class="el">每人多少</td><td>即時 <code>總額÷參與人數</code> 四捨五入。差額歸付款人（決策 9）</td><td><span class="tag chg">改</span> 用「收」綠，與金錢語意一致</td><td class="src">ExpenseFormSheet:428</td></tr>
+      <tr><td class="n">S-04-14</td><td class="el">參與者驗證</td><td>「至少選一位參與成員」</td><td>照舊</td><td class="src">ExpenseFormSheet:425</td></tr>
+      <tr><td class="n">S-04-15</td><td class="el">各自多少？</td><td>「各付各的」子區塊。逐人輸入金額；<b>沒填的人存 <code>split_pending=true</code></b></td><td>照舊</td><td class="src">ExpenseFormSheet:437</td></tr>
+      <tr><td class="n">S-04-16</td><td class="el">差額提示</td><td>「已填 $X ／ 總額 $Y，差 $Z」；差 &lt;1 元時轉為綠色打勾</td><td>照舊</td><td class="src">ExpenseFormSheet:465</td></tr>
+      <tr><td class="n">S-04-17</td><td class="el">只算我說明</td><td>「這筆不分帳」＋兩行說明</td><td><span class="tag chg">改</span> 橘底→中性卡片（它不是警示）</td><td class="src">ExpenseFormSheet:477</td></tr>
+      <tr><td class="n">S-04-18</td><td class="el">當場各付各的</td><td><b>只在「一起分」且非贊助時出現</b>。記錄但不算欠款（不進結算）</td><td>照舊</td><td class="src">ExpenseFormSheet:489</td></tr>
+      <tr><td class="n">S-04-19</td><td class="el">贊助／回饋</td><td>勾選後：金額自動轉負、<b>強制改為「一起分」</b>、關掉「當場各付」</td><td>照舊</td><td class="src">ExpenseFormSheet:501</td></tr>
+      <tr><td class="n">S-04-20</td><td class="el">贊助說明</td><td>「金額會自動記為負數、<b>4 人</b>均分扣抵」——<b>「4 人」是寫死的字串</b>，5 人行程也顯示 4 人</td><td><span class="tag bug">議</span> 見發現 #10</td><td class="src">ExpenseFormSheet:508</td></tr>
+      <tr><td class="n">S-04-21</td><td class="el">付款人</td><td>必選，預設第一位成員。標籤三態隨分帳方式與贊助切換</td><td>照舊</td><td class="src">ExpenseFormSheet:514</td></tr>
+      <tr><td class="n">S-04-22</td><td class="el">取消／記下來</td><td>編輯時會<b>先刪光舊 splits 再重建</b>（RLS DELETE 政策已補，Bug #4 根因）</td><td>照舊</td><td class="src">ExpenseFormSheet:187</td></tr>
+      <tr><td class="n">S-04-23</td><td class="el">刪除這筆</td><td>編輯模式才有。<b>軟刪</b>：寫 <code>deleted_at</code>，不真的刪列</td><td><span class="tag chg">改</span> 文字連結（危險，但可復原＝不用實心填底）</td><td class="src">ExpenseFormSheet:213</td></tr>
+      <tr><td class="n">S-04-24</td><td class="el">刪除確認框</td><td>「刪除這筆消費？／刪除後無法復原。」取消｜刪除</td><td><span class="tag chg">改</span> 文案與實作不符（其實是軟刪）</td><td class="src">ExpenseFormSheet:583</td></tr>
+      <tr><td class="n">S-04-25</td><td class="el">splits 寫入</td><td>只算我＝<b>不寫任何 split</b>；一起分＝勾選者各一列、<code>split_amount=null</code>；各付各的＝全員一列、金額逐人存</td><td>照舊</td><td class="src">ExpenseFormSheet:225</td></tr>
+      <tr><td class="n">S-04-26</td><td class="el">編輯載入</td><td>由 <code>expense_splits</code> 反推勾選狀態與逐人金額；參與者為空時退回全選</td><td>照舊</td><td class="src">ExpenseFormSheet:71</td></tr>
+      <tr><td class="n">S-04-27</td><td class="el">portal 掛載</td><td>同 S-02c-9，掛 <code>document.body</code></td><td>照舊</td><td class="src">ExpenseFormSheet:286</td></tr>
+      <tr><td class="n">S-04-28</td><td class="el">emoji 自動跟隨</td><td>改標題時，若目前 emoji 還是預設或仍是上一次推斷值，就跟著換</td><td>照舊</td><td class="src">ExpenseFormSheet:133</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-05 結算 ══════════ -->
+<section class="scr" id="s05">
+  <div class="scrhd">
+    <span class="k">S-05</span>
+    <h2>結算 · 四種狀態</h2>
+    <p class="rt"><b>路由</b> /trips/:id/settlement　<b>原始碼</b> src/pages/SettlementPage.tsx（545 行）</p>
+    <p class="d">同一個路由會依資料長出四種完全不同的畫面，四種都在這裡。
+      <b>結算恆為台幣</b>，不受 S-03 幣別切換影響（決策 34）。
+      「算清楚」那一刻是全站唯一的 signature moment——摺紙動畫，品質門檻寫在最下面。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">四態 · 各自完整長度</p>
+    <div class="stack">
+
+    <div class="ph"><div class="ui">
+      <div class="bar"><span class="bk">‹ 返回</span><span class="ttl">結算</span><span style="width:34px"></span></div>
+      <div class="b" data-n="S-05-1" style="padding:44px 24px;text-align:center">
+        <div style="font-size:34px;margin-bottom:12px">🧮</div>
+        <p style="margin:0;font-size:12px;color:var(--md);line-height:1.6">準備好了嗎？結算後可以標記付清，也可以隨時回來修改。</p>
+        <div class="b" data-n="S-05-2" style="margin-top:14px;border:1px solid #E8C4B8;background:#FBF0EC;border-radius:3px;padding:9px 11px">
+          <p style="margin:0;font-size:11px;font-weight:600;color:var(--out)">⚠️ 還有 2 筆沒填完，結算數字可能不準確</p></div>
+      </div>
+      <div class="b btnrow" data-n="S-05-3"><span class="btn">算清楚</span></div>
+      <div class="fixnote">狀態 1 · 未結算</div>
+    </div></div>
+
+    <div class="ph"><div class="ui">
+      <div class="bar"><span class="bk">‹ 返回</span><span class="ttl">結算</span><span style="width:34px"></span></div>
+      <div class="b" data-n="S-05-4" style="padding:44px 24px;text-align:center">
+        <div style="font-size:30px;margin-bottom:12px">⚠️</div>
+        <p style="margin:0;font-size:14px;font-weight:700">還有 2 筆沒填完</p>
+        <p style="margin:5px 0 0;font-size:11.5px;color:var(--md)">結算數字可能不準確</p>
+      </div>
+      <div class="b btnrow" data-n="S-05-5"><span class="btn gh">回去補填</span><span class="btn">先這樣算</span></div>
+      <div class="fixnote">狀態 2 · 待填攔截頁（整頁取代，不是彈窗）</div>
+    </div></div>
+
+    <div class="ph"><div class="ui">
+      <div class="bar"><span class="bk">‹ 返回</span><span class="ttl">結算</span><span style="width:34px"></span></div>
+      <div class="b" data-n="S-05-6" style="margin:12px 13px 0;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+        <p style="margin:0 0 6px;font-size:11.5px;font-weight:600;color:var(--md)">1 / 3 筆已確認</p>
+        <div style="height:4px;background:#E4E7E0;border-radius:2px;overflow:hidden"><div style="width:33%;height:100%;background:var(--in)"></div></div>
+      </div>
+
+      <div class="b" data-n="S-05-7" style="margin:9px 13px 0">
+        <div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px;margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px">🐱 小美 <span class="g">→</span> 🐟 小魚</span>
+            <span class="num" style="font-size:13.5px;font-weight:600">$ 3,633</span></div>
+          <div style="text-align:right;margin-top:7px"><span class="b" data-n="S-05-8" style="border:1px solid var(--w);color:var(--wi);font-size:9.5px;font-weight:600;padding:3px 8px;border-radius:3px">標記付清</span></div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px;margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px">🍋 阿明 <span class="g">→</span> 🐟 小魚</span>
+            <span class="num" style="font-size:13.5px;font-weight:600">$ 1,208</span></div>
+          <div class="b" data-n="S-05-9" style="text-align:right;margin-top:7px"><span style="font-size:9.5px;font-weight:600;color:var(--in)">✓ 已付清</span></div>
+        </div>
+      </div>
+
+      <div class="b" data-n="S-05-10" style="margin:11px 13px 0;border-top:1px solid var(--ln);padding-top:10px;display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--md)">
+        查看計算依據 <span class="g">▲</span></div>
+
+      <div class="b" data-n="S-05-11" style="margin:9px 13px 0">
+        <p style="margin:0 0 6px;font-size:10.5px;font-weight:600;color:var(--md)">這趟結算下來</p>
+        <div class="gap">
+          <div class="rowb" style="padding:7px 9px"><span style="font-size:13px">🐵</span><span style="flex:1;font-size:11.5px;font-weight:600">Rozi</span><span class="num in" style="font-size:11.5px;font-weight:600">可以拿回 $3,633</span></div>
+          <div class="rowb" style="padding:7px 9px"><span style="font-size:13px">🐱</span><span style="flex:1;font-size:11.5px;font-weight:600">小美</span><span class="num out" style="font-size:11.5px;font-weight:600">要給出 $3,633</span></div>
+          <div class="rowb" style="padding:7px 9px"><span style="font-size:13px">🍋</span><span style="flex:1;font-size:11.5px;font-weight:600">阿明</span><span class="num g" style="font-size:11.5px;font-weight:600">剛好打平</span></div>
+        </div>
+        <p class="b hint" data-n="S-05-12" style="line-height:1.5">※ 對照 Excel 時注意：Excel 習慣用「負數」表示應收，Tripay 這裡相反，請看文字不要只看正負號。</p>
+      </div>
+
+      <div class="b" data-n="S-05-13" style="margin:11px 13px 0;background:#fff;border:1px solid var(--ln);border-radius:3px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;font-size:9px;font-weight:600;color:var(--gr);padding:6px 9px;border-bottom:1px solid var(--ln);font-family:var(--mono);letter-spacing:.04em">
+          <span>成員</span><span style="text-align:right">實際付出</span><span style="text-align:right">應分攤</span><span style="text-align:right">差額</span></div>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;font-size:10.5px;padding:7px 9px;border-bottom:1px solid #F1F2EE" class="num">
+          <span style="font-weight:600;font-family:var(--sans)">🐵 Rozi</span><span style="text-align:right">44,528</span><span style="text-align:right">40,895</span><span style="text-align:right;font-weight:600" class="in">+3,633</span></div>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;font-size:10.5px;padding:7px 9px" class="num">
+          <span style="font-weight:600;font-family:var(--sans)">🐱 小美</span><span style="text-align:right">37,262</span><span style="text-align:right">40,895</span><span style="text-align:right;font-weight:600" class="out">−3,633</span></div>
+      </div>
+      <p class="b hint" data-n="S-05-14" style="margin:6px 13px 0">（每人「實際付出／應分攤」的明細，按一次「重新計算」就會出現）</p>
+
+      <div class="b btnrow" data-n="S-05-15" style="margin-top:12px"><span class="btn qt">重新計算</span><span class="btn">封存行程</span></div>
+      <div class="fixnote">狀態 3 · 部分付清</div>
+    </div></div>
+
+    <div class="ph"><div class="ui">
+      <div class="bar"><span class="bk">‹ 返回</span><span class="ttl">結算</span><span style="width:34px"></span></div>
+      <div class="b" data-n="S-05-16" style="padding:28px 22px 20px;text-align:center">
+        <svg viewBox="0 0 100 76" style="width:84px;height:64px;margin-bottom:12px" aria-label="收據摺成紙飛機">
+          <path d="M14 10 h54 l18 18 v40 h-72 z" fill="none" stroke="#0F5E9E" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M68 10 v18 h18" fill="none" stroke="#0F5E9E" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M14 68 l72 -32" fill="none" stroke="#B03A22" stroke-width="1" stroke-dasharray="3 3"/>
+          <path d="M50 10 v58" fill="none" stroke="#B03A22" stroke-width="1" stroke-dasharray="3 3"/>
+          <path d="M26 26 h30 M26 36 h38 M26 46 h22" stroke="#9FB0BA" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <h2 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em">帳算清楚了</h2>
+        <p style="margin:5px 0 0;font-size:12.5px;color:var(--md)">下次去哪？</p>
+      </div>
+
+      <div class="b" data-n="S-05-17" style="margin:0 13px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:12px">
+        <p style="margin:0 0 10px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--gr);text-transform:uppercase">這趟的回顧</p>
+        <div style="display:flex">
+          <div style="flex:1;text-align:center;border-right:1px solid #F1F2EE"><div class="num" style="font-size:19px;font-weight:600">5<span style="font-size:11px;color:var(--md)">天</span></div><div style="font-size:9px;color:var(--gr);margin-top:2px">出遊</div></div>
+          <div style="flex:1;text-align:center;border-right:1px solid #F1F2EE"><div class="num" style="font-size:19px;font-weight:600">132<span style="font-size:11px;color:var(--md)">筆</span></div><div style="font-size:9px;color:var(--gr);margin-top:2px">共記了</div></div>
+          <div style="flex:1;text-align:center"><div class="num" style="font-size:19px;font-weight:600">28,400</div><div style="font-size:9px;color:var(--gr);margin-top:2px">最大手筆 ₩</div></div>
+        </div>
+      </div>
+
+      <div class="b sec" data-n="S-05-18">誰付給誰</div>
+      <div style="margin:0 13px">
+        <div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px">🐱 小美 <span class="g">→</span> 🐟 小魚</span>
+          <span style="text-align:right"><span class="num" style="font-size:13.5px;font-weight:600;display:block">$ 3,633</span><span style="font-size:9px;font-weight:600;color:var(--in)">✓ 已付清</span></span></div>
+      </div>
+
+      <div class="b btnrow" data-n="S-05-19" style="margin-top:12px"><span class="btn gh">＋ 建立新行程</span><span class="btn">封存行程</span></div>
+      <div class="fixnote">狀態 4 · 全員付清（慶祝）</div>
+    </div></div>
+    </div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 27 項</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-05-1</td><td class="el">未結算引導</td><td>🧮＋「準備好了嗎？結算後可以標記付清，也可以隨時回來修改。」<b>整頁沒有任何金額預覽</b></td><td><span class="tag bug">議</span> 見發現 #11</td><td class="src">SettlementPage:257</td></tr>
+      <tr><td class="n">S-05-2</td><td class="el">待填警示</td><td>「⚠️ 還有 N 筆沒填完，結算數字可能不準確」，N＝0 時不顯示</td><td>照舊</td><td class="src">SettlementPage:262</td></tr>
+      <tr><td class="n">S-05-3</td><td class="el">算清楚</td><td>有待填 → 先進狀態 2；無待填 → 直接連呼兩個 Edge Function：<code>calculate-settlement</code> → <code>confirm-settlement</code></td><td><span class="tag new">新</span> 這一刻播摺紙動畫（見下）</td><td class="src">SettlementPage:141</td></tr>
+      <tr><td class="n">S-05-4</td><td class="el">待填攔截頁</td><td><b>整頁取代</b>，不是彈窗</td><td>照舊</td><td class="src">SettlementPage:224</td></tr>
+      <tr><td class="n">S-05-5</td><td class="el">回去補填／先這樣算</td><td>回上一頁／忽略警示直接算</td><td>照舊</td><td class="src">SettlementPage:234</td></tr>
+      <tr><td class="n">S-05-6</td><td class="el">進度條</td><td>「N / M 筆已確認」＋比例條</td><td><span class="tag chg">改</span> 用「收」綠（是好事，不是工作色）</td><td class="src">SettlementPage:377</td></tr>
+      <tr><td class="n">S-05-7</td><td class="el">轉帳明細</td><td>Minimum Transactions 結果，逐筆「誰 → 誰 · 金額」</td><td><span class="tag chg">改</span> 金額從「收綠」改為<b>中性墨色</b>——這是一筆交易，不是某人的方向</td><td class="src">SettlementPage:393</td></tr>
+      <tr><td class="n">S-05-8</td><td class="el">標記付清</td><td>直接 update <code>settlement_items.is_cleared</code>＋<code>cleared_at</code></td><td>照舊</td><td class="src">SettlementPage:180</td></tr>
+      <tr><td class="n">S-05-9</td><td class="el">已付清標記</td><td>「✅ 已付清」</td><td><span class="tag chg">改</span> ✅ emoji→線性勾（emoji 僅限成員與封面）</td><td class="src">SettlementPage:409</td></tr>
+      <tr><td class="n">S-05-10</td><td class="el">查看計算依據</td><td>折疊，預設收起</td><td>照舊</td><td class="src">SettlementPage:428</td></tr>
+      <tr><td class="n">S-05-11</td><td class="el">人話淨額（UX-2）</td><td>從<b>已確認的 settlement_items 反推</b>，所以重整後還在。三態文案：可以拿回／要給出／剛好打平</td><td><span class="tag chg">改</span> 金錢方向色定案：收＝#276E45、付＝#B03A22</td><td class="src">SettlementPage:85</td></tr>
+      <tr><td class="n">S-05-12</td><td class="el">Excel 正負號提醒</td><td>「Excel 習慣用負數表示應收，Tripay 相反」</td><td>照舊</td><td class="src">SettlementPage:459</td></tr>
+      <tr><td class="n">S-05-13</td><td class="el">四欄明細表</td><td>成員／實際付出／應分攤／差額。<b>只有剛按過「算清楚」的那一次才有資料</b>，重整就空（來自 mutation 的暫存回應）</td><td><span class="tag bug">議</span> 見發現 #12</td><td class="src">SettlementPage:467</td></tr>
+      <tr><td class="n">S-05-14</td><td class="el">空表說明</td><td>兩種文案：完全沒資料／有淨額但沒明細</td><td>照舊</td><td class="src">SettlementPage:487</td></tr>
+      <tr><td class="n">S-05-15</td><td class="el">重新計算／封存</td><td>重新計算走 <code>reopen-settlement</code>（mode=reopen）；封存後 1.5 秒自動回首頁</td><td>照舊</td><td class="src">SettlementPage:499</td></tr>
+      <tr><td class="n">S-05-16</td><td class="el">慶祝畫面</td><td>✨ emoji 彈跳（<code>popIn</code> 0.6s）＋「帳算清楚了 ✨」＋「下次去哪？」</td><td><span class="tag chg">改</span> ✨→收據摺紙圖形，這是全站的 signature；襯線→系統字</td><td class="src">SettlementPage:311</td></tr>
+      <tr><td class="n">S-05-17</td><td class="el">G-08 回顧卡</td><td>三格：出遊 N 天／共記了 N 筆／最大手筆。<b>「最大手筆」標的是外幣符號、值卻是台幣</b></td><td><span class="tag bug">議</span> 併入發現 #12</td><td class="src">SettlementPage:326</td></tr>
+      <tr><td class="n">S-05-18</td><td class="el">誰付給誰（已付清）</td><td>全部標「✅ 已付清」</td><td><span class="tag chg">改</span> 同 S-05-9</td><td class="src">SettlementPage:352</td></tr>
+      <tr><td class="n">S-05-19</td><td class="el">建立新行程／封存</td><td>導向 <code>/trips/new</code>／封存後回首頁</td><td>照舊</td><td class="src">SettlementPage:376</td></tr>
+      <tr><td class="n">S-05-20</td><td class="el">狀態判定</td><td>trip 非 settled 或無 settlement → 狀態 1；items 全 cleared → 狀態 4；否則狀態 3。<b>items 長度為 0 也算狀態 4</b>（全員打平）</td><td>照舊</td><td class="src">SettlementPage:108</td></tr>
+      <tr><td class="n">S-05-21</td><td class="el">錯誤處理</td><td>四種 toast：行程已封存／金額有誤／有費用未設定分攤成員／結算失敗</td><td>照舊</td><td class="src">SettlementPage:159</td></tr>
+      <tr><td class="n">S-05-22</td><td class="el">導覽列</td><td>‹ 返回｜結算｜（右側空白佔位）</td><td>照舊</td><td class="src">SettlementPage:520</td></tr>
+      <tr><td class="n">S-05-23</td><td class="el">當場各付不進結算</td><td><code>settled_on_spot=true</code> 的消費不產生欠款</td><td>照舊</td><td class="src">規格_對帳正確性</td></tr>
+      <tr><td class="n">S-05-24</td><td class="el">贊助進結算</td><td>負額共同項，平均扣抵每人應付</td><td>照舊</td><td class="src">規格_對帳正確性</td></tr>
+      <tr><td class="n">S-05-25</td><td class="el">軟刪不進結算</td><td><code>deleted_at</code> 非空的消費排除，且 Σnet_balance＝0（Codex CR #2）</td><td>照舊</td><td class="src">SettlementPage:57</td></tr>
+      <tr><td class="n">S-05-26</td><td class="el">hub 式結算</td><td><b>尚未實作</b></td><td><span class="tag new">新</span> Phase 1.5：加 toggle，比照 Splitwise <b>預設關</b></td><td class="src">Phase 1.5</td></tr>
+      <tr><td class="n">S-05-27</td><td class="el">摺紙 signature</td><td>—</td><td><span class="tag new">新</span> <b>品質門檻</b>：必須讀得出「一疊帳摺起來 → 寄出去」兩段敘事，用 CSS 3D <code>rotateX</code> 分步摺疊。<b>Aria 判定不達標就退回乾淨 loading，不留半吊子動畫</b></td><td class="src">tokens v3</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-06 分享頁 ══════════ -->
+<section class="scr" id="s06">
+  <div class="scrhd">
+    <span class="k">S-06</span>
+    <h2>分享頁 · 免登入唯讀</h2>
+    <p class="rt"><b>路由</b> /share/:token（不經 AuthLayout）　<b>原始碼</b> src/pages/SharePage.tsx（304 行）</p>
+    <p class="d">唯一一個匿名可看的頁面。全頁<b>沒有任何編輯 CTA</b>。
+      封面照片啟用後，這頁也要看得到——所以 008 補了 <code>covers: share read</code> 政策。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">/share/:token · 完整長度</p>
+    <div class="ph"><div class="ui">
+      <div class="b hero g-jeju" data-n="S-06-1" style="padding-top:22px">
+        <div class="scrimg"></div>
+        <span class="b rt" data-n="S-06-2" style="position:absolute;top:9px;right:11px"><span class="stamp">朋友檢視</span></span>
+        <div style="position:relative;display:flex;align-items:center;gap:9px">
+          <span class="b" data-n="S-06-3" style="font-size:24px">🏝️</span>
+          <div><h1 style="font-size:16px">2026 濟州島四寶團</h1>
+            <p class="mono" style="margin:3px 0 0;font-size:9.5px;color:rgba(255,255,255,.78)">3/14 – 3/18 · 🐵🐱🍋🐟</p></div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="b" data-n="S-06-4"><b>111,320</b><span>總花費</span></div>
+        <div class="b" data-n="S-06-5"><b class="g">—</b><span>KRW</span></div>
+        <div class="b" data-n="S-06-6"><b>27,830</b><span>人均</span></div>
+      </div>
+
+      <div class="b sec" data-n="S-06-7">誰付給誰</div>
+      <div style="margin:0 13px 4px">
+        <div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px">🐱 小美 <span class="g">→</span> 🐟 小魚</span>
+          <span style="text-align:right"><span class="num" style="font-size:13px;font-weight:600;display:block">$ 3,633</span><span style="font-size:9px;font-weight:600;color:var(--in)">✓ 已付清</span></span></div>
+      </div>
+      <div class="b" data-n="S-06-8" style="margin:0 13px;background:#fff;border:1px dashed var(--ln);border-radius:3px;padding:12px;text-align:center">
+        <p style="margin:0;font-size:11px;color:var(--gr)">這趟旅程還沒結算。</p>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--gr);letter-spacing:.09em;margin-top:6px">未結算時取代上方區塊</div></div>
+
+      <div class="b sec" data-n="S-06-9">消費明細</div>
+      <div class="exp"><span class="ic">✈️</span><div class="mid"><div class="t">機票 ×4</div>
+        <div class="s"><span>🐵 Rozi · 2026-02-10</span></div></div><div class="a">$ 28,400</div></div>
+      <div class="exp"><span class="ic">🍜</span><div class="mid"><div class="t">黑豬肉晚餐</div>
+        <div class="s"><span>🍋 阿明 · 2026-03-14</span></div></div><div class="a">$ 2,480</div></div>
+      <div class="b exp" data-n="S-06-10"><span class="ic">🏨</span><div class="mid"><div class="t">濟州飯店訂金</div>
+        <div class="s"><span>🐱 小美 · 2026-02-20</span></div></div>
+        <div style="text-align:right"><div class="a g">—</div><div style="font-size:8.5px;color:var(--out)">待補填</div></div></div>
+      <div class="b empty" data-n="S-06-11" style="padding:16px;border-top:1px dashed var(--ln);border-bottom:1px dashed var(--ln)">
+        <p style="font-size:11px;font-weight:400;color:var(--gr)">還沒有消費紀錄。</p></div>
+
+      <div class="b" data-n="S-06-12" style="margin-top:11px;padding:11px 13px 16px;background:#EDEEE8;border-top:1px solid var(--ln);display:flex;align-items:center;gap:9px">
+        <p style="margin:0;flex:1;font-size:11px;color:var(--md)">想自己記帳？下載 Tripay</p>
+        <span class="chip">複製連結</span>
+        <span class="b rt" data-n="S-06-13" style="background:var(--w);color:#fff;font-size:10px;font-weight:600;padding:5px 9px;border-radius:3px">安裝</span>
+      </div>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 14 項</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-06-1</td><td class="el">Hero</td><td>與 S-03 一樣<b>寫死同一個 gradient</b></td><td><span class="tag bug">議</span> 併入發現 #4；<span class="tag new">新</span> 有封面照時放照片（走 signed URL）</td><td class="src">SharePage:150</td></tr>
+      <tr><td class="n">S-06-2</td><td class="el">「朋友檢視」徽章</td><td>右上角常駐，宣告唯讀</td><td><span class="tag chg">改</span> 膠囊→描邊章</td><td class="src">SharePage:155</td></tr>
+      <tr><td class="n">S-06-3</td><td class="el">行程 emoji／名稱／日期</td><td>日期用 M/D 短格式＋成員 emoji 串</td><td>照舊</td><td class="src">SharePage:161</td></tr>
+      <tr><td class="n">S-06-4</td><td class="el">總花費</td><td>加總已填台幣。<b>與 S-03 不同：這裡沒有排除贊助</b>，同一趟兩頁數字會不一樣</td><td><span class="tag bug">議</span> 見發現 #13</td><td class="src">SharePage:125</td></tr>
+      <tr><td class="n">S-06-5</td><td class="el">外幣格</td><td><code>symbol==='$' ? 總額 : '—'</code>——<b>非台幣行程永遠顯示「—」</b>，等於一格廢版位</td><td><span class="tag bug">議</span> 見發現 #14</td><td class="src">SharePage:184</td></tr>
+      <tr><td class="n">S-06-6</td><td class="el">人均</td><td>總額 ÷ 成員數，四捨五入</td><td>照舊</td><td class="src">SharePage:126</td></tr>
+      <tr><td class="n">S-06-7</td><td class="el">誰付給誰</td><td>已確認的結算明細；已付清者加標記</td><td><span class="tag chg">改</span> 同 S-05-7／S-05-9</td><td class="src">SharePage:199</td></tr>
+      <tr><td class="n">S-06-8</td><td class="el">未結算狀態</td><td>「這趟旅程還沒結算。」</td><td>照舊</td><td class="src">SharePage:224</td></tr>
+      <tr><td class="n">S-06-9</td><td class="el">消費明細</td><td><b>不分天</b>（S-03 有分天，這裡是平鋪），每列顯示付款人＋完整日期</td><td>照舊</td><td class="src">SharePage:234</td></tr>
+      <tr><td class="n">S-06-10</td><td class="el">待填列</td><td>金額 —＋「待補填」。<b>沒有左邊框</b>（與 S-03 不一致）</td><td><span class="tag chg">改</span> 補左邊框，兩頁一致</td><td class="src">SharePage:262</td></tr>
+      <tr><td class="n">S-06-11</td><td class="el">空狀態</td><td>「還沒有消費紀錄。」</td><td>照舊</td><td class="src">SharePage:238</td></tr>
+      <tr><td class="n">S-06-12</td><td class="el">G-06 頁尾 CTA</td><td>「想自己記帳？下載 Tripay」＋複製連結（用 <code>location.href</code>，這個是對的）</td><td>照舊</td><td class="src">SharePage:277</td></tr>
+      <tr><td class="n">S-06-13</td><td class="el">PWA 安裝鈕</td><td><b>只有瀏覽器丟出 <code>beforeinstallprompt</code> 才顯示</b>——iOS Safari 不支援，等於 iPhone 上永遠看不到</td><td>照舊（已知限制）</td><td class="src">SharePage:288</td></tr>
+      <tr><td class="n">—</td><td class="el">找不到行程</td><td>token 無效時：🔍「找不到這個行程／連結可能已失效或被移除。」</td><td>照舊</td><td class="src">SharePage:108</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-07 設定 ══════════ -->
+<section class="scr" id="s07">
+  <div class="scrhd">
+    <span class="k">S-07</span>
+    <h2>設定</h2>
+    <p class="rt"><b>路由</b> /settings　<b>原始碼</b> src/pages/SettingsPage.tsx（99 行）</p>
+    <p class="d">現況只有兩件事：看自己是誰、登出。四個新畫面（通訊錄／卡片／帳單）都需要入口，
+      這頁是唯一合理的地方——所以本輪把它變成真正的樞紐。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">/settings · 完整長度（含新入口）</p>
+    <div class="ph"><div class="ui">
+      <div class="b bar" data-n="S-07-1"><span class="bk">‹ 返回</span><span class="ttl">設定</span><span style="width:34px"></span></div>
+
+      <div class="b sec" data-n="S-07-2">登入帳號</div>
+      <div class="b" data-n="S-07-3" style="margin:0 13px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px;display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--w);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700">R</div>
+        <div style="min-width:0"><p style="margin:0;font-size:12.5px;font-weight:600">Rozi</p>
+          <p class="mono" style="margin:2px 0 0;font-size:9.5px;color:var(--gr)">msziyu@gmail.com</p></div>
+      </div>
+
+      <div class="b sec" data-n="S-07-4">我的資料</div>
+      <div style="margin:0 13px" class="gap">
+        <div class="rowb"><span style="font-size:14px">👥</span><span style="flex:1;font-size:12px;font-weight:600">通訊錄</span><span class="g" style="font-size:10px">4 人</span><span class="g" style="font-size:11px">›</span></div>
+        <div class="rowb"><span style="font-size:14px">💳</span><span style="flex:1;font-size:12px;font-weight:600">卡片管理</span><span class="g" style="font-size:10px">2 張</span><span class="g" style="font-size:11px">›</span></div>
+        <div class="rowb"><span style="font-size:14px">🧾</span><span style="flex:1;font-size:12px;font-weight:600">帳單週期</span><span class="g" style="font-size:10px">Phase 2</span><span class="g" style="font-size:11px">›</span></div>
+      </div>
+
+      <div class="b sec" data-n="S-07-5">顯示</div>
+      <div style="margin:0 13px" class="gap">
+        <div class="rowb"><span style="flex:1;font-size:12px;font-weight:600">預設幣別</span><div class="seg" style="width:112px"><i class="on" style="font-size:9.5px;padding:4px 0">台幣</i><i style="font-size:9.5px;padding:4px 0">當地幣</i></div></div>
+        <div class="rowb"><span style="flex:1;font-size:12px;font-weight:600">深色模式</span><span class="g" style="font-size:10px">跟隨系統</span><span class="g" style="font-size:11px">›</span></div>
+      </div>
+
+      <div class="b" data-n="S-07-6" style="margin:16px 13px 0"><div class="btn qt" style="color:var(--dg)">登出</div></div>
+      <div class="b" data-n="S-07-7" style="padding:14px 13px 18px;text-align:center">
+        <p class="mono" style="margin:0;font-size:9px;color:var(--gr);letter-spacing:.06em">Tripay · 每一趟，都記得</p></div>
+
+      <div class="b scrim" data-n="S-07-8" style="padding:20px 0">
+        <div class="dlg">
+          <p style="margin:0 0 14px;font-size:13.5px;font-weight:700;text-align:center">確定要登出嗎？</p>
+          <div style="display:flex;gap:8px"><span class="btn qt">取消</span><span class="btn dg">登出</span></div>
+        </div>
+      </div>
+      <div class="fixnote">登出確認對話框</div>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 8 項　—　現況 5 項，新增 3 項</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-07-1</td><td class="el">導覽列</td><td>‹ 返回｜設定。<b>入口只有 S-03 的 ⚙</b></td><td><span class="tag bug">議</span> 見發現 #3</td><td class="src">SettingsPage:30</td></tr>
+      <tr><td class="n">S-07-2</td><td class="el">「登入帳號」標題</td><td>小標</td><td>照舊</td><td class="src">SettingsPage:44</td></tr>
+      <tr><td class="n">S-07-3</td><td class="el">帳號卡</td><td>Google 頭像（沒有頭像時用名字首字＋色底）＋姓名＋email</td><td>照舊</td><td class="src">SettingsPage:45</td></tr>
+      <tr><td class="n">S-07-4</td><td class="el">我的資料</td><td>—</td><td><span class="tag new">新</span> 通訊錄（S-08）／卡片管理（S-09）／帳單週期（S-10）三個入口。<b>沒有這一段，四個新畫面就沒有地方可以進去</b></td><td class="src">Phase 2</td></tr>
+      <tr><td class="n">S-07-5</td><td class="el">顯示設定</td><td>—</td><td><span class="tag new">新</span> 預設幣別（決策 34 的全域預設）＋深色模式。深色模式現況是<b>跟隨系統、無切換</b></td><td class="src">決策 34</td></tr>
+      <tr><td class="n">S-07-6</td><td class="el">登出</td><td>整寬按鈕，紅字白底</td><td><span class="tag chg">改</span> 登出可復原（再登入即可）→ 用<b>描邊</b>不用實心填底，與刪除區隔</td><td class="src">SettingsPage:66</td></tr>
+      <tr><td class="n">S-07-7</td><td class="el">版本footer</td><td>—</td><td><span class="tag new">新</span> Slogan 收尾，順便當版本資訊落點</td><td class="src">—</td></tr>
+      <tr><td class="n">S-07-8</td><td class="el">登出確認</td><td>「確定要登出嗎？」取消｜登出（登出中…）</td><td>照舊</td><td class="src">SettingsPage:74</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-08 通訊錄 ══════════ -->
+<section class="scr" id="s08">
+  <div class="scrhd">
+    <span class="k new">S-08 · 新畫面</span>
+    <h2>通訊錄</h2>
+    <p class="rt"><b>路由</b> /people（新）　<b>入口</b> S-07-4　<b>資料表</b> people（migration 006 已套用）</p>
+    <p class="d">006 已經把每趟重打的成員名字抽成一份通訊錄，並回填了既有四趟——<b>資料層做完了，只差 UI</b>。
+      做出來之後，S-02 的「新增成員」就能從通訊錄挑，不用每趟重打。
+      刪除是安全的：<code>trip_members.person_id</code> 是 <code>ON DELETE SET NULL</code>，
+      刪掉通訊錄的人<b>不會動到任何行程或結算</b>，只是斷開關聯。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">/people · 完整長度</p>
+    <div class="ph"><div class="ui">
+      <div class="b bar" data-n="S-08-1"><span class="bk">‹ 返回</span><span class="ttl">通訊錄</span>
+        <span class="b rt" data-n="S-08-2" style="background:var(--w);color:#fff;font-size:10px;font-weight:600;padding:5px 9px;border-radius:3px">＋ 加人</span></div>
+
+      <div class="b" data-n="S-08-3" style="padding:10px 13px 4px"><div class="inp ph2" style="font-size:11px">搜尋名字</div></div>
+
+      <div class="b sec" data-n="S-08-4">4 位　·　依參與趟數排序</div>
+      <div style="margin:0 13px" class="gap">
+        <div class="b rowb" data-n="S-08-5">
+          <span style="width:28px;height:28px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:15px;background:#fff">🐵</span>
+          <div style="flex:1"><div style="font-size:12.5px;font-weight:600">Rozi</div>
+            <div class="b" data-n="S-08-6" style="font-size:9.5px;color:var(--gr);margin-top:1px">4 趟 · 濟州島、東京、北海道…<span class="pill ind" style="margin-left:4px">這是我</span></div></div>
+          <span class="g" style="font-size:11px">›</span></div>
+        <div class="rowb">
+          <span style="width:28px;height:28px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:15px;background:#fff">🐱</span>
+          <div style="flex:1"><div style="font-size:12.5px;font-weight:600">小美</div>
+            <div style="font-size:9.5px;color:var(--gr);margin-top:1px">4 趟 · 濟州島、東京、北海道…</div></div>
+          <span class="g" style="font-size:11px">›</span></div>
+        <div class="rowb">
+          <span style="width:28px;height:28px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:15px;background:#fff">🍋</span>
+          <div style="flex:1"><div style="font-size:12.5px;font-weight:600">阿明</div>
+            <div style="font-size:9.5px;color:var(--gr);margin-top:1px">3 趟 · 濟州島、東京、福岡</div></div>
+          <span class="g" style="font-size:11px">›</span></div>
+        <div class="b rowb" data-n="S-08-7">
+          <span style="width:28px;height:28px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:15px;background:#fff">🐰</span>
+          <div style="flex:1"><div style="font-size:12.5px;font-weight:600">小兔</div>
+            <div style="font-size:9.5px;color:var(--gr);margin-top:1px">還沒參加過任何一趟</div></div>
+          <span class="g" style="font-size:11px">›</span></div>
+      </div>
+
+      <div class="b empty" data-n="S-08-8" style="margin-top:11px;padding:20px 22px;border-top:1px dashed var(--ln);border-bottom:1px dashed var(--ln)">
+        <p>通訊錄還是空的。</p><p>建立行程時輸入的名字會自動存進來</p>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--gr);letter-spacing:.09em;margin-top:7px">空狀態</div></div>
+
+      <div class="b sec" data-n="S-08-9">編輯一個人（展開）</div>
+      <div style="margin:0 13px 14px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+        <div style="display:flex;gap:9px;align-items:center;margin-bottom:9px">
+          <div style="width:38px;height:38px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:19px">🍋</div>
+          <div class="inp" style="flex:1">阿明</div></div>
+        <p class="b hint" data-n="S-08-10" style="margin:0 0 9px">改名字只會改通訊錄，<b>不會動到已建立行程裡的名字</b>——過去那趟的紀錄保持原樣。</p>
+        <div style="display:flex;gap:8px"><span class="btn qt">取消</span><span class="btn">儲存</span></div>
+        <div class="b" data-n="S-08-11" style="text-align:center;margin-top:9px"><span style="font-size:10.5px;color:var(--dg);border-bottom:1px solid #D7BCB2">從通訊錄移除</span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 11 項（全新）</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>行為</th><th>依據</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-08-1</td><td class="el">導覽列</td><td>從 S-07 進來</td><td class="src">S-07-4</td></tr>
+      <tr><td class="n">S-08-2</td><td class="el">＋ 加人</td><td>emoji＋名字（限 10 字，與 S-02 一致）。<code>(owner_id,name,emoji)</code> 有唯一索引，重複會擋</td><td class="src">006:29</td></tr>
+      <tr><td class="n">S-08-3</td><td class="el">搜尋</td><td>純前端過濾。人數少時可隱藏</td><td class="src">—</td></tr>
+      <tr><td class="n">S-08-4</td><td class="el">計數與排序</td><td>依參與趟數多→少；同數以名字排序</td><td class="src">—</td></tr>
+      <tr><td class="n">S-08-5</td><td class="el">人員列</td><td>emoji＋名字＋參與趟數，點進去編輯</td><td class="src">006:18</td></tr>
+      <tr><td class="n">S-08-6</td><td class="el">參與行程</td><td>join <code>trip_members.person_id</code> 統計；最多列三趟後接「…」</td><td class="src">006:46</td></tr>
+      <tr><td class="n">S-08-7</td><td class="el">零參與者</td><td>「還沒參加過任何一趟」——手動加入但還沒用到的人</td><td class="src">—</td></tr>
+      <tr><td class="n">S-08-8</td><td class="el">空狀態</td><td>「通訊錄還是空的。／建立行程時輸入的名字會自動存進來」</td><td class="src">—</td></tr>
+      <tr><td class="n">S-08-9</td><td class="el">編輯</td><td>改 emoji／改名字</td><td class="src">006:24</td></tr>
+      <tr><td class="n">S-08-10</td><td class="el">改名的作用範圍說明</td><td><b>這句必須有</b>：通訊錄的名字與 <code>trip_members.name</code> 是兩份資料，改一邊不會動另一邊。不講清楚會以為改了歷史帳</td><td class="src">D2 提案</td></tr>
+      <tr><td class="n">S-08-11</td><td class="el">從通訊錄移除</td><td><code>person_id</code> 是 <code>ON DELETE SET NULL</code>——<b>不影響任何行程、消費、結算</b>，只斷開關聯。因此<b>不需要打字確認</b>，一般確認框即可</td><td class="src">006:46</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-09 卡片管理 ══════════ -->
+<section class="scr" id="s09">
+  <div class="scrhd">
+    <span class="k new">S-09 · 新畫面</span>
+    <h2>卡片管理 · 主卡與副卡</h2>
+    <p class="rt"><b>路由</b> /cards（新）　<b>入口</b> S-07-4　<b>資料表</b> cards（migration 007 已套用）</p>
+    <p class="d">Phase 2 A 里程碑的第一塊。主卡底下掛副卡，副卡指定持卡人（接 S-08 的通訊錄）。
+      <b>刪主卡會連帶刪掉底下所有副卡</b>（<code>parent_card_id ON DELETE CASCADE</code>），
+      所以主卡的刪除要用<b>打字確認</b>等級，副卡不用——這是危險分級的實例。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">/cards · 完整長度</p>
+    <div class="ph"><div class="ui">
+      <div class="b bar" data-n="S-09-1"><span class="bk">‹ 返回</span><span class="ttl">卡片管理</span>
+        <span class="b rt" data-n="S-09-2" style="background:var(--w);color:#fff;font-size:10px;font-weight:600;padding:5px 9px;border-radius:3px">＋ 加卡</span></div>
+
+      <div class="b sec" data-n="S-09-3">主卡</div>
+      <div style="margin:0 13px">
+        <div class="b" data-n="S-09-4" style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+          <div style="display:flex;align-items:center;gap:9px">
+            <span style="font-size:16px">💳</span>
+            <div style="flex:1"><div style="font-size:12.5px;font-weight:600">玉山主卡</div>
+              <div class="mono" style="font-size:9.5px;color:var(--gr);margin-top:1px">玉山銀行 · •••• 4821</div></div>
+            <span class="pill ind">主卡</span><span class="g" style="font-size:11px">›</span></div>
+
+          <div class="b" data-n="S-09-5" style="margin-top:10px;border-top:1px solid #F1F2EE;padding-top:9px">
+            <p class="mono" style="margin:0 0 7px;font-size:8.5px;letter-spacing:.12em;color:var(--gr);text-transform:uppercase">底下 2 張副卡</p>
+            <div class="gap">
+              <div class="b" data-n="S-09-6" style="display:flex;align-items:center;gap:8px;padding:7px 9px;background:#F7F8F5;border:1px solid var(--ln);border-radius:3px">
+                <span style="font-size:13px">🐱</span>
+                <div style="flex:1"><div style="font-size:11.5px;font-weight:600">小美的副卡</div>
+                  <div class="mono" style="font-size:9px;color:var(--gr)">•••• 7734 · 持卡人 小美</div></div>
+                <span class="g" style="font-size:11px">›</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:7px 9px;background:#F7F8F5;border:1px solid var(--ln);border-radius:3px">
+                <span style="font-size:13px">🍋</span>
+                <div style="flex:1"><div style="font-size:11.5px;font-weight:600">阿明的副卡</div>
+                  <div class="mono" style="font-size:9px;color:var(--gr)">•••• 9012 · 持卡人 阿明</div></div>
+                <span class="g" style="font-size:11px">›</span></div>
+            </div>
+            <div class="b" data-n="S-09-7" style="margin-top:7px;border:1px dashed #B9C1BB;border-radius:3px;text-align:center;padding:7px;font-size:10.5px;color:var(--md);font-weight:600">＋ 加一張副卡</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="b empty" data-n="S-09-8" style="margin-top:11px;padding:20px 22px;border-top:1px dashed var(--ln);border-bottom:1px dashed var(--ln)">
+        <p>還沒有卡片。</p><p>加一張主卡，就能開始整理每個月的帳單</p></div>
+
+      <div class="b sec" data-n="S-09-9">新增／編輯卡片（展開）</div>
+      <div style="margin:0 13px 12px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+        <span class="lbl">卡片暱稱</span><div class="inp ph2" style="margin-bottom:9px">例如：玉山主卡</div>
+        <span class="lbl">末四碼</span><div class="inp num ph2" style="margin-bottom:9px">4821　<span style="font-size:9.5px">（選填，帳單比對用）</span></div>
+        <span class="lbl">發卡行</span><div class="inp ph2" style="margin-bottom:9px">玉山銀行（選填）</div>
+        <div class="b" data-n="S-09-10" style="margin-bottom:9px"><span class="lbl">這是</span>
+          <div class="seg"><i class="on">主卡</i><i>副卡</i></div></div>
+        <div class="b" data-n="S-09-11" style="margin-bottom:9px"><span class="lbl">持卡人</span>
+          <div class="chiprow"><span class="chip">🐵 Rozi</span><span class="chip on">🐱 小美</span><span class="chip">🍋 阿明</span><span class="chip">＋ 通訊錄</span></div>
+          <p class="hint">從通訊錄（S-08）挑，不另建一套人名</p></div>
+        <div style="display:flex;gap:8px"><span class="btn qt">取消</span><span class="btn">儲存</span></div>
+      </div>
+
+      <div class="b scrim" data-n="S-09-12" style="padding:18px 0">
+        <div class="dlg">
+          <p style="margin:0 0 8px;font-size:13px;font-weight:700;text-align:center">刪除「玉山主卡」？</p>
+          <p style="margin:0 0 8px;font-size:11px;color:var(--md);line-height:1.5">底下的 <b>2 張副卡會一起被刪掉</b>，已匯入的帳單消費會失去卡片歸屬。</p>
+          <div class="inp ph2" style="background:#F4F5F1;margin-bottom:10px;font-size:11px">輸入「玉山主卡」以確認</div>
+          <div style="display:flex;gap:8px"><span class="btn qt">算了，留著</span><span class="btn dg dis">刪除</span></div>
+        </div>
+      </div>
+      <div class="fixnote">主卡刪除 · 打字確認等級</div>
+
+      <div class="b scrim" data-n="S-09-13" style="padding:18px 0">
+        <div class="dlg">
+          <p style="margin:0 0 8px;font-size:13px;font-weight:700;text-align:center">刪除「小美的副卡」？</p>
+          <p style="margin:0 0 11px;font-size:11px;color:var(--md);line-height:1.5">已匯入的消費會保留，但不再歸到這張卡下。</p>
+          <div style="display:flex;gap:8px"><span class="btn qt">取消</span><span class="btn dg">刪除</span></div>
+        </div>
+      </div>
+      <div class="fixnote">副卡刪除 · 一般確認等級</div>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 13 項（全新）</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>行為</th><th>依據</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-09-1</td><td class="el">導覽列</td><td>從 S-07 進來</td><td class="src">S-07-4</td></tr>
+      <tr><td class="n">S-09-2</td><td class="el">＋ 加卡</td><td>展開 S-09-9 表單，預設「主卡」</td><td class="src">007:19</td></tr>
+      <tr><td class="n">S-09-3</td><td class="el">分區標題</td><td>主卡為單位，副卡收在主卡卡片內——<b>不做平鋪清單</b>，層級本身就是資訊</td><td class="src">007:26</td></tr>
+      <tr><td class="n">S-09-4</td><td class="el">主卡列</td><td>暱稱＋發卡行＋末四碼遮罩顯示</td><td class="src">007:22</td></tr>
+      <tr><td class="n">S-09-5</td><td class="el">副卡群組</td><td>「底下 N 張副卡」；沒有副卡時整段隱藏，只留 S-09-7</td><td class="src">007:26</td></tr>
+      <tr><td class="n">S-09-6</td><td class="el">副卡列</td><td>持卡人 emoji（取自 people）＋暱稱＋末四碼＋持卡人名</td><td class="src">007:27</td></tr>
+      <tr><td class="n">S-09-7</td><td class="el">＋ 加副卡</td><td>展開表單並<b>預填 parent_card_id</b>、鎖在「副卡」</td><td class="src">007:26</td></tr>
+      <tr><td class="n">S-09-8</td><td class="el">空狀態</td><td>「還沒有卡片。／加一張主卡，就能開始整理每個月的帳單」</td><td class="src">—</td></tr>
+      <tr><td class="n">S-09-9</td><td class="el">卡片表單</td><td>暱稱必填；末四碼與發卡行選填</td><td class="src">007:22</td></tr>
+      <tr><td class="n">S-09-10</td><td class="el">主／副切換</td><td>選副卡時<b>必須指定所屬主卡</b>（本稿由 S-09-7 帶入）</td><td class="src">007:25</td></tr>
+      <tr><td class="n">S-09-11</td><td class="el">持卡人</td><td>從通訊錄挑（<code>holder_person_id → people</code>）。<b>不另建一套人名</b>，這是 D2 抽出 people 的目的</td><td class="src">007:27</td></tr>
+      <tr><td class="n">S-09-12</td><td class="el">刪主卡</td><td><b>打字確認</b>：<code>parent_card_id ON DELETE CASCADE</code>，副卡會一起沒</td><td class="src">007:26</td></tr>
+      <tr><td class="n">S-09-13</td><td class="el">刪副卡</td><td><b>一般確認</b>：<code>expenses.card_id ON DELETE SET NULL</code>，消費留著只是失去歸屬</td><td class="src">007:74</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-10 帳單週期 ══════════ -->
+<section class="scr" id="s10">
+  <div class="scrhd">
+    <span class="k new">S-10 · 新畫面</span>
+    <h2>帳單週期列表</h2>
+    <p class="rt"><b>路由</b> /statements（新）　<b>入口</b> S-07-4　<b>資料</b> trips 表 <code>kind='statement'</code>（D1）</p>
+    <p class="d">D1 拍板：<b>帳單週期沿用 trips 表</b>，靠 <code>kind</code> 區分，不另開一套結算與 UI。
+      所以這頁的結構刻意與 S-01 首頁同構——一個週期就是一趟「旅程」，只是主角從目的地換成卡片。
+      <b>首頁絕不會混進帳單</b>（S-01-12 的 <code>.eq('kind','trip')</code> 已上線並有回歸測項）。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">/statements · 完整長度</p>
+    <div class="ph"><div class="ui">
+      <div class="b bar" data-n="S-10-1"><span class="bk">‹ 返回</span><span class="ttl">帳單週期</span>
+        <span class="b rt" data-n="S-10-2" style="background:var(--w);color:#fff;font-size:10px;font-weight:600;padding:5px 9px;border-radius:3px">＋ 開新週期</span></div>
+
+      <div class="b" data-n="S-10-3" style="padding:9px 13px 4px"><div class="chiprow"><span class="chip on">玉山主卡</span><span class="chip">全部卡片</span></div></div>
+
+      <div class="b sec" data-n="S-10-4">2026</div>
+      <div style="margin:0 13px" class="gap">
+        <div class="b" data-n="S-10-5" style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+            <span class="mono" style="font-size:12.5px;font-weight:600">2026-08</span>
+            <span class="b rt stamp" data-n="S-10-6" style="border-color:#BFD9EE;color:var(--wi)">整理中</span>
+            <span style="flex:1"></span>
+            <span class="mono" style="font-size:9.5px;color:var(--gr)">8/1 – 8/31</span></div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between">
+            <div><div class="num" style="font-size:17px;font-weight:600;letter-spacing:-.02em">48,260</div>
+              <div class="b" data-n="S-10-7" style="font-size:9px;color:var(--gr);margin-top:1px">本期應繳 · 32 筆</div></div>
+            <div class="b" data-n="S-10-8" style="display:flex;gap:4px;align-items:center">
+              <span style="font-size:13px">🐱</span><span class="num" style="font-size:10px;color:var(--md)">12,480</span>
+              <span style="font-size:13px;margin-left:5px">🍋</span><span class="num" style="font-size:10px;color:var(--md)">8,900</span></div>
+          </div>
+          <div class="b" data-n="S-10-9" style="margin-top:8px;height:5px;display:flex;border-radius:2px;overflow:hidden;background:#EDEEE8">
+            <span style="width:26%;background:#4EA3E8"></span><span style="width:18%;background:#7CBEEC"></span><span style="width:56%;background:#C9D4DA"></span></div>
+        </div>
+
+        <div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+            <span class="mono" style="font-size:12.5px;font-weight:600">2026-07</span>
+            <span class="stamp" style="border-color:#C9DFC8;color:var(--in)">已結清</span>
+            <span style="flex:1"></span><span class="mono" style="font-size:9.5px;color:var(--gr)">7/1 – 7/31</span></div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between">
+            <div><div class="num" style="font-size:17px;font-weight:600;letter-spacing:-.02em">36,940</div>
+              <div style="font-size:9px;color:var(--gr);margin-top:1px">已結清 · 28 筆</div></div>
+            <div style="display:flex;gap:4px;align-items:center">
+              <span style="font-size:13px">🐱</span><span class="num" style="font-size:10px;color:var(--md)">9,120</span></div>
+          </div>
+        </div>
+
+        <div class="b" data-n="S-10-10" style="background:#fff;border:1px solid var(--ln);border-left:2px solid var(--out);border-radius:3px;padding:11px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+            <span class="mono" style="font-size:12.5px;font-weight:600">2026-06</span>
+            <span class="stamp" style="border-color:#E8C4B8;color:var(--out)">有待確認</span>
+            <span style="flex:1"></span><span class="mono" style="font-size:9.5px;color:var(--gr)">6/1 – 6/30</span></div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between">
+            <div><div class="num" style="font-size:17px;font-weight:600;letter-spacing:-.02em">41,180</div>
+              <div style="font-size:9px;color:var(--out);margin-top:1px">3 筆還沒認領</div></div></div>
+        </div>
+      </div>
+
+      <div class="b empty" data-n="S-10-11" style="margin-top:11px;padding:20px 22px;border-top:1px dashed var(--ln);border-bottom:1px dashed var(--ln)">
+        <p>還沒有帳單週期。</p><p>帳單來了就開一個月份，把消費歸給用卡的人</p></div>
+
+      <div class="b sec" data-n="S-10-12">開新週期（展開）</div>
+      <div style="margin:0 13px 14px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+        <span class="lbl">哪張卡</span><div class="chiprow" style="margin-bottom:9px"><span class="chip on">玉山主卡</span><span class="chip">國泰主卡</span></div>
+        <span class="lbl">帳單月份</span><div class="inp num" style="margin-bottom:9px">2026-09</div>
+        <div style="display:flex;gap:9px;margin-bottom:9px">
+          <div style="flex:1"><span class="lbl">起</span><div class="inp num">2026-09-01</div></div>
+          <div style="flex:1"><span class="lbl">迄</span><div class="inp num">2026-09-30</div></div></div>
+        <p class="hint" style="margin:0 0 9px">起迄預設整月，可改成實際帳單週期（例如 8/26 – 9/25）</p>
+        <div style="display:flex;gap:8px"><span class="btn qt">取消</span><span class="btn">開好了</span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 12 項（全新）</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>行為</th><th>依據</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-10-1</td><td class="el">導覽列</td><td>從 S-07 進來</td><td class="src">S-07-4</td></tr>
+      <tr><td class="n">S-10-2</td><td class="el">＋ 開新週期</td><td>建一列 <code>trips</code>，<code>kind='statement'</code>、<code>card_id</code> 指到主卡</td><td class="src">007:57</td></tr>
+      <tr><td class="n">S-10-3</td><td class="el">卡片篩選</td><td>只有一張卡時整段隱藏</td><td class="src">—</td></tr>
+      <tr><td class="n">S-10-4</td><td class="el">年份分組</td><td>與 S-03 的日期分組同一套語彙</td><td class="src">—</td></tr>
+      <tr><td class="n">S-10-5</td><td class="el">週期卡</td><td>月份為主標（等寬數字）；點進去 → S-11</td><td class="src">D1</td></tr>
+      <tr><td class="n">S-10-6</td><td class="el">狀態章</td><td>三態：整理中／有待確認／已結清。<b>沿用 trips 的 status 語意，不新增 enum</b></td><td class="src">D1</td></tr>
+      <tr><td class="n">S-10-7</td><td class="el">本期應繳</td><td>該週期消費總額＋筆數。<b>台幣</b></td><td class="src">D1</td></tr>
+      <tr><td class="n">S-10-8</td><td class="el">副卡分佈</td><td>每張副卡持卡人的小計，直接在列表層看得到誰刷最多</td><td class="src">Phase 2 情境</td></tr>
+      <tr><td class="n">S-10-9</td><td class="el">分佈條</td><td>各持卡人佔比；<b>灰色是主卡本人</b>。這是 Phase 1.5「成員分佈」在帳單情境的同一個元件</td><td class="src">Phase 1.5</td></tr>
+      <tr><td class="n">S-10-10</td><td class="el">待確認提示</td><td>左邊框橘紅＋「N 筆還沒認領」——與 S-03 的待填列同一套語彙</td><td class="src">決策 C</td></tr>
+      <tr><td class="n">S-10-11</td><td class="el">空狀態</td><td>「還沒有帳單週期。／帳單來了就開一個月份，把消費歸給用卡的人」</td><td class="src">—</td></tr>
+      <tr><td class="n">S-10-12</td><td class="el">開新週期表單</td><td>選卡＋月份；起迄<b>預設整月但可改</b>（真實帳單常是 8/26–9/25）</td><td class="src">Phase 2 規格</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ S-11 副卡視角 ══════════ -->
+<section class="scr" id="s11">
+  <div class="scrhd">
+    <span class="k new">S-11 · 新畫面</span>
+    <h2>週期內頁 · 副卡視角</h2>
+    <p class="rt"><b>路由</b> /statements/:id（新，實為 trips 的 statement）　<b>資料</b> expenses.card_id</p>
+    <p class="d">D5 拍板：Phase 2 的副卡消費<b>預設 <code>personal</code></b>——刷誰的卡就算誰的，
+      不預設要分帳。所以這頁的主動作不是「分帳」而是<b>「認領」</b>：把每筆消費歸給用卡的人。
+      上方的視角切換與 Phase 1.5 的「切換成員視角」共用同一個元件。</p>
+  </div>
+
+  <div class="stick">
+    <p class="phcap">/statements/:id · 完整長度</p>
+    <div class="ph"><div class="ui">
+      <div class="b hero g-def" data-n="S-11-1" style="padding:26px 13px 11px">
+        <div class="nav"><span style="color:rgba(255,255,255,.92);font-size:11px;font-weight:600;position:relative">‹ 返回</span>
+          <span style="display:flex;gap:5px;position:relative"><span class="ic">↑</span><span class="ic">⚙</span></span></div>
+        <h1 style="position:relative;font-size:17px">玉山主卡 · 2026-08</h1>
+        <div style="position:relative;display:flex;align-items:center;gap:7px;margin-top:4px">
+          <span class="mono" style="font-size:9.5px;color:rgba(255,255,255,.78)">8/1 – 8/31 · 32 筆</span></div>
+      </div>
+
+      <div class="b" data-n="S-11-2" style="background:#fff;border-bottom:1px solid var(--ln);padding:9px 13px">
+        <div class="chiprow"><span class="chip on">全部</span><span class="chip">🐵 我的</span><span class="chip">🐱 小美</span><span class="chip">🍋 阿明</span></div>
+      </div>
+
+      <div class="stats">
+        <div class="b" data-n="S-11-3"><b>48,260</b><span>本期應繳</span></div>
+        <div class="b" data-n="S-11-4"><b>26,880</b><span>我自己刷的</span></div>
+        <div class="b" data-n="S-11-5"><b class="out">21,380</b><span>要跟人收</span></div>
+      </div>
+
+      <div class="b" data-n="S-11-6" style="margin:11px 13px 0;background:#fff;border:1px solid var(--ln);border-left:2px solid var(--out);border-radius:3px;padding:10px">
+        <p style="margin:0;font-size:11.5px;font-weight:600">還有 3 筆沒認領</p>
+        <p style="margin:3px 0 0;font-size:10px;color:var(--md)">認領完才能跟大家對帳</p></div>
+
+      <div class="b sec" data-n="S-11-7">8/28（四）</div>
+      <div class="exp"><span class="ic">🛍️</span><div class="mid"><div class="t">UNIQLO 信義店</div>
+        <div class="s"><span>🐱 小美</span><span class="pill per">只算她</span></div></div><div class="a">2,480</div></div>
+      <div class="b exp pend" data-n="S-11-8"><span class="ic">➕</span><div class="mid"><div class="t">全家便利商店</div>
+        <div class="s"><span class="pill pen">還沒認領</span></div></div>
+        <div style="text-align:right"><div class="a">168</div>
+          <div class="b rt" data-n="S-11-9" style="margin-top:4px"><span style="border:1px solid var(--w);color:var(--wi);font-size:9px;font-weight:600;padding:2px 6px;border-radius:3px;white-space:nowrap">認領</span></div></div></div>
+      <div class="exp"><span class="ic">🍜</span><div class="mid"><div class="t">鼎泰豐</div>
+        <div class="s"><span>🐵 Rozi</span><span class="pill ind">一起分 4 人</span></div></div><div class="a">3,200</div></div>
+
+      <div class="b sec" data-n="S-11-10">認領（展開）</div>
+      <div style="margin:0 13px 12px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+        <p style="margin:0 0 7px;font-size:11.5px;font-weight:600">全家便利商店 · $168</p>
+        <span class="lbl">誰刷的</span>
+        <div class="chiprow" style="margin-bottom:9px"><span class="chip">🐵 Rozi</span><span class="chip on">🐱 小美</span><span class="chip">🍋 阿明</span></div>
+        <span class="lbl">怎麼算</span>
+        <div class="seg" style="margin-bottom:9px"><i class="on">只算她</i><i>一起分</i></div>
+        <p class="hint" style="margin:0 0 9px">副卡消費<b>預設「只算她」</b>——刷誰的卡就算誰的。要分帳再改（D5）</p>
+        <div style="display:flex;gap:8px"><span class="btn qt">跳過</span><span class="btn">認領</span></div>
+      </div>
+
+      <div class="b btnrow" data-n="S-11-11"><span class="btn gh">結算這期</span><span class="btn">＋ 手動加一筆</span></div>
+      <div class="fixnote">底部操作列 · 「結算這期」走與旅遊完全相同的結算引擎（D1）</div>
+    </div></div>
+  </div>
+
+  <div>
+    <p class="cnt">功能盤點 · 11 項（全新）</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>編號</th><th>元件</th><th>行為</th><th>依據</th></tr></thead>
+      <tbody>
+      <tr><td class="n">S-11-1</td><td class="el">Hero</td><td>卡片暱稱＋月份。<b>沒有目的地色調</b>——帳單不是旅程，用中性預設色</td><td class="src">D1</td></tr>
+      <tr><td class="n">S-11-2</td><td class="el">視角切換</td><td>全部／我的／各持卡人。<b>與 Phase 1.5「切換成員視角」共用元件</b>，兩處一起做</td><td class="src">Phase 1.5</td></tr>
+      <tr><td class="n">S-11-3</td><td class="el">本期應繳</td><td>整期總額</td><td class="src">D1</td></tr>
+      <tr><td class="n">S-11-4</td><td class="el">我自己刷的</td><td>歸給主卡持有人的部分</td><td class="src">D5</td></tr>
+      <tr><td class="n">S-11-5</td><td class="el">要跟人收</td><td>其他持卡人的總和。<b>用「付」橘紅</b>——對主卡人來說這是別人欠你，但顯示的是「要去收」的金額，語意跟著錢的方向走</td><td class="src">金錢方向色</td></tr>
+      <tr><td class="n">S-11-6</td><td class="el">未認領警示</td><td>「還有 N 筆沒認領／認領完才能跟大家對帳」——與 S-03-10 的待填警語同一套</td><td class="src">決策 4</td></tr>
+      <tr><td class="n">S-11-7</td><td class="el">日期分組</td><td>帳單沒有「第 N 天」概念，直接用日期＋星期</td><td class="src">—</td></tr>
+      <tr><td class="n">S-11-8</td><td class="el">未認領列</td><td>左邊框橘紅＋「還沒認領」badge，與 S-03 待填列同構</td><td class="src">決策 C</td></tr>
+      <tr><td class="n">S-11-9</td><td class="el">認領鈕</td><td>列內快捷；也可點整列展開 S-11-10</td><td class="src">—</td></tr>
+      <tr><td class="n">S-11-10</td><td class="el">認領表單</td><td>選持卡人＋算法。<b>預設「只算她」＝<code>personal</code></b>（D5）；改「一起分」才走分帳</td><td class="src">D5</td></tr>
+      <tr><td class="n">S-11-11</td><td class="el">結算這期</td><td>走<b>同一套</b> <code>calculate-settlement</code> → <code>confirm-settlement</code>，不另寫引擎。「手動加一筆」＝A 里程碑的手動記帳；半自動匯入是 B 里程碑</td><td class="src">D1／D6</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ══════════ 讀碼發現 ══════════ -->
+<section class="scr" id="found" style="grid-template-columns:1fr">
+  <div class="scrhd">
+    <span class="k">議</span>
+    <h2>讀碼時發現的 14 個問題</h2>
+    <p class="d">這些不是你交代的範圍，是我逐行讀 3,302 行時撞到的。
+      <b>一個都沒有自己改</b>——有些是明確的 bug，有些是產品取捨，都等你裁示。
+      分三級：<b>壞掉</b>＝功能不會動或算錯；<b>不一致</b>＝兩處行為對不上；<b>取捨</b>＝要你決定。</p>
+  </div>
+
+  <div>
+    <div class="tblwrap"><table>
+      <thead><tr><th>#</th><th>級</th><th>問題</th><th>證據</th><th>我的建議</th></tr></thead>
+      <tbody>
+      <tr><td class="n">1</td><td><span class="tag bug">壞掉</span></td>
+        <td><b>首頁 G-06 的「複製連結」按了沒反應</b>。這顆按鈕沒有 <code>onClick</code>。而且首頁沒有「哪一趟」的概念，就算接上也不知道要複製誰的連結</td>
+        <td class="src">TripListPage:176</td>
+        <td>整顆拿掉，橫幅只留說明文字（分享入口已在 S-03 常駐，決策 7）</td></tr>
+      <tr><td class="n">2</td><td><span class="tag bug">壞掉</span></td>
+        <td><b>分享連結漏掉 BASE_URL</b>。<code>${origin}/share/${token}</code> 在 GitHub Pages 上會產生 <code>tzyutw.github.io/share/…</code>，<b>少了 /tripay，連結是死的</b>。S-06 自己的「複製連結」用 <code>location.href</code> 反而是對的</td>
+        <td class="src">ExpenseListPage:71</td>
+        <td>改成 <code>origin + import.meta.env.BASE_URL + 'share/' + token</code>。<b>這條建議優先修</b>，分享是產品的核心動線</td></tr>
+      <tr><td class="n">3</td><td><span class="tag bug">壞掉</span></td>
+        <td><b>「4 人均分扣抵」是寫死的字串</b>。5 人行程的贊助說明也顯示 4 人</td>
+        <td class="src">ExpenseFormSheet:508</td>
+        <td>換成實際參與人數</td></tr>
+      <tr><td class="n">4</td><td><span class="tag chg">不一致</span></td>
+        <td><b>行程內頁與分享頁的 hero 寫死同一個藍棕漸層，沒有用 <code>destinationOf()</code></b>。所以首頁看到濟州島是青綠色，點進去卻變成藍棕——同一趟兩種顏色</td>
+        <td class="src">ExpenseListPage:292、SharePage:150</td>
+        <td>改用 <code>destinationOf(trip.name, trip.id)</code>，三處統一。封面照上線後同一套 fallback</td></tr>
+      <tr><td class="n">5</td><td><span class="tag chg">不一致</span></td>
+        <td><b>行程頁的「總花費」排除贊助，分享頁的沒有</b>。同一趟，兩頁數字不一樣</td>
+        <td class="src">ExpenseListPage:240 vs SharePage:125</td>
+        <td>以行程頁為準（贊助是負額，計入會灌低總支出）</td></tr>
+      <tr><td class="n">6</td><td><span class="tag chg">不一致</span></td>
+        <td><b>分享頁的待填列沒有左邊框</b>，行程頁有。決策 C 說待填要有橘紅左邊框</td>
+        <td class="src">SharePage:255</td>
+        <td>補上</td></tr>
+      <tr><td class="n">7</td><td><span class="tag chg">不一致</span></td>
+        <td><b>「刪除這筆消費？刪除後無法復原。」其實是軟刪</b>（寫 <code>deleted_at</code>），資料還在</td>
+        <td class="src">ExpenseFormSheet:213,585</td>
+        <td>兩條路：文案改成誠實的說法，或真的做成可復原（加「復原」toast）。我建議前者，後者要多做一整套 UI</td></tr>
+      <tr><td class="n">8</td><td><span class="tag chg">不一致</span></td>
+        <td><b>G-08 回顧卡的「最大手筆」標外幣符號、值卻是台幣</b>。韓圜行程會顯示「最大手筆 ₩ 28,400」，但 28,400 是台幣</td>
+        <td class="src">SettlementPage:341</td>
+        <td>標 $ 或改取外幣值。連同決策 34 的幣別切換一起處理</td></tr>
+      <tr><td class="n">9</td><td><span class="tag bug">取捨</span></td>
+        <td><b>沒標記「這是我」時，「我的花費」恆為 $0 且沒有任何提示</b>。使用者會以為是 bug</td>
+        <td class="src">ExpenseListPage:242</td>
+        <td>改顯示「還沒標記你是誰 →」，點了直接開 S-02b 的成員區</td></tr>
+      <tr><td class="n">10</td><td><span class="tag bug">取捨</span></td>
+        <td><b>設定頁只能從行程內頁的 ⚙ 進去</b>。一個行程都沒有的新使用者，永遠進不了設定，也就登不出</td>
+        <td class="src">TripListPage 全檔</td>
+        <td>首頁標題列右上加入口。四個新畫面都掛在設定底下，這條變成必要前提</td></tr>
+      <tr><td class="n">11</td><td><span class="tag bug">取捨</span></td>
+        <td><b>首頁空狀態沒有任何按鈕</b>，只有「還沒有行程。／第一趟要去哪？」，要自己找到右上角</td>
+        <td class="src">TripListPage:86</td>
+        <td>空狀態補一顆主要按鈕。（G-01 會自動開表單，但只在剛登入那一次）</td></tr>
+      <tr><td class="n">12</td><td><span class="tag bug">取捨</span></td>
+        <td><b>「刪除這趟行程」在封存狀態也照樣顯示，而且被固定底部操作列蓋住一部分</b></td>
+        <td class="src">ExpenseListPage:556</td>
+        <td>移進 S-02b 編輯行程的最下方（危險動作收進編輯情境），列表頁不放</td></tr>
+      <tr><td class="n">13</td><td><span class="tag bug">取捨</span></td>
+        <td><b>消費的類別 emoji 只能自動推斷，使用者不能自己挑</b>。但它會顯示在列表上，是使用者最常看到的圖形</td>
+        <td class="src">ExpenseFormSheet:9,133</td>
+        <td>S-04-3 的 emoji 改成可點，複用既有的 EmojiPicker（元件現成，成本低）</td></tr>
+      <tr><td class="n">14</td><td><span class="tag bug">取捨</span></td>
+        <td><b>結算前完全看不到任何金額</b>，只有一顆「算清楚」。使用者不知道按下去會發生什麼</td>
+        <td class="src">SettlementPage:255</td>
+        <td>未結算頁先顯示每人淨額預覽（算式現成，只是不寫入）。這也讓摺紙動畫有東西可以摺</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout" style="max-width:none">
+      <b>另外兩個不是問題、但值得知道的限制：</b>
+      ① 分享頁的 PWA「安裝」鈕只在瀏覽器丟出 <code>beforeinstallprompt</code> 時出現——
+      <b>iOS Safari 不支援，iPhone 上永遠看不到</b>。
+      ② S-05 的四欄明細表（實際付出／應分攤／差額）只有剛按過「算清楚」的那一次有資料，重整就空；
+      人話淨額（可以拿回／要給出）則是從已確認項目反推，重整後還在——這是 UX-2 已經修過的部分。
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>Tripay · Wireframe v5 · 2026-08-31</div>
+  <div style="margin-top:6px">16 個畫面段落 · 220 個編號項目 · 14 條讀碼發現 · 盤點自 src/pages 與 src/components 共 3,302 行</div>
+  <div style="margin-top:6px">下一步：等 Rozi 的逐頁調整清單 → 修完 → 才進實作</div>
+</footer>
+
+</div>
