@@ -1,0 +1,418 @@
+<title>日記精裝 Design Tokens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+TC:wght@500;700&display=swap">
+
+<style>
+/* ══ 簡報頁自身的中性底（取自玄武岩，冷調，避免與兩個 specimen 打架）══ */
+:root{
+  --pg:#141A1E; --pg2:#1B2329; --pg3:#232D34;
+  --pgink:#E8EDF0; --pgink2:#9FB0BA; --pgink3:#6B7C87;
+  --pgrule:#2A353C; --pgmark:#9E3A2F;
+  --ok:#4F7D5E; --no:#B4483C;
+  --serif:'Noto Serif TC',"Songti TC",serif;
+  --sans:"PingFang TC","Noto Sans TC","Hiragino Sans",system-ui,sans-serif;
+  --mono:'IBM Plex Mono',"PingFang TC",ui-monospace,monospace;
+}
+:root[data-theme="light"]{
+  --pg:#EDEEEA; --pg2:#FFFFFF; --pg3:#F5F5F1;
+  --pgink:#161D22; --pgink2:#4E5D66; --pgink3:#7C8B94; --pgrule:#D9DCD7;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --pg:#EDEEEA; --pg2:#FFFFFF; --pg3:#F5F5F1;
+  --pgink:#161D22; --pgink2:#4E5D66; --pgink3:#7C8B94; --pgrule:#D9DCD7;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg);color:var(--pgink);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+h1,h2,h3,h4{margin:0;text-wrap:balance}
+code{font-family:var(--mono);font-size:.88em}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--pgmark);margin:0 0 10px}
+:root[data-theme="light"] .eyebrow,
+@media(prefers-color-scheme:light){.eyebrow{color:#8E3227}}
+section{padding:52px 0;border-top:1px solid var(--pgrule)}
+section > h2{font-family:var(--serif);font-size:26px;font-weight:700;letter-spacing:-.01em;margin-bottom:6px}
+section > .sub{color:var(--pgink2);max-width:66ch;margin:0 0 30px;font-size:14.5px}
+
+header{padding:70px 0 44px}
+header h1{font-family:var(--serif);font-size:clamp(32px,5vw,48px);font-weight:700;line-height:1.14;
+  letter-spacing:-.02em;max-width:17ch}
+header .lede{margin-top:18px;max-width:64ch;color:var(--pgink2);font-size:16px}
+.callout{margin-top:26px;padding:16px 20px;background:var(--pg2);border-left:2px solid var(--pgmark);
+  border-radius:2px;font-size:14px;color:var(--pgink2);max-width:70ch}
+.callout b{color:var(--pgink)}
+
+/* ── 色板 ── */
+.pal{display:grid;grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:14px}
+.tok{background:var(--pg2);border:1px solid var(--pgrule);border-radius:3px;overflow:hidden}
+.tok .chip{height:76px;position:relative}
+.tok .chip span{position:absolute;left:11px;bottom:9px;font-family:var(--mono);font-size:11px;
+  padding:2px 6px;border-radius:2px;background:rgba(0,0,0,.42);color:#fff;letter-spacing:.04em}
+.tok .txt{padding:13px 14px 15px}
+.tok h4{font-size:13.5px;font-weight:600;margin-bottom:3px}
+.tok .src{font-size:12px;color:var(--pgink2);line-height:1.5}
+.tok .use{font-family:var(--mono);font-size:10.5px;color:var(--pgink3);margin-top:7px;letter-spacing:.02em}
+
+/* ── 字 ── */
+.scale{width:100%;border-collapse:collapse;font-size:13.5px}
+.scale th,.scale td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--pgrule);vertical-align:baseline}
+.scale th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--pgink3);font-weight:400}
+.scale td.spec{font-family:var(--mono);font-size:11.5px;color:var(--pgink2);white-space:nowrap}
+.numdemo{display:flex;gap:34px;flex-wrap:wrap;margin-top:20px;padding:18px 20px;background:var(--pg2);
+  border:1px solid var(--pgrule);border-radius:3px}
+.numdemo div{font-size:12px;color:var(--pgink3)}
+.numdemo b{display:block;margin-top:5px;font-size:19px;color:var(--pgink);font-weight:500}
+.bad b{font-family:var(--sans);font-variant-numeric:normal}
+.good b{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ── 限值表 ── */
+.limits{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:1px;
+  background:var(--pgrule);border:1px solid var(--pgrule);border-radius:3px;overflow:hidden}
+.limits div{background:var(--pg2);padding:16px 17px}
+.limits h4{font-size:12.5px;margin-bottom:7px}
+.limits p{margin:0;font-size:12.5px;color:var(--pgink2);line-height:1.55}
+
+/* ══════ SPECIMEN 共用外框 ══════ */
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+@media(max-width:760px){.ba{grid-template-columns:1fr}}
+.ba > div{display:flex;flex-direction:column;align-items:center;gap:11px}
+.balabel{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--pgink3)}
+.balabel.now{color:var(--pgink2)}
+.ph{width:246px;border-radius:20px;overflow:hidden;border:1px solid var(--pgrule);
+  box-shadow:0 16px 34px rgba(0,0,0,.34)}
+.sc{height:430px;overflow:hidden;position:relative}
+
+/* ══════ BEFORE = 現況 ══════ */
+.bf{background:#FFFBEB;color:#1C0A00;font-family:var(--sans);font-size:11.5px}
+.bf .top{display:flex;justify-content:space-between;align-items:center;padding:13px 14px}
+.bf .bd{font-weight:700;font-size:16px;color:#7C2D12}
+.bf .btn{background:#7C2D12;color:#FEF9EE;font-size:10px;font-weight:700;padding:6px 11px;border-radius:12px}
+.bf .card{margin:0 14px 12px;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.bf .img{height:96px;position:relative;padding:9px;display:flex;flex-direction:column;justify-content:flex-end}
+.bf .bg{position:absolute;inset:0;font-size:26px;text-align:right;padding:7px 9px}
+.bf .pill{display:inline-block;background:rgba(255,255,255,.2);color:#fff;font-size:8.5px;font-weight:700;
+  padding:2px 7px;border-radius:12px;width:fit-content;margin-bottom:4px;position:relative}
+.bf .nm{color:#fff;font-weight:700;font-size:13px;position:relative}
+.bf .dt{color:rgba(255,255,255,.88);font-size:9px;position:relative;margin-top:2px}
+
+/* ══════ AFTER = 日記精裝 ══════ */
+.af{background:#F1F0EA;color:#1A2226;font-family:var(--sans);font-size:11.5px}
+.af .top{display:flex;justify-content:space-between;align-items:center;padding:14px 14px 11px;
+  border-bottom:1px solid #DEDDD5}
+.af .bd{font-family:var(--serif);font-weight:700;font-size:16px;color:#1E4C6B;letter-spacing:-.01em}
+.af .btn{background:#1E4C6B;color:#F1F0EA;font-size:10px;font-weight:600;padding:6px 11px;border-radius:3px;
+  letter-spacing:.02em}
+/* 貼進本子：只有照片卡用這個隱喻 */
+.af .card{margin:12px 14px 0;background:#fff;padding:5px;border:1px solid #E1E0D8;border-radius:3px;
+  box-shadow:0 1px 2px rgba(30,40,50,.09)}
+.af .img{height:100px;position:relative;padding:8px;display:flex;flex-direction:column;justify-content:flex-end}
+.af .bg{position:absolute;inset:0;font-size:24px;text-align:right;padding:6px 8px}
+.af .stamp{display:inline-block;border:1px solid #9E3A2F;color:#9E3A2F;background:#F1F0EA;
+  font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:1.5px 6px;border-radius:2px;
+  width:fit-content;margin-bottom:4px;position:relative}
+.af .nm{color:#fff;font-weight:700;font-size:13px;position:relative;letter-spacing:-.01em}
+.af .dt{color:rgba(255,255,255,.9);font-size:9px;position:relative;margin-top:2px;
+  font-family:var(--mono);font-variant-numeric:tabular-nums}
+.scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.52) 100%)}
+
+/* 目的地色（destinations.ts 實值） */
+.g-jeju{background:linear-gradient(160deg,#1E4C6B 0%,#2D6A8A 35%,#3D7A6A 65%,#2A5050 100%)}
+.g-hok{background:linear-gradient(160deg,#5B8FA8 0%,#3A6E8C 35%,#8B5E52 75%,#6B4A3E 100%)}
+
+/* ── 消費列表 specimen ── */
+.bf .hero{background:linear-gradient(148deg,#1A3558,#2B5590 42%,#684533);padding:34px 14px 13px;color:#fff}
+.bf .hero .t{font-weight:700;font-size:15px}
+.bf .stats{display:flex;background:#fff}
+.bf .stats div{flex:1;padding:10px;text-align:center;border-right:1px solid #F0E9DC}
+.bf .stats b{display:block;font-size:14px;font-weight:700}
+.bf .stats span{font-size:9px;color:#92603A}
+.bf .day{padding:11px 14px 5px;font-size:10px;color:#92603A}
+.bf .row{margin:0 14px 7px;background:#fff;border-radius:12px;padding:9px;display:flex;
+  align-items:center;gap:8px;box-shadow:0 1px 5px rgba(0,0,0,.06)}
+.bf .row .e{font-size:17px}
+.bf .row .m{flex:1}
+.bf .row .ti{font-weight:600;font-size:11.5px}
+.bf .row .py{font-size:9px;color:#92603A}
+.bf .row .am{font-weight:700;font-size:12px}
+
+.af .hero{background:linear-gradient(162deg,#1E4C6B,#2D6A8A 46%,#2A5050);padding:34px 14px 13px;color:#fff}
+.af .hero .t{font-family:var(--serif);font-weight:700;font-size:15px;letter-spacing:-.01em}
+.af .stats{display:flex;background:#fff;border-bottom:1px solid #DEDDD5}
+.af .stats div{flex:1;padding:11px 10px;text-align:center;border-right:1px solid #EBEAE3}
+.af .stats div:last-child{border-right:0}
+.af .stats b{display:block;font-family:var(--mono);font-size:14px;font-weight:600;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.af .stats span{font-family:var(--mono);font-size:8.5px;color:#6B7C87;letter-spacing:.08em;text-transform:uppercase}
+.af .day{padding:13px 14px 6px;font-family:var(--mono);font-size:9px;color:#6B7C87;letter-spacing:.1em;
+  text-transform:uppercase}
+.af .row{margin:0 14px 6px;background:#fff;border:1px solid #E4E3DB;border-radius:3px;padding:9px 10px;
+  display:flex;align-items:center;gap:9px}
+.af .row .e{font-size:16px}
+.af .row .m{flex:1;min-width:0}
+.af .row .ti{font-weight:600;font-size:11.5px;letter-spacing:-.005em}
+.af .row .py{font-size:9px;color:#6B7C87;margin-top:1px}
+.af .row .am{font-family:var(--mono);font-weight:600;font-size:12px;font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em}
+.af .row.pend{border-left:2px solid #9E3A2F}
+
+/* ── signature ── */
+.sig{display:grid;grid-template-columns:230px 1fr;gap:32px;align-items:center}
+@media(max-width:700px){.sig{grid-template-columns:1fr}}
+.sigbox{background:#F1F0EA;border:1px solid var(--pgrule);border-radius:3px;height:210px;
+  display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.plane{width:104px;height:104px}
+.plane path{fill:none;stroke:#1E4C6B;stroke-width:1.6;stroke-linejoin:round}
+.plane .fold{stroke:#9E3A2F;stroke-dasharray:3 3;stroke-width:1}
+@media(prefers-reduced-motion:no-preference){
+  .plane{animation:lift 3.6s ease-in-out infinite}
+  @keyframes lift{0%,64%{transform:translate(0,0) rotate(0)}
+    78%{transform:translate(9px,-11px) rotate(-7deg)}
+    100%{transform:translate(0,0) rotate(0)}}
+}
+
+/* ── 檢查清單 ── */
+.chk{width:100%;border-collapse:collapse;font-size:13.5px}
+.chk th,.chk td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--pgrule);vertical-align:top}
+.chk th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--pgink3);font-weight:400}
+.chk td:first-child{font-weight:600;white-space:nowrap}
+.v{font-family:var(--mono);font-size:11px;font-weight:600;white-space:nowrap}
+.v.p{color:var(--ok)} .v.f{color:var(--no)}
+.tblwrap{overflow-x:auto}
+footer{padding:40px 0 70px;color:var(--pgink3);font-size:12.5px;font-family:var(--mono);
+  border-top:1px solid var(--pgrule);letter-spacing:.02em}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">路線 3 打磨輪 · 第一段交付</p>
+  <h1>日記精裝：色從素材來，不從模板來</h1>
+  <p class="lede">
+    方向 02 定案，但執行不走「暖米白＋襯線＋陶土橘」那條路。色板全部從我們手上的真實素材取——
+    四趟目的地的照片色、收據紙、印泥——每個顏色都說得出來源。
+  </p>
+  <div class="callout">
+    <b>被否決的東西：</b>前一版示意的 accent <code>#D2764A</code> 是 AI 生成設計最氾濫的陶土橘，
+    底色 <code>#FFFBEB</code> 是配套的暖米白。這一版把兩個都換掉：底色改成
+    <b>收據紙的偏冷灰白</b>，accent 改成<b>印泥的朱砂紅</b>——後者剛好接住方向 02 原本
+    「badge 像蓋在本子上的小章」那個想法。
+  </div>
+</header>
+
+<section>
+  <p class="eyebrow">Design tokens</p>
+  <h2>六個顏色，六個來源</h2>
+  <p class="sub">前四個直接取自 <code>src/lib/destinations.ts</code> 現行的目的地色調——首頁照片卡已經在用它們，介面色與內容色因此天然同源。後兩個來自實體素材。</p>
+  <div class="pal">
+    <div class="tok"><div class="chip" style="background:#1E4C6B"><span>#1E4C6B</span></div>
+      <div class="txt"><h4>玄武岩深藍</h4>
+        <p class="src">濟州島卡片的起始色。海岸玄武岩在陰天的顏色，深但不死黑。</p>
+        <p class="use">--ink-deep · header · 主要按鈕 · 標題</p></div></div>
+    <div class="tok"><div class="chip" style="background:#5B8FA8"><span>#5B8FA8</span></div>
+      <div class="txt"><h4>運河藍灰</h4>
+        <p class="src">北海道卡片的起始色。小樽運河的水映著石造倉庫。</p>
+        <p class="use">--accent-cool · 連結 · 選取態 · 次要強調</p></div></div>
+    <div class="tok"><div class="chip" style="background:#6BAED6"><span>#6BAED6</span></div>
+      <div class="txt"><h4>富士青</h4>
+        <p class="src">東京卡片的起始色。晴天的天空藍。</p>
+        <p class="use">--info · 資訊提示 · 圖表次要序列</p></div></div>
+    <div class="tok"><div class="chip" style="background:#A8663F"><span>#A8663F</span></div>
+      <div class="txt"><h4>屋台琥珀</h4>
+        <p class="src">福岡卡片的中段色。夜市屋台的燈光。</p>
+        <p class="use">--warm · 僅用於旅遊情境的暖點綴，<b>不當 accent</b></p></div></div>
+    <div class="tok"><div class="chip" style="background:#F1F0EA"><span>#F1F0EA</span></div>
+      <div class="txt"><h4>收據紙</h4>
+        <p class="src">熱感應收據紙的實際顏色——<b>偏冷的灰白，帶一點綠</b>，不是暖米白。這是分帳工具該有的底。</p>
+        <p class="use">--paper · 頁面底色</p></div></div>
+    <div class="tok"><div class="chip" style="background:#9E3A2F"><span>#9E3A2F</span></div>
+      <div class="txt"><h4>印泥朱砂</h4>
+        <p class="src">蓋章用的朱砂印泥。<b>是紅不是橘</b>——這是它跟陶土橘的分野。</p>
+        <p class="use">--seal · 狀態章 · 待填左邊框 · 危險動作</p></div></div>
+  </div>
+  <p class="sub" style="margin:22px 0 0">
+    中性灰一律往玄武岩偏藍（<code>#6B7C87</code> / <code>#E4E3DB</code> / <code>#1A2226</code>），
+    不用暖灰——這樣收據紙的冷調才站得住，不會被拉回米白。
+  </p>
+</section>
+
+<section>
+  <p class="eyebrow">Typography</p>
+  <h2>繁中字型沒得挑，個性放在紀律與數字</h2>
+  <p class="sub">
+    繁體中文 webfont 的現實：襯線只有 <b>Noto Serif TC</b> 一個可行選項，且檔案大，只能用在標題。
+    內文一律走系統字（PingFang TC）。所以個性不能靠選字，得靠<b>字階、字重、字距的紀律</b>，
+    以及<b>數字的處理</b>——那才是記帳工具的硬品質。
+  </p>
+  <table class="scale">
+    <tr><th>角色</th><th>字</th><th>規格</th><th>用在哪</th></tr>
+    <tr><td style="font-family:var(--serif);font-weight:700;font-size:19px">行程標題</td>
+      <td class="spec">Noto Serif TC 700</td><td class="spec">22–26px / -0.01em</td><td>Hero、行程名、區塊標題</td></tr>
+    <tr><td style="font-weight:600">品項與成員</td>
+      <td class="spec">PingFang TC 600</td><td class="spec">15–16px / -0.005em</td><td>消費列、成員列</td></tr>
+    <tr><td style="color:var(--pgink2)">說明文字</td>
+      <td class="spec">PingFang TC 400</td><td class="spec">13px / 1.6</td><td>輔助說明、空狀態</td></tr>
+    <tr><td class="spec" style="letter-spacing:.1em;text-transform:uppercase;color:var(--pgink3)">標籤</td>
+      <td class="spec">IBM Plex Mono 500</td><td class="spec">9–10px / +0.1em / 大寫</td><td>日期分組、統計卡標籤、狀態章</td></tr>
+    <tr><td class="spec" style="font-size:15px;font-weight:600">$ 3,633</td>
+      <td class="spec">IBM Plex Mono 600</td><td class="spec">tabular-nums / -0.02em</td><td><b>所有金額，一律等寬</b></td></tr>
+  </table>
+  <div class="numdemo">
+    <div class="bad">現況：系統字比例數字<b>$ 172,774　$ 3,633　$ 348</b></div>
+    <div class="good">改後：等寬對齊<b>$ 172,774　$ 3,633　$ 348</b></div>
+  </div>
+  <p class="sub" style="margin:16px 0 0">
+    差別在 132 筆的列表裡才看得出來——比例數字的小數點與千分位不對齊，眼睛要重新定位；等寬不用。
+  </p>
+</section>
+
+<section>
+  <p class="eyebrow">Constraints</p>
+  <h2>結構裝飾必須承載資訊</h2>
+  <div class="limits">
+    <div><h4>圓角只有兩種</h4><p><code>3px</code> 給所有卡片與輸入框（紙的裁切邊）、<code>999px</code> 只給成員頭像。<b>沒有第三種。</b></p></div>
+    <div><h4>陰影只有兩層</h4><p><code>0 1px 2px</code> 給貼在紙上的照片卡、<code>0 8px 24px</code> 給浮起的 sheet。列表列<b>改用 1px 邊框</b>，不用陰影。</p></div>
+    <div><h4>「貼進本子」只給照片</h4><p>白邊＋細框＋淡投影<b>只用在首頁照片卡</b>。消費列、統計卡、設定頁一律不套這個隱喻。</p></div>
+    <div><h4>Badge 收斂成一種</h4><p>狀態一律是「章」：外框＋等寬大寫＋朱砂色。<b>取消膠囊底色 badge。</b></p></div>
+    <div><h4>Emoji 只給人和封面</h4><p>成員 emoji、行程封面 emoji、消費分類 emoji＝產品概念，保留。<b>介面 icon 一律不用 emoji</b>——包含現在狀態章上的 ✅。</p></div>
+    <div><h4>Gradient 只給目的地</h4><p>照片卡的目的地色調是唯一允許的 gradient（且會被真實照片取代）。<b>介面元件一律純色。</b></p></div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Before / After</p>
+  <h2>首頁</h2>
+  <p class="sub">同樣四趟資料。差別在底色的冷暖、狀態章、日期的等寬處理，以及照片卡的白邊。</p>
+  <div class="ba">
+    <div><span class="balabel now">現況</span>
+      <div class="ph"><div class="sc bf">
+        <div class="top"><span class="bd">Tripay</span><span class="btn">＋ 新增行程</span></div>
+        <div class="card"><div class="img g-jeju"><div class="bg">✈️</div><div class="scrim"></div>
+          <span class="pill">✅ 已結算</span><div class="nm">2026 濟州島四寶團</div>
+          <div class="dt">🍋🐟🐵🐱　2/13 – 2/21 · 2026</div></div></div>
+        <div class="card"><div class="img g-hok"><div class="bg">✈️</div><div class="scrim"></div>
+          <span class="pill">✅ 已結算</span><div class="nm">2025 北海道四寶團</div>
+          <div class="dt">🍋🐟🐵🐱　5/29 – 6/3 · 2025</div></div></div>
+      </div></div></div>
+    <div><span class="balabel">日記精裝</span>
+      <div class="ph"><div class="sc af">
+        <div class="top"><span class="bd">Tripay</span><span class="btn">＋ 新增行程</span></div>
+        <div class="card"><div class="img g-jeju"><div class="bg">✈️</div><div class="scrim"></div>
+          <span class="stamp">已結算</span><div class="nm">2026 濟州島四寶團</div>
+          <div class="dt">🍋🐟🐵🐱　02/13 – 02/21</div></div></div>
+        <div class="card"><div class="img g-hok"><div class="bg">✈️</div><div class="scrim"></div>
+          <span class="stamp">已結算</span><div class="nm">2025 北海道四寶團</div>
+          <div class="dt">🍋🐟🐵🐱　05/29 – 06/03</div></div></div>
+      </div></div></div>
+  </div>
+</section>
+
+<section>
+  <h2>消費列表</h2>
+  <p class="sub">132 筆的那一頁。統計卡與每一筆金額改等寬對齊；列表列從陰影卡片改成細框，密度提高；日期分組改等寬標籤；待填用朱砂左邊框。</p>
+  <div class="ba">
+    <div><span class="balabel now">現況</span>
+      <div class="ph"><div class="sc bf">
+        <div class="hero"><div class="t">2026 濟州島四寶團</div>
+          <div style="font-size:9px;opacity:.85;margin-top:3px">🍋🐟🐵🐱　2/13 – 2/21</div></div>
+        <div class="stats"><div><b>$ 154,502</b><span>總花費</span></div>
+          <div><b>$ 38,239</b><span>我的花費</span></div></div>
+        <div class="day">第 1 天 · 2/13（五）</div>
+        <div class="row"><span class="e">⛽</span><div class="m"><div class="ti">加油</div>
+          <div class="py">🐟 Ziyu</div></div><span class="am">$ 1,959</span></div>
+        <div class="row"><span class="e">🍜</span><div class="m"><div class="ti">早餐湯飯</div>
+          <div class="py">🐟 Ziyu</div></div><span class="am">$ 985</span></div>
+        <div class="row"><span class="e">♨️</span><div class="m"><div class="ti">君悅汗蒸幕</div>
+          <div class="py">🐟 Ziyu</div></div><span class="am">$ 2,629</span></div>
+        <div class="row"><span class="e">🛍️</span><div class="m"><div class="ti">GS25 地瓜</div>
+          <div class="py">🐟 Ziyu</div></div><span class="am">$ 44</span></div>
+      </div></div></div>
+    <div><span class="balabel">日記精裝</span>
+      <div class="ph"><div class="sc af">
+        <div class="hero"><div class="t">2026 濟州島四寶團</div>
+          <div style="font-size:9px;opacity:.9;margin-top:3px;font-family:var(--mono)">🍋🐟🐵🐱　02/13 – 02/21</div></div>
+        <div class="stats"><div><b>154,502</b><span>總花費</span></div>
+          <div><b>38,239</b><span>我的花費</span></div></div>
+        <div class="day">第 1 天 · 02/13 五</div>
+        <div class="row"><span class="e">⛽</span><div class="m"><div class="ti">加油</div>
+          <div class="py">🐟 Ziyu</div></div><span class="am">1,959</span></div>
+        <div class="row"><span class="e">🍜</span><div class="m"><div class="ti">早餐湯飯</div>
+          <div class="py">🐟 Ziyu</div></div><span class="am">985</span></div>
+        <div class="row"><span class="e">♨️</span><div class="m"><div class="ti">君悅汗蒸幕</div>
+          <div class="py">🐟 Ziyu</div></div><span class="am">2,629</span></div>
+        <div class="row"><span class="e">🛍️</span><div class="m"><div class="ti">GS25 地瓜</div>
+          <div class="py">🐟 Ziyu</div></div><span class="am">44</span></div>
+        <div class="row pend"><span class="e">🧴</span><div class="m"><div class="ti">Olive Young</div>
+          <div class="py">🐟 Ziyu · 待補填</div></div><span class="am">—</span></div>
+      </div></div></div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Signature</p>
+  <h2>一處就好：結算送出的那一刻</h2>
+  <div class="sig">
+    <div class="sigbox">
+      <svg class="plane" viewBox="0 0 100 100" aria-label="收據摺成紙飛機">
+        <path d="M18 30 h64 v34 h-64 z"/>
+        <path class="fold" d="M18 30 L50 52 L82 30"/>
+        <path class="fold" d="M50 52 v12"/>
+        <path d="M22 72 L50 58 L78 72 L50 66 Z"/>
+      </svg>
+    </div>
+    <div>
+      <p class="sub" style="margin:0 0 12px">
+        Logo E 的語彙是「收據摺成紙飛機」。整站只在<b>一個時刻</b>用它：
+        按下「算清楚」到結果出現的那幾百毫秒——統計數字所在的那張卡沿著中線收摺、
+        往上送出，落下來變成結算結果。
+      </p>
+      <p class="sub" style="margin:0 0 12px">
+        這個動作有意義：<b>把一疊帳摺起來、寄出去</b>，正是結算在做的事。
+        它也剛好是使用者整趟旅程裡最有情緒的一刻。
+      </p>
+      <p class="sub" style="margin:0">
+        其他地方保持安靜——沒有全站 fade-in、沒有 hover 彈跳、沒有票根撕孔。
+        <code>prefers-reduced-motion</code> 時直接跳到結果，不做摺紙。
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Aria 審查</p>
+  <h2>AI 味檢查清單</h2>
+  <p class="sub">逐條掃這一版。有一項是刻意保留的，理由寫在後面。</p>
+  <div class="tblwrap"><table class="chk">
+    <tr><th>檢查項</th><th>結果</th><th>依據</th></tr>
+    <tr><td>模板色板<br>（暖米白＋陶土橘）</td><td class="v p">通過</td>
+      <td>底色改收據紙 <code>#F1F0EA</code>（偏冷帶綠），accent 改印泥朱砂 <code>#9E3A2F</code>（紅，非橘）。
+        六色全部有實體來源，四色直接取自現行 <code>destinations.ts</code>。</td></tr>
+    <tr><td>均一圓角</td><td class="v p">通過</td>
+      <td>只有兩種：<code>3px</code>（紙的裁切邊）與 <code>999px</code>（僅成員頭像）。取消現況的 12/16/22px 混用。</td></tr>
+    <tr><td>膠囊 badge 泛濫</td><td class="v p">通過</td>
+      <td>取消所有膠囊底色 badge，狀態統一為「章」：外框＋等寬大寫＋朱砂色，一種樣式。</td></tr>
+    <tr><td>emoji 當 icon</td><td class="v p">通過</td>
+      <td>移除狀態章上的 ✅。保留的 emoji 只有三類且都是產品概念：成員、行程封面、消費分類。</td></tr>
+    <tr><td>無意義編號</td><td class="v p">通過</td>
+      <td>唯一的序號是「第 N 天」，那是真實序列（行程第幾天），不是裝飾。</td></tr>
+    <tr><td>gradient 濫用</td><td class="v f">1 項保留</td>
+      <td><b>照片卡的目的地色調 gradient 保留</b>——它是<b>真實照片的佔位</b>，
+        照片一到就會被取代，不是裝飾性漸層。介面元件（按鈕、統計卡、列表）一律純色。</td></tr>
+    <tr><td>全部置中</td><td class="v p">通過</td>
+      <td>只有統計卡的數字置中（欄位對齊需要），其餘一律左對齊。</td></tr>
+    <tr><td>陰影堆疊</td><td class="v p">通過</td>
+      <td>兩層封頂。列表列改用 1px 邊框取代陰影，密度因此提高。</td></tr>
+  </table></div>
+</section>
+
+<footer>
+  第一段交付到此。Rozi 點頭後才鋪 8 個既有畫面的打磨版 ＋ 4 個新畫面
+  （people 通訊錄、卡片管理、帳單週期列表、副卡視角），
+  並在該階段一併提出 Phase 1.5 backlog 五項的做不做與版位建議。
+</footer>
+
+</div>
