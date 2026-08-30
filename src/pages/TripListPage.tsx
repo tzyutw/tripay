@@ -33,6 +33,8 @@ export default function TripListPage() {
       const { data, error } = await supabase
         .from('trips')
         .select('*, trip_members!trip_members_trip_id_fkey(*)')
+        // Phase 2：帳單週期（kind='statement'）不得混進旅遊列表
+        .eq('kind', 'trip')
         .eq('owner_id', user.id)
         // S-01 排序規則：依出發日新→舊。準備旅遊的行程日期在未來，自然排最上，
         // 不需另做置頂邏輯。同日則以建立時間新→舊作次要排序（穩定順序）。

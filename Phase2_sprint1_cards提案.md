@@ -40,6 +40,15 @@
 > `TripListPage` 的查詢未來必須加 `.eq('kind', 'trip')`，
 > 否則帳單週期會混進旅遊列表。**在建立第一筆 statement 之前補上即可**。
 
+> ⚠️ **刪卡的連鎖效應（Rozi 2026-08-30 指定記錄）**
+> `trips.card_id` 是 **`ON DELETE CASCADE`** —— **刪掉一張卡，會連帶刪掉該卡的全部帳單週期
+> 與其下所有消費、分帳、結算紀錄。**
+> 未來的「刪除卡片」UI **必須明示警告 ＋ 二次確認**，並列出將一併刪除的週期數與消費筆數，
+> 比照 Phase 1「刪除行程」要求輸入名稱才可按的作法。
+>
+> （不改成 `SET NULL` 的理由：帳單週期脫離卡片後就沒有意義，留著會變成孤兒週期。
+> 風險用 UI 層的警告與二次確認來擋，而不是讓資料留半套。）
+
 **Rollback**：
 ```sql
 alter table expenses drop constraint if exists expenses_card_id_fkey;
