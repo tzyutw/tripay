@@ -260,7 +260,14 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
     畫面上只要看到橘紅色的<b>底</b>，就是刪除等級的動作。
   </div>
   <div class="callout">
-    <b>2026-08-31 第一批調整（本次更新）：</b>
+    <b>2026-08-31 第二次更新（最新）：</b>
+    三個 UX 提案 Rozi 已全數裁定，提案節標示結論。
+    <code>S-03-13</code>（G-05 分享橫幅）<b>移除</b>，改由 <code>S-05-29</code>（結算完成頁分享 CTA，新增）取代——
+    推翻方式：恢復 G-05 觸發即可。<code>S-01-4</code> 確認為筆誤、維持保留並補 CTA。
+    <b>受影響的 S-01／S-03／S-05 已重新完整渲染</b>，含移除後的版面遞補與底部收束。
+  </div>
+  <div class="callout">
+    <b>2026-08-31 第一批調整：</b>
     移除 <code>S-00-1</code> App icon、<code>S-00-6</code> 幽靈卡、<code>S-01-9</code>＋<code>S-01-10</code> 分享橫幅。
     <b>編號不重排</b>——移除的項目留在盤點表裡標成刪除線，號碼不回收，你之前記下的編號永遠指向同一件事。
     新增「UX 重新評估」一節（P-1／P-2／P-3 三個提案＋一個要你確認的問號）。
@@ -283,14 +290,14 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
   <div class="toc">
     <a href="#s00"><span class="k">S-00</span><span class="t">登入</span><span class="n">7 項</span></a>
     <a href="#s01"><span class="k">S-01</span><span class="t">首頁 · 行程列表</span><span class="n">13 項</span></a>
-    <a href="#prop" class="new"><span class="k">提案</span><span class="t">UX 重新評估</span><span class="n">3＋1 條</span></a>
+    <a href="#prop" class="new"><span class="k">提案</span><span class="t">UX 重新評估</span><span class="n">已全數裁定</span></a>
     <a href="#s02"><span class="k">S-02</span><span class="t">新增行程</span><span class="n">18 項</span></a>
     <a href="#s02b"><span class="k">S-02b</span><span class="t">編輯行程 · 封面</span><span class="n">9 項</span></a>
     <a href="#s02c"><span class="k">S-02c</span><span class="t">Emoji 選擇器</span><span class="n">9 項</span></a>
     <a href="#s03"><span class="k">S-03</span><span class="t">消費瀏覽</span><span class="n">26 項</span></a>
     <a href="#s03b"><span class="k">S-03b·c</span><span class="t">分享選單／刪除</span><span class="n">14 項</span></a>
     <a href="#s04"><span class="k">S-04</span><span class="t">記一筆</span><span class="n">28 項</span></a>
-    <a href="#s05"><span class="k">S-05</span><span class="t">結算 · 四態</span><span class="n">28 項</span></a>
+    <a href="#s05"><span class="k">S-05</span><span class="t">結算 · 四態</span><span class="n">29 項</span></a>
     <a href="#s06"><span class="k">S-06</span><span class="t">分享頁</span><span class="n">14 項</span></a>
     <a href="#s07"><span class="k">S-07</span><span class="t">設定</span><span class="n">8 項</span></a>
     <a href="#s08" class="new"><span class="k">S-08 新</span><span class="t">通訊錄</span><span class="n">11 項</span></a>
@@ -407,19 +414,21 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
           <p style="margin:0;font-size:13px;color:#5C6660">你的下一趟在哪？</p>
         </div>
       </div>
+      <div style="height:18px"></div>
+      <div class="fixnote" style="padding:0 0 10px">列表到此結束。首頁<b>沒有固定底部操作列</b>，最後一張卡下方留 18px 收邊，捲到底就是白紙</div>
     </div></div>
     </div>
   </div>
 
   <div>
-    <p class="cnt">功能盤點 · 13 項　—　<b>移除 2（S-01-9／S-01-10）</b>，<b>待確認 1（S-01-4）</b>，其餘保留</p>
+    <p class="cnt">功能盤點 · 13 項　—　<b>移除 2（S-01-9／S-01-10）</b>，S-01-4 已確認保留並補 CTA</p>
     <div class="tblwrap"><table>
       <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
       <tbody>
       <tr><td class="n">S-01-1</td><td class="el">標題列</td><td>Tripay 字標，28px，<b>不吸頂</b>（隨頁面捲走）</td><td><span class="tag chg">改</span> 加下緣分隔線</td><td class="src">TripListPage:65</td></tr>
       <tr><td class="n">S-01-2</td><td class="el">＋ 新增行程</td><td>開 TripFormSheet（S-02），無預填 tripId</td><td><span class="tag chg">改</span> 工作色</td><td class="src">TripListPage:67</td></tr>
       <tr><td class="n">S-01-3</td><td class="el">載入中</td><td>置中轉圈，py-12</td><td>照舊</td><td class="src">TripListPage:80</td></tr>
-      <tr class="ask"><td class="n">S-01-4</td><td class="el">空狀態</td><td>「還沒有行程。／第一趟要去哪？」<b>沒有 CTA 按鈕</b>，要按右上角</td><td><span class="tag ask">待確認</span> 指令寫「S-01-9 與 S-01-4 移除（分享入口常駐但對象不明）」，但 S-01-4 是<b>空狀態</b>、與分享無關。<b>暫留未動</b>，理由見下方問號</td><td class="src">TripListPage:86</td></tr>
+      <tr><td class="n">S-01-4</td><td class="el">空狀態</td><td>「還沒有行程。／第一趟要去哪？」<b>沒有 CTA 按鈕</b>，要按右上角</td><td><span class="tag new">新</span> Rozi 2026-08-31 確認先前是筆誤，<b>維持保留</b>；並依讀碼發現 #11 <b>補一顆 CTA</b></td><td class="src">TripListPage:86</td></tr>
       <tr><td class="n">S-01-5</td><td class="el">行程卡</td><td>184px 目的地 gradient（<code>destinationOf()</code> 依行程名關鍵字比對，對不到用 id 雜湊挑預設色）＋底部壓暗遮罩；整張可點 → <code>/trips/:id</code></td><td><span class="tag chg">改</span> 卡片加白邊像貼進本子；<span class="tag new">新</span> 有封面照時改放照片</td><td class="src">TripListPage:104</td></tr>
       <tr><td class="n">S-01-6</td><td class="el">狀態徽章</td><td>四態：出發前／旅途中／✅ 已結算／已封存。由 <code>deriveDisplayStatus()</code> 推導，不是資料庫欄位</td><td><span class="tag chg">改</span> 膠囊底色→描邊章，✅ 拿掉（顏色已表意）</td><td class="src">deriveStatus.ts:10</td></tr>
       <tr><td class="n">S-01-7</td><td class="el">封存卡樣式</td><td>整張 <code>saturate(.55) brightness(.9)</code></td><td>照舊</td><td class="src">TripListPage:110</td></tr>
@@ -438,14 +447,14 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
 <section class="scr" id="prop" style="grid-template-columns:1fr">
   <div class="scrhd">
     <span class="k new">提案</span>
-    <h2>UX 重新評估：三個提案，全部待裁示</h2>
-    <p class="d">Rozi 2026-08-31 指定的三件重新評估。<b>提案不逕行定案</b>——
-      稿上已照指令移除的區塊是既成事實，但下列替代方案在你點頭之前不會進實作。</p>
+    <h2>UX 重新評估：三個提案，Rozi 已全數裁定</h2>
+    <p class="d"><b>2026-08-31 更新：三案全數通過／裁定，下方標示各自的結論。</b>
+      已裁定的部分已反映到對應畫面與盤點表；仍需另行定案的只剩 S-05-29 的文案。</p>
   </div>
 
   <div>
     <div class="prop">
-      <span class="pk">P-1 · 登入頁識別</span>
+      <span class="pk">P-1 · 登入頁識別　—　<b style="color:var(--ok)">已通過</b></span>
       <h3>移除 icon 後，用字標＋slogan 承擔識別就夠了</h3>
       <p>S-00-1 拿掉後，頂部並沒有留下空洞——<b>S-00-2（Tripay 字標）與 S-00-3（每一趟，都記得）本來就在</b>，
         原本 icon 只是疊在它們上面的第三層。移除後版面反而更接近「一頁只有一個焦點」。</p>
@@ -454,12 +463,12 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
         <li>slogan 用等寬字拉開字距當副標——這是全站唯一會這樣排的地方，本身就是識別</li>
         <li>不做代用圖示：一個臨時的 emoji 方塊會在未來真的有 logo 時變成技術債</li>
       </ul>
-      <div class="verdict"><b>建議：</b>維持現狀（字標＋slogan），<b>不補任何圖形</b>。
+      <div class="verdict"><b>Rozi 2026-08-31 裁定：通過。</b>S-00 以字標 Tripay＋slogan 承擔識別，<b>不補任何圖形</b>。<br><br><b>原提案：</b>維持現狀（字標＋slogan），<b>不補任何圖形</b>。
         日後若要 logo，收據摺紙（S-05-16 的 signature）是現成的圖形語彙，可以直接長成 logo。</div>
     </div>
 
     <div class="prop">
-      <span class="pk">P-2 · G-02 幽靈卡該放哪</span>
+      <span class="pk">P-2 · G-02 幽靈卡該放哪　—　<b style="color:var(--ok)">已通過</b></span>
       <h3>結論：登入頁不該有它。移除即可，不需要另找位置</h3>
       <p>你問的是「放在 S-00 是否合理」。我的結論是<b>不合理</b>，而且<b>不需要搬家</b>——因為它想做的事，S-01 已經在做了。</p>
       <ul>
@@ -468,12 +477,12 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
         <li><b>它的產品意圖在未登入時無效。</b>「你的下一趟在哪？」預設了「你有上一趟」。對還沒登入、可能還沒用過的人，這句話沒有對象</li>
         <li><b>職責已經有人做了。</b>S-01-8 是同一個元件，而且<b>在那裡是可點的</b>（開新增行程）。留兩份只會讓其中一份是假的</li>
       </ul>
-      <div class="verdict"><b>建議：</b>S-00 移除（已照做），<b>S-01-8 保留並維持可點</b>。
+      <div class="verdict"><b>Rozi 2026-08-31 裁定：通過。</b>幽靈卡自 S-00 移除、<b>不搬家</b>；S-01-8 維持。<br><br><b>原提案：</b>S-00 移除，<b>S-01-8 保留並維持可點</b>。
         G-02 的成效觀察改看 S-01-8 的點擊，不需要兩個量測點。</div>
     </div>
 
     <div class="prop">
-      <span class="pk">P-3 · 分享動線</span>
+      <span class="pk">P-3 · 分享動線　—　<b style="color:var(--ok)">已裁定（部分調整）</b></span>
       <h3>分享入口該出現在「答案剛產生」的那一刻，不是常駐在沒有對象的地方</h3>
       <p>現況有三個分享入口，問題各不相同：</p>
       <ul>
@@ -483,15 +492,16 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
         <li><b>S-05 結算完成頁完全沒有分享入口。</b>這才是問題所在：「誰付給誰」的答案剛算出來、大家最需要看到的那一刻，畫面上只有「建立新行程」和「封存行程」</li>
         <li>連帶地，S-03b 的「複製結算摘要」在未結算時只會複製到一行標題（讀碼發現的延伸）</li>
       </ul>
-      <div class="verdict"><b>提案：</b>分享入口從三個收斂成兩個，並且改綁在「有東西可分享」的時刻——
-        ① <b>S-03-5 常駐 ↑ 維持不動</b>（決策 7 不變）；
-        ② <b>S-05 狀態 4「帳算清楚了」加一顆分享 CTA</b>，與「封存行程」並列，成為那一頁的主要動作；
-        ③ <b>G-05 觸發時機從「記了第 1 筆」改為「結算確認後尚未分享」</b>，或直接由 ② 取代、整個拿掉。
-        <br><br>三條都待你裁示，這一批不動 S-03／S-05 的稿。</div>
+      <div class="verdict"><b>Rozi 2026-08-31 裁定：</b>
+        ① <b>S-03 右上分享常駐不動</b>（6/26 既有決策，不動）；
+        ② <b>S-05 結算完成頁新增分享 CTA</b>＝<code>S-05-29</code>，已畫入，升為該頁主要動作。
+        <b>文案先放佔位</b>，由 Copywriter 循「暫時算一下」同流程提案後經 Rozi 定案；
+        ③ <b>G-05 拿掉</b>（<code>S-03-13</code> 已移除），<b>由 S-05-29 取代</b>。
+        <br><br><b>推翻方式：</b>恢復 G-05 的觸發條件即可，S-05-29 可獨立保留或一併移除。</div>
     </div>
 
     <div class="prop q">
-      <span class="pk">? · 需要你確認才能動的一項</span>
+      <span class="pk">? · 已確認　—　<b style="color:var(--ok)">Rozi 確認為筆誤</b></span>
       <h3>S-01-4 我沒有移除，因為指令的理由對不上它</h3>
       <p>指令寫「<b>S-01-9 與 S-01-4 移除（分享入口常駐但對象不明，令人困惑）</b>」。
         括號裡的理由精準描述了 S-01-9（G-06 分享橫幅）與它裡面的 S-01-10（複製連結鈕），
@@ -500,8 +510,8 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
         <li>如果真的移除，<b>新使用者的首頁會是一片空白</b>：沒有列表、沒有文字、沒有按鈕</li>
         <li>而且它與讀碼發現 #11（「空狀態沒有任何 CTA，建議補一顆按鈕」）方向相反</li>
       </ul>
-      <div class="verdict"><b>我的判斷：</b>「S-01-4」很可能是「S-01-10」的筆誤——S-01-10 正是那顆令人困惑的分享按鈕，而它已隨 S-01-9 移除。
-        <b>所以我先保留 S-01-4 未動。</b>如果你確實要移除空狀態，下一批說一聲，我照辦。</div>
+      <div class="verdict"><b>Rozi 2026-08-31 確認：是筆誤，S-01-4 維持保留。</b>
+        並且依讀碼發現 #11 <b>補一顆 CTA</b> 進空狀態（列入實作批次工作清單）。</div>
     </div>
   </div>
 </section>
@@ -815,14 +825,6 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
         </div>
       </div>
 
-      <div class="b" data-n="S-03-13" style="margin:11px 13px 0;border:1px solid var(--ln);background:#fff;border-radius:3px;padding:10px;display:flex;gap:9px;align-items:flex-start">
-        <span style="font-size:17px">🎉</span>
-        <div style="flex:1"><p style="margin:0;font-size:12px;font-weight:600">記完了嗎？讓大家看看。</p>
-          <p style="margin:3px 0 0;font-size:10px;color:var(--md)">把這趟的消費明細分享給大家，一起確認。</p></div>
-        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
-          <span style="background:var(--w);color:#fff;font-size:9.5px;font-weight:600;padding:4px 8px;border-radius:3px">分享給大家</span>
-          <span style="font-size:9.5px;color:var(--gr)">之後再說</span></div>
-      </div>
 
       <div class="b empty" data-n="S-03-14" style="padding:20px 22px;border-top:1px dashed var(--ln);border-bottom:1px dashed var(--ln);margin-top:11px">
         <p>第一筆從哪裡開始？</p><p>早餐、計程車、門票，都可以記</p>
@@ -864,7 +866,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
   </div>
 
   <div>
-    <p class="cnt">功能盤點 · 26 項　—　現況 24 項全在，2 項為本輪行為變更</p>
+    <p class="cnt">功能盤點 · 26 項　—　<b>移除 1（S-03-13 G-05）</b>，其餘保留</p>
     <div class="tblwrap"><table>
       <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
       <tbody>
@@ -880,7 +882,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <tr><td class="n">S-03-10</td><td class="el">待填警語</td><td>「⚠️ 含 N 筆待填，數字僅供參考」（決策 4 方案 C），N＝0 時不顯示</td><td>照舊</td><td class="src">ExpenseListPage:369</td></tr>
       <tr><td class="n">S-03-11</td><td class="el">我的花費</td><td>依 <code>owner_member_id</code>：共同＝總額÷參與人數；各付各的＝我那格；<b>只算我＝不計入</b>。<b>沒標記「這是我」時恆為 0，且無提示</b></td><td><span class="tag bug">議</span> 見發現 #5</td><td class="src">ExpenseListPage:243</td></tr>
       <tr><td class="n">S-03-12</td><td class="el">幣別切換</td><td>目前<b>只換消費列的金額</b>，統計卡兩格恆為台幣</td><td><span class="tag chg">改</span> 決策 34：整頁一起切，預設台幣。結算恆為台幣不受影響</td><td class="src">ExpenseListPage:387</td></tr>
-      <tr><td class="n">S-03-13</td><td class="el">G-05 分享橫幅</td><td><b>只在消費恰好 1 筆時出現</b>；「之後再說」寫入 sessionStorage，該分頁不再顯示</td><td>照舊</td><td class="src">ExpenseListPage:403</td></tr>
+      <tr class="gone"><td class="n">S-03-13</td><td class="el">G-05 分享橫幅</td><td><b>只在消費恰好 1 筆時出現</b>；「之後再說」寫入 sessionStorage，該分頁不再顯示</td><td><span class="tag del">移除</span> Rozi 2026-08-31 裁定：由 <code>S-05-29</code> 取代。<b>推翻方式：恢復 G-05 觸發即可</b></td><td class="src">ExpenseListPage:403</td></tr>
       <tr><td class="n">S-03-14</td><td class="el">空狀態</td><td>兩組文案：出發前＝「出發前的費用也先記／訂票、換外幣、買行李，都算這趟的帳」；旅途中＝「第一筆從哪裡開始？／早餐、計程車、門票，都可以記」</td><td>照舊</td><td class="src">ExpenseListPage:437</td></tr>
       <tr><td class="n">S-03-15</td><td class="el">日期分組標頭</td><td>出發日之前一律歸「出發前」；之後為「第 N 天 · M/D（週幾）」</td><td>照舊</td><td class="src">ExpenseListPage:16</td></tr>
       <tr><td class="n">S-03-16</td><td class="el">消費列</td><td>整列可點 → 開 S-04 編輯。左側 emoji：有 <code>category_emoji</code> 用它，否則由標題關鍵字推斷</td><td>照舊</td><td class="src">ExpenseListPage:472</td></tr>
@@ -1242,14 +1244,18 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
           <span style="text-align:right"><span class="num" style="font-size:13.5px;font-weight:600;display:block">$ 3,633</span><span style="font-size:9px;font-weight:600;color:var(--in)">✓ 已付清</span></span></div>
       </div>
 
-      <div class="b btnrow" data-n="S-05-19" style="margin-top:12px"><span class="btn gh">＋ 建立新行程</span><span class="btn">封存行程</span></div>
-      <div class="fixnote">狀態 4 · 全員付清（慶祝）</div>
+      <div class="b" data-n="S-05-29" style="margin:14px 13px 0">
+        <div class="btn" style="padding:11px 0">〔文案待定〕分享結果</div>
+        <p class="hint" style="text-align:center;margin-top:5px">佔位文案。由 Copywriter 循「暫時算一下」同流程提案後經 Rozi 定案</p>
+      </div>
+      <div class="b btnrow" data-n="S-05-19" style="margin-top:10px"><span class="btn qt">＋ 建立新行程</span><span class="btn qt">封存行程</span></div>
+      <div class="fixnote">狀態 4 · 全員付清（慶祝）　·　分享升為主要動作，原兩顆降為次級</div>
     </div></div>
     </div>
   </div>
 
   <div>
-    <p class="cnt">功能盤點 · 28 項（含新增的 S-05-28）</p>
+    <p class="cnt">功能盤點 · 29 項（新增 S-05-28、S-05-29）</p>
     <div class="tblwrap"><table>
       <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
       <tbody>
@@ -1281,6 +1287,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <tr><td class="n">S-05-26 <span class="tag inv">不在稿上</span></td><td class="el">hub 式結算</td><td><b>尚未實作</b></td><td><span class="tag new">新</span> Phase 1.5：加 toggle，比照 Splitwise <b>預設關</b></td><td class="src">Phase 1.5</td></tr>
       <tr><td class="n">S-05-27 <span class="tag inv">不在稿上</span></td><td class="el">摺紙 signature</td><td>—</td><td><span class="tag new">新</span> <b>品質門檻</b>：必須讀得出「一疊帳摺起來 → 寄出去」兩段敘事，用 CSS 3D <code>rotateX</code> 分步摺疊。<b>Aria 判定不達標就退回乾淨 loading，不留半吊子動畫</b></td><td class="src">tokens v3</td></tr>
       <tr><td class="n">S-05-28</td><td class="el">「暫時算一下」預覽</td><td>—</td><td><span class="tag new">新</span> Rozi 2026-08-31 定案（讀碼發現 #14）：未結算態新增<b>唯讀</b>淨額預覽。警語「記帳還在變，按『算清楚』才算數」；每人一行沿用結算頁既有格式。<b>即時計算、不寫入 settlements、不影響「算清楚」流程與其後畫面</b></td><td class="src">發現 #14</td></tr>
+      <tr><td class="n">S-05-29</td><td class="el">結算完成分享 CTA</td><td>—</td><td><span class="tag new">新</span> Rozi 2026-08-31 裁定（P-3）：結算完成頁新增分享，<b>升為主要動作</b>，原「建立新行程／封存行程」降為次級。<b>取代 G-05</b>（S-03-13）。文案佔位，由 Copywriter 循「暫時算一下」同流程提案後經 Rozi 定案</td><td class="src">P-3</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1888,9 +1895,9 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
 </section>
 
 <footer>
-  <div>Tripay · Wireframe v5 · 2026-08-31（第一批調整：S-00／S-01）</div>
+  <div>Tripay · Wireframe v5 · 2026-08-31（第二次更新：S-01／S-03／S-05）</div>
   <div style="margin-top:6px">16 個畫面段落 · 220 個編號項目 · 14 條讀碼發現 · 盤點自 src/pages 與 src/components 共 3,302 行</div>
-  <div style="margin-top:6px">下一步：等 Rozi 的第二批調整清單（S-02 起）與三個提案的裁示 → 修完 → 才進實作</div>
+  <div style="margin-top:6px">下一步：等 Rozi 的第二批逐頁清單（S-02 起）→ 修完 → 才進實作。三個提案已裁定，僅 S-05-29 文案待 Copywriter 提案</div>
 </footer>
 
 </div>
