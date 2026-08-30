@@ -3,33 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { deriveDisplayStatus, STATUS_LABEL, STATUS_BADGE_CLASS } from '@/lib/deriveStatus';
-import type { TripWithMembers, Expense } from '@/types/database';
+import { destinationOf } from '@/lib/destinations';
+import type { TripWithMembers } from '@/types/database';
 import TripFormSheet from '@/components/TripFormSheet';
-
-// 列表頁只需要金額相關欄位來加總總花費
-type TripExpenseLite = Pick<Expense, 'twd_amount' | 'twd_pending' | 'is_sponsor' | 'deleted_at'>;
-type TripWithTotals = TripWithMembers & { expenses: TripExpenseLite[] };
-
-// 與詳情頁 (ExpenseListPage) 相同的總花費邏輯：
-// 排除待填 (twd_pending)、無金額 (null)、已刪除 (deleted_at)，贊助 (is_sponsor) 不計入支出
-function tripTotal(expenses: TripExpenseLite[] = []): number {
-  return expenses.reduce((sum, e) => {
-    if (e.deleted_at || e.twd_pending || e.twd_amount === null) return sum;
-    return sum + (e.is_sponsor ? 0 : e.twd_amount);
-  }, 0);
-}
-
-const GRADIENTS = [
-  'linear-gradient(148deg, #1A3558 0%, #2B5590 42%, #684533 100%)',
-  'linear-gradient(148deg, #0A6060 0%, #19999A 42%, #D96040 100%)',
-  'linear-gradient(148deg, #264C10 0%, #457A28 50%, #88AA58 100%)',
-  'linear-gradient(148deg, #38266A 0%, #644A96 50%, #B09050 100%)',
-];
-
-function tripGradient(id: string) {
-  const idx = id.charCodeAt(id.length - 1) % GRADIENTS.length;
-  return GRADIENTS[idx];
-}
 
 function formatDateRange(start: string, end: string) {
   const s = new Date(start);
@@ -49,21 +25,21 @@ export default function TripListPage() {
     if (location.pathname === '/trips/new') setFormOpen(true);
   }, [location.pathname]);
 
-  const { data: trips = [], isLoading } = useQuery<TripWithTotals[]>({
+  const { data: trips = [], isLoading } = useQuery<TripWithMembers[]>({
     queryKey: ['trips'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       const { data, error } = await supabase
         .from('trips')
-        .select('*, trip_members!trip_members_trip_id_fkey(*), expenses(twd_amount, twd_pending, is_sponsor, deleted_at)')
+        .select('*, trip_members!trip_members_trip_id_fkey(*)')
         .eq('owner_id', user.id)
         // S-01 排序規則：依出發日新→舊。準備旅遊的行程日期在未來，自然排最上，
         // 不需另做置頂邏輯。同日則以建立時間新→舊作次要排序（穩定順序）。
         .order('start_date', { ascending: false })
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data ?? []) as TripWithTotals[];
+      return (data ?? []) as TripWithMembers[];
     },
   });
 
@@ -114,51 +90,49 @@ export default function TripListPage() {
 
           {trips.map((trip) => {
             const display    = deriveDisplayStatus(trip);
-            const isPending  = display !== 'settled' && display !== 'archived';
             // simplified pending count via member count as proxy (replace with real query later)
             const memberEmojis = trip.trip_members
               .sort((a, b) => a.sort_order - b.sort_order)
               .map(m => m.emoji)
               .join('');
-            const total = tripTotal(trip.expenses);
+            const dest = destinationOf(trip.name, trip.id);
 
             return (
               <div
                 key={trip.id}
                 onClick={() => navigate(`/trips/${trip.id}`)}
-                className="rounded-2xl overflow-hidden shadow-card cursor-pointer active:scale-[0.986] transition-transform duration-200"
+                className="rounded-2xl overflow-hidden shadow-card cursor-pointer active:scale-[0.985] transition-transform"
               >
-                {/* Card background */}
+                {/* 目的地照片卡：gradient 為佔位，data-photo 標示該換上的實體照片 */}
                 <div
-                  className="h-[142px] relative flex flex-col justify-end p-4"
-                  style={{ background: tripGradient(trip.id) }}
+                  data-photo={dest.photo}
+                  className={`h-[184px] relative flex flex-col justify-end px-4 pb-4 ${display === 'archived' ? 'saturate-[0.55] brightness-90' : ''}`}
+                  style={{ background: dest.gradient }}
                 >
-                  <span className="absolute top-4 right-4 text-[34px] leading-none">{trip.emoji}</span>
+                  {/* 底部壓暗，確保文字在任何照片上都讀得到 */}
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 38%, rgba(0,0,0,0.46) 100%)' }}
+                  />
+                  <span className="absolute top-4 right-4 text-[34px] leading-none drop-shadow">{trip.emoji}</span>
 
-                  {/* Status badge */}
-                  <span
-                    className={`inline-flex items-center px-[10px] py-[3px] rounded-full text-[11px] font-bold tracking-[0.04em] w-fit mb-[6px] ${STATUS_BADGE_CLASS[display]}`}
-                  >
-                    {STATUS_LABEL[display]}
-                  </span>
+                  <div className="relative">
+                    <span
+                      className={`inline-flex items-center px-[10px] py-[3px] rounded-full text-[11px] font-bold tracking-[0.04em] w-fit mb-[6px] ${STATUS_BADGE_CLASS[display]}`}
+                    >
+                      {STATUS_LABEL[display]}
+                    </span>
 
-                  <p className="font-sans text-[22px] font-bold text-white tracking-tight leading-tight drop-shadow">
-                    {trip.name}
-                  </p>
-                </div>
-
-                {/* Card footer */}
-                <div className="bg-white px-4 py-[11px] flex items-center justify-between">
-                  <span className="text-[19px] tracking-wider">{memberEmojis}</span>
-                  <div className="text-right">
-                    <p className="text-[17px] font-bold text-ink tabular-nums">
-                      {total > 0
-                        ? `$ ${total.toLocaleString()}`
-                        : '$ —'}
+                    <p className="font-sans text-[22px] font-bold text-white tracking-tight leading-snug">
+                      {trip.name}
                     </p>
-                    <p className="text-[11px] text-muted mt-[2px]">
-                      {formatDateRange(trip.start_date, trip.end_date)}
-                    </p>
+
+                    <div className="flex items-center gap-2 mt-[6px]">
+                      <span className="text-[17px] tracking-wider">{memberEmojis}</span>
+                      <span className="text-[12px] text-white/85 tabular-nums">
+                        {formatDateRange(trip.start_date, trip.end_date)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -169,7 +143,9 @@ export default function TripListPage() {
         {/* G-02 Ghost card */}
         <div
           className="mx-5 mb-5 rounded-2xl overflow-hidden cursor-pointer animate-ghost-pulse"
-          style={{ filter: 'blur(1.8px)', opacity: 0.5 }}
+          // Aria 2026-08-30：原本 blur1.8/opacity.5 疊上低對比文字後幾乎看不見，
+          // 但它是可點的「再開一趟」入口。保留幽靈感，調到讀得到。
+          style={{ filter: 'blur(0.8px)', opacity: 0.72 }}
           onClick={openNew}
         >
           <div
@@ -178,7 +154,7 @@ export default function TripListPage() {
           >
             <p
               className="font-serif text-[18px] italic"
-              style={{ color: 'rgba(80,55,42,0.5)' }}
+              style={{ color: 'rgba(80,55,42,0.72)' }}
             >
               你的下一趟在哪？
             </p>
