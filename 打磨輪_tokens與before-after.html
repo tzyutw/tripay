@@ -1,7 +1,7 @@
 <title>日記精裝 Design Tokens</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+TC:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 
 <style>
 :root{
@@ -9,7 +9,7 @@
   --pgink:#E8EDF0; --pgink2:#9FB0BA; --pgink3:#6B7C87;
   --pgrule:#2A353C; --mark:#4EA3E8;
   --ok:#63B588; --no:#E0714E;
-  --serif:'Noto Serif TC',"Songti TC",serif;
+  --serif:"PingFang TC","Noto Sans TC","Hiragino Sans",system-ui,sans-serif;
   --sans:"PingFang TC","Noto Sans TC","Hiragino Sans",system-ui,sans-serif;
   --mono:'IBM Plex Mono',"PingFang TC",ui-monospace,monospace;
 }
@@ -165,6 +165,10 @@ td.m{font-family:var(--mono);font-size:11.5px;white-space:nowrap}
   letter-spacing:-.02em;display:block}
 .af .row .sub2{font-family:var(--mono);font-size:8.5px;color:var(--gr);font-variant-numeric:tabular-nums}
 .af .row.pend{border-left:2px solid var(--out)}
+.af .curr{display:flex;gap:0;margin:10px 14px 0;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
+.af .seg{flex:1;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:.06em;
+  padding:5px 0;color:var(--gr);background:#fff}
+.af .seg.on{background:var(--w);color:#fff}
 
 .sig{display:grid;grid-template-columns:220px 1fr;gap:30px;align-items:center}
 @media(max-width:700px){.sig{grid-template-columns:1fr}}
@@ -286,23 +290,25 @@ footer{padding:40px 0 70px;color:var(--pgink3);font-size:12.5px;font-family:var(
 
 <section>
   <p class="eyebrow">Typography</p>
-  <h2>繁中沒得挑，個性放在紀律與數字</h2>
+  <h2>不載中文 webfont，個性放在紀律與數字</h2>
   <p class="sub">
-    繁中襯線實際只有 <b>Noto Serif TC</b> 可行且檔案大 → <b>只用在標題</b>；內文一律系統字 PingFang TC。
-    <b>不用圓潤幾何無襯線</b>（Poppins 系＝Splitwise 皮，且繁中無對應）。
+    <b>不載任何中文 webfont。</b>標題與內文都用 PingFang TC（fallback Noto Sans TC），
+    省掉數 MB 的字檔，也避開「繁中襯線只有一個選項」這件事本身就會讓成品長得跟別人一樣。
+    <b>整站個性由字階、字重紀律與等寬數字承擔</b>——唯一載入的 webfont 是數字用的 IBM Plex Mono。
+    不用圓潤幾何無襯線（Poppins 系＝Splitwise 皮）。
   </p>
   <div class="tblwrap"><table>
     <tr><th>角色</th><th>字</th><th>規格</th><th>用在哪</th></tr>
     <tr><td style="font-family:var(--serif);font-weight:700;font-size:18px">行程標題</td>
-      <td class="m">Noto Serif TC 700</td><td class="m">22–26px / -.01em</td><td>Hero、行程名、區塊標題</td></tr>
+      <td class="m">PingFang TC 700</td><td class="m">22–26px / -.02em</td><td>Hero、行程名、區塊標題</td></tr>
     <tr><td style="font-weight:600">品項與成員</td><td class="m">PingFang TC 600</td>
       <td class="m">15–16px</td><td>消費列、成員列</td></tr>
     <tr><td class="m" style="letter-spacing:.1em;text-transform:uppercase;color:var(--pgink3)">標籤</td>
       <td class="m">Plex Mono 500</td><td class="m">9–10px / +.1em</td><td>日期分組、統計標籤、chips、狀態章</td></tr>
-    <tr><td class="m" style="font-size:16px;font-weight:600">₩ 5,000</td><td class="m">Plex Mono 600</td>
-      <td class="m">tabular-nums</td><td><b>明細大字級：原幣為主</b></td></tr>
-    <tr><td class="m" style="font-size:11px;color:var(--pgink3)">≈ $ 110</td><td class="m">Plex Mono 400</td>
-      <td class="m">tabular-nums</td><td><b>台幣為輔，小一階、降階色</b>（結算仍以台幣為準）</td></tr>
+    <tr><td class="m" style="font-size:16px;font-weight:600">1,959</td><td class="m">Plex Mono 600</td>
+      <td class="m">tabular-nums</td><td><b>主幣別大字級</b>——由頁面的台幣／外幣切換決定是哪一個</td></tr>
+    <tr><td class="m" style="font-size:11px;color:var(--pgink3)">₩ 89,500</td><td class="m">Plex Mono 400</td>
+      <td class="m">tabular-nums</td><td><b>另一幣別降階</b>，小一階、降階色。<b>結算恆為台幣</b>，不受切換影響</td></tr>
   </table></div>
 </section>
 
@@ -311,9 +317,13 @@ footer{padding:40px 0 70px;color:var(--pgink3);font-size:12.5px;font-family:var(
   <h2>結構原則</h2>
   <div class="limits">
     <div><h4>一色工作原則</h4><p>所有可點擊的東西同一個工作色。現況的 primary＋各狀態色<b>全部收斂</b>。</p></div>
-    <div><h4>金錢方向色</h4><p>綠＝可拿回、橘紅＝要給出，<b>全站統一</b>：結算頁、行程卡、分享頁。其餘文字一律中性。</p></div>
+    <div><h4>金錢方向色</h4><p>綠＝可拿回、橘紅＝要給出，用於<b>結算頁、分享頁、行程內頁統計區</b>。
+      <b>首頁行程卡不顯示金額</b>（路線 2 決策）。其餘文字一律中性。</p></div>
     <div><h4>大色塊 header</h4><p>行程內頁沿用照片卡的容器——滿版目的地色／照片＋白字標題，就是首頁卡的內頁版。</p></div>
     <div><h4>chips 次級導覽</h4><p>結算／統計／分享／匯出收成一排 chips，取代散落的按鈕。</p></div>
+    <div><h4>台幣／外幣切換</h4><p>行程內頁保留現行的雙幣切換，<b>整頁一致</b>（項目＋統計同步換）。<b>結算恆為台幣。</b></p></div>
+    <div><h4>危險動作用色</h4><p>刪除行程／刪卡<b>不用金錢橘紅</b>，改用中性深灰底＋橘紅文字，
+      避免與「要給出」混淆。破壞性確認鈕才填滿橘紅。</p></div>
     <div><h4>圓角兩種、陰影兩層</h4><p><code>3px</code> 卡片與輸入框、<code>999px</code> 僅 chips 與頭像。列表列用 1px 邊框，不用陰影。</p></div>
     <div><h4>emoji 只給人與封面</h4><p>成員、行程封面、消費分類保留。<b>介面 icon 不用 emoji</b>，狀態章上的 ✅ 已移除。</p></div>
   </div>
@@ -322,7 +332,10 @@ footer{padding:40px 0 70px;color:var(--pgink3);font-size:12.5px;font-family:var(
 <section>
   <p class="eyebrow">Before / After</p>
   <h2>首頁</h2>
-  <p class="sub">右邊用候選 A。行程卡右下多了金錢方向色的結餘——這是把「一色工作＋兩色金錢」原則帶到列表層。</p>
+  <p class="sub">
+    右邊用候選 A。<b>行程卡不顯示任何金額</b>——路線 2 的既定決策（首頁是回憶，不是帳本）。
+    金錢方向色只用在<b>結算頁、分享頁、行程內頁統計區</b>。
+  </p>
   <div class="ba">
     <div><span class="balabel now">現況</span><div class="ph"><div class="sc bf">
       <div class="top"><span class="bd">Tripay</span><span class="btn">＋ 新增行程</span></div>
@@ -337,12 +350,10 @@ footer{padding:40px 0 70px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <div class="top"><span class="bd">Tripay</span><span class="btn">＋ 新增行程</span></div>
       <div class="card"><div class="img g-jeju"><div class="bg">✈️</div><div class="scrim"></div>
         <span class="stamp">已結算</span><div class="nm">2026 濟州島四寶團</div>
-        <div class="dt">🍋🐟🐵🐱　02/13 – 02/21</div>
-        <span class="money in">可拿回 3,633</span></div></div>
+        <div class="dt">🍋🐟🐵🐱　02/13 – 02/21</div></div></div>
       <div class="card"><div class="img g-hok"><div class="bg">✈️</div><div class="scrim"></div>
         <span class="stamp">已結算</span><div class="nm">2025 北海道四寶團</div>
-        <div class="dt">🍋🐟🐵🐱　05/29 – 06/03</div>
-        <span class="money out">要給出 7,951</span></div></div>
+        <div class="dt">🍋🐟🐵🐱　05/29 – 06/03</div></div></div>
     </div></div></div>
   </div>
 </section>
@@ -350,7 +361,9 @@ footer{padding:40px 0 70px;color:var(--pgink3);font-size:12.5px;font-family:var(
 <section>
   <h2>消費列表</h2>
   <p class="sub">
-    132 筆的那一頁。加了 chips 次級導覽；金額改<b>原幣為主、台幣為輔</b>（明細大字原幣、下方小字台幣）；
+    132 筆的那一頁。加了 chips 次級導覽，並<b>恢復現行產品本來就有的「台幣／外幣」切換</b>——
+    打磨稿上一版把它弄丟了。<b>預設台幣</b>：所有項目、總花費、我的花費全部顯示台幣（大字），
+    原幣降階顯示在下方小字；切到外幣則整頁反過來。<b>結算恆為台幣，不受切換影響。</b>
     統計卡與所有數字等寬對齊；待填用金錢橘紅左邊框。
   </p>
   <div class="ba">
@@ -374,20 +387,21 @@ footer{padding:40px 0 70px;color:var(--pgink3);font-size:12.5px;font-family:var(
         <div style="font-size:9px;opacity:.9;margin-top:3px;font-family:var(--mono)">🍋🐟🐵🐱　02/13 – 02/21</div></div>
       <div class="chips"><span class="chip on">消費</span><span class="chip">結算</span>
         <span class="chip">統計</span><span class="chip">分享</span><span class="chip">匯出</span></div>
+      <div class="curr"><span class="seg on">台幣</span><span class="seg">₩ 韓圜</span></div>
       <div class="stats"><div><b>154,502</b><span>總花費 TWD</span></div>
         <div><b>38,239</b><span>我的花費</span></div></div>
       <div class="day">第 1 天 · 02/13 五</div>
       <div class="row"><span>⛽</span><div class="m"><div class="ti">加油</div><div class="py">🐟 Ziyu</div></div>
-        <span class="amwrap"><b class="am">₩ 89,500</b><span class="sub2">≈ 1,959</span></span></div>
+        <span class="amwrap"><b class="am">1,959</b><span class="sub2">₩ 89,500</span></span></div>
       <div class="row"><span>🍜</span><div class="m"><div class="ti">早餐湯飯</div><div class="py">🐟 Ziyu</div></div>
-        <span class="amwrap"><b class="am">₩ 45,000</b><span class="sub2">≈ 985</span></span></div>
+        <span class="amwrap"><b class="am">985</b><span class="sub2">₩ 45,000</span></span></div>
       <div class="row"><span>♨️</span><div class="m"><div class="ti">君悅汗蒸幕</div><div class="py">🐟 Ziyu</div></div>
-        <span class="amwrap"><b class="am">₩ 120,000</b><span class="sub2">≈ 2,629</span></span></div>
+        <span class="amwrap"><b class="am">2,629</b><span class="sub2">₩ 120,000</span></span></div>
       <div class="row"><span>🛍️</span><div class="m"><div class="ti">GS25 地瓜</div><div class="py">🐟 Ziyu</div></div>
-        <span class="amwrap"><b class="am">₩ 2,000</b><span class="sub2">≈ 44</span></span></div>
+        <span class="amwrap"><b class="am">44</b><span class="sub2">₩ 2,000</span></span></div>
       <div class="row pend"><span>🧴</span><div class="m"><div class="ti">Olive Young</div>
         <div class="py">🐟 Ziyu · 待補填</div></div>
-        <span class="amwrap"><b class="am">₩ 40,400</b><span class="sub2">≈ —</span></span></div>
+        <span class="amwrap"><b class="am">—</b><span class="sub2">₩ 40,400</span></span></div>
     </div></div></div>
   </div>
 </section>
@@ -408,10 +422,17 @@ footer{padding:40px 0 70px;color:var(--pgink3);font-size:12.5px;font-family:var(
         整站只在<b>一個時刻</b>用它：按下「算清楚」到結果出現的那幾百毫秒——
         統計卡沿中線收摺、往上送出，落下變成結算結果。<b>把一疊帳摺起來寄出去</b>，正是結算在做的事。
       </p>
-      <p class="sub" style="margin:0">
+      <p class="sub" style="margin:0 0 12px">
         其他地方安靜：沒有全站 fade、沒有 hover 彈跳、沒有票根撕孔。
         <code>prefers-reduced-motion</code> 時直接跳結果。
       </p>
+      <div class="callout warn" style="margin:0;max-width:none">
+        <b>品質門檻（Rozi 2026-08-30 訂）：</b>必須讀得出「<b>一疊帳摺起來 → 寄出去</b>」的兩段敘事，
+        實作用 <b>CSS 3D transform 分步摺疊</b>（<code>rotateX</code> 沿摺線收合 → 成形 → 送出），
+        <b>不是 icon 傾斜再彈回</b>。<br>
+        Aria 審查若判定達不到門檻，<b>直接退回乾淨的一般 loading</b>
+        （進度圈＋「正在算清楚…」），<b>不保留半吊子動畫</b>。
+      </div>
     </div>
   </div>
 </section>
@@ -426,7 +447,7 @@ footer{padding:40px 0 70px;color:var(--pgink3);font-size:12.5px;font-family:var(
     <tr><td>teal 工作色</td><td class="v p">通過</td>
       <td>候選 A/B 距 teal 39°／51°，且是藍不是青綠。</td></tr>
     <tr><td>圓潤幾何無襯線</td><td class="v p">通過</td>
-      <td>標題 Noto Serif TC、內文系統字，無 Poppins 系。</td></tr>
+      <td>不載中文 webfont，標題與內文皆 PingFang TC，無 Poppins 系。唯一 webfont 是數字用的 Plex Mono。</td></tr>
     <tr><td>純白／純黑底</td><td class="v p">通過</td>
       <td>紙感底 <code>#EDEEE8</code>；深色模式 <code>#161C21</code> 亦非純黑。</td></tr>
     <tr><td>均一圓角</td><td class="v p">通過</td>

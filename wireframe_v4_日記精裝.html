@@ -1,0 +1,513 @@
+<title>日記精裝 Wireframe v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --pg:#141A1E;--pg2:#1B2329;--pgink:#E8EDF0;--pgink2:#9FB0BA;--pgink3:#6B7C87;
+  --pgrule:#2A353C;--mark:#4EA3E8;--ok:#63B588;--no:#E0714E;
+  --sans:"PingFang TC","Noto Sans TC","Hiragino Sans",system-ui,sans-serif;
+  --mono:'IBM Plex Mono',"PingFang TC",ui-monospace,monospace;
+}
+:root[data-theme="light"]{--pg:#E7E9E4;--pg2:#FFF;--pgink:#151C21;--pgink2:#4C5B64;
+  --pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--ok:#276E45;--no:#B03A22}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --pg:#E7E9E4;--pg2:#FFF;--pgink:#151C21;--pgink2:#4C5B64;
+  --pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--ok:#276E45;--no:#B03A22}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg);color:var(--pgink);font-family:var(--sans);font-size:15px;
+  line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+h1,h2,h3,h4{margin:0;text-wrap:balance}
+code{font-family:var(--mono);font-size:.88em}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--mark);margin:0 0 10px}
+header{padding:66px 0 38px}
+header h1{font-size:clamp(30px,4.6vw,42px);font-weight:700;line-height:1.16;letter-spacing:-.025em;max-width:19ch}
+header .lede{margin-top:16px;max-width:66ch;color:var(--pgink2);font-size:15.5px}
+section{padding:48px 0;border-top:1px solid var(--pgrule)}
+section>h2{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px}
+section>.sub{color:var(--pgink2);max-width:70ch;margin:0 0 26px;font-size:14.5px}
+.callout{padding:15px 19px;background:var(--pg2);border-left:2px solid var(--mark);border-radius:2px;
+  font-size:13.5px;color:var(--pgink2);max-width:74ch;margin:0 0 24px}
+.callout.warn{border-left-color:var(--no)}
+.callout b{color:var(--pgink)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--pgrule);vertical-align:top}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--pgink3);font-weight:400}
+td.m{font-family:var(--mono);font-size:11.5px}
+.tblwrap{overflow-x:auto}
+.yes{color:var(--ok);font-weight:600} .nope{color:var(--no);font-weight:600}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:30px 22px}
+.item{display:flex;flex-direction:column;gap:9px}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.09em;color:var(--pgink3)}
+.tag b{color:var(--pgink);font-weight:600;letter-spacing:0;font-family:var(--sans);font-size:12.5px}
+.note{font-size:12px;color:var(--pgink2);line-height:1.5}
+.ph{width:100%;max-width:238px;border-radius:18px;overflow:hidden;border:1px solid var(--pgrule);
+  box-shadow:0 12px 26px rgba(0,0,0,.3)}
+
+/* ══ 日記精裝 UI kit ══ */
+.s{height:412px;overflow:hidden;position:relative;background:#EDEEE8;color:#151C21;font-size:11px;
+  --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--ln:#DFE1DA;--gr:#78878F;--pp:#6B4FA8}
+.s.dark{background:#161C21;color:#E8EAE4;--w:#4EA3E8;--wi:#4EA3E8;--in:#63B588;--out:#E0714E;
+  --ln:#2A343B;--gr:#8496A1}
+.top{display:flex;justify-content:space-between;align-items:center;padding:13px 13px 10px;border-bottom:1px solid var(--ln)}
+.bd{font-weight:700;font-size:15px;color:var(--wi);letter-spacing:-.02em}
+.btn{background:var(--w);color:#fff;font-size:9.5px;font-weight:600;padding:5px 10px;border-radius:3px}
+.btn.ghost{background:transparent;border:1px solid var(--w);color:var(--wi)}
+.btn.full{display:block;text-align:center;padding:9px;font-size:11px;margin:0 13px}
+.btn.danger{background:#EAEAE3;color:var(--out);border:1px solid #DAD9D1}
+.btn.dangerfill{background:var(--out);color:#fff}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;color:#fff;font-size:10px}
+.icons{display:flex;gap:6px}
+.ic{width:22px;height:22px;border-radius:3px;background:rgba(255,255,255,.2);display:flex;
+  align-items:center;justify-content:center;font-size:10px}
+.hero{background:linear-gradient(162deg,#1E4C6B,#2D6A8A 46%,#2A5050);padding:6px 13px 12px;color:#fff}
+.hero .t{font-weight:700;font-size:14px;letter-spacing:-.02em}
+.hero .sm{font-family:var(--mono);font-size:8.5px;opacity:.9;margin-top:3px}
+.chips{display:flex;gap:5px;padding:9px 13px;background:#fff;border-bottom:1px solid var(--ln);overflow:hidden}
+.s.dark .chips{background:#1B2329}
+.chip{font-family:var(--mono);font-size:8.5px;letter-spacing:.05em;padding:3.5px 8px;border-radius:999px;
+  border:1px solid var(--ln);color:var(--gr);white-space:nowrap}
+.chip.on{background:var(--w);border-color:var(--w);color:#fff}
+.curr{display:flex;margin:9px 13px 0;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
+.seg{flex:1;text-align:center;font-family:var(--mono);font-size:8.5px;letter-spacing:.05em;padding:4.5px 0;
+  color:var(--gr);background:#fff}
+.s.dark .seg{background:#1B2329}
+.seg.on{background:var(--w);color:#fff}
+.stats{display:flex;background:#fff;border-bottom:1px solid var(--ln)}
+.s.dark .stats{background:#1B2329}
+.stats div{flex:1;padding:10px 8px;text-align:center;border-right:1px solid var(--ln)}
+.stats div:last-child{border-right:0}
+.stats b{display:block;font-family:var(--mono);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stats span{font-family:var(--mono);font-size:8px;color:var(--gr);letter-spacing:.07em;text-transform:uppercase}
+.day{padding:11px 13px 5px;font-family:var(--mono);font-size:8.5px;color:var(--gr);letter-spacing:.1em;text-transform:uppercase}
+.row{margin:0 13px 5px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:8px 9px;
+  display:flex;align-items:center;gap:8px}
+.s.dark .row{background:#1B2329}
+.row .m{flex:1;min-width:0}
+.row .ti{font-weight:600;font-size:11px}
+.row .py{font-size:8.5px;color:var(--gr);margin-top:1px}
+.row .aw{text-align:right}
+.row .am{font-family:var(--mono);font-weight:600;font-size:11.5px;font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em;display:block}
+.row .s2{font-family:var(--mono);font-size:8px;color:var(--gr);font-variant-numeric:tabular-nums}
+.row.pend{border-left:2px solid var(--out)}
+.card{margin:11px 13px 0;background:#fff;padding:4px;border:1px solid var(--ln);border-radius:3px;
+  box-shadow:0 1px 2px rgba(20,30,38,.08)}
+.s.dark .card{background:#1B2329}
+.img{height:92px;position:relative;padding:7px;display:flex;flex-direction:column;justify-content:flex-end}
+.bg{position:absolute;inset:0;font-size:21px;text-align:right;padding:5px 7px}
+.scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.55) 100%)}
+.stamp{display:inline-block;border:1px solid rgba(255,255,255,.72);color:#fff;font-family:var(--mono);
+  font-size:7.5px;letter-spacing:.1em;padding:1px 5px;border-radius:2px;width:fit-content;margin-bottom:3px;position:relative}
+.nm{color:#fff;font-weight:700;font-size:12px;position:relative;letter-spacing:-.02em}
+.dt{color:rgba(255,255,255,.9);font-size:8.5px;position:relative;margin-top:2px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.g-jeju{background:linear-gradient(160deg,#1E4C6B,#2D6A8A 35%,#3D7A6A 65%,#2A5050)}
+.g-hok{background:linear-gradient(160deg,#5B8FA8,#3A6E8C 35%,#8B5E52 75%,#6B4A3E)}
+.g-tky{background:linear-gradient(160deg,#6BAED6,#4A90B8 30%,#2E6A9B 60%,#5B8FA8)}
+.g-fuk{background:linear-gradient(160deg,#7A4B3A,#A8663F 35%,#C98A4B 70%,#5E3A2E)}
+.fld{padding:11px 13px 4px;font-family:var(--mono);font-size:8.5px;color:var(--gr);letter-spacing:.09em;text-transform:uppercase}
+.inp{margin:0 13px 8px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:8px 9px;font-size:11px}
+.s.dark .inp{background:#1B2329}
+.inp.ph2{color:var(--gr)}
+.seglist{display:flex;margin:0 13px 8px;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
+.seglist div{flex:1;text-align:center;font-size:9.5px;padding:6px 0;background:#fff;color:var(--gr)}
+.s.dark .seglist div{background:#1B2329}
+.seglist div.on{background:var(--w);color:#fff;font-weight:600}
+.mem{margin:0 13px 5px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:7px 9px;
+  display:flex;align-items:center;gap:8px;font-size:11px}
+.s.dark .mem{background:#1B2329}
+.mem .av{width:22px;height:22px;border-radius:999px;background:#EDEEE8;display:flex;align-items:center;
+  justify-content:center;font-size:12px}
+.mem .nmx{flex:1;font-weight:600}
+.mem .mt{font-family:var(--mono);font-size:8px;color:var(--gr)}
+.settle{padding:11px 13px}
+.srow{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--ln);border-radius:3px;
+  padding:7px 9px;margin-bottom:5px}
+.s.dark .srow{background:#1B2329}
+.srow .n2{flex:1;font-weight:600;font-size:10.5px}
+.srow .v2{font-family:var(--mono);font-size:10px;font-weight:600;font-variant-numeric:tabular-nums}
+.v2.in{color:var(--in)} .v2.out{color:var(--out)}
+.tr{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--ln);border-radius:3px;
+  padding:7px 9px;margin:0 13px 5px;font-size:10.5px}
+.s.dark .tr{background:#1B2329}
+.tr .ar{color:var(--gr);font-family:var(--mono)}
+.tr .amt{margin-left:auto;font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+.dlg{position:absolute;inset:0;background:rgba(10,16,20,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.dlgbox{background:#fff;border-radius:3px;padding:14px;width:100%}
+.s.dark .dlgbox{background:#1B2329}
+.dlgbox h5{margin:0 0 6px;font-size:12px;font-weight:700}
+.dlgbox p{margin:0 0 9px;font-size:10px;color:var(--gr);line-height:1.5}
+.dlgrow{display:flex;gap:7px;margin-top:9px}
+.dlgrow div{flex:1;text-align:center;font-size:10px;padding:7px 0;border-radius:3px;font-weight:600}
+.pro{display:inline-block;background:var(--pp);color:#fff;font-family:var(--mono);font-size:7.5px;
+  padding:1px 5px;border-radius:2px;letter-spacing:.06em;margin-left:5px}
+.empty{padding:40px 20px;text-align:center;color:var(--gr);font-size:11px;line-height:1.7}
+footer{padding:38px 0 66px;color:var(--pgink3);font-size:12.5px;font-family:var(--mono);border-top:1px solid var(--pgrule)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">路線 3 打磨輪 · 第二段交付</p>
+  <h1>Wireframe v4：8 個既有畫面 ＋ 4 個新畫面</h1>
+  <p class="lede">
+    工作色 A 富士青、tokens 已定案，五項修正全部套用。既有畫面是<b>套新視覺</b>不是重畫；
+    新畫面直接長在同一套系統裡。所有畫面同時附深色模式規格（此處以淺色為主，S-07 示範深色）。
+  </p>
+</header>
+
+<section>
+  <p class="eyebrow">五項修正的落地位置</p>
+  <h2>你上一則指令的處理</h2>
+  <div class="tblwrap"><table>
+    <tr><th>#</th><th>要求</th><th>落地在哪</th></tr>
+    <tr><td class="m">1</td><td>標題改 PingFang TC，取消 Noto Serif TC</td>
+      <td><b>全站不載中文 webfont</b>。唯一 webfont 是數字用的 Plex Mono。個性由字階／字重／等寬數字承擔。</td></tr>
+    <tr><td class="m">2</td><td>首頁行程卡移除金額</td>
+      <td>S-01 卡片<span class="nope">已無任何金額</span>。金錢方向色只出現在 S-03 統計區、S-05 結算、S-06 分享。</td></tr>
+    <tr><td class="m">3</td><td>恢復台幣／外幣切換</td>
+      <td>S-03 chips 下方的 segmented control。<b>預設台幣</b>，項目＋統計同步換。<b>結算恆台幣</b>。</td></tr>
+    <tr><td class="m">4</td><td>摺紙動畫品質門檻</td>
+      <td>S-05 兩格示意（摺疊中／送出）。<b>達不到門檻就退回一般 loading</b>，見該處說明。</td></tr>
+    <tr><td class="m">5</td><td>真實照片</td>
+      <td><b>本稿仍用 gradient 佔位</b>——照片清單與版權疑慮已另外提出，待你確認後才置換。</td></tr>
+    <tr><td class="m">6</td><td>封面照片可在產品內自行更換</td>
+      <td><b>S-02b</b> 新畫入「更換封面照片」欄位。顯示規則：有照片用照片、無則用目的地 gradient，
+        行程卡／行程 header／分享頁一致。Storage bucket 屬 schema 層，<b>已備提案待拍板</b>。</td></tr>
+    <tr><td class="m">＋</td><td>危險動作用色</td>
+      <td>S-03 刪除對話框：<b>中性灰底＋橘紅文字</b>，只有最終確認鈕填滿橘紅。與「要給出」明確區隔。</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <p class="eyebrow">既有 8 畫面</p>
+  <h2>套新視覺</h2>
+  <div class="grid">
+
+    <div class="item"><div class="tag">S-00　<b>登入</b></div>
+      <div class="ph"><div class="s">
+        <div style="padding:52px 20px 0;text-align:center">
+          <div style="font-size:30px;font-weight:700;color:var(--wi);letter-spacing:-.03em">Tripay</div>
+          <div style="font-size:11px;color:var(--gr);margin-top:6px">每一趟，都記得</div>
+          <div style="font-size:10px;color:var(--gr);margin-top:22px;line-height:1.7">大家一起出發，<br>帳交給 Tripay。</div>
+        </div>
+        <div class="card" style="margin:26px 20px 0;opacity:.5"><div class="img g-tky" style="height:74px">
+          <div class="scrim"></div><div class="nm" style="font-size:11px">你的下一趟在哪？</div></div></div>
+        <div style="position:absolute;left:0;right:0;bottom:22px;padding:0 20px">
+          <div class="btn full" style="margin:0">用 Google 帳號繼續</div>
+          <div style="text-align:center;font-family:var(--mono);font-size:8px;color:var(--gr);margin-top:9px">v1.4.0</div></div>
+      </div></div>
+      <p class="note">G-02 幽靈預覽卡改成目的地卡的低透明版，與首頁同構。G-03 引導短句保留。</p></div>
+
+    <div class="item"><div class="tag">S-01　<b>首頁 · 行程列表</b></div>
+      <div class="ph"><div class="s">
+        <div class="top"><span class="bd">Tripay</span><span class="btn">＋ 新增行程</span></div>
+        <div class="card"><div class="img g-jeju"><div class="bg">✈️</div><div class="scrim"></div>
+          <span class="stamp">已結算</span><div class="nm">2026 濟州島四寶團</div>
+          <div class="dt">🍋🐟🐵🐱　02/13 – 02/21</div></div></div>
+        <div class="card"><div class="img g-hok"><div class="bg">✈️</div><div class="scrim"></div>
+          <span class="stamp">已結算</span><div class="nm">2025 北海道四寶團</div>
+          <div class="dt">🍋🐟🐵🐱　05/29 – 06/03</div></div></div>
+        <div class="card"><div class="img g-tky"><div class="bg">✈️</div><div class="scrim"></div>
+          <span class="stamp">已結算</span><div class="nm">2024 東京富士山五寶團</div>
+          <div class="dt">🍋🌷🐟🐵🐱　02/07 – 02/13</div></div></div>
+      </div></div>
+      <p class="note"><b>無金額</b>（路線 2 決策）。狀態改描邊章、日期等寬。封存行程降飽和度。</p></div>
+
+    <div class="item"><div class="tag">S-02　<b>新增／編輯行程</b></div>
+      <div class="ph"><div class="s">
+        <div style="background:rgba(10,16,20,.4);height:88px"></div>
+        <div style="background:#EDEEE8;border-radius:12px 12px 0 0;height:324px;border-top:1px solid var(--ln)">
+          <div style="display:flex;justify-content:space-between;padding:12px 13px 4px">
+            <b style="font-size:13px">這趟去哪？</b><span style="color:var(--gr)">✕</span></div>
+          <div class="fld">封面</div>
+          <div style="margin:0 13px 8px;width:42px;height:42px;background:#fff;border:1px solid var(--ln);
+            border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:20px">✈️</div>
+          <div class="fld">去哪？</div><div class="inp">2026 濟州島四寶團</div>
+          <div class="fld">當地幣別</div><div class="inp">KRW</div>
+          <div class="fld">誰一起去？</div>
+          <div class="mem"><span class="av">🍋</span><span class="nmx">Ning</span><span class="mt">這是我</span></div>
+          <div class="mem"><span class="av">🐟</span><span class="nmx">Ziyu</span><span class="mt">已有紀錄</span></div>
+          <div class="btn full ghost" style="margin-top:9px">＋ 從通訊錄挑人</div>
+        </div>
+      </div></div>
+      <p class="note">成員改「從通訊錄挑人」（接 D2 的 <code>people</code> 層）。有紀錄的成員移除鈕停用。</p></div>
+
+    <div class="item"><div class="tag">S-02b　<b>編輯行程 · 更換封面</b></div>
+      <div class="ph"><div class="s">
+        <div style="background:rgba(10,16,20,.4);height:60px"></div>
+        <div style="background:#EDEEE8;border-radius:12px 12px 0 0;height:352px;border-top:1px solid var(--ln)">
+          <div style="display:flex;justify-content:space-between;padding:12px 13px 4px">
+            <b style="font-size:13px">編輯行程</b><span style="color:var(--gr)">✕</span></div>
+          <div class="fld">封面照片</div>
+          <div style="margin:0 13px 6px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:4px">
+            <div class="img g-jeju" style="height:70px;border-radius:2px">
+              <div class="scrim"></div>
+              <div style="position:relative;font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.92)">
+                目前：目的地色調</div></div></div>
+          <div style="display:flex;gap:6px;margin:0 13px 8px">
+            <div class="btn ghost" style="flex:1;text-align:center;padding:6px 0">換一張照片</div>
+            <div class="btn danger" style="flex:1;text-align:center;padding:6px 0;font-size:9.5px">改回色調</div></div>
+          <div style="padding:0 13px 8px;font-size:9px;color:var(--gr);line-height:1.55">
+            上傳後會自動壓成 webp、長邊 1600px。只有你和被分享的人看得到。</div>
+          <div class="fld">封面 emoji</div>
+          <div style="margin:0 13px 8px;width:38px;height:38px;background:#fff;border:1px solid var(--ln);
+            border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:18px">✈️</div>
+          <div class="fld">去哪？</div><div class="inp">2026 濟州島四寶團</div>
+          <div class="btn full" style="margin-top:4px">儲存</div>
+        </div>
+      </div></div>
+      <p class="note"><b>照片可在產品內自行更換</b>，不是 repo 靜態檔。
+        顯示規則：<b>有上傳照片用照片、沒有則用目的地色調 gradient</b>——行程卡、行程 header、分享頁一致。
+        「改回色調」讓使用者隨時退回佔位。</p></div>
+
+    <div class="item"><div class="tag">S-03　<b>行程主頁 · 消費列表</b></div>
+      <div class="ph"><div class="s">
+        <div class="hero"><div class="nav" style="padding:3px 0 6px"><span>‹ 返回</span>
+          <span class="icons"><span class="ic">✎</span><span class="ic">⧉</span><span class="ic">↑</span></span></div>
+          <div class="t">2026 濟州島四寶團</div><div class="sm">🍋🐟🐵🐱　02/13 – 02/21</div></div>
+        <div class="chips"><span class="chip on">消費</span><span class="chip">結算</span>
+          <span class="chip">統計</span><span class="chip">分享</span><span class="chip">匯出</span></div>
+        <div class="curr"><span class="seg on">台幣</span><span class="seg">₩ 韓圜</span></div>
+        <div class="stats"><div><b>154,502</b><span>總花費</span></div><div><b>38,239</b><span>我的花費</span></div></div>
+        <div class="day">第 1 天 · 02/13 五</div>
+        <div class="row"><span>⛽</span><div class="m"><div class="ti">加油</div><div class="py">🐟 Ziyu</div></div>
+          <span class="aw"><b class="am">1,959</b><span class="s2">₩ 89,500</span></span></div>
+        <div class="row"><span>🍜</span><div class="m"><div class="ti">早餐湯飯</div><div class="py">🐟 Ziyu</div></div>
+          <span class="aw"><b class="am">985</b><span class="s2">₩ 45,000</span></span></div>
+        <div class="row pend"><span>🧴</span><div class="m"><div class="ti">Olive Young</div>
+          <div class="py">🐟 Ziyu · 待補填</div></div>
+          <span class="aw"><b class="am">—</b><span class="s2">₩ 40,400</span></span></div>
+      </div></div>
+      <p class="note">chips 收納次級動作。<b>台幣／外幣切換</b>整頁同步。大色塊 header＝首頁卡的內頁版。</p></div>
+
+    <div class="item"><div class="tag">S-04　<b>新增／編輯消費</b></div>
+      <div class="ph"><div class="s">
+        <div style="background:rgba(10,16,20,.4);height:66px"></div>
+        <div style="background:#EDEEE8;border-radius:12px 12px 0 0;height:346px;border-top:1px solid var(--ln)">
+          <div style="display:flex;justify-content:space-between;padding:12px 13px 4px">
+            <b style="font-size:13px">記一筆</b><span style="color:var(--gr)">✕</span></div>
+          <div class="fld">什麼花費？</div><div class="inp">🍜　早餐湯飯</div>
+          <div class="fld">金額</div>
+          <div class="inp" style="display:flex;justify-content:space-between"><span>₩ 45,000</span>
+            <span style="color:var(--gr);font-family:var(--mono);font-size:9px">外幣</span></div>
+          <div class="inp" style="display:flex;justify-content:space-between"><span>985</span>
+            <span style="color:var(--gr);font-family:var(--mono);font-size:9px">台幣 · 匯率 45.69</span></div>
+          <div class="fld">怎麼付的？</div>
+          <div class="seglist"><div class="on">現金</div><div>信用卡</div><div>儲值卡</div></div>
+          <div class="fld">分帳方式</div>
+          <div class="seglist"><div class="on">一起分</div><div>各付各的</div><div>只算我</div></div>
+          <div class="btn full" style="margin-top:8px">記下來</div>
+        </div>
+      </div></div>
+      <p class="note">匯率仍是唯讀衍生顯示（現況）。「大家當場各付各的」toggle 在分帳方式下方。</p></div>
+
+    <div class="item"><div class="tag">S-05　<b>結算 · 結果</b></div>
+      <div class="ph"><div class="s">
+        <div class="hero" style="background:linear-gradient(162deg,#1E4C6B,#2D6A8A)"><div class="nav" style="padding:3px 0 6px">
+          <span>‹ 返回</span><span style="font-family:var(--mono);font-size:9px">0 / 3 已付清</span></div>
+          <div class="t">結算</div></div>
+        <div class="settle" style="padding-bottom:4px">
+          <div style="font-family:var(--mono);font-size:8.5px;color:var(--gr);letter-spacing:.09em;
+            text-transform:uppercase;margin-bottom:7px">這趟結算下來</div>
+          <div class="srow"><span>🐟</span><span class="n2">Ziyu</span><span class="v2 in">可以拿回 3,633</span></div>
+          <div class="srow"><span>🐵</span><span class="n2">Xiu</span><span class="v2 out">要給出 1,929</span></div>
+          <div class="srow"><span>🐱</span><span class="n2">Mei</span><span class="v2 out">要給出 1,356</span></div>
+          <div class="srow"><span>🍋</span><span class="n2">Ning</span><span class="v2 out">要給出 348</span></div>
+        </div>
+        <div class="day">怎麼轉</div>
+        <div class="tr"><span>🐵</span><span class="ar">→</span><span>🐟</span><span class="amt">1,929</span></div>
+        <div class="tr"><span>🐱</span><span class="ar">→</span><span>🐟</span><span class="amt">1,356</span></div>
+      </div></div>
+      <p class="note">人話淨額＋金錢方向色。轉帳路徑另成一區，用等寬對齊。</p></div>
+
+    <div class="item"><div class="tag">S-05b　<b>結算 · 摺紙時刻</b></div>
+      <div class="ph"><div class="s" style="display:flex;align-items:center;justify-content:center">
+        <div style="text-align:center">
+          <svg width="120" height="120" viewBox="0 0 100 100" style="margin-bottom:14px">
+            <path d="M20 34 h60 v30 h-60 z" fill="#fff" stroke="#1E4C6B" stroke-width="1.5"/>
+            <path d="M20 34 L50 52 L80 34" fill="none" stroke="#B03A22" stroke-width="1" stroke-dasharray="3 3"/>
+            <path d="M50 52 v12" fill="none" stroke="#B03A22" stroke-width="1" stroke-dasharray="3 3"/>
+            <path d="M24 72 L50 60 L76 72 L50 67 Z" fill="#fff" stroke="#1E4C6B" stroke-width="1.5" opacity=".45"/>
+          </svg>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--gr);letter-spacing:.06em">正在算清楚…</div>
+        </div>
+      </div></div>
+      <p class="note"><b>兩段敘事</b>：① 統計卡沿摺線 <code>rotateX</code> 收合成形 → ② 往上送出、結果落下。
+        CSS 3D transform 分步，不是 icon 傾斜。<b>Aria 判定達不到門檻就退回這張的乾淨 loading 版</b>（進度圈＋文字）。</p></div>
+
+    <div class="item"><div class="tag">S-06　<b>唯讀分享頁</b></div>
+      <div class="ph"><div class="s">
+        <div class="hero" style="padding-top:14px"><div class="t">2026 濟州島四寶團</div>
+          <div class="sm">🍋🐟🐵🐱　02/13 – 02/21</div></div>
+        <div class="stats"><div><b>154,502</b><span>總花費</span></div><div><b>132</b><span>筆消費</span></div></div>
+        <div class="day">結算結果</div>
+        <div class="srow" style="margin:0 13px 5px"><span>🐟</span><span class="n2">Ziyu</span>
+          <span class="v2 in">可以拿回 3,633</span></div>
+        <div class="srow" style="margin:0 13px 5px"><span>🐵</span><span class="n2">Xiu</span>
+          <span class="v2 out">要給出 1,929</span></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;background:#1E4C6B;color:#fff;padding:11px 13px">
+          <div style="font-size:10px;font-weight:600">想自己記帳？</div>
+          <div style="font-size:9px;opacity:.85;margin-top:2px">下載 Tripay，免登入也能看帳</div></div>
+      </div></div>
+      <p class="note">免登入。金錢方向色一致。G-06 頁尾 CTA 用工作色深階，不搶內容。</p></div>
+
+    <div class="item"><div class="tag">S-07　<b>個人設定 · 深色模式</b></div>
+      <div class="ph"><div class="s dark">
+        <div class="top"><span class="bd">設定</span></div>
+        <div class="mem" style="margin-top:11px"><span class="av" style="background:#2A343B">🐟</span>
+          <div style="flex:1"><div style="font-weight:600">Ziyu</div>
+            <div class="mt">msziyu@gmail.com</div></div></div>
+        <div class="fld">一般</div>
+        <div class="mem"><span class="nmx" style="font-weight:400">通訊錄</span><span class="mt">5 人 ›</span></div>
+        <div class="mem"><span class="nmx" style="font-weight:400">我的卡片</span><span class="mt">2 張 ›</span></div>
+        <div class="mem"><span class="nmx" style="font-weight:400">外觀</span><span class="mt">跟隨系統 ›</span></div>
+        <div class="fld">關於</div>
+        <div class="mem"><span class="nmx" style="font-weight:400">版本</span><span class="mt">1.4.0</span></div>
+        <div class="btn full danger" style="margin-top:11px;background:#232D34;border-color:#2F3B43">登出</div>
+      </div></div>
+      <p class="note">深色模式規格示範：底 <code>#161C21</code>、工作色 <code>#4EA3E8</code>，四項對比全過 AA。</p></div>
+
+    <div class="item"><div class="tag">S-03d　<b>刪除行程 · 危險動作</b></div>
+      <div class="ph"><div class="s">
+        <div class="hero"><div class="t">2026 濟州島四寶團</div><div class="sm">🍋🐟🐵🐱</div></div>
+        <div class="chips"><span class="chip">消費</span><span class="chip">結算</span></div>
+        <div class="dlg"><div class="dlgbox">
+          <h5>刪除「2026 濟州島四寶團」？</h5>
+          <p>會一併刪掉 132 筆消費與分帳、4 位成員、結算結果與分享連結。救不回來。</p>
+          <div style="font-size:9px;color:var(--gr);margin-bottom:4px">請輸入行程名稱：</div>
+          <div class="inp" style="margin:0" >　</div>
+          <div class="dlgrow"><div style="background:#EAEAE3;color:#151C21">算了，留著</div>
+            <div class="btn dangerfill" style="padding:7px 0">刪除</div></div>
+        </div></div>
+      </div></div>
+      <p class="note"><b>危險動作用色</b>：入口與取消是中性灰，<b>只有最終確認鈕填滿橘紅</b>。
+        「要給出」的橘紅只出現在金額文字，不會做成大面積填色，兩者不會混淆。</p></div>
+
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">新 4 畫面</p>
+  <h2>長在同一套系統裡</h2>
+  <div class="grid">
+
+    <div class="item"><div class="tag">S-08　<b>通訊錄（people）</b></div>
+      <div class="ph"><div class="s">
+        <div class="top"><span class="bd">通訊錄</span><span class="btn">＋ 加一個人</span></div>
+        <div class="fld">5 個人</div>
+        <div class="mem"><span class="av">🍋</span><div style="flex:1"><div style="font-weight:600">Ning</div>
+          <div class="mt">4 趟旅遊 · 1 張副卡</div></div><span class="mt">›</span></div>
+        <div class="mem"><span class="av">🐟</span><div style="flex:1"><div style="font-weight:600">Ziyu</div>
+          <div class="mt">4 趟旅遊 · 主卡持卡人</div></div><span class="mt">›</span></div>
+        <div class="mem"><span class="av">🐵</span><div style="flex:1"><div style="font-weight:600">Xiu</div>
+          <div class="mt">3 趟旅遊</div></div><span class="mt">›</span></div>
+        <div class="mem"><span class="av">🐱</span><div style="flex:1"><div style="font-weight:600">Mei</div>
+          <div class="mt">4 趟旅遊</div></div><span class="mt">›</span></div>
+        <div class="mem"><span class="av">🌷</span><div style="flex:1"><div style="font-weight:600">Nien</div>
+          <div class="mt">1 趟旅遊</div></div><span class="mt">›</span></div>
+        <div style="padding:13px;font-size:9.5px;color:var(--gr);line-height:1.6">
+          建行程與設定卡片時都從這裡挑人，不用每趟重打。</div>
+      </div></div>
+      <p class="note">D2 的 <code>people</code> 層有 UI 了。每人顯示參與趟數與卡片關係。
+        <b>邀請動線（電話／email）</b>參考 Splitwise，列 backlog 不在本輪。</p></div>
+
+    <div class="item"><div class="tag">S-09　<b>卡片管理</b></div>
+      <div class="ph"><div class="s">
+        <div class="top"><span class="bd">我的卡片</span><span class="btn">＋ 新增卡片</span></div>
+        <div class="fld">主卡</div>
+        <div class="card" style="padding:0;border:0;box-shadow:none;margin:0 13px 8px">
+          <div style="background:linear-gradient(150deg,#1E4C6B,#2D6A8A);border-radius:3px;padding:11px;color:#fff">
+            <div style="font-size:11px;font-weight:600">玉山主卡</div>
+            <div style="font-family:var(--mono);font-size:9px;opacity:.85;margin-top:3px">•••• 4821 · 玉山銀行</div>
+            <div style="font-family:var(--mono);font-size:8.5px;opacity:.8;margin-top:7px">🐟 Ziyu 持有</div></div></div>
+        <div class="fld">副卡 · 1 張</div>
+        <div class="mem"><span class="av">🍋</span><div style="flex:1"><div style="font-weight:600">Ning 的副卡</div>
+          <div class="mt">•••• 9034 · 綁 玉山主卡</div></div><span class="mt">›</span></div>
+        <div class="btn full ghost" style="margin-top:9px">＋ 加一張副卡</div>
+        <div style="padding:13px;font-size:9.5px;color:var(--gr);line-height:1.6">
+          持卡人從通訊錄挑，與旅遊成員共用同一份名單。</div>
+      </div></div>
+      <p class="note">主卡用目的地深藍大色塊（與行程 header 同語彙）。<b>刪卡的 CASCADE 警告</b>放在卡片詳情頁，
+        比照刪除行程要輸入名稱。</p></div>
+
+    <div class="item"><div class="tag">S-10　<b>帳單週期列表</b></div>
+      <div class="ph"><div class="s">
+        <div class="top"><span class="bd">玉山主卡</span><span class="btn">＋ 新增週期</span></div>
+        <div class="chips"><span class="chip on">帳單</span><span class="chip">卡片設定</span></div>
+        <div class="fld">2026</div>
+        <div class="row"><div class="m"><div class="ti">8 月帳單</div>
+          <div class="py">08/01 – 08/31 · 42 筆</div></div>
+          <span class="aw"><b class="am">28,940</b><span class="s2">未結</span></span></div>
+        <div class="row"><div class="m"><div class="ti">7 月帳單</div>
+          <div class="py">07/01 – 07/31 · 38 筆</div></div>
+          <span class="aw"><b class="am">31,205</b><span class="s2">已結算</span></span></div>
+        <div class="row"><div class="m"><div class="ti">6 月帳單</div>
+          <div class="py">06/01 – 06/30 · 51 筆</div></div>
+          <span class="aw"><b class="am">44,180</b><span class="s2">已結算</span></span></div>
+        <div class="btn full ghost" style="margin-top:9px">匯入帳單明細</div>
+      </div></div>
+      <p class="note">帳單是 <code>kind='statement'</code> 的 trips，<b>與旅遊列表分開</b>（入口在卡片頁，不在首頁）。
+        沒有照片卡——帳單不是回憶，用列表就好。</p></div>
+
+    <div class="item"><div class="tag">S-11　<b>副卡視角</b></div>
+      <div class="ph"><div class="s">
+        <div class="hero" style="background:linear-gradient(162deg,#1E4C6B,#2D6A8A)">
+          <div class="nav" style="padding:3px 0 6px"><span>‹ 返回</span><span style="font-family:var(--mono);font-size:9px">🍋 Ning 的副卡</span></div>
+          <div class="t">8 月帳單</div><div class="sm">08/01 – 08/31</div></div>
+        <div class="stats"><div><b>12,480</b><span>你這個月刷了</span></div>
+          <div><b class="v2 out" style="font-size:13px">12,480</b><span>要還給 🐟</span></div></div>
+        <div class="day">你的消費</div>
+        <div class="row"><span>🛍️</span><div class="m"><div class="ti">全聯</div><div class="py">08/03</div></div>
+          <span class="aw"><b class="am">1,280</b></span></div>
+        <div class="row"><span>☕</span><div class="m"><div class="ti">星巴克</div><div class="py">08/05</div></div>
+          <span class="aw"><b class="am">180</b></span></div>
+        <div class="row"><span>⛽</span><div class="m"><div class="ti">加油</div>
+          <div class="py">08/09 · 爸媽說不用還</div></div>
+          <span class="aw"><b class="am" style="color:var(--gr)">1,500</b></span></div>
+        <div class="btn full" style="margin-top:9px">標記已還清</div>
+      </div></div>
+      <p class="note">副卡人只看得到自己的。「爸媽說不用還」＝沿用 <code>settled_on_spot</code> 的概念，
+        記錄但不進結算，金額降階為中性色。</p></div>
+
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Phase 1.5 backlog</p>
+  <h2>五項：做不做與版位</h2>
+  <div class="tblwrap"><table>
+    <tr><th>項目</th><th>建議</th><th>版位／理由</th></tr>
+    <tr><td><b>切換成員視角</b></td><td class="yes">做，本輪</td>
+      <td>S-03 統計卡的「我的花費」加一個成員切換（點頭像換視角）。<b>成本低、且已在 S-11 副卡視角用同一個模式</b>，
+        兩邊共用一套元件。決策 #5 的未落實部分就此補上。</td></tr>
+    <tr><td><b>hub 結算顯示</b></td><td class="yes">做，本輪</td>
+      <td>S-05「怎麼轉」區加一個 toggle：<b>最少轉帳 ↔ 都給 🍋</b>。淨額不變、只換路徑呈現。
+        Splitwise 的同類功能<b>預設關</b>，我們也預設關。純顯示層，不動結算引擎。</td></tr>
+    <tr><td><b>成員分佈</b></td><td class="yes">做，順手</td>
+      <td>S-03 消費列已有付款人，再加參與人小頭像即可（<code>expense_splits</code> 現成資料）。
+        原決策「Phase 1 不做」是因為當時沒有版位，現在 chips 讓列表有空間了。</td></tr>
+    <tr><td><b>匯入 UI</b></td><td class="nope">不做，等 Phase 2</td>
+      <td>與 Phase 2 的半自動帳單匯入<b>共用同一套七階段管線</b>（對帳鐵律＋樣本先審）。
+        現在單獨做旅遊匯入，等於把同一個流程做兩次。</td></tr>
+    <tr><td><b>G-04 OG 圖片</b></td><td class="nope">不做，等照片</td>
+      <td>OG 圖的價值在於<b>分享出去時顯示行程封面照</b>。真實照片還沒進來，現在做只能生成 gradient 圖，
+        照片到位後再做，一次到位。</td></tr>
+  </table></div>
+  <div class="callout" style="margin-top:22px">
+    <b>三做兩不做的邏輯：</b>做的三項都是「版位已經有了、資料已經有了、且與新畫面共用元件」；
+    不做的兩項都是「現在做會做兩次」。
+  </div>
+</section>
+
+<footer>
+  停點：確認 wireframe 後，實作分兩批——先既有 8 畫面套新視覺（分批部署），再蓋 4 個新畫面
+  （含原 A 里程碑的卡片與帳單 UI）。<br>
+  照片仍為 gradient 佔位，待你確認照片清單與版權疑慮後才置換。
+</footer>
+
+</div>
