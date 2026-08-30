@@ -1,0 +1,2892 @@
+{
+  "trip": "2024 東京富士山五寶團",
+  "members": [
+    "ning",
+    "nien",
+    "ziyu",
+    "xiu",
+    "mei"
+  ],
+  "baselines": {
+    "burden": {
+      "foreign": {
+        "ning": 55275.2,
+        "nien": 51175.2,
+        "ziyu": 50775.2,
+        "xiu": 38775.2,
+        "mei": 39775.2
+      },
+      "twd": {
+        "ning": 22672.12,
+        "nien": 7605.77,
+        "ziyu": 16980.74,
+        "xiu": 7500.03,
+        "mei": 23127.22
+      }
+    },
+    "net": {
+      "foreign": {
+        "ning": 92946,
+        "nien": 0,
+        "ziyu": -11787,
+        "xiu": 0,
+        "mei": -81159
+      },
+      "twd": {
+        "ning": 0,
+        "nien": 0,
+        "ziyu": 0,
+        "xiu": 0,
+        "mei": 0
+      },
+      "currency": "foreign"
+    },
+    "payoutF": {
+      "ning": 0,
+      "nien": 0,
+      "ziyu": 0,
+      "xiu": 0,
+      "mei": 0
+    },
+    "payoutT": {
+      "ning": 0,
+      "nien": 0,
+      "ziyu": 0,
+      "xiu": 0,
+      "mei": 0
+    },
+    "costF": {
+      "ning": 0,
+      "nien": 0,
+      "ziyu": 0,
+      "xiu": 0,
+      "mei": 0
+    },
+    "costT": {
+      "ning": 0,
+      "nien": 0,
+      "ziyu": 0,
+      "xiu": 0,
+      "mei": 0
+    }
+  },
+  "rowCount": 111,
+  "issues": [
+    {
+      "row": 16,
+      "kind": "個人消費無付款人",
+      "detail": "機場礦泉水 / 自付"
+    },
+    {
+      "row": 17,
+      "kind": "個人消費無付款人",
+      "detail": "機場電子煙 / 自付"
+    },
+    {
+      "row": 18,
+      "kind": "個人消費無付款人",
+      "detail": "711電子煙 / 自付"
+    },
+    {
+      "row": 36,
+      "kind": "個人消費無付款人",
+      "detail": "和紙伴手禮 / 自付"
+    },
+    {
+      "row": 57,
+      "kind": "個人消費無付款人",
+      "detail": "忍野八海伴手禮 / 清酒 杯子 富士山水晶*2"
+    },
+    {
+      "row": 60,
+      "kind": "個人消費無付款人",
+      "detail": "LAWSON / 自付"
+    },
+    {
+      "row": 62,
+      "kind": "個人消費無付款人",
+      "detail": "金精軒 水信玄餅 / 自付"
+    },
+    {
+      "row": 77,
+      "kind": "個人消費無付款人",
+      "detail": "WEGO 衣服 / "
+    },
+    {
+      "row": 78,
+      "kind": "個人消費無付款人",
+      "detail": "CA4LA帽子 / "
+    },
+    {
+      "row": 84,
+      "kind": "個人消費無付款人",
+      "detail": "扭蛋 / "
+    },
+    {
+      "row": 86,
+      "kind": "個人消費無付款人",
+      "detail": "SENSE OF PLACE 衣服 / "
+    },
+    {
+      "row": 90,
+      "kind": "個人消費無付款人",
+      "detail": "Big Camera 刮鬍刀 / 自付"
+    },
+    {
+      "row": 91,
+      "kind": "個人消費無付款人",
+      "detail": "愛迪達情侶鞋 / 自付"
+    },
+    {
+      "row": 107,
+      "kind": "個人消費無付款人",
+      "detail": "淺草人形貓 / "
+    },
+    {
+      "row": 109,
+      "kind": "個人消費無付款人",
+      "detail": "化妝堂 / 總共刷兩單忘記金額"
+    },
+    {
+      "row": 110,
+      "kind": "個人消費無付款人",
+      "detail": "超市 / 說不用記"
+    },
+    {
+      "row": 112,
+      "kind": "個人消費無付款人",
+      "detail": "淺草寺福祿小槌 / "
+    },
+    {
+      "row": 113,
+      "kind": "個人消費無付款人",
+      "detail": "淺草人形貓 / "
+    },
+    {
+      "row": 114,
+      "kind": "個人消費無付款人",
+      "detail": "門嘉堂手鏡 / "
+    },
+    {
+      "row": 115,
+      "kind": "個人消費無付款人",
+      "detail": "TOPARDS隱眼 / "
+    },
+    {
+      "row": 129,
+      "kind": "個人消費無付款人",
+      "detail": "Jouete / 自付"
+    },
+    {
+      "row": 131,
+      "kind": "個人消費無付款人",
+      "detail": "CONVERSE TOKYO 衣服 / 自付"
+    },
+    {
+      "row": 133,
+      "kind": "個人消費無付款人",
+      "detail": "大耳狗一番賞*6 / 自付"
+    },
+    {
+      "row": 134,
+      "kind": "個人消費無付款人",
+      "detail": "NIKE鞋*2 / "
+    },
+    {
+      "row": 138,
+      "kind": "個人消費無付款人",
+      "detail": "niko and 衣服 / "
+    },
+    {
+      "row": 141,
+      "kind": "個人消費無付款人",
+      "detail": "鬧脾氣飯糰 / 自付"
+    },
+    {
+      "row": 142,
+      "kind": "個人消費無付款人",
+      "detail": "NIKE鞋 / 自付"
+    },
+    {
+      "row": 143,
+      "kind": "個人消費無付款人",
+      "detail": "超市 / 自付"
+    },
+    {
+      "row": 153,
+      "kind": "個人消費無付款人",
+      "detail": "機場免稅零食 / "
+    },
+    {
+      "row": 155,
+      "kind": "個人消費無付款人",
+      "detail": "機場免稅妝前＆定妝噴霧 / 自付"
+    },
+    {
+      "row": 156,
+      "kind": "個人消費無付款人",
+      "detail": "MAC粉餅 / 自付"
+    },
+    {
+      "row": 157,
+      "kind": "個人消費無付款人",
+      "detail": "麥當勞 / 自付"
+    }
+  ],
+  "parsed": [
+    {
+      "row": 5,
+      "date": "2024-02-07",
+      "title": "機場接送",
+      "note": "",
+      "day_rate": 0.2131,
+      "foreign_amount": null,
+      "twd_amount": 1428,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 6,
+      "date": "2024-02-07",
+      "title": "小城君機場接送",
+      "note": "",
+      "day_rate": 0.2131,
+      "foreign_amount": 44000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 7,
+      "date": "2024-02-07",
+      "title": "ORIX租車",
+      "note": "",
+      "day_rate": 0.2131,
+      "foreign_amount": 25960,
+      "twd_amount": 5532.076,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 8,
+      "date": "2024-02-07",
+      "title": "Maefuji 第一餐",
+      "note": "",
+      "day_rate": 0.2131,
+      "foreign_amount": 5500,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 9,
+      "date": "2024-02-07",
+      "title": "草莓",
+      "note": "",
+      "day_rate": 0.2131,
+      "foreign_amount": 1130,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 10,
+      "date": "2024-02-07",
+      "title": "711",
+      "note": "",
+      "day_rate": 0.2131,
+      "foreign_amount": 4334,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 11,
+      "date": "2024-02-07",
+      "title": "711",
+      "note": "",
+      "day_rate": 0.2131,
+      "foreign_amount": 2062,
+      "twd_amount": 439.4122,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 14,
+      "date": "2024-02-07",
+      "title": "TOYSQ",
+      "note": "🍋已結，水精靈",
+      "day_rate": 0.2131,
+      "foreign_amount": 10500,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 16,
+      "date": "2024-02-07",
+      "title": "機場礦泉水",
+      "note": "自付",
+      "day_rate": 0.2131,
+      "foreign_amount": 420,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 17,
+      "date": "2024-02-07",
+      "title": "機場電子煙",
+      "note": "自付",
+      "day_rate": 0.2131,
+      "foreign_amount": 580,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 18,
+      "date": "2024-02-07",
+      "title": "711電子煙",
+      "note": "自付",
+      "day_rate": 0.2131,
+      "foreign_amount": 5800,
+      "twd_amount": 1235.98,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 22,
+      "date": "2024-02-08",
+      "title": "麥當勞早餐",
+      "note": "",
+      "day_rate": 0.21225,
+      "foreign_amount": 2040,
+      "twd_amount": 432.99,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 23,
+      "date": "2024-02-08",
+      "title": "富士山纜車",
+      "note": "",
+      "day_rate": 0.21225,
+      "foreign_amount": 4500,
+      "twd_amount": 955.125,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 24,
+      "date": "2024-02-08",
+      "title": "餺飥不動",
+      "note": "",
+      "day_rate": 0.21225,
+      "foreign_amount": 7020,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 25,
+      "date": "2024-02-08",
+      "title": "新倉淺間神社 招財貓籤",
+      "note": "",
+      "day_rate": 0.21225,
+      "foreign_amount": 1500,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 26,
+      "date": "2024-02-08",
+      "title": "販賣機水",
+      "note": "",
+      "day_rate": 0.21225,
+      "foreign_amount": 560,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 27,
+      "date": "2024-02-08",
+      "title": "葡萄屋 草莓聖代",
+      "note": "",
+      "day_rate": 0.21225,
+      "foreign_amount": 4380,
+      "twd_amount": 929.655,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 28,
+      "date": "2024-02-08",
+      "title": "壱の蔵乾燥餅乾",
+      "note": "",
+      "day_rate": 0.21225,
+      "foreign_amount": 1944,
+      "twd_amount": 412.614,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 29,
+      "date": "2024-02-08",
+      "title": "旅の駅 超市",
+      "note": "草莓銅鑼燒＆送唐辛子*2",
+      "day_rate": 0.21225,
+      "foreign_amount": 3150,
+      "twd_amount": 668.5875,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 30,
+      "date": "2024-02-08",
+      "title": "旅の駅 超市",
+      "note": "",
+      "day_rate": 0.21225,
+      "foreign_amount": 2582,
+      "twd_amount": 548.0295,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 31,
+      "date": "2024-02-08",
+      "title": "OGINO 超市",
+      "note": "",
+      "day_rate": 0.21225,
+      "foreign_amount": 4020,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 32,
+      "date": "2024-02-08",
+      "title": "鰻魚飯 麟",
+      "note": "",
+      "day_rate": 0.21225,
+      "foreign_amount": 16500,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 35,
+      "date": "2024-02-08",
+      "title": "富士山伴手禮",
+      "note": "🌷¥1,600✅/🐟¥1,540未結",
+      "day_rate": 0.21225,
+      "foreign_amount": 7240,
+      "twd_amount": 1536.69,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 1540,
+          "cell": "H35",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 36,
+      "date": "2024-02-08",
+      "title": "和紙伴手禮",
+      "note": "自付",
+      "day_rate": 0.21225,
+      "foreign_amount": 3223,
+      "twd_amount": 684.08175,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 37,
+      "date": "2024-02-08",
+      "title": "OGINO 超市",
+      "note": "🍋大耳狗褲/🐱發熱褲¥1,078未結",
+      "day_rate": 0.21225,
+      "foreign_amount": 2380,
+      "twd_amount": 505.155,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 1078,
+          "cell": "I37",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 41,
+      "date": "2024-02-09",
+      "title": "車站寄放行李",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 2800,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 42,
+      "date": "2024-02-09",
+      "title": "富士山忍野山中湖過路費",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 540,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 43,
+      "date": "2024-02-09",
+      "title": "THE PARK 山中湖早餐",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 9560,
+      "twd_amount": 2085.036,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 44,
+      "date": "2024-02-09",
+      "title": "富士山礦泉水",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 660,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 45,
+      "date": "2024-02-09",
+      "title": "磯揚げ まる天 炸物",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 830,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 46,
+      "date": "2024-02-09",
+      "title": "忍野八海展望台",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 1500,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 47,
+      "date": "2024-02-09",
+      "title": "艾草糰子",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 100,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 48,
+      "date": "2024-02-09",
+      "title": "玉米",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 800,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 49,
+      "date": "2024-02-09",
+      "title": "甲州ほうとう小作 餺飥",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 7000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 50,
+      "date": "2024-02-09",
+      "title": "ENEOS加油",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 1586,
+      "twd_amount": 345.9066,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 51,
+      "date": "2024-02-09",
+      "title": "流星哥市區接送",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 36000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 52,
+      "date": "2024-02-09",
+      "title": "壽司賢",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 29150,
+      "twd_amount": 6357.615,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 53,
+      "date": "2024-02-09",
+      "title": "LIFE超市",
+      "note": "",
+      "day_rate": 0.2181,
+      "foreign_amount": 1252,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 56,
+      "date": "2024-02-09",
+      "title": "貓頭鷹2組",
+      "note": "🌷¥2,000✅",
+      "day_rate": 0.2181,
+      "foreign_amount": 4000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": "nien",
+      "participants": [
+        "nien"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 57,
+      "date": "2024-02-09",
+      "title": "忍野八海伴手禮",
+      "note": "清酒 杯子 富士山水晶*2",
+      "day_rate": 0.2181,
+      "foreign_amount": 5528,
+      "twd_amount": 1205.6568,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 58,
+      "date": "2024-02-09",
+      "title": "唐吉軻德",
+      "note": "🐟¥15,098/🐱¥9,999都未結",
+      "day_rate": 0.2181,
+      "foreign_amount": 41753,
+      "twd_amount": 9106.3293,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 15098,
+          "cell": "H58",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 9999,
+          "cell": "I58",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 60,
+      "date": "2024-02-09",
+      "title": "LAWSON",
+      "note": "自付",
+      "day_rate": 0.2181,
+      "foreign_amount": 351,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 62,
+      "date": "2024-02-09",
+      "title": "金精軒 水信玄餅",
+      "note": "自付",
+      "day_rate": 0.2181,
+      "foreign_amount": 220,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 66,
+      "date": "2024-02-10",
+      "title": "猿田彥咖啡",
+      "note": "",
+      "day_rate": 0.21148,
+      "foreign_amount": 3920,
+      "twd_amount": 829.0016,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 67,
+      "date": "2024-02-10",
+      "title": "明治神宮計程車",
+      "note": "2/24🍋請大家",
+      "day_rate": 0.21148,
+      "foreign_amount": 900,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 68,
+      "date": "2024-02-10",
+      "title": "明治神宮計程車",
+      "note": "2/24🍋說不記帳",
+      "day_rate": 0.21148,
+      "foreign_amount": 1600,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 69,
+      "date": "2024-02-10",
+      "title": "RAMEN AFRO BEATS 拉麵",
+      "note": "",
+      "day_rate": 0.21148,
+      "foreign_amount": 8250,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 70,
+      "date": "2024-02-10",
+      "title": "車站置物櫃",
+      "note": "",
+      "day_rate": 0.21148,
+      "foreign_amount": 500,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 71,
+      "date": "2024-02-10",
+      "title": "牛舌の檸檬",
+      "note": "",
+      "day_rate": 0.21148,
+      "foreign_amount": 24060,
+      "twd_amount": 5088.2088,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 72,
+      "date": "2024-02-10",
+      "title": "711",
+      "note": "",
+      "day_rate": 0.21148,
+      "foreign_amount": 1021,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 73,
+      "date": "2024-02-10",
+      "title": "從上野回家計程車",
+      "note": "2/24🍋請大家",
+      "day_rate": 0.21148,
+      "foreign_amount": 900,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 74,
+      "date": "2024-02-10",
+      "title": "從上野回家計程車",
+      "note": "",
+      "day_rate": 0.21148,
+      "foreign_amount": 900,
+      "twd_amount": 190.332,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 77,
+      "date": "2024-02-10",
+      "title": "WEGO 衣服",
+      "note": "",
+      "day_rate": 0.21148,
+      "foreign_amount": 6009,
+      "twd_amount": 1270.78332,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 78,
+      "date": "2024-02-10",
+      "title": "CA4LA帽子",
+      "note": "",
+      "day_rate": 0.21148,
+      "foreign_amount": 8300,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 79,
+      "date": "2024-02-10",
+      "title": "GU 衣服",
+      "note": "🍋說不用記帳✨✨✨",
+      "day_rate": 0.21148,
+      "foreign_amount": 8861,
+      "twd_amount": 1873.92428,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 80,
+      "date": "2024-02-10",
+      "title": "NEW ARA",
+      "note": "🌷¥1,100✅",
+      "day_rate": 0.21148,
+      "foreign_amount": 7000,
+      "twd_amount": 1480.36,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": "nien",
+      "participants": [
+        "nien"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 81,
+      "date": "2024-02-10",
+      "title": "Uniqlo 衣服",
+      "note": "🐟¥1,172未結",
+      "day_rate": 0.21148,
+      "foreign_amount": 6500,
+      "twd_amount": 1374.62,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 1172,
+          "cell": "H81",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 82,
+      "date": "2024-02-10",
+      "title": "AINZ TULPE 美妝",
+      "note": "🐟¥750/🐱¥1,600都未結",
+      "day_rate": 0.21148,
+      "foreign_amount": 13556,
+      "twd_amount": 2866.82288,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 750,
+          "cell": "H82",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 1600,
+          "cell": "I82",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 84,
+      "date": "2024-02-10",
+      "title": "扭蛋",
+      "note": "",
+      "day_rate": 0.21148,
+      "foreign_amount": 700,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 85,
+      "date": "2024-02-10",
+      "title": "無印良品",
+      "note": "🐱裙夾¥2,955未結",
+      "day_rate": 0.21148,
+      "foreign_amount": 6493,
+      "twd_amount": 1373.13964,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ziyu",
+          "debtor": "mei",
+          "amount": 2955,
+          "cell": "L85",
+          "group": "給🐟"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 86,
+      "date": "2024-02-10",
+      "title": "SENSE OF PLACE 衣服",
+      "note": "",
+      "day_rate": 0.21148,
+      "foreign_amount": 13200,
+      "twd_amount": 2791.536,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 87,
+      "date": "2024-02-10",
+      "title": "KBF 洋裝",
+      "note": "🌷¥5,670✅/🍋¥5,670未結",
+      "day_rate": 0.21148,
+      "foreign_amount": 17864,
+      "twd_amount": 3777.87872,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ziyu",
+          "debtor": "ning",
+          "amount": 5670,
+          "cell": "K87",
+          "group": "給🐟"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 89,
+      "date": "2024-02-10",
+      "title": "SANRIO三麗鷗",
+      "note": "🐵說不記帳✨✨✨",
+      "day_rate": 0.21148,
+      "foreign_amount": 6500,
+      "twd_amount": 1374.62,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": "xiu",
+      "participants": [
+        "xiu"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 90,
+      "date": "2024-02-10",
+      "title": "Big Camera 刮鬍刀",
+      "note": "自付",
+      "day_rate": 0.21148,
+      "foreign_amount": null,
+      "twd_amount": 6000,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 91,
+      "date": "2024-02-10",
+      "title": "愛迪達情侶鞋",
+      "note": "自付",
+      "day_rate": 0.21148,
+      "foreign_amount": 28000,
+      "twd_amount": 5921.44,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 95,
+      "date": "2024-02-11",
+      "title": "MIOJYU早餐",
+      "note": "",
+      "day_rate": 0.2115,
+      "foreign_amount": 8600,
+      "twd_amount": 1818.9,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 96,
+      "date": "2024-02-11",
+      "title": "淺草寺抽籤",
+      "note": "",
+      "day_rate": 0.2115,
+      "foreign_amount": 500,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 97,
+      "date": "2024-02-11",
+      "title": "星巴克",
+      "note": "",
+      "day_rate": 0.2115,
+      "foreign_amount": 2059,
+      "twd_amount": 435.4785,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 98,
+      "date": "2024-02-11",
+      "title": "LAWSON",
+      "note": "",
+      "day_rate": 0.2115,
+      "foreign_amount": 601,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 99,
+      "date": "2024-02-11",
+      "title": "SHOGUN BURGER和牛漢堡",
+      "note": "2/24🍋說會另外給錢",
+      "day_rate": 0.2115,
+      "foreign_amount": 11280,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 100,
+      "date": "2024-02-11",
+      "title": "Famimart",
+      "note": "",
+      "day_rate": 0.2115,
+      "foreign_amount": 324,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 101,
+      "date": "2024-02-11",
+      "title": "從上野回家計程車",
+      "note": "2/24🍋請大家",
+      "day_rate": 0.2115,
+      "foreign_amount": 900,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 102,
+      "date": "2024-02-11",
+      "title": "超市",
+      "note": "",
+      "day_rate": 0.2115,
+      "foreign_amount": 5964,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 105,
+      "date": "2024-02-11",
+      "title": "淺草寺干支開運守",
+      "note": "🍋導遊小禮✨✨✨",
+      "day_rate": 0.2115,
+      "foreign_amount": 5000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 106,
+      "date": "2024-02-11",
+      "title": "貓咪煎餅",
+      "note": "🌷¥1,000✅/🐱¥1,000未結",
+      "day_rate": 0.2115,
+      "foreign_amount": 2000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 1000,
+          "cell": "I106",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 107,
+      "date": "2024-02-11",
+      "title": "淺草人形貓",
+      "note": "",
+      "day_rate": 0.2115,
+      "foreign_amount": 2475,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 108,
+      "date": "2024-02-11",
+      "title": "淺草人形貓",
+      "note": "🐱¥2,750未結",
+      "day_rate": 0.2115,
+      "foreign_amount": 2750,
+      "twd_amount": 581.625,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 2750,
+          "cell": "I108",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 109,
+      "date": "2024-02-11",
+      "title": "化妝堂",
+      "note": "總共刷兩單忘記金額",
+      "day_rate": 0.2115,
+      "foreign_amount": null,
+      "twd_amount": 0,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 110,
+      "date": "2024-02-11",
+      "title": "超市",
+      "note": "說不用記",
+      "day_rate": 0.2115,
+      "foreign_amount": 429,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 112,
+      "date": "2024-02-11",
+      "title": "淺草寺福祿小槌",
+      "note": "",
+      "day_rate": 0.2115,
+      "foreign_amount": 1000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 113,
+      "date": "2024-02-11",
+      "title": "淺草人形貓",
+      "note": "",
+      "day_rate": 0.2115,
+      "foreign_amount": 2475,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 114,
+      "date": "2024-02-11",
+      "title": "門嘉堂手鏡",
+      "note": "",
+      "day_rate": 0.2115,
+      "foreign_amount": 900,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 115,
+      "date": "2024-02-11",
+      "title": "TOPARDS隱眼",
+      "note": "",
+      "day_rate": 0.2115,
+      "foreign_amount": 3520,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 117,
+      "date": "2024-02-11",
+      "title": "LOFT",
+      "note": "🐟¥1,230✅",
+      "day_rate": 0.2115,
+      "foreign_amount": 7073,
+      "twd_amount": 1495.9395,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": "ziyu",
+      "participants": [
+        "ziyu"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 121,
+      "date": "2024-02-12",
+      "title": "Uchitate家武藏野烏龍麵",
+      "note": "",
+      "day_rate": 0.2112,
+      "foreign_amount": 6280,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 122,
+      "date": "2024-02-12",
+      "title": "銀座 篝拉麵",
+      "note": "",
+      "day_rate": 0.2112,
+      "foreign_amount": 5820,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 123,
+      "date": "2024-02-12",
+      "title": "從上野回家計程車",
+      "note": "2/24🍋請大家",
+      "day_rate": 0.2112,
+      "foreign_amount": 1000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 124,
+      "date": "2024-02-12",
+      "title": "從上野回家計程車",
+      "note": "",
+      "day_rate": 0.2112,
+      "foreign_amount": 900,
+      "twd_amount": 190.08,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 125,
+      "date": "2024-02-12",
+      "title": "三村房居酒屋",
+      "note": "",
+      "day_rate": 0.2112,
+      "foreign_amount": 8690,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 128,
+      "date": "2024-02-12",
+      "title": "圍巾*4",
+      "note": "🐱",
+      "day_rate": 0.2112,
+      "foreign_amount": 19360,
+      "twd_amount": 4088.832,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 19360,
+          "cell": "I128",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 129,
+      "date": "2024-02-12",
+      "title": "Jouete",
+      "note": "自付",
+      "day_rate": 0.2112,
+      "foreign_amount": null,
+      "twd_amount": 0,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 130,
+      "date": "2024-02-12",
+      "title": "agete",
+      "note": "🐱項鍊",
+      "day_rate": 0.2112,
+      "foreign_amount": 36000,
+      "twd_amount": 7603.2,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 36000,
+          "cell": "I130",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 131,
+      "date": "2024-02-12",
+      "title": "CONVERSE TOKYO 衣服",
+      "note": "自付",
+      "day_rate": 0.2112,
+      "foreign_amount": null,
+      "twd_amount": 0,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 132,
+      "date": "2024-02-12",
+      "title": "Aiam香水*3",
+      "note": "🐟🌷🎁說不用記",
+      "day_rate": 0.2112,
+      "foreign_amount": 11500,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": "ziyu",
+      "participants": [
+        "ziyu"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 133,
+      "date": "2024-02-12",
+      "title": "大耳狗一番賞*6",
+      "note": "自付",
+      "day_rate": 0.2112,
+      "foreign_amount": 5940,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 134,
+      "date": "2024-02-12",
+      "title": "NIKE鞋*2",
+      "note": "",
+      "day_rate": 0.2112,
+      "foreign_amount": 37950,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 135,
+      "date": "2024-02-12",
+      "title": "coen 衣服",
+      "note": "🌷¥2,250✅",
+      "day_rate": 0.2112,
+      "foreign_amount": 8400,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": "nien",
+      "participants": [
+        "nien"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 136,
+      "date": "2024-02-12",
+      "title": "AZUL衣服",
+      "note": "🍋🐱🐟均分",
+      "day_rate": 0.2112,
+      "foreign_amount": 7253,
+      "twd_amount": 1531.8336,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 2417,
+          "cell": "H136",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 2417,
+          "cell": "I136",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 137,
+      "date": "2024-02-12",
+      "title": "吉卜力扭蛋",
+      "note": "代墊🐟",
+      "day_rate": 0.2112,
+      "foreign_amount": 500,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 500,
+          "cell": "H137",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 138,
+      "date": "2024-02-12",
+      "title": "niko and 衣服",
+      "note": "",
+      "day_rate": 0.2112,
+      "foreign_amount": null,
+      "twd_amount": 0,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 139,
+      "date": "2024-02-12",
+      "title": "松本清藥妝",
+      "note": "🌷¥1,711✅/🐟¥2,935未結",
+      "day_rate": 0.2112,
+      "foreign_amount": 23519,
+      "twd_amount": 4967.2128,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 2935,
+          "cell": "H139",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 141,
+      "date": "2024-02-12",
+      "title": "鬧脾氣飯糰",
+      "note": "自付",
+      "day_rate": 0.2112,
+      "foreign_amount": 210,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 142,
+      "date": "2024-02-12",
+      "title": "NIKE鞋",
+      "note": "自付",
+      "day_rate": 0.2112,
+      "foreign_amount": 14100,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 143,
+      "date": "2024-02-12",
+      "title": "超市",
+      "note": "自付",
+      "day_rate": 0.2112,
+      "foreign_amount": 1112,
+      "twd_amount": 234.8544,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 144,
+      "date": "2024-02-12",
+      "title": "earth 衣服",
+      "note": "",
+      "day_rate": 0.2112,
+      "foreign_amount": 8147,
+      "twd_amount": 1720.6464,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [
+        {
+          "creditor": "ziyu",
+          "debtor": "mei",
+          "amount": 4000,
+          "cell": "L144",
+          "group": "給🐟"
+        }
+      ],
+      "flags": [],
+      "excel_cat": "小計後・有欠款",
+      "expense_type": "individual",
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 148,
+      "date": "2024-02-13",
+      "title": "早餐麵包",
+      "note": "",
+      "day_rate": 0.212,
+      "foreign_amount": 3300,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 150,
+      "date": "2024-02-13",
+      "title": "機場接送",
+      "note": "台幣轉帳",
+      "day_rate": 0.212,
+      "foreign_amount": null,
+      "twd_amount": 1940,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [],
+      "excel_cat": "共同（在小計範圍內）",
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "nien",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 153,
+      "date": "2024-02-13",
+      "title": "機場免稅零食",
+      "note": "",
+      "day_rate": 0.212,
+      "foreign_amount": null,
+      "twd_amount": 0,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 155,
+      "date": "2024-02-13",
+      "title": "機場免稅妝前＆定妝噴霧",
+      "note": "自付",
+      "day_rate": 0.212,
+      "foreign_amount": 10000,
+      "twd_amount": 2120,
+      "payment_method": "credit_card",
+      "payment_source": "D欄有台幣→刷卡",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 156,
+      "date": "2024-02-13",
+      "title": "MAC粉餅",
+      "note": "自付",
+      "day_rate": 0.212,
+      "foreign_amount": 6000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    },
+    {
+      "row": 157,
+      "date": "2024-02-13",
+      "title": "麥當勞",
+      "note": "自付",
+      "day_rate": 0.212,
+      "foreign_amount": 1610,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [
+        "小計後個人消費，Excel 未記付款人"
+      ],
+      "excel_cat": "小計後・無欠款",
+      "expense_type": "personal",
+      "payer": null,
+      "participants": [],
+      "split_mode": "self"
+    }
+  ]
+}

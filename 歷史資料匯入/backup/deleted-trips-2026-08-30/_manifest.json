@@ -1,0 +1,71 @@
+{
+  "exportedAt": "2026-08-30T10:37:25.607Z",
+  "reason": "Rozi 2026-08-30 正式拍板刪除舊展示行程",
+  "trips": [
+    {
+      "id": "b3785fc5-5638-4ade-b474-1f40e07aeafd",
+      "name": "2024 東京富士山五寶團",
+      "status": "archived",
+      "file": "2024_東京富士山五寶團__b3785fc5-5638-4ade-b474-1f40e07aeafd.json",
+      "counts": {
+        "trip_members": 5,
+        "expenses": 1,
+        "expense_splits": 5,
+        "settlements": 0,
+        "settlement_items": 0
+      }
+    },
+    {
+      "id": "4dc3eee6-e20d-49aa-bb15-caacad00b227",
+      "name": "2025 北海道四寶團",
+      "status": "archived",
+      "file": "2025_北海道四寶團__4dc3eee6-e20d-49aa-bb15-caacad00b227.json",
+      "counts": {
+        "trip_members": 4,
+        "expenses": 1,
+        "expense_splits": 4,
+        "settlements": 0,
+        "settlement_items": 0
+      }
+    },
+    {
+      "id": "d48b7d3f-ad5a-4e2e-8d81-d9bc0d1c621b",
+      "name": "2026 濟州島四寶團",
+      "status": "archived",
+      "file": "2026_濟州島四寶團__d48b7d3f-ad5a-4e2e-8d81-d9bc0d1c621b.json",
+      "counts": {
+        "trip_members": 4,
+        "expenses": 1,
+        "expense_splits": 4,
+        "settlements": 0,
+        "settlement_items": 0
+      }
+    },
+    {
+      "id": "4890b28d-b032-4856-b22b-133bf364d76a",
+      "name": "2023 福岡",
+      "status": "archived",
+      "file": "2023_福岡__4890b28d-b032-4856-b22b-133bf364d76a.json",
+      "counts": {
+        "trip_members": 3,
+        "expenses": 1,
+        "expense_splits": 3,
+        "settlements": 1,
+        "settlement_items": 2
+      }
+    },
+    {
+      "id": "a5423e83-ad42-49d0-8776-0eb09cef54a3",
+      "name": "2024 慢遊首爾 7Days",
+      "status": "settled",
+      "file": "2024_慢遊首爾_7Days__a5423e83-ad42-49d0-8776-0eb09cef54a3.json",
+      "counts": {
+        "trip_members": 2,
+        "expenses": 1,
+        "expense_splits": 2,
+        "settlements": 0,
+        "settlement_items": 0
+      }
+    }
+  ]
+}

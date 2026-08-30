@@ -1,0 +1,32 @@
+{
+  "uuid": "4d65e05c-2df0-4ba7-9c39-3fd060ba5d07",
+  "count": 76,
+  "burdenForeign": {
+    "7ca18ec7-7f42-4ff4-a31a-e18d5c834e26": 0,
+    "bf3b456c-c34c-4cac-9f6f-7e801f609a4b": 0,
+    "b7bcf9be-b590-403d-9d4b-78ecdba32696": 0
+  },
+  "burdenTwd": {
+    "7ca18ec7-7f42-4ff4-a31a-e18d5c834e26": 27292.59666666666,
+    "bf3b456c-c34c-4cac-9f6f-7e801f609a4b": 116915.41666666669,
+    "b7bcf9be-b590-403d-9d4b-78ecdba32696": 28566.366666666665
+  },
+  "expectedTwd": {
+    "Ziyu": 27292.596666666665,
+    "Ning": 116915.41666666669,
+    "Mei": 28566.366666666665
+  },
+  "net": {
+    "7ca18ec7-7f42-4ff4-a31a-e18d5c834e26": -14532.96,
+    "bf3b456c-c34c-4cac-9f6f-7e801f609a4b": 28991.96,
+    "b7bcf9be-b590-403d-9d4b-78ecdba32696": -14458.7
+  },
+  "frozenB": null,
+  "aOk": true,
+  "bOk": true,
+  "nameOf": {
+    "7ca18ec7-7f42-4ff4-a31a-e18d5c834e26": "Ziyu",
+    "bf3b456c-c34c-4cac-9f6f-7e801f609a4b": "Ning",
+    "b7bcf9be-b590-403d-9d4b-78ecdba32696": "Mei"
+  }
+}

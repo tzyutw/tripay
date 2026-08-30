@@ -1,0 +1,137 @@
+{
+  "trip": {
+    "id": "b3785fc5-5638-4ade-b474-1f40e07aeafd",
+    "owner_id": "7258f104-3fe2-48c1-9430-6ec0737db54b",
+    "name": "2024 東京富士山五寶團",
+    "emoji": "🇯🇵",
+    "currency": "TWD",
+    "start_date": "2024-02-08",
+    "end_date": "2024-02-14",
+    "status": "archived",
+    "share_token": "0c6f0e2c-99be-4347-8d04-3d3762e161d0",
+    "owner_member_id": "9725502c-2961-4ee3-9417-4ee12f59a21e",
+    "collab_enabled": false,
+    "created_at": "2026-08-11T09:11:25.982738+00:00",
+    "updated_at": "2026-08-11T09:11:25.982738+00:00"
+  },
+  "trip_members": [
+    {
+      "id": "cf0bf7d7-a0bd-44de-a543-450048191e4f",
+      "trip_id": "b3785fc5-5638-4ade-b474-1f40e07aeafd",
+      "name": "Ning",
+      "emoji": "🐰",
+      "sort_order": 0,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "deb638f2-8534-4d47-b4f7-d9ff19eba1d2",
+      "trip_id": "b3785fc5-5638-4ade-b474-1f40e07aeafd",
+      "name": "Nien",
+      "emoji": "🐷",
+      "sort_order": 1,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "9725502c-2961-4ee3-9417-4ee12f59a21e",
+      "trip_id": "b3785fc5-5638-4ade-b474-1f40e07aeafd",
+      "name": "Ziyu",
+      "emoji": "🐶",
+      "sort_order": 2,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "e1fe3193-d74c-4f07-8f36-5db0fe53b03f",
+      "trip_id": "b3785fc5-5638-4ade-b474-1f40e07aeafd",
+      "name": "Xiu",
+      "emoji": "🐵",
+      "sort_order": 3,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "24adb2d6-bd09-4ab5-bd8c-4edc47b823bf",
+      "trip_id": "b3785fc5-5638-4ade-b474-1f40e07aeafd",
+      "name": "Mei",
+      "emoji": "🐱",
+      "sort_order": 4,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "23a54a96-f4b0-4097-ae5d-838575c96418",
+      "trip_id": "b3785fc5-5638-4ade-b474-1f40e07aeafd",
+      "payer_member_id": "9725502c-2961-4ee3-9417-4ee12f59a21e",
+      "created_by": "7258f104-3fe2-48c1-9430-6ec0737db54b",
+      "title": "整趟總花費",
+      "category_emoji": "🧾",
+      "expense_date": "2024-02-08",
+      "foreign_amount": null,
+      "twd_amount": 141758,
+      "exchange_rate": null,
+      "foreign_pending": false,
+      "twd_pending": false,
+      "payment_method": "credit_card",
+      "expense_type": "shared",
+      "card_id": null,
+      "deleted_at": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00",
+      "updated_at": "2026-08-11T09:11:25.982738+00:00",
+      "settled_on_spot": false,
+      "is_sponsor": false
+    }
+  ],
+  "expense_splits": [
+    {
+      "id": "1a1357d4-6f51-4335-9dc8-81e5e1f69cc2",
+      "expense_id": "23a54a96-f4b0-4097-ae5d-838575c96418",
+      "member_id": "cf0bf7d7-a0bd-44de-a543-450048191e4f",
+      "is_participating": true,
+      "split_amount": 28352,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "458300b5-79b9-4ee4-a7f4-3e9f1bdd083f",
+      "expense_id": "23a54a96-f4b0-4097-ae5d-838575c96418",
+      "member_id": "deb638f2-8534-4d47-b4f7-d9ff19eba1d2",
+      "is_participating": true,
+      "split_amount": 28352,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "d8e9f891-066b-4744-9624-af49495a7fec",
+      "expense_id": "23a54a96-f4b0-4097-ae5d-838575c96418",
+      "member_id": "9725502c-2961-4ee3-9417-4ee12f59a21e",
+      "is_participating": true,
+      "split_amount": 28352,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "ccaf0812-1983-41c7-8bd1-e27d989134c3",
+      "expense_id": "23a54a96-f4b0-4097-ae5d-838575c96418",
+      "member_id": "e1fe3193-d74c-4f07-8f36-5db0fe53b03f",
+      "is_participating": true,
+      "split_amount": 28352,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "833a41e0-321b-4ec3-a3b5-6ee68557d950",
+      "expense_id": "23a54a96-f4b0-4097-ae5d-838575c96418",
+      "member_id": "24adb2d6-bd09-4ab5-bd8c-4edc47b823bf",
+      "is_participating": true,
+      "split_amount": 28352,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    }
+  ],
+  "settlements": [],
+  "settlement_items": []
+}

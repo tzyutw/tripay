@@ -1,0 +1,2146 @@
+{
+  "trip": "2023 福岡",
+  "members": [
+    "ziyu",
+    "ning",
+    "mei"
+  ],
+  "baselines": {
+    "burden": {
+      "foreign": {
+        "ziyu": 109898.17,
+        "ning": 174643.67,
+        "mei": 112908.17
+      },
+      "twd": {
+        "ziyu": 3836.87,
+        "ning": 99091.62,
+        "mei": 4468.42
+      }
+    },
+    "net": null,
+    "payoutF": {
+      "ziyu": 0,
+      "ning": 0,
+      "mei": 0
+    },
+    "payoutT": {
+      "ziyu": 0,
+      "ning": 0,
+      "mei": 0
+    },
+    "costF": {
+      "ziyu": 0,
+      "ning": 0,
+      "mei": 0
+    },
+    "costT": {
+      "ziyu": 0,
+      "ning": 0,
+      "mei": 0
+    }
+  },
+  "rowCount": 74,
+  "issues": [
+    {
+      "row": 5,
+      "kind": "刷卡無付款人",
+      "detail": "ORIX租車"
+    },
+    {
+      "row": 58,
+      "kind": "刷卡無付款人",
+      "detail": "AMANEK住宿"
+    }
+  ],
+  "parsed": [
+    {
+      "row": 5,
+      "date": "2023-11-17",
+      "title": "ORIX租車",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": 58960,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 19653,
+        "ning": 19654,
+        "mei": 19653
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [
+        "均付刷卡但無刷卡人（D 欄空、K/L/M 無法判定）"
+      ],
+      "expense_type": "shared",
+      "settled_on_spot": false,
+      "payer": null,
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 58960,
+      "split_mode": "from_shares",
+      "excel_cat": "均付・刷卡(C)"
+    },
+    {
+      "row": 6,
+      "date": "2023-11-17",
+      "title": "超商水茶",
+      "note": "",
+      "cash_shared": 280,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 93.33333333,
+        "ning": 93.33333333,
+        "mei": 93.33333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 280,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 7,
+      "date": "2023-11-17",
+      "title": "極味家",
+      "note": "",
+      "cash_shared": 5654,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 1884.666667,
+        "ning": 1884.666667,
+        "mei": 1884.666667
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 5654,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 8,
+      "date": "2023-11-17",
+      "title": "MUSUBI龍/小包",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 1980,
+        "ning": 3574
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [
+        "多人分擔但無付款人線索"
+      ],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "ziyu",
+        "ning"
+      ],
+      "foreign_amount": 5554,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": null
+    },
+    {
+      "row": 9,
+      "date": "2023-11-17",
+      "title": "Urban Research外套",
+      "note": "H=12753",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 12753,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "ziyu": 2721.87279
+      },
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu"
+      ],
+      "foreign_amount": 12753,
+      "twd_amount": 2721.87279,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 10,
+      "date": "2023-11-17",
+      "title": "地下街販賣機水*3",
+      "note": "",
+      "cash_shared": 390,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 130,
+        "ning": 130,
+        "mei": 130
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 390,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 11,
+      "date": "2023-11-17",
+      "title": "大耳狗戰利品",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ning": 8560
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 8560,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ning"
+    },
+    {
+      "row": 12,
+      "date": "2023-11-17",
+      "title": "SM2衣服",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ning": 10250
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 10250,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ning"
+    },
+    {
+      "row": 13,
+      "date": "2023-11-17",
+      "title": "靴下屋",
+      "note": "1386*4+990+880+2200=¥8,740",
+      "cash_shared": 8740,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 2913.333333,
+        "ning": 2913.333333,
+        "mei": 2913.333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 8740,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 14,
+      "date": "2023-11-17",
+      "title": "天神地下街停車場",
+      "note": "",
+      "cash_shared": 2350,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 783.3333333,
+        "ning": 783.3333333,
+        "mei": 783.3333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 2350,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 15,
+      "date": "2023-11-17",
+      "title": "俺の台所",
+      "note": "",
+      "cash_shared": 3850,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 1283.333333,
+        "ning": 1283.333333,
+        "mei": 1283.333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 3850,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 16,
+      "date": "2023-11-17",
+      "title": "牛腸鍋樂天地",
+      "note": "",
+      "cash_shared": 9400,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 3133.333333,
+        "ning": 3133.333333,
+        "mei": 3133.333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 9400,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 17,
+      "date": "2023-11-17",
+      "title": "販賣機水麥茶",
+      "note": "",
+      "cash_shared": 250,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 83.33333333,
+        "ning": 83.33333333,
+        "mei": 83.33333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 250,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 18,
+      "date": "2023-11-17",
+      "title": "LAWSON牛奶優酪乳",
+      "note": "",
+      "cash_shared": 286,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 95.33333333,
+        "ning": 95.33333333,
+        "mei": 95.33333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21343,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 286,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 23,
+      "date": "2023-11-18",
+      "title": "吉野家朝食",
+      "note": "",
+      "cash_shared": 1800,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 600,
+        "ning": 600,
+        "mei": 600
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 1800,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 24,
+      "date": "2023-11-18",
+      "title": "市集袋子*2",
+      "note": "",
+      "cash_shared": 2200,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 733.3333333,
+        "ning": 733.3333333,
+        "mei": 733.3333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 2200,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 25,
+      "date": "2023-11-18",
+      "title": "筥崎宮御守*5",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ning": 5000
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 5000,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ning"
+    },
+    {
+      "row": 26,
+      "date": "2023-11-18",
+      "title": "麵包",
+      "note": "",
+      "cash_shared": 880,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 293.3333333,
+        "ning": 293.3333333,
+        "mei": 293.3333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 880,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 27,
+      "date": "2023-11-18",
+      "title": "龍/吊飾",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ning": 6105
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 6105,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ning"
+    },
+    {
+      "row": 28,
+      "date": "2023-11-18",
+      "title": "SHIRO",
+      "note": "H=14613",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 14613,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "ning": 3118.26807
+      },
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 14613,
+      "twd_amount": 3118.26807,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 29,
+      "date": "2023-11-18",
+      "title": "ADDICTION粉餅",
+      "note": "H=5225",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 5225,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "ziyu": 1115
+      },
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu"
+      ],
+      "foreign_amount": 5225,
+      "twd_amount": 1115,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 30,
+      "date": "2023-11-18",
+      "title": "CPB氣墊粉餅",
+      "note": "¥17,242-¥6,175=¥11,067",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "mei": 6175
+      },
+      "twd_self_card": {
+        "ning": 2361.58713
+      },
+      "exchange_rate": 0.21339,
+      "flags": [
+        "同列同時有 E/F/G 日幣分擔與 K/L/M 台幣刷卡（幣別重疊，需 Rozi 判讀）"
+      ],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "mei"
+      ],
+      "foreign_amount": 6175,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ning"
+    },
+    {
+      "row": 31,
+      "date": "2023-11-18",
+      "title": "利久牛舌",
+      "note": "",
+      "cash_shared": 9119,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 3039.666667,
+        "ning": 3039.666667,
+        "mei": 3039.666667
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 9119,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 32,
+      "date": "2023-11-18",
+      "title": "雕魚燒",
+      "note": "",
+      "cash_shared": 270,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 90,
+        "ning": 90,
+        "mei": 90
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 270,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 33,
+      "date": "2023-11-18",
+      "title": "大耳狗手帕",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ning": 550
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 550,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ning"
+    },
+    {
+      "row": 34,
+      "date": "2023-11-18",
+      "title": "CA4LA(小咪帽子)",
+      "note": "H=10500",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 10500,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "ning": 2240.595
+      },
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 10500,
+      "twd_amount": 2240.595,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 35,
+      "date": "2023-11-18",
+      "title": "FredPerry外套",
+      "note": "H=33000",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 33000,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "ning": 7041.87
+      },
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 33000,
+      "twd_amount": 7041.87,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 36,
+      "date": "2023-11-18",
+      "title": "KANGOL帽子",
+      "note": "H=6930",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 6930,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "ning": 1478.7927
+      },
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 6930,
+      "twd_amount": 1478.7927,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 37,
+      "date": "2023-11-18",
+      "title": "無印良品",
+      "note": "H=7610",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 7610,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "ning": 1623.8979
+      },
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 7610,
+      "twd_amount": 1623.8979,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 38,
+      "date": "2023-11-18",
+      "title": "relume裙",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "mei": 15950
+      },
+      "twd_self_card": {
+        "ning": 3403.5705
+      },
+      "exchange_rate": 0.21339,
+      "flags": [
+        "同列同時有 E/F/G 日幣分擔與 K/L/M 台幣刷卡（幣別重疊，需 Rozi 判讀）"
+      ],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "mei"
+      ],
+      "foreign_amount": 15950,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ning"
+    },
+    {
+      "row": 39,
+      "date": "2023-11-18",
+      "title": "CA4LA(瑜帽子)",
+      "note": "H=8700",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 8700,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "ning": 1856.493
+      },
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 8700,
+      "twd_amount": 1856.493,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 40,
+      "date": "2023-11-18",
+      "title": "全家礦泉水*2",
+      "note": "",
+      "cash_shared": 216,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 72,
+        "ning": 72,
+        "mei": 72
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 216,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 41,
+      "date": "2023-11-18",
+      "title": "刷頭",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "mei": 765
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "mei"
+      ],
+      "foreign_amount": 765,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "mei"
+    },
+    {
+      "row": 42,
+      "date": "2023-11-18",
+      "title": "麵屋兼虎沾麵",
+      "note": "",
+      "cash_shared": 3550,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 1183.333333,
+        "ning": 1183.333333,
+        "mei": 1183.333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 3550,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 43,
+      "date": "2023-11-18",
+      "title": "大國藥妝",
+      "note": "H=35702",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 35702,
+      "jpy_shares": {
+        "ziyu": 6818,
+        "ning": 25164,
+        "mei": 3720
+      },
+      "twd_self_card": {
+        "ning": 7618.44978
+      },
+      "exchange_rate": 0.21339,
+      "flags": [
+        "同列同時有 E/F/G 日幣分擔與 K/L/M 台幣刷卡（幣別重疊，需 Rozi 判讀）"
+      ],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 35702,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ning"
+    },
+    {
+      "row": 48,
+      "date": "2023-11-19",
+      "title": "麥當勞早餐",
+      "note": "",
+      "cash_shared": 1630,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 543.3333333,
+        "ning": 543.3333333,
+        "mei": 543.3333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 1630,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 49,
+      "date": "2023-11-19",
+      "title": "停車費",
+      "note": "",
+      "cash_shared": 300,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 100,
+        "ning": 100,
+        "mei": 100
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 300,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 50,
+      "date": "2023-11-19",
+      "title": "B SPEAK",
+      "note": "",
+      "cash_shared": 1983,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 661,
+        "ning": 661,
+        "mei": 661
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 1983,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 51,
+      "date": "2023-11-19",
+      "title": "Jam kitchen kotokotoya果醬",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 1420
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "ziyu"
+      ],
+      "foreign_amount": 1420,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ziyu"
+    },
+    {
+      "row": 52,
+      "date": "2023-11-19",
+      "title": "由布院之森 龍貓",
+      "note": "",
+      "cash_shared": 12540,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 3200,
+        "ning": 9340
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [
+        "均付現金但 E/F/G 不等額"
+      ],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning"
+      ],
+      "foreign_amount": 12540,
+      "split_mode": "from_shares",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 53,
+      "date": "2023-11-19",
+      "title": "一心釜飯龍鱗堂",
+      "note": "",
+      "cash_shared": 8350,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 2783.333333,
+        "ning": 2783.333333,
+        "mei": 2783.333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 8350,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 54,
+      "date": "2023-11-19",
+      "title": "販賣機熱奶茶/焙茶",
+      "note": "",
+      "cash_shared": 290,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 96.66666667,
+        "ning": 96.66666667,
+        "mei": 96.66666667
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 290,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 55,
+      "date": "2023-11-19",
+      "title": "SNOOPY茶屋紀念品",
+      "note": "",
+      "cash_shared": 14861,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 10000,
+        "ning": 4861
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [
+        "均付現金但 E/F/G 不等額"
+      ],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning"
+      ],
+      "foreign_amount": 14861,
+      "split_mode": "from_shares",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 56,
+      "date": "2023-11-19",
+      "title": "超市阿蘇牧場牛乳",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 182
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "ziyu"
+      ],
+      "foreign_amount": 182,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ziyu"
+    },
+    {
+      "row": 57,
+      "date": "2023-11-19",
+      "title": "由布院停車費",
+      "note": "",
+      "cash_shared": 660,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 220,
+        "ning": 220,
+        "mei": 220
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 660,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 58,
+      "date": "2023-11-19",
+      "title": "AMANEK住宿",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": 55322,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 18440.66667,
+        "ning": 18440.66667,
+        "mei": 18440.66667
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [
+        "均付刷卡但無刷卡人（D 欄空、K/L/M 無法判定）"
+      ],
+      "expense_type": "shared",
+      "settled_on_spot": false,
+      "payer": null,
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 55322,
+      "split_mode": "equal",
+      "excel_cat": "均付・刷卡(C)"
+    },
+    {
+      "row": 59,
+      "date": "2023-11-19",
+      "title": "燒肉元相",
+      "note": "",
+      "cash_shared": 10538,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 3512.666667,
+        "ning": 3512.666667,
+        "mei": 3512.666667
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 10538,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 60,
+      "date": "2023-11-19",
+      "title": "唐吉軻德",
+      "note": "¥8,990+¥11,598",
+      "cash_shared": null,
+      "card_shared": 20498,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 2000,
+        "ning": 16498,
+        "mei": 2000
+      },
+      "twd_self_card": {
+        "ning": 4374.06822
+      },
+      "exchange_rate": 0.21339,
+      "flags": [
+        "刷卡人由 K/L/M 推得"
+      ],
+      "expense_type": "shared",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 20498,
+      "split_mode": "from_shares",
+      "excel_cat": "均付・刷卡(C)"
+    },
+    {
+      "row": 61,
+      "date": "2023-11-19",
+      "title": "扭蛋",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ning": 300
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 300,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ning"
+    },
+    {
+      "row": 66,
+      "date": "2023-11-20",
+      "title": "加油",
+      "note": "",
+      "cash_shared": 2035,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 678.3333333,
+        "ning": 678.3333333,
+        "mei": 678.3333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 2035,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 67,
+      "date": "2023-11-20",
+      "title": "別府纜車門票",
+      "note": "",
+      "cash_shared": 5400,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 1800,
+        "ning": 1800,
+        "mei": 1800
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 5400,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 68,
+      "date": "2023-11-20",
+      "title": "烏龍麵",
+      "note": "",
+      "cash_shared": 2500,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 833.3333333,
+        "ning": 833.3333333,
+        "mei": 833.3333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 2500,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 69,
+      "date": "2023-11-20",
+      "title": "海地獄紀念品",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ning": 5120
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 5120,
+      "split_mode": "from_shares",
+      "excel_cat": "各自分擔/自付(E/F/G)",
+      "payer": "ning"
+    },
+    {
+      "row": 70,
+      "date": "2023-11-20",
+      "title": "販賣機芬達濃茶",
+      "note": "",
+      "cash_shared": 310,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 103.3333333,
+        "ning": 103.3333333,
+        "mei": 103.3333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 310,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 71,
+      "date": "2023-11-20",
+      "title": "極樂饅頭",
+      "note": "",
+      "cash_shared": 600,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 200,
+        "ning": 200,
+        "mei": 200
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 600,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 72,
+      "date": "2023-11-20",
+      "title": "海地獄布丁咖啡",
+      "note": "",
+      "cash_shared": 600,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 200,
+        "ning": 200,
+        "mei": 200
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 600,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 73,
+      "date": "2023-11-20",
+      "title": "大創大耳狗洗衣袋",
+      "note": "",
+      "cash_shared": 110,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 36.66666667,
+        "ning": 36.66666667,
+        "mei": 36.66666667
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 110,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 74,
+      "date": "2023-11-20",
+      "title": "UQ",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": 9955,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 4977.5,
+        "mei": 4977.5
+      },
+      "twd_self_card": {
+        "ning": 2124.29745
+      },
+      "exchange_rate": 0.21339,
+      "flags": [
+        "刷卡人由 K/L/M 推得"
+      ],
+      "expense_type": "shared",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ziyu",
+        "mei"
+      ],
+      "foreign_amount": 9955,
+      "split_mode": "from_shares",
+      "excel_cat": "均付・刷卡(C)"
+    },
+    {
+      "row": 75,
+      "date": "2023-11-20",
+      "title": "Right-On",
+      "note": "H=10888",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 10888,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "ning": 2323.39032
+      },
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 10888,
+      "twd_amount": 2323.39032,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 76,
+      "date": "2023-11-20",
+      "title": "GU",
+      "note": "",
+      "cash_shared": null,
+      "card_shared": 9037,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 3012.333333,
+        "ning": 3012.333333,
+        "mei": 3012.333333
+      },
+      "twd_self_card": {
+        "ning": 1928.40543
+      },
+      "exchange_rate": 0.21339,
+      "flags": [
+        "刷卡人由 K/L/M 推得"
+      ],
+      "expense_type": "shared",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 9037,
+      "split_mode": "equal",
+      "excel_cat": "均付・刷卡(C)"
+    },
+    {
+      "row": 77,
+      "date": "2023-11-20",
+      "title": "美乃里",
+      "note": "",
+      "cash_shared": 5400,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 1800,
+        "ning": 1800,
+        "mei": 1800
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 5400,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 78,
+      "date": "2023-11-20",
+      "title": "LAWSON",
+      "note": "",
+      "cash_shared": 734,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 244.6666667,
+        "ning": 244.6666667,
+        "mei": 244.6666667
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.21339,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 734,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 83,
+      "date": "2023-11-21",
+      "title": "飯店停車費",
+      "note": "",
+      "cash_shared": 1000,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 333.3333333,
+        "ning": 333.3333333,
+        "mei": 333.3333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 1000,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 84,
+      "date": "2023-11-21",
+      "title": "MOS早餐",
+      "note": "",
+      "cash_shared": 2180,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 726.6666667,
+        "ning": 726.6666667,
+        "mei": 726.6666667
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 2180,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 85,
+      "date": "2023-11-21",
+      "title": "UGG鞋",
+      "note": "H=20900",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 20900,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "mei": 4468.42
+      },
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "mei",
+      "participants": [
+        "mei"
+      ],
+      "foreign_amount": 20900,
+      "twd_amount": 4468.42,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 86,
+      "date": "2023-11-21",
+      "title": "圍巾",
+      "note": "H=8151",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 8151,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "ning": 1742.6838
+      },
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 8151,
+      "twd_amount": 1742.6838,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 87,
+      "date": "2023-11-21",
+      "title": "PRADA後背包",
+      "note": "H=261250",
+      "cash_shared": null,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": 261250,
+      "jpy_shares": {},
+      "twd_self_card": {
+        "ning": 55855.25
+      },
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "personal",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "foreign_amount": 261250,
+      "twd_amount": 55855.25,
+      "split_mode": "self",
+      "excel_cat": "刷自己卡自付(K/L/M)"
+    },
+    {
+      "row": 88,
+      "date": "2023-11-21",
+      "title": "炸豬排飯",
+      "note": "",
+      "cash_shared": 6970,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 2323.333333,
+        "ning": 2323.333333,
+        "mei": 2323.333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 6970,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 89,
+      "date": "2023-11-21",
+      "title": "阪急停車費",
+      "note": "",
+      "cash_shared": 1200,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 400,
+        "ning": 400,
+        "mei": 400
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 1200,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 90,
+      "date": "2023-11-21",
+      "title": "加油",
+      "note": "",
+      "cash_shared": 1603,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 534.3333333,
+        "ning": 534.3333333,
+        "mei": 534.3333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 1603,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 91,
+      "date": "2023-11-21",
+      "title": "711",
+      "note": "",
+      "cash_shared": 1127,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 375.6666667,
+        "ning": 375.6666667,
+        "mei": 375.6666667
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 1127,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 92,
+      "date": "2023-11-21",
+      "title": "LAWSON",
+      "note": "",
+      "cash_shared": 1389,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 463,
+        "ning": 463,
+        "mei": 463
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 1389,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 93,
+      "date": "2023-11-21",
+      "title": "ETC",
+      "note": "",
+      "cash_shared": 8220,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 2740,
+        "ning": 2740,
+        "mei": 2740
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 8220,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    },
+    {
+      "row": 94,
+      "date": "2023-11-21",
+      "title": "機場販賣機",
+      "note": "",
+      "cash_shared": 280,
+      "card_shared": null,
+      "card_payer": null,
+      "foreign_total_note": null,
+      "jpy_shares": {
+        "ziyu": 93.33333333,
+        "ning": 93.33333333,
+        "mei": 93.33333333
+      },
+      "twd_self_card": {},
+      "exchange_rate": 0.2138,
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei"
+      ],
+      "foreign_amount": 280,
+      "split_mode": "equal",
+      "excel_cat": "均付・現金(B)"
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "trip": {
+    "id": "a5423e83-ad42-49d0-8776-0eb09cef54a3",
+    "owner_id": "7258f104-3fe2-48c1-9430-6ec0737db54b",
+    "name": "2024 慢遊首爾 7Days",
+    "emoji": "🇰🇷",
+    "currency": "TWD",
+    "start_date": "2024-11-30",
+    "end_date": "2024-12-06",
+    "status": "settled",
+    "share_token": "f88510d0-4fca-471a-8193-d5cd16b4c31a",
+    "owner_member_id": "dc466089-916b-43f4-9f62-23f01ee136e0",
+    "collab_enabled": false,
+    "created_at": "2026-08-11T09:11:25.982738+00:00",
+    "updated_at": "2026-08-11T09:11:25.982738+00:00"
+  },
+  "trip_members": [
+    {
+      "id": "1d58cd5f-e83b-4e9e-a9c8-f08dd11cc61b",
+      "trip_id": "a5423e83-ad42-49d0-8776-0eb09cef54a3",
+      "name": "Enno",
+      "emoji": "🐻",
+      "sort_order": 0,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "dc466089-916b-43f4-9f62-23f01ee136e0",
+      "trip_id": "a5423e83-ad42-49d0-8776-0eb09cef54a3",
+      "name": "Ziyu",
+      "emoji": "🐶",
+      "sort_order": 1,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "5f0b6ccb-79ac-4606-9afd-856aaa5d39f8",
+      "trip_id": "a5423e83-ad42-49d0-8776-0eb09cef54a3",
+      "payer_member_id": "dc466089-916b-43f4-9f62-23f01ee136e0",
+      "created_by": "7258f104-3fe2-48c1-9430-6ec0737db54b",
+      "title": "整趟總花費",
+      "category_emoji": "🧾",
+      "expense_date": "2024-11-30",
+      "foreign_amount": null,
+      "twd_amount": 75014,
+      "exchange_rate": null,
+      "foreign_pending": false,
+      "twd_pending": false,
+      "payment_method": "credit_card",
+      "expense_type": "shared",
+      "card_id": null,
+      "deleted_at": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00",
+      "updated_at": "2026-08-11T09:11:25.982738+00:00",
+      "settled_on_spot": false,
+      "is_sponsor": false
+    }
+  ],
+  "expense_splits": [
+    {
+      "id": "3d28424f-757e-4a81-a638-8beb6bae94c5",
+      "expense_id": "5f0b6ccb-79ac-4606-9afd-856aaa5d39f8",
+      "member_id": "1d58cd5f-e83b-4e9e-a9c8-f08dd11cc61b",
+      "is_participating": true,
+      "split_amount": 37507,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "0df67e95-94bd-4f0f-85cb-5d7154322309",
+      "expense_id": "5f0b6ccb-79ac-4606-9afd-856aaa5d39f8",
+      "member_id": "dc466089-916b-43f4-9f62-23f01ee136e0",
+      "is_participating": true,
+      "split_amount": 37507,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    }
+  ],
+  "settlements": [],
+  "settlement_items": []
+}

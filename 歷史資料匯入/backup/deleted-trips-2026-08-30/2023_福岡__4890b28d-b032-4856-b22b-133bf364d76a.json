@@ -1,0 +1,129 @@
+{
+  "trip": {
+    "id": "4890b28d-b032-4856-b22b-133bf364d76a",
+    "owner_id": "7258f104-3fe2-48c1-9430-6ec0737db54b",
+    "name": "2023 福岡",
+    "emoji": "🇯🇵",
+    "currency": "TWD",
+    "start_date": "2023-11-18",
+    "end_date": "2023-11-22",
+    "status": "archived",
+    "share_token": "47e144c8-0719-48f5-84e7-68a73ddc814a",
+    "owner_member_id": "992c7a81-451c-45ef-a070-e2c72e70a20c",
+    "collab_enabled": false,
+    "created_at": "2026-08-11T09:11:25.982738+00:00",
+    "updated_at": "2026-08-11T11:18:45.056974+00:00"
+  },
+  "trip_members": [
+    {
+      "id": "992c7a81-451c-45ef-a070-e2c72e70a20c",
+      "trip_id": "4890b28d-b032-4856-b22b-133bf364d76a",
+      "name": "Ziyu",
+      "emoji": "🐶",
+      "sort_order": 0,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "eab72dc9-e62a-41c2-b7a6-196711dc0c8d",
+      "trip_id": "4890b28d-b032-4856-b22b-133bf364d76a",
+      "name": "Ning",
+      "emoji": "🐰",
+      "sort_order": 1,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "c35905cd-8c8a-48d3-9959-0e9c4a0b961f",
+      "trip_id": "4890b28d-b032-4856-b22b-133bf364d76a",
+      "name": "Mei",
+      "emoji": "🐱",
+      "sort_order": 2,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "74d9485f-fe55-45a7-a2cf-2d50be534319",
+      "trip_id": "4890b28d-b032-4856-b22b-133bf364d76a",
+      "payer_member_id": "992c7a81-451c-45ef-a070-e2c72e70a20c",
+      "created_by": "7258f104-3fe2-48c1-9430-6ec0737db54b",
+      "title": "整趟總花費",
+      "category_emoji": "🧾",
+      "expense_date": "2023-11-18",
+      "foreign_amount": null,
+      "twd_amount": 194837,
+      "exchange_rate": null,
+      "foreign_pending": false,
+      "twd_pending": false,
+      "payment_method": "credit_card",
+      "expense_type": "shared",
+      "card_id": null,
+      "deleted_at": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00",
+      "updated_at": "2026-08-11T09:11:25.982738+00:00",
+      "settled_on_spot": false,
+      "is_sponsor": false
+    }
+  ],
+  "expense_splits": [
+    {
+      "id": "ba81f71f-5c50-418c-918e-6f45bb31caac",
+      "expense_id": "74d9485f-fe55-45a7-a2cf-2d50be534319",
+      "member_id": "992c7a81-451c-45ef-a070-e2c72e70a20c",
+      "is_participating": true,
+      "split_amount": 64946,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "cc414161-ae75-4e4b-a835-80463adf8695",
+      "expense_id": "74d9485f-fe55-45a7-a2cf-2d50be534319",
+      "member_id": "eab72dc9-e62a-41c2-b7a6-196711dc0c8d",
+      "is_participating": true,
+      "split_amount": 64946,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "e0f81fcf-4ffe-4db6-b1b2-309027e42674",
+      "expense_id": "74d9485f-fe55-45a7-a2cf-2d50be534319",
+      "member_id": "c35905cd-8c8a-48d3-9959-0e9c4a0b961f",
+      "is_participating": true,
+      "split_amount": 64946,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    }
+  ],
+  "settlements": [
+    {
+      "id": "6228464e-5c71-4050-aa05-0e1cd1e397dc",
+      "trip_id": "4890b28d-b032-4856-b22b-133bf364d76a",
+      "created_by": "7258f104-3fe2-48c1-9430-6ec0737db54b",
+      "status": "confirmed",
+      "settled_at": "2026-08-11T11:18:45.056974+00:00",
+      "created_at": "2026-08-11T11:18:44.519252+00:00"
+    }
+  ],
+  "settlement_items": [
+    {
+      "id": "d137d942-d109-41d4-8e7b-90433a927cb7",
+      "settlement_id": "6228464e-5c71-4050-aa05-0e1cd1e397dc",
+      "from_member_id": "eab72dc9-e62a-41c2-b7a6-196711dc0c8d",
+      "to_member_id": "992c7a81-451c-45ef-a070-e2c72e70a20c",
+      "amount": 64946,
+      "is_cleared": false,
+      "cleared_at": null
+    },
+    {
+      "id": "ac868a1e-0ce4-47a7-902a-0cdd305e9387",
+      "settlement_id": "6228464e-5c71-4050-aa05-0e1cd1e397dc",
+      "from_member_id": "c35905cd-8c8a-48d3-9959-0e9c4a0b961f",
+      "to_member_id": "992c7a81-451c-45ef-a070-e2c72e70a20c",
+      "amount": 64946,
+      "is_cleared": false,
+      "cleared_at": null
+    }
+  ]
+}

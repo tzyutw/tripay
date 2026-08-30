@@ -1,0 +1,119 @@
+{
+  "trip": {
+    "id": "4dc3eee6-e20d-49aa-bb15-caacad00b227",
+    "owner_id": "7258f104-3fe2-48c1-9430-6ec0737db54b",
+    "name": "2025 北海道四寶團",
+    "emoji": "🇯🇵",
+    "currency": "TWD",
+    "start_date": "2025-05-30",
+    "end_date": "2025-06-04",
+    "status": "archived",
+    "share_token": "2494fb59-b8d0-41af-ac2f-15b2f0acbe95",
+    "owner_member_id": "a894b75a-4efe-4460-8918-42697a4ecc75",
+    "collab_enabled": false,
+    "created_at": "2026-08-11T09:11:25.982738+00:00",
+    "updated_at": "2026-08-11T09:11:25.982738+00:00"
+  },
+  "trip_members": [
+    {
+      "id": "f255e430-5cc5-4cb1-ad25-c18bc0ab5589",
+      "trip_id": "4dc3eee6-e20d-49aa-bb15-caacad00b227",
+      "name": "Ning",
+      "emoji": "🐰",
+      "sort_order": 0,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "a894b75a-4efe-4460-8918-42697a4ecc75",
+      "trip_id": "4dc3eee6-e20d-49aa-bb15-caacad00b227",
+      "name": "Ziyu",
+      "emoji": "🐶",
+      "sort_order": 1,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "9ed62a12-2c35-48f8-bb7e-f53b46e0b592",
+      "trip_id": "4dc3eee6-e20d-49aa-bb15-caacad00b227",
+      "name": "Xiu",
+      "emoji": "🐵",
+      "sort_order": 2,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "7416a3a9-1233-46e9-a7f4-46720da13cae",
+      "trip_id": "4dc3eee6-e20d-49aa-bb15-caacad00b227",
+      "name": "Mei",
+      "emoji": "🐱",
+      "sort_order": 3,
+      "linked_profile_id": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "49d1bd6f-c491-44fe-816b-10bccf9a95b2",
+      "trip_id": "4dc3eee6-e20d-49aa-bb15-caacad00b227",
+      "payer_member_id": "a894b75a-4efe-4460-8918-42697a4ecc75",
+      "created_by": "7258f104-3fe2-48c1-9430-6ec0737db54b",
+      "title": "整趟總花費",
+      "category_emoji": "🧾",
+      "expense_date": "2025-05-30",
+      "foreign_amount": null,
+      "twd_amount": 76796,
+      "exchange_rate": null,
+      "foreign_pending": false,
+      "twd_pending": false,
+      "payment_method": "credit_card",
+      "expense_type": "shared",
+      "card_id": null,
+      "deleted_at": null,
+      "created_at": "2026-08-11T09:11:25.982738+00:00",
+      "updated_at": "2026-08-11T09:11:25.982738+00:00",
+      "settled_on_spot": false,
+      "is_sponsor": false
+    }
+  ],
+  "expense_splits": [
+    {
+      "id": "b58619a2-0c36-4a3a-b762-cf5d6847eff7",
+      "expense_id": "49d1bd6f-c491-44fe-816b-10bccf9a95b2",
+      "member_id": "f255e430-5cc5-4cb1-ad25-c18bc0ab5589",
+      "is_participating": true,
+      "split_amount": 19199,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "88c3efa1-06cd-4180-81cc-1ce3a83c113f",
+      "expense_id": "49d1bd6f-c491-44fe-816b-10bccf9a95b2",
+      "member_id": "a894b75a-4efe-4460-8918-42697a4ecc75",
+      "is_participating": true,
+      "split_amount": 19199,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "7b519c7b-d8bd-4370-8c34-1a1305347e43",
+      "expense_id": "49d1bd6f-c491-44fe-816b-10bccf9a95b2",
+      "member_id": "9ed62a12-2c35-48f8-bb7e-f53b46e0b592",
+      "is_participating": true,
+      "split_amount": 19199,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    },
+    {
+      "id": "5ee6bd9c-7c90-4c75-aef6-c4b660041fd5",
+      "expense_id": "49d1bd6f-c491-44fe-816b-10bccf9a95b2",
+      "member_id": "7416a3a9-1233-46e9-a7f4-46720da13cae",
+      "is_participating": true,
+      "split_amount": 19199,
+      "split_pending": false,
+      "created_at": "2026-08-11T09:11:25.982738+00:00"
+    }
+  ],
+  "settlements": [],
+  "settlement_items": []
+}

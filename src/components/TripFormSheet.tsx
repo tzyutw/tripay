@@ -477,7 +477,7 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
 
             {!isEdit && (
               <p className="text-[11px] text-muted mb-4">
-                標記哪位是你，之後可以切換視角看自己的花費。
+                標記哪位是你，統計卡的「我的花費」就會算你這一份。
               </p>
             )}
           </div>

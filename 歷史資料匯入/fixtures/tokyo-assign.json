@@ -1,0 +1,471 @@
+{
+  "assignments": {
+    "16": {
+      "owner": "ziyu"
+    },
+    "17": {
+      "owner": "ziyu"
+    },
+    "18": {
+      "owner": "ziyu"
+    },
+    "35": {
+      "owner": "ning",
+      "splits": [
+        {
+          "to": "nien",
+          "jpy": 1600,
+          "settled": true
+        },
+        {
+          "to": "ziyu",
+          "jpy": 1540,
+          "settled": false
+        }
+      ]
+    },
+    "36": {
+      "owner": "ning"
+    },
+    "37": {
+      "owner": "ning",
+      "splits": [
+        {
+          "to": "mei",
+          "jpy": 1078,
+          "settled": false
+        }
+      ]
+    },
+    "56": {
+      "owner": "ning",
+      "splits": [
+        {
+          "to": "nien",
+          "jpy": 2000,
+          "settled": true
+        }
+      ]
+    },
+    "57": {
+      "owner": "ning"
+    },
+    "58": {
+      "owner": "ning",
+      "splits": [
+        {
+          "to": "ziyu",
+          "jpy": 15098,
+          "settled": false,
+          "amended": true
+        },
+        {
+          "to": "mei",
+          "jpy": 9999,
+          "settled": false,
+          "amended": true
+        }
+      ]
+    },
+    "60": {
+      "owner": "ziyu"
+    },
+    "62": {
+      "owner": "xiu"
+    },
+    "77": {
+      "owner": "ning"
+    },
+    "78": {
+      "owner": "ning"
+    },
+    "79": {
+      "owner": "ning",
+      "rule": "規則3 不拆分"
+    },
+    "80": {
+      "owner": "ning",
+      "splits": [
+        {
+          "to": "nien",
+          "jpy": 1100,
+          "settled": true
+        }
+      ]
+    },
+    "81": {
+      "owner": "ning",
+      "splits": [
+        {
+          "to": "ziyu",
+          "jpy": 1172,
+          "settled": false
+        }
+      ]
+    },
+    "82": {
+      "owner": "ning",
+      "splits": [
+        {
+          "to": "ziyu",
+          "jpy": 750,
+          "settled": false
+        },
+        {
+          "to": "mei",
+          "jpy": 1600,
+          "settled": false
+        }
+      ]
+    },
+    "84": {
+      "owner": "ziyu"
+    },
+    "85": {
+      "owner": "ziyu",
+      "splits": [
+        {
+          "to": "mei",
+          "jpy": 2955,
+          "settled": false
+        }
+      ]
+    },
+    "86": {
+      "owner": "ziyu"
+    },
+    "87": {
+      "owner": "ziyu",
+      "splits": [
+        {
+          "to": "nien",
+          "jpy": 5670,
+          "settled": true
+        },
+        {
+          "to": "ning",
+          "jpy": 5670,
+          "settled": false
+        }
+      ]
+    },
+    "89": {
+      "owner": "xiu",
+      "rule": "規則3 不拆分"
+    },
+    "90": {
+      "owner": "xiu"
+    },
+    "91": {
+      "owner": "xiu"
+    },
+    "105": {
+      "owner": "ning",
+      "rule": "規則3 不拆分"
+    },
+    "106": {
+      "owner": "ning",
+      "splits": [
+        {
+          "to": "nien",
+          "jpy": 1000,
+          "settled": true
+        },
+        {
+          "to": "mei",
+          "jpy": 1000,
+          "settled": false
+        }
+      ]
+    },
+    "107": {
+      "owner": "ning"
+    },
+    "108": {
+      "owner": "ning",
+      "splits": [
+        {
+          "to": "mei",
+          "jpy": 2750,
+          "settled": false
+        }
+      ]
+    },
+    "109": {
+      "owner": "ning",
+      "rule": "規則6 金額 0"
+    },
+    "110": {
+      "owner": "ning",
+      "rule": "規則3 不拆分"
+    },
+    "112": {
+      "owner": "ziyu"
+    },
+    "113": {
+      "owner": "ziyu"
+    },
+    "114": {
+      "owner": "ziyu"
+    },
+    "115": {
+      "owner": "ziyu"
+    },
+    "117": {
+      "owner": "nien",
+      "splits": [
+        {
+          "to": "ziyu",
+          "jpy": 1230,
+          "settled": true
+        }
+      ]
+    },
+    "128": {
+      "owner": "mei",
+      "payer": "ning",
+      "rule": "規則4 代替 Mei 刷卡",
+      "wholeToOwnerUnsettled": true
+    },
+    "129": {
+      "owner": "ning",
+      "rule": "規則6 金額 0"
+    },
+    "130": {
+      "owner": "mei",
+      "payer": "ning",
+      "rule": "規則4 代替 Mei 刷卡",
+      "wholeToOwnerUnsettled": true
+    },
+    "131": {
+      "owner": "ning",
+      "rule": "規則6 金額 0"
+    },
+    "132": {
+      "owner": "ning",
+      "rule": "規則3 不拆分"
+    },
+    "133": {
+      "owner": "ning"
+    },
+    "134": {
+      "owner": "ning"
+    },
+    "135": {
+      "owner": "ning",
+      "splits": [
+        {
+          "to": "nien",
+          "jpy": 2250,
+          "settled": true
+        }
+      ]
+    },
+    "136": {
+      "owner": "ning",
+      "equal3": [
+        "ning",
+        "mei",
+        "ziyu"
+      ],
+      "rule": "規則5 🍋🐱🐟均分"
+    },
+    "137": {
+      "owner": "ziyu",
+      "payer": "ning",
+      "rule": "規則4 代替 Ziyu 刷卡",
+      "wholeToOwnerUnsettled": true
+    },
+    "138": {
+      "owner": "ning",
+      "rule": "規則6 金額 0"
+    },
+    "139": {
+      "owner": "ning",
+      "splits": [
+        {
+          "to": "nien",
+          "jpy": 1711,
+          "settled": true
+        },
+        {
+          "to": "ziyu",
+          "jpy": 2935,
+          "settled": false
+        }
+      ]
+    },
+    "141": {
+      "owner": "ziyu"
+    },
+    "142": {
+      "owner": "ziyu"
+    },
+    "143": {
+      "owner": "ziyu"
+    },
+    "144": {
+      "owner": "ziyu",
+      "splits": [
+        {
+          "to": "mei",
+          "jpy": 4000,
+          "settled": false,
+          "amended": true
+        }
+      ]
+    },
+    "153": {
+      "owner": "ning",
+      "rule": "規則7 金額 Excel 未記，照規則6"
+    },
+    "155": {
+      "owner": "ziyu"
+    },
+    "156": {
+      "owner": "ziyu"
+    },
+    "157": {
+      "owner": "ziyu"
+    }
+  },
+  "baselineA": {
+    "jpy": {
+      "ning": 117459.2,
+      "nien": 42965.2,
+      "ziyu": 70081.2,
+      "xiu": 37935.2,
+      "mei": 38715.2
+    },
+    "twd": {
+      "ning": 40496.526509999996,
+      "nien": 23611.286839999997,
+      "ziyu": 35045.76966,
+      "xiu": 33538.86954,
+      "mei": 37244.756539999995
+    }
+  },
+  "poolJ": 188576,
+  "poolT": 101214.0477,
+  "conflicts": [
+    {
+      "kind": "清單未涵蓋",
+      "row": 14,
+      "title": "TOYSQ",
+      "jpy": 10500,
+      "twd": null,
+      "note": "🍋已結，水精靈"
+    }
+  ],
+  "debtDiff": [],
+  "listDebt": [
+    {
+      "row": 35,
+      "creditor": "ning",
+      "debtor": "ziyu",
+      "amount": 1540
+    },
+    {
+      "row": 37,
+      "creditor": "ning",
+      "debtor": "mei",
+      "amount": 1078
+    },
+    {
+      "row": 58,
+      "creditor": "ning",
+      "debtor": "ziyu",
+      "amount": 15098
+    },
+    {
+      "row": 58,
+      "creditor": "ning",
+      "debtor": "mei",
+      "amount": 9999
+    },
+    {
+      "row": 81,
+      "creditor": "ning",
+      "debtor": "ziyu",
+      "amount": 1172
+    },
+    {
+      "row": 82,
+      "creditor": "ning",
+      "debtor": "ziyu",
+      "amount": 750
+    },
+    {
+      "row": 82,
+      "creditor": "ning",
+      "debtor": "mei",
+      "amount": 1600
+    },
+    {
+      "row": 85,
+      "creditor": "ziyu",
+      "debtor": "mei",
+      "amount": 2955
+    },
+    {
+      "row": 87,
+      "creditor": "ziyu",
+      "debtor": "ning",
+      "amount": 5670
+    },
+    {
+      "row": 106,
+      "creditor": "ning",
+      "debtor": "mei",
+      "amount": 1000
+    },
+    {
+      "row": 108,
+      "creditor": "ning",
+      "debtor": "mei",
+      "amount": 2750
+    },
+    {
+      "row": 128,
+      "creditor": "ning",
+      "debtor": "mei",
+      "amount": 19360
+    },
+    {
+      "row": 130,
+      "creditor": "ning",
+      "debtor": "mei",
+      "amount": 36000
+    },
+    {
+      "row": 136,
+      "creditor": "ning",
+      "debtor": "mei",
+      "amount": 2417
+    },
+    {
+      "row": 136,
+      "creditor": "ning",
+      "debtor": "ziyu",
+      "amount": 2417
+    },
+    {
+      "row": 137,
+      "creditor": "ning",
+      "debtor": "ziyu",
+      "amount": 500
+    },
+    {
+      "row": 139,
+      "creditor": "ning",
+      "debtor": "ziyu",
+      "amount": 2935
+    },
+    {
+      "row": 144,
+      "creditor": "ziyu",
+      "debtor": "mei",
+      "amount": 4000
+    }
+  ]
+}

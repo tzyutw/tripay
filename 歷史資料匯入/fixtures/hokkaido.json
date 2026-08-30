@@ -1,0 +1,2039 @@
+{
+  "trip": "2025 北海道四寶團",
+  "members": [
+    "ning",
+    "ziyu",
+    "xiu",
+    "mei"
+  ],
+  "baselines": {
+    "burden": {
+      "foreign": {
+        "ning": 54374,
+        "ziyu": 28069,
+        "xiu": 22432,
+        "mei": 19252
+      },
+      "twd": {
+        "ning": 34422.91,
+        "ziyu": 21478.96,
+        "xiu": 17075.25,
+        "mei": 21695.89
+      }
+    },
+    "net": {
+      "foreign": {
+        "ning": 85104,
+        "ziyu": -37803,
+        "xiu": -14361,
+        "mei": -32940
+      },
+      "twd": {
+        "ning": 0,
+        "ziyu": 0,
+        "xiu": 0,
+        "mei": 0
+      },
+      "currency": "foreign"
+    },
+    "payoutF": {
+      "ning": 0,
+      "ziyu": 0,
+      "xiu": 0,
+      "mei": 0
+    },
+    "payoutT": {
+      "ning": 0,
+      "ziyu": 0,
+      "xiu": 0,
+      "mei": 0
+    },
+    "costF": {
+      "ning": 0,
+      "ziyu": 0,
+      "xiu": 0,
+      "mei": 0
+    },
+    "costT": {
+      "ning": 0,
+      "ziyu": 0,
+      "xiu": 0,
+      "mei": 0
+    }
+  },
+  "rowCount": 74,
+  "issues": [],
+  "parsed": [
+    {
+      "row": 4,
+      "excel_cat": "行前共同",
+      "date": null,
+      "title": "租車",
+      "note": "",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 15521,
+      "payment_method": "credit_card",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 5,
+      "excel_cat": "行前共同",
+      "date": null,
+      "title": "札幌雙層房住宿",
+      "note": "",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 7207,
+      "payment_method": "credit_card",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 6,
+      "excel_cat": "行前共同",
+      "date": null,
+      "title": "富良野住宿",
+      "note": "",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 11476,
+      "payment_method": "credit_card",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 7,
+      "excel_cat": "行前共同",
+      "date": null,
+      "title": "札幌褟褟米住宿",
+      "note": "",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 9754,
+      "payment_method": "credit_card",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 8,
+      "excel_cat": "行前共同",
+      "date": null,
+      "title": "機場接送",
+      "note": "",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 1399,
+      "payment_method": "credit_card",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 9,
+      "excel_cat": "行前共同",
+      "date": null,
+      "title": "Esim",
+      "note": "",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 1476,
+      "payment_method": "credit_card",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 13,
+      "excel_cat": "共同",
+      "date": "2025-05-29",
+      "title": "全家水",
+      "note": "🐟🍉 ¥ 926  ❌",
+      "day_rate": null,
+      "foreign_amount": 926,
+      "twd_amount": null,
+      "payment_method": "stored_value",
+      "payment_source": "🍉(西瓜卡/Suica)",
+      "debts": [
+        {
+          "creditor": "ziyu",
+          "debtor": "ning",
+          "amount": 231,
+          "cell": "M13",
+          "group": "給🐟"
+        },
+        {
+          "creditor": "ziyu",
+          "debtor": "mei",
+          "amount": 231,
+          "cell": "N13",
+          "group": "給🐟"
+        },
+        {
+          "creditor": "ziyu",
+          "debtor": "xiu",
+          "amount": 231,
+          "cell": "O13",
+          "group": "給🐟"
+        }
+      ],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": false,
+      "payer": "ziyu",
+      "participants": [
+        "ziyu",
+        "ning",
+        "mei",
+        "xiu"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 14,
+      "excel_cat": "共同",
+      "date": "2025-05-29",
+      "title": "生魚丼飯",
+      "note": "",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 2729,
+      "payment_method": "credit_card",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 15,
+      "excel_cat": "共同",
+      "date": "2025-05-29",
+      "title": "停車費",
+      "note": "",
+      "day_rate": null,
+      "foreign_amount": 400,
+      "twd_amount": null,
+      "payment_method": "credit_card",
+      "payment_source": "空白→預設",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ziyu",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 16,
+      "excel_cat": "共同",
+      "date": "2025-05-29",
+      "title": "全家宵夜",
+      "note": "🍋🍉  ¥ 1,622",
+      "day_rate": null,
+      "foreign_amount": 1622,
+      "twd_amount": null,
+      "payment_method": "stored_value",
+      "payment_source": "🍉(西瓜卡/Suica)",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 19,
+      "excel_cat": "共同",
+      "date": "2025-05-29",
+      "title": "星巴克早餐",
+      "note": "🍋💳 ❌",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 324,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 23,
+      "excel_cat": "共同",
+      "date": "2025-05-30",
+      "title": "飯店停車費",
+      "note": "🐱🍎💳 ¥2,000 ❌",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 418,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [
+        {
+          "creditor": "mei",
+          "debtor": "ziyu",
+          "amount": 500,
+          "cell": "Q23",
+          "group": "給🐱"
+        },
+        {
+          "creditor": "mei",
+          "debtor": "ning",
+          "amount": 500,
+          "cell": "R23",
+          "group": "給🐱"
+        },
+        {
+          "creditor": "mei",
+          "debtor": "xiu",
+          "amount": 500,
+          "cell": "S23",
+          "group": "給🐱"
+        }
+      ],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": false,
+      "payer": "mei",
+      "participants": [
+        "mei",
+        "ziyu",
+        "ning",
+        "xiu"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 24,
+      "excel_cat": "共同",
+      "date": "2025-05-30",
+      "title": "EDW早餐",
+      "note": "🍋💳 ¥6,214",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 1301,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 25,
+      "excel_cat": "共同",
+      "date": "2025-05-30",
+      "title": "停車費",
+      "note": "🍋💳 ¥1,400",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 293,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 26,
+      "excel_cat": "共同",
+      "date": "2025-05-30",
+      "title": "湯咖喱",
+      "note": "🍋💰 ¥ 7,200",
+      "day_rate": null,
+      "foreign_amount": 7200,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 27,
+      "excel_cat": "共同",
+      "date": "2025-05-30",
+      "title": "薰衣草冰淇淋",
+      "note": "🍋💰 ¥400",
+      "day_rate": null,
+      "foreign_amount": 400,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 28,
+      "excel_cat": "共同",
+      "date": "2025-05-30",
+      "title": "哈蜜瓜",
+      "note": "🍋💰 ¥590",
+      "day_rate": null,
+      "foreign_amount": 590,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 29,
+      "excel_cat": "共同",
+      "date": "2025-05-30",
+      "title": "超市晚餐",
+      "note": "🍋💰 ¥6,392",
+      "day_rate": null,
+      "foreign_amount": 6392,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 32,
+      "excel_cat": "分開結算",
+      "date": "2025-05-30",
+      "title": "UNIQLO",
+      "note": "🍋💳 ¥23,373",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 4894,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 6480,
+          "cell": "I32",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 9960,
+          "cell": "J32",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "xiu",
+          "amount": 4290,
+          "cell": "K32",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 36,
+      "excel_cat": "分開結算",
+      "date": "2025-05-30",
+      "title": "富田農場伴手禮",
+      "note": "🍋💰 ¥6,685 taxfree",
+      "day_rate": null,
+      "foreign_amount": 6685,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 1980,
+          "cell": "I36",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 38,
+      "excel_cat": "分開結算",
+      "date": "2025-05-30",
+      "title": "富田農場伴手禮乾燥花飾*2",
+      "note": "🍋🍉 ¥2,860",
+      "day_rate": null,
+      "foreign_amount": 2860,
+      "twd_amount": null,
+      "payment_method": "stored_value",
+      "payment_source": "🍉(西瓜卡/Suica)",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 1430,
+          "cell": "J38",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 40,
+      "excel_cat": "自付",
+      "date": "2025-05-30",
+      "title": "COFFEE",
+      "note": "🍋🍉 ¥800 ❌",
+      "day_rate": null,
+      "foreign_amount": 800,
+      "twd_amount": null,
+      "payment_method": "stored_value",
+      "payment_source": "🍉(西瓜卡/Suica)",
+      "debts": [],
+      "flags": [],
+      "expense_type": "personal",
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 41,
+      "excel_cat": "自付",
+      "date": "2025-05-30",
+      "title": "COFFEE咖啡豆",
+      "note": "🍋🍉 ¥2,160 ❌",
+      "day_rate": null,
+      "foreign_amount": 2160,
+      "twd_amount": null,
+      "payment_method": "stored_value",
+      "payment_source": "🍉(西瓜卡/Suica)",
+      "debts": [],
+      "flags": [],
+      "expense_type": "personal",
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 45,
+      "excel_cat": "÷4",
+      "date": "2025-05-31",
+      "title": "麥當勞早餐",
+      "note": "🍋💳 ¥1,980",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 415,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 46,
+      "excel_cat": "÷4",
+      "date": "2025-05-31",
+      "title": "午餐三光舍壽喜燒",
+      "note": "🍋💳 ¥7,040",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 1475,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 47,
+      "excel_cat": "÷4",
+      "date": "2025-05-31",
+      "title": "停車費",
+      "note": "🍋💰 ¥220",
+      "day_rate": null,
+      "foreign_amount": 220,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 49,
+      "excel_cat": "÷3",
+      "date": "2025-05-31",
+      "title": "美瑛農場",
+      "note": "🍋💰 ¥800",
+      "day_rate": null,
+      "foreign_amount": 800,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 266,
+          "cell": "I49",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "xiu",
+          "amount": 266,
+          "cell": "K49",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 50,
+      "excel_cat": "÷3",
+      "date": "2025-05-31",
+      "title": "唯我獨尊咖喱飯",
+      "note": "🍋💰 ¥9,080",
+      "day_rate": null,
+      "foreign_amount": 9080,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 3025,
+          "cell": "I50",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "xiu",
+          "amount": 3025,
+          "cell": "K50",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 51,
+      "excel_cat": "÷3",
+      "date": "2025-05-31",
+      "title": "超市採買",
+      "note": "🍋💰 ¥4,904",
+      "day_rate": null,
+      "foreign_amount": 4904,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 1634,
+          "cell": "I51",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "xiu",
+          "amount": 1634,
+          "cell": "K51",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 52,
+      "excel_cat": "÷3",
+      "date": "2025-05-31",
+      "title": "711果昔",
+      "note": "🍋💰 ¥380",
+      "day_rate": null,
+      "foreign_amount": 380,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 125,
+          "cell": "I52",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "xiu",
+          "amount": 125,
+          "cell": "K52",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": false,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 55,
+      "excel_cat": "各自結算",
+      "date": "2025-05-31",
+      "title": "Muji",
+      "note": "🍋💳 ¥15,769",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 3302,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 2270,
+          "cell": "I55",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 3170,
+          "cell": "J55",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 58,
+      "excel_cat": "各自結算",
+      "date": "2025-05-31",
+      "title": "大創",
+      "note": "🍋💰 770+880",
+      "day_rate": null,
+      "foreign_amount": 1650,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 330,
+          "cell": "I58",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 60,
+      "excel_cat": "各自結算",
+      "date": "2025-05-31",
+      "title": "男山",
+      "note": "🍋💰 ¥5,720+198",
+      "day_rate": null,
+      "foreign_amount": 5918,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 1155,
+          "cell": "I60",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 62,
+      "excel_cat": "各自結算",
+      "date": "2025-05-31",
+      "title": "宜得利保潔墊*6",
+      "note": "🍋💰 ¥3,596+1,798",
+      "day_rate": null,
+      "foreign_amount": 5394,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 65,
+      "excel_cat": "自付",
+      "date": "2025-05-31",
+      "title": "LAWSON軟糖",
+      "note": "🍋💰 ¥855",
+      "day_rate": null,
+      "foreign_amount": 855,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "personal",
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 69,
+      "excel_cat": "共同",
+      "date": "2025-06-01",
+      "title": "加油",
+      "note": "🍋💳 ¥2,714 $待入帳",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 581,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 70,
+      "excel_cat": "共同",
+      "date": "2025-06-01",
+      "title": "Komeda早餐",
+      "note": "🍋💰¥3,020",
+      "day_rate": null,
+      "foreign_amount": 3020,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 71,
+      "excel_cat": "共同",
+      "date": "2025-06-01",
+      "title": "711果昔",
+      "note": "🍋💰¥330",
+      "day_rate": null,
+      "foreign_amount": 330,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 72,
+      "excel_cat": "共同",
+      "date": "2025-06-01",
+      "title": "Royce巧克力冰淇淋",
+      "note": "🍋🍉",
+      "day_rate": null,
+      "foreign_amount": 450,
+      "twd_amount": null,
+      "payment_method": "stored_value",
+      "payment_source": "🍉(西瓜卡/Suica)",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 73,
+      "excel_cat": "共同",
+      "date": "2025-06-01",
+      "title": "蕎麥屋籔半",
+      "note": "🍋💰¥8,840",
+      "day_rate": null,
+      "foreign_amount": 8840,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 74,
+      "excel_cat": "共同",
+      "date": "2025-06-01",
+      "title": "小樽牛兵衛壽司",
+      "note": "🍋💰¥2,400",
+      "day_rate": null,
+      "foreign_amount": 2400,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 75,
+      "excel_cat": "共同",
+      "date": "2025-06-01",
+      "title": "玉米",
+      "note": "🍋💰¥540",
+      "day_rate": null,
+      "foreign_amount": 540,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 76,
+      "excel_cat": "共同",
+      "date": "2025-06-01",
+      "title": "昆布高湯*2",
+      "note": "🍋💰 ¥3,000",
+      "day_rate": null,
+      "foreign_amount": 3000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 77,
+      "excel_cat": "共同",
+      "date": "2025-06-01",
+      "title": "停車費",
+      "note": "🍋💰 ¥800",
+      "day_rate": null,
+      "foreign_amount": 800,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 78,
+      "excel_cat": "共同",
+      "date": "2025-06-01",
+      "title": "迴轉壽司Toriton 40盤",
+      "note": "🍋💳 ¥13,574",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 2842,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 81,
+      "excel_cat": "各自結算",
+      "date": "2025-06-01",
+      "title": "鶴羽藥妝5%",
+      "note": "🍋💳 ¥23,400",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 4900,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 2954,
+          "cell": "I81",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 5735,
+          "cell": "J81",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 84,
+      "excel_cat": "各自結算",
+      "date": "2025-06-01",
+      "title": "札幌藥妝3%",
+      "note": "🍋💳 約¥43,000",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 9094,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 4067,
+          "cell": "I84",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 6154,
+          "cell": "J84",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 87,
+      "excel_cat": "各自結算",
+      "date": "2025-06-01",
+      "title": "六花亭",
+      "note": "🍋💳 ¥11,463",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 2400,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 590,
+          "cell": "J87",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 90,
+      "excel_cat": "自付",
+      "date": "2025-06-01",
+      "title": "SNOOPY杯子",
+      "note": "🐟🍉 ¥ 1,650",
+      "day_rate": null,
+      "foreign_amount": 1650,
+      "twd_amount": null,
+      "payment_method": "stored_value",
+      "payment_source": "🍉(西瓜卡/Suica)",
+      "debts": [],
+      "flags": [],
+      "expense_type": "personal",
+      "payer": "ziyu",
+      "participants": [
+        "ziyu"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 91,
+      "excel_cat": "自付",
+      "date": "2025-06-01",
+      "title": "711萊姆餅乾*2",
+      "note": "🐟🍉 ¥ 1,650",
+      "day_rate": null,
+      "foreign_amount": 1650,
+      "twd_amount": null,
+      "payment_method": "stored_value",
+      "payment_source": "🍉(西瓜卡/Suica)",
+      "debts": [],
+      "flags": [],
+      "expense_type": "personal",
+      "payer": "ziyu",
+      "participants": [
+        "ziyu"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 92,
+      "excel_cat": "自付",
+      "date": "2025-06-01",
+      "title": "大耳狗杯子",
+      "note": "🐵💳 ¥1,760 $",
+      "day_rate": null,
+      "foreign_amount": 1760,
+      "twd_amount": null,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "personal",
+      "payer": "xiu",
+      "participants": [
+        "xiu"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 96,
+      "excel_cat": "共同",
+      "date": "2025-06-02",
+      "title": "飯店停車費",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 2000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 97,
+      "excel_cat": "共同",
+      "date": "2025-06-02",
+      "title": "飯糰早餐",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 3160,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 98,
+      "excel_cat": "共同",
+      "date": "2025-06-02",
+      "title": "停車費",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 600,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 99,
+      "excel_cat": "共同",
+      "date": "2025-06-02",
+      "title": "神宮御守神籤",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 1400,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 100,
+      "excel_cat": "共同",
+      "date": "2025-06-02",
+      "title": "神宮六花亭",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 745,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 101,
+      "excel_cat": "共同",
+      "date": "2025-06-02",
+      "title": "純漣拉麵",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 5820,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 102,
+      "excel_cat": "共同",
+      "date": "2025-06-02",
+      "title": "神宮茶屋",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 1010,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 103,
+      "excel_cat": "共同",
+      "date": "2025-06-02",
+      "title": "神宮六花亭",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 880,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 104,
+      "excel_cat": "共同",
+      "date": "2025-06-02",
+      "title": "餃子製造所",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 3820,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 105,
+      "excel_cat": "共同",
+      "date": "2025-06-02",
+      "title": "LAWSON",
+      "note": "🍋🍉",
+      "day_rate": null,
+      "foreign_amount": 403,
+      "twd_amount": null,
+      "payment_method": "stored_value",
+      "payment_source": "🍉(西瓜卡/Suica)",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 106,
+      "excel_cat": "共同",
+      "date": "2025-06-02",
+      "title": "LAWSON宵夜",
+      "note": "🍋💳 ¥3,662",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 775,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 109,
+      "excel_cat": "各自結算",
+      "date": "2025-06-02",
+      "title": "GU5%",
+      "note": "🍋💳 ¥35,310",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 7461,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 12510,
+          "cell": "I109",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 4970,
+          "cell": "J109",
+          "group": "給🍋"
+        },
+        {
+          "creditor": "ning",
+          "debtor": "xiu",
+          "amount": 4290,
+          "cell": "K109",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 114,
+      "excel_cat": "各自結算",
+      "date": "2025-06-02",
+      "title": "LOFT",
+      "note": "🍋💳 ¥6,490",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 1375,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "ziyu",
+          "amount": 1200,
+          "cell": "I114",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 116,
+      "excel_cat": "各自結算",
+      "date": "2025-06-02",
+      "title": "大創",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 1090,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 118,
+      "excel_cat": "各自結算",
+      "date": "2025-06-02",
+      "title": "uka 🍋💰 ¥9,400",
+      "note": "",
+      "day_rate": null,
+      "foreign_amount": 9400,
+      "twd_amount": null,
+      "payment_method": "credit_card",
+      "payment_source": "空白→預設",
+      "debts": [
+        {
+          "creditor": "ning",
+          "debtor": "mei",
+          "amount": 2200,
+          "cell": "J118",
+          "group": "給🍋"
+        }
+      ],
+      "flags": [],
+      "expense_type": "individual",
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "from_debts"
+    },
+    {
+      "row": 122,
+      "excel_cat": "自付",
+      "date": "2025-06-02",
+      "title": "大丸小b絲巾*2",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 3971,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "personal",
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 123,
+      "excel_cat": "自付",
+      "date": "2025-06-02",
+      "title": "札幌藥妝咪腮紅",
+      "note": "🍋💳 ¥781",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 165,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "personal",
+      "payer": "ning",
+      "participants": [
+        "ning"
+      ],
+      "split_mode": "self"
+    },
+    {
+      "row": 127,
+      "excel_cat": "共同",
+      "date": "2025-06-03",
+      "title": "早午餐食事処ながもり",
+      "note": "🍋💳 ¥12,350",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 2613,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 128,
+      "excel_cat": "共同",
+      "date": "2025-06-03",
+      "title": "玉米麵包",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 2122,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 129,
+      "excel_cat": "共同",
+      "date": "2025-06-03",
+      "title": "停車費",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 3000,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 130,
+      "excel_cat": "共同",
+      "date": "2025-06-03",
+      "title": "加油",
+      "note": "🍋💳 ¥2,270",
+      "day_rate": null,
+      "foreign_amount": null,
+      "twd_amount": 483,
+      "payment_method": "credit_card",
+      "payment_source": "💳",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 131,
+      "excel_cat": "共同",
+      "date": "2025-06-03",
+      "title": "機場販賣機水 ¥400",
+      "note": "🍋💰",
+      "day_rate": null,
+      "foreign_amount": 400,
+      "twd_amount": null,
+      "payment_method": "cash",
+      "payment_source": "💰",
+      "debts": [],
+      "flags": [],
+      "expense_type": "shared",
+      "settled_on_spot": true,
+      "payer": "ning",
+      "participants": [
+        "ning",
+        "ziyu",
+        "xiu",
+        "mei"
+      ],
+      "split_mode": "equal"
+    },
+    {
+      "row": 134,
+      "excel_cat": "自付",
+      "date": "2025-06-03",
+      "title": "CRMEIA巧克力冰淇淋",
+      "note": "🐟🍉",
+      "day_rate": null,
+      "foreign_amount": 630,
+      "twd_amount": null,
+      "payment_method": "stored_value",
+      "payment_source": "🍉(西瓜卡/Suica)",
+      "debts": [],
+      "flags": [],
+      "expense_type": "personal",
+      "payer": "ziyu",
+      "participants": [
+        "ziyu"
+      ],
+      "split_mode": "self"
+    }
+  ]
+}

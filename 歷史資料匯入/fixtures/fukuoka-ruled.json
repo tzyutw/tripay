@@ -1,0 +1,151 @@
+{
+  "ruled": [
+    {
+      "row": 5,
+      "title": "ORIX租車",
+      "type": "shared",
+      "payer": "ning",
+      "date": "2023-11-17",
+      "total": 58960,
+      "rate": 0.21343,
+      "shares": {
+        "ziyu": 19653,
+        "ning": 19654,
+        "mei": 19653
+      }
+    },
+    {
+      "row": 52,
+      "title": "由布院之森 龍貓",
+      "type": "individual",
+      "payer": "ning",
+      "date": "2023-11-19",
+      "total": 12540,
+      "rate": 0.21339,
+      "shares": {
+        "ziyu": 3200,
+        "ning": 9340
+      }
+    },
+    {
+      "row": 55,
+      "title": "SNOOPY茶屋紀念品",
+      "type": "individual",
+      "payer": "ning",
+      "date": "2023-11-19",
+      "total": 14861,
+      "rate": 0.21339,
+      "shares": {
+        "ziyu": 10000,
+        "ning": 4861
+      }
+    },
+    {
+      "row": 58,
+      "title": "AMANEK住宿",
+      "type": "shared",
+      "payer": "ning",
+      "date": "2023-11-19",
+      "total": 55322,
+      "rate": 0.21339,
+      "shares": {
+        "ziyu": 18440.66667,
+        "ning": 18440.66667,
+        "mei": 18440.66667
+      }
+    },
+    {
+      "row": 60,
+      "title": "唐吉軻德",
+      "type": "shared",
+      "payer": "ning",
+      "date": "2023-11-19",
+      "total": 20498,
+      "rate": 0.21339,
+      "shares": {
+        "ziyu": 2000,
+        "ning": 16498,
+        "mei": 2000
+      }
+    },
+    {
+      "row": 74,
+      "title": "UQ",
+      "type": "shared",
+      "payer": "ning",
+      "date": "2023-11-20",
+      "note": "付款人未參與（TC-DIFF-03）",
+      "total": 9955,
+      "rate": 0.21339,
+      "shares": {
+        "ziyu": 4977.5,
+        "mei": 4977.5
+      }
+    },
+    {
+      "row": 76,
+      "title": "GU",
+      "type": "shared",
+      "payer": "ning",
+      "date": "2023-11-20",
+      "total": 9037,
+      "rate": 0.21339,
+      "shares": {
+        "ziyu": 3012.333333,
+        "ning": 3012.333333,
+        "mei": 3012.333333
+      }
+    }
+  ],
+  "baselineA": {
+    "ziyu": {
+      "jpy": 109898.1667,
+      "twd": 3836.87,
+      "twd_raw_col": 3836.87,
+      "twd_overlap_excluded": 0,
+      "overlap_rows": []
+    },
+    "ning": {
+      "jpy": 174643.6667,
+      "twd": 77281.24,
+      "twd_raw_col": 99091.62,
+      "twd_overlap_excluded": 21810.38,
+      "overlap_rows": [
+        "r30 CPB氣墊粉餅 2361.59",
+        "r38 relume裙 3403.57",
+        "r43 大國藥妝 7618.45",
+        "r60 唐吉軻德 4374.07",
+        "r74 UQ 2124.3",
+        "r76 GU 1928.41"
+      ]
+    },
+    "mei": {
+      "jpy": 112908.1667,
+      "twd": 4468.42,
+      "twd_raw_col": 4468.42,
+      "twd_overlap_excluded": 0,
+      "overlap_rows": []
+    }
+  },
+  "totalTwdCorrected": 173025.53,
+  "rates": {
+    "2023-11-17": 0.21343,
+    "2023-11-18": 0.21339,
+    "2023-11-19": 0.21339,
+    "2023-11-20": null,
+    "2023-11-21": 0.2138
+  },
+  "expectedNetTwd": {
+    "ziyu": -13078.07218564017,
+    "ning": 23339.39637128034,
+    "mei": -10261.324185640171
+  },
+  "debtJpy": {
+    "ziyu->ning": 61283.500003,
+    "mei->ning": 48083.500003
+  },
+  "debtTwd": {
+    "ziyu->ning": 13078.07218564017,
+    "mei->ning": 10261.324185640171
+  }
+}

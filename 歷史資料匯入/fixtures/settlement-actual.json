@@ -1,0 +1,212 @@
+{
+  "fukuoka": {
+    "balances": [
+      {
+        "member_id": "7ca18ec7-7f42-4ff4-a31a-e18d5c834e26",
+        "name": "Ziyu",
+        "emoji": "🐟",
+        "payout": 0,
+        "cost": 14532.96,
+        "net_balance": -14532.96
+      },
+      {
+        "member_id": "bf3b456c-c34c-4cac-9f6f-7e801f609a4b",
+        "name": "Ning",
+        "emoji": "🍋",
+        "payout": 49684.89,
+        "cost": 20692.93,
+        "net_balance": 28991.96
+      },
+      {
+        "member_id": "b7bcf9be-b590-403d-9d4b-78ecdba32696",
+        "name": "Mei",
+        "emoji": "🐱",
+        "payout": 0,
+        "cost": 14458.699999999999,
+        "net_balance": -14458.699999999999
+      }
+    ],
+    "items": [
+      {
+        "from_member_id": "7ca18ec7-7f42-4ff4-a31a-e18d5c834e26",
+        "to_member_id": "bf3b456c-c34c-4cac-9f6f-7e801f609a4b",
+        "amount": 14533
+      },
+      {
+        "from_member_id": "b7bcf9be-b590-403d-9d4b-78ecdba32696",
+        "to_member_id": "bf3b456c-c34c-4cac-9f6f-7e801f609a4b",
+        "amount": 14459
+      }
+    ],
+    "ok": true,
+    "sum": 0.3
+  },
+  "tokyo": {
+    "balances": [
+      {
+        "member_id": "aee06181-5aca-40a8-8482-33b92f704297",
+        "name": "Ning",
+        "emoji": "🍋",
+        "payout": 33778.465599999996,
+        "cost": 13971.5436,
+        "net_balance": 19806.921999999995
+      },
+      {
+        "member_id": "7d4e6fd6-1393-4f5f-a7fc-a7956aceed5f",
+        "name": "Nien",
+        "emoji": "🌷",
+        "payout": 0,
+        "cost": 0,
+        "net_balance": 0
+      },
+      {
+        "member_id": "c273cd2e-def3-416e-b4e0-3bdaffc1304c",
+        "name": "Ziyu",
+        "emoji": "🐟",
+        "payout": 5672.58,
+        "cost": 8266.05,
+        "net_balance": -2593.4699999999993
+      },
+      {
+        "member_id": "b83a069f-742d-45e5-a315-e3f6b82eb047",
+        "name": "Xiu",
+        "emoji": "🐵",
+        "payout": 0,
+        "cost": 0,
+        "net_balance": 0
+      },
+      {
+        "member_id": "2605e34c-19fa-483e-b686-252b142cf68f",
+        "name": "Mei",
+        "emoji": "🐱",
+        "payout": 0,
+        "cost": 17213.452,
+        "net_balance": -17213.452
+      }
+    ],
+    "items": [
+      {
+        "from_member_id": "2605e34c-19fa-483e-b686-252b142cf68f",
+        "to_member_id": "aee06181-5aca-40a8-8482-33b92f704297",
+        "amount": 17213
+      },
+      {
+        "from_member_id": "c273cd2e-def3-416e-b4e0-3bdaffc1304c",
+        "to_member_id": "aee06181-5aca-40a8-8482-33b92f704297",
+        "amount": 2593
+      }
+    ],
+    "ok": true,
+    "sum": 0
+  },
+  "hokkaido": {
+    "balances": [
+      {
+        "member_id": "2acf64ad-6e00-42f7-8b89-9aac230503a9",
+        "name": "Ning",
+        "emoji": "🍋",
+        "payout": 43491.659999999996,
+        "cost": 25609.22,
+        "net_balance": 17882.439999999995
+      },
+      {
+        "member_id": "fcdb6120-1361-404a-8e08-d1842bc0b5ad",
+        "name": "Ziyu",
+        "emoji": "🐟",
+        "payout": 193.53,
+        "cost": 8144.16,
+        "net_balance": -7950.63
+      },
+      {
+        "member_id": "fac201fb-b75b-459d-8ccf-adb6498f5146",
+        "name": "Xiu",
+        "emoji": "🐵",
+        "payout": 0,
+        "cost": 3014.75,
+        "net_balance": -3014.75
+      },
+      {
+        "member_id": "134b7089-a619-44e1-8676-6ecd9641247b",
+        "name": "Mei",
+        "emoji": "🐱",
+        "payout": 418,
+        "cost": 7335.0599999999995,
+        "net_balance": -6917.0599999999995
+      }
+    ],
+    "items": [
+      {
+        "from_member_id": "fcdb6120-1361-404a-8e08-d1842bc0b5ad",
+        "to_member_id": "2acf64ad-6e00-42f7-8b89-9aac230503a9",
+        "amount": 7951
+      },
+      {
+        "from_member_id": "134b7089-a619-44e1-8676-6ecd9641247b",
+        "to_member_id": "2acf64ad-6e00-42f7-8b89-9aac230503a9",
+        "amount": 6917
+      },
+      {
+        "from_member_id": "fac201fb-b75b-459d-8ccf-adb6498f5146",
+        "to_member_id": "2acf64ad-6e00-42f7-8b89-9aac230503a9",
+        "amount": 3015
+      }
+    ],
+    "ok": true,
+    "sum": 0
+  },
+  "jeju": {
+    "balances": [
+      {
+        "member_id": "6acd3778-1a08-40f0-82cb-8af2782a32e6",
+        "name": "Ning",
+        "emoji": "🍋",
+        "payout": 2797,
+        "cost": 3145,
+        "net_balance": -348
+      },
+      {
+        "member_id": "0901af1b-8589-43b5-8a16-6dd55ed81d46",
+        "name": "Ziyu",
+        "emoji": "🐟",
+        "payout": 6082.6666668,
+        "cost": 2449.6666668,
+        "net_balance": 3633
+      },
+      {
+        "member_id": "ab6b5459-3b84-47b3-9178-624dd4e6bbe1",
+        "name": "Xiu",
+        "emoji": "🐵",
+        "payout": 99,
+        "cost": 2028,
+        "net_balance": -1929
+      },
+      {
+        "member_id": "44a5315b-e713-484b-b59a-7dc3d1ba7752",
+        "name": "Mei",
+        "emoji": "🐱",
+        "payout": 0,
+        "cost": 1356,
+        "net_balance": -1356
+      }
+    ],
+    "items": [
+      {
+        "from_member_id": "ab6b5459-3b84-47b3-9178-624dd4e6bbe1",
+        "to_member_id": "0901af1b-8589-43b5-8a16-6dd55ed81d46",
+        "amount": 1929
+      },
+      {
+        "from_member_id": "44a5315b-e713-484b-b59a-7dc3d1ba7752",
+        "to_member_id": "0901af1b-8589-43b5-8a16-6dd55ed81d46",
+        "amount": 1356
+      },
+      {
+        "from_member_id": "6acd3778-1a08-40f0-82cb-8af2782a32e6",
+        "to_member_id": "0901af1b-8589-43b5-8a16-6dd55ed81d46",
+        "amount": 348
+      }
+    ],
+    "ok": true,
+    "sum": 0
+  }
+}
