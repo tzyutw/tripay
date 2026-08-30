@@ -1,0 +1,396 @@
+<title>Tripay 打磨輪視覺方向</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --ground:#14110F; --surface:#1E1A17; --raised:#272120;
+  --ink:#F4EEE6; --ink-2:#B9AEA2; --ink-3:#7E7469;
+  --rule:#332B27; --accent:#D2764A; --accent-dim:#8A4A2E;
+  --ok:#7FA88A; --warn:#D08A4A;
+  --display:'Fraunces','Songti TC','Noto Serif TC',Georgia,serif;
+  --body:'IBM Plex Sans','PingFang TC','Noto Sans TC',system-ui,sans-serif;
+  --mono:'IBM Plex Mono','PingFang TC',ui-monospace,monospace;
+}
+:root[data-theme="light"]{
+  --ground:#F7F3ED; --surface:#FFFFFF; --raised:#F0E9E0;
+  --ink:#1C1613; --ink-2:#5C5148; --ink-3:#8C8175;
+  --rule:#E2D8CC; --accent:#B4552B; --accent-dim:#D2A489;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --ground:#F7F3ED; --surface:#FFFFFF; --raised:#F0E9E0;
+    --ink:#1C1613; --ink-2:#5C5148; --ink-3:#8C8175;
+    --rule:#E2D8CC; --accent:#B4552B; --accent-dim:#D2A489;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 10px}
+hr.rule{border:0;border-top:1px solid var(--rule);margin:0}
+
+/* ── head ── */
+header{padding:72px 0 40px}
+header h1{font-family:var(--display);font-size:clamp(34px,5.4vw,54px);font-weight:600;
+  line-height:1.08;letter-spacing:-.02em;max-width:16ch}
+header .lede{margin-top:18px;max-width:62ch;color:var(--ink-2);font-size:16px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:26px;font-family:var(--mono);
+  font-size:11.5px;color:var(--ink-3);letter-spacing:.03em}
+.meta b{color:var(--ink-2);font-weight:500}
+
+/* ── constraints ── */
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:3px;overflow:hidden;margin:40px 0 8px}
+.why div{background:var(--surface);padding:18px 18px 20px}
+.why h4{margin:0 0 6px;font-size:13px;font-weight:600;letter-spacing:.01em}
+.why p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.55}
+
+/* ── direction block ── */
+section.dir{padding:56px 0;border-top:1px solid var(--rule)}
+.dir-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+.dir-num{font-family:var(--mono);font-size:12px;color:var(--ink-3);letter-spacing:.1em}
+.dir-head h2{font-family:var(--display);font-size:30px;font-weight:600;letter-spacing:-.01em}
+.dir-tag{font-family:var(--mono);font-size:11px;color:var(--accent);border:1px solid var(--accent-dim);
+  padding:2px 8px;border-radius:2px;letter-spacing:.06em}
+.dir-sub{color:var(--ink-2);max-width:64ch;margin:0 0 30px;font-size:15px}
+
+.cols{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:44px;align-items:start}
+@media(max-width:860px){.cols{grid-template-columns:1fr;gap:32px}}
+
+.spec dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--ink-3);margin-top:20px}
+.spec dt:first-child{margin-top:0}
+.spec dd{margin:6px 0 0;font-size:14px;color:var(--ink-2);line-height:1.6}
+.sw{display:flex;gap:0;margin-top:8px;border-radius:2px;overflow:hidden;width:fit-content;
+  border:1px solid var(--rule)}
+.sw i{display:block;width:42px;height:30px}
+.pros{margin:26px 0 0;padding:0;list-style:none;display:grid;gap:7px}
+.pros li{font-size:13.5px;color:var(--ink-2);padding-left:20px;position:relative;line-height:1.5}
+.pros li::before{content:'';position:absolute;left:4px;top:8px;width:5px;height:5px;border-radius:50%;
+  background:var(--ok)}
+.pros li.risk::before{background:var(--warn)}
+
+/* ── phone specimen ── */
+.phones{display:flex;gap:18px}
+@media(max-width:520px){.phones{flex-direction:column;align-items:center}}
+.phone{width:212px;flex:none;border-radius:22px;overflow:hidden;
+  box-shadow:0 1px 0 var(--rule),0 18px 40px rgba(0,0,0,.42);border:1px solid var(--rule)}
+.phone .cap{font-family:var(--mono);font-size:10px;color:var(--ink-3);text-align:center;
+  letter-spacing:.08em;padding-top:9px}
+.scr{height:352px;overflow:hidden;position:relative;font-size:11px;line-height:1.4}
+
+/* shared mini-ui bits */
+.bar{display:flex;justify-content:space-between;align-items:center;padding:11px 12px 9px}
+.brand{font-weight:700;font-size:14px;letter-spacing:-.01em}
+.addbtn{font-size:9.5px;padding:4px 8px;border-radius:99px;font-weight:600}
+.tcard{margin:0 12px 10px;position:relative;overflow:hidden}
+.tmeta{position:absolute;left:0;right:0;bottom:0;padding:9px 10px}
+.tname{font-weight:700;font-size:12.5px;color:#fff;letter-spacing:-.01em;
+  text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.trow{display:flex;align-items:center;gap:6px;margin-top:3px}
+.temo{font-size:10px;letter-spacing:.5px}
+.tdate{font-size:9px;color:rgba(255,255,255,.9);font-variant-numeric:tabular-nums}
+.badge{display:inline-block;font-size:8.5px;padding:1.5px 6px;border-radius:99px;font-weight:700;margin-bottom:4px}
+.settle{padding:12px}
+.sh{font-size:10px;margin-bottom:9px}
+.srow{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:8px;margin-bottom:6px}
+.snm{flex:1;font-size:10.5px;font-weight:600}
+.samt{font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* gradients = 目前 destinations.ts 實際使用的目的地色調 */
+.g-jeju{background:linear-gradient(160deg,#1E4C6B 0%,#2D6A8A 35%,#3D7A6A 65%,#2A5050 100%)}
+.g-hok{background:linear-gradient(160deg,#5B8FA8 0%,#3A6E8C 35%,#8B5E52 75%,#6B4A3E 100%)}
+.g-fuk{background:linear-gradient(160deg,#7A4B3A 0%,#A8663F 35%,#C98A4B 70%,#5E3A2E 100%)}
+.scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 38%,rgba(0,0,0,.5) 100%)}
+
+/* ═ D1 相紙 ═ */
+.d1 .scr{background:#0E0D0C;color:#EDE7E0}
+.d1 .addbtn{background:rgba(255,255,255,.14);color:#fff;backdrop-filter:blur(6px)}
+.d1 .tcard{border-radius:14px;height:118px;margin-bottom:9px}
+.d1 .tmeta{background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.62))}
+.d1 .badge{background:rgba(255,255,255,.18);color:#fff;backdrop-filter:blur(4px)}
+.d1 .settle{background:#0E0D0C}
+.d1 .sh{color:#8D857D;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+.d1 .srow{background:rgba(255,255,255,.055)}
+.d1 .samt.pos{color:#8FBF9E}.d1 .samt.neg{color:#D99A6C}
+
+/* ═ D2 日記精裝 ═ */
+.d2 .scr{background:#FBF6EC;color:#231A14}
+.d2 .bar{border-bottom:1px solid #E5D8C6}
+.d2 .brand{font-family:var(--display);color:#7C2D12}
+.d2 .addbtn{background:#7C2D12;color:#FBF6EC}
+.d2 .tcard{border-radius:3px;height:112px;padding:5px;background:#fff;
+  box-shadow:0 1px 2px rgba(90,60,40,.16);border:1px solid #EADCC9}
+.d2 .tinner{position:absolute;inset:5px;border-radius:1px;overflow:hidden}
+.d2 .tmeta{background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.55))}
+.d2 .badge{background:#FBF6EC;color:#7C2D12;border:1px solid #E0CDB4}
+.d2 .settle{background:#FBF6EC}
+.d2 .sh{font-family:var(--display);color:#7C2D12;font-size:11.5px;font-weight:600}
+.d2 .srow{background:#fff;border:1px solid #EADCC9}
+.d2 .samt.pos{color:#3F7A55}.d2 .samt.neg{color:#B4552B}
+
+/* ═ D3 票根 ═ */
+.d3 .scr{background:#131A20;color:#E6EDF2}
+.d3 .brand{font-family:var(--mono);letter-spacing:.1em;font-size:12px;text-transform:uppercase}
+.d3 .addbtn{background:transparent;border:1px dashed #47606F;color:#9FB6C4;font-family:var(--mono)}
+.d3 .tcard{height:112px;border-radius:2px;
+  -webkit-mask-image:radial-gradient(circle 5px at 0 76px,transparent 98%,#000 100%),radial-gradient(circle 5px at 212px 76px,transparent 98%,#000 100%);
+  -webkit-mask-composite:source-in;mask-composite:intersect}
+.d3 .tmeta{background:linear-gradient(180deg,rgba(0,0,0,0),rgba(10,16,20,.82))}
+.d3 .tname{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
+.d3 .badge{background:transparent;border:1px solid rgba(255,255,255,.42);color:#fff;
+  font-family:var(--mono);letter-spacing:.08em;border-radius:2px}
+.d3 .perf{position:absolute;left:0;right:0;top:76px;border-top:1px dashed rgba(255,255,255,.28)}
+.d3 .settle{background:#131A20}
+.d3 .sh{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#7E96A6}
+.d3 .srow{background:#1B242C;border-radius:2px;border-left:2px solid #47606F}
+.d3 .snm{font-family:var(--mono);font-size:10px}
+.d3 .samt{font-family:var(--mono)}
+.d3 .samt.pos{color:#79B894}.d3 .samt.neg{color:#DE9A63}
+
+/* ── compare + close ── */
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:18px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:400}
+td b{font-weight:600}
+.tblwrap{overflow-x:auto}
+.rec{margin:44px 0 0;padding:26px 28px;background:var(--surface);border:1px solid var(--rule);
+  border-left:2px solid var(--accent);border-radius:3px}
+.rec h3{font-family:var(--display);font-size:20px;font-weight:600;margin-bottom:10px}
+.rec p{margin:0 0 10px;color:var(--ink-2);font-size:14.5px;max-width:70ch}
+.rec p:last-child{margin-bottom:0}
+footer{padding:44px 0 72px;color:var(--ink-3);font-size:12.5px;font-family:var(--mono);
+  border-top:1px solid var(--rule);margin-top:52px;letter-spacing:.02em}
+@media (prefers-reduced-motion:no-preference){
+  section.dir,header{animation:rise .5s cubic-bezier(.2,.7,.3,1) both}
+  section.dir:nth-of-type(2){animation-delay:.05s}
+  section.dir:nth-of-type(3){animation-delay:.1s}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">路線 3 打磨輪 · 決策點 1／2</p>
+  <h1>三個打磨方向，挑一個</h1>
+  <p class="lede">
+    Phase 1 的「旅遊日記」視覺撐過了上線與四趟真實資料。這一輪不是重來，是決定
+    <b>接下來的畫面長在什麼系統裡</b>——因為真實照片即將進場，而卡片管理、帳單週期這些新畫面
+    都要生在定案後的視覺裡，才不會同一批畫面動兩次工。
+  </p>
+  <div class="meta">
+    <span>產出　<b>UX Lead × Aria</b></span>
+    <span>日期　<b>2026-08-30</b></span>
+    <span>示意　<b>首頁 ＋ 結算頁</b>，同內容三種處理</span>
+  </div>
+</header>
+
+<div class="why">
+  <div><h4>照片要進來了</h4><p>首頁已改成目的地照片卡。視覺系統必須為<b>任意一張照片</b>設計，而不是為色塊設計——文字在亮天空和暗夜景上都得讀得到。</p></div>
+  <div><h4>一趟可以有 132 筆</h4><p>濟州島實際 132 筆消費。列表的密度與分組節奏是主要體驗，不是細節。</p></div>
+  <div><h4>舊行程是回憶，不是垃圾</h4><p>已結算／封存的行程被視覺降級成灰是錯的。使用者回來就是為了看它們。</p></div>
+  <div><h4>人話勝過符號</h4><p>結算頁已改成「可以拿回 $3,633」。金額呈現要繼續往「不用猜」的方向走。</p></div>
+</div>
+
+<!-- ── D1 ── -->
+<section class="dir d1">
+  <div class="dir-head">
+    <span class="dir-num">方向 01</span>
+    <h2>相紙</h2>
+    <span class="dir-tag">照片優先</span>
+  </div>
+  <p class="dir-sub">介面退到照片後面。深色底把照片襯成主角，所有 UI 元素變成照片上的一層薄玻璃。這是「相簿」而不是「帳本」。</p>
+  <div class="cols">
+    <div>
+      <dl class="spec">
+        <dt>底色</dt>
+        <dd>深炭黑 #0E0D0C。照片在深底上最跳，且不用擔心照片亮度撞到背景。
+          <div class="sw"><i style="background:#0E0D0C"></i><i style="background:#1A1816"></i><i style="background:#EDE7E0"></i><i style="background:#8FBF9E"></i><i style="background:#D99A6C"></i></div></dd>
+        <dt>UI 元件</dt>
+        <dd>半透明玻璃（<code>rgba(255,255,255,.14)</code> ＋ blur），一律浮在內容上，不搶顏色。</dd>
+        <dt>字</dt>
+        <dd>維持 Inter。標籤用等寬小字，讓數字與狀態有秩序感。</dd>
+        <dt>照片處理</dt>
+        <dd>滿版出血 ＋ 底部漸層壓暗。目前的 gradient 佔位可以直接換成照片，<b>不需改結構</b>。</dd>
+      </dl>
+      <ul class="pros">
+        <li>照片一進來就是最好看的一版，落差最大</li>
+        <li>玻璃層讓文字在任何照片上都讀得到</li>
+        <li>已結算的行程照樣好看，不會被降級</li>
+        <li class="risk">和現在的暖白日記感差距最大，等於換一套品牌</li>
+        <li class="risk">深色底下「記帳」這件事會顯得比較冷</li>
+      </ul>
+    </div>
+    <div class="phones">
+      <div class="phone"><div class="cap">首頁</div><div class="scr">
+        <div class="bar"><span class="brand">Tripay</span><span class="addbtn">＋ 新增行程</span></div>
+        <div class="tcard g-jeju"><div class="scrim"></div><div class="tmeta">
+          <span class="badge">✅ 已結算</span>
+          <div class="tname">2026 濟州島四寶團</div>
+          <div class="trow"><span class="temo">🍋🐟🐵🐱</span><span class="tdate">2/13 – 2/21</span></div></div></div>
+        <div class="tcard g-hok"><div class="scrim"></div><div class="tmeta">
+          <span class="badge">✅ 已結算</span>
+          <div class="tname">2025 北海道四寶團</div>
+          <div class="trow"><span class="temo">🍋🐟🐵🐱</span><span class="tdate">5/29 – 6/3</span></div></div></div>
+      </div></div>
+      <div class="phone"><div class="cap">結算</div><div class="scr settle">
+        <div class="sh">這趟結算下來</div>
+        <div class="srow"><span>🐟</span><span class="snm">Ziyu</span><span class="samt pos">可以拿回 $3,633</span></div>
+        <div class="srow"><span>🐵</span><span class="snm">Xiu</span><span class="samt neg">要給出 $1,929</span></div>
+        <div class="srow"><span>🐱</span><span class="snm">Mei</span><span class="samt neg">要給出 $1,356</span></div>
+        <div class="srow"><span>🍋</span><span class="snm">Ning</span><span class="samt neg">要給出 $348</span></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── D2 ── -->
+<section class="dir d2">
+  <div class="dir-head">
+    <span class="dir-num">方向 02</span>
+    <h2>日記精裝</h2>
+    <span class="dir-tag">現況的精修</span>
+  </div>
+  <p class="dir-sub">留住暖白日記的底，把照片當成「貼進本子裡的相片」——白邊、細框、淡陰影。改的是密度與細節，不是品牌。</p>
+  <div class="cols">
+    <div>
+      <dl class="spec">
+        <dt>底色</dt>
+        <dd>維持暖米白 #FBF6EC ＋ 深暖棕 #7C2D12，這是現在就在用的色。
+          <div class="sw"><i style="background:#FBF6EC"></i><i style="background:#7C2D12"></i><i style="background:#EADCC9"></i><i style="background:#3F7A55"></i><i style="background:#B4552B"></i></div></dd>
+        <dt>照片處理</dt>
+        <dd>照片外加 5px 白邊 ＋ 1px 米色細框 ＋ 極淡投影，像相片貼在日記頁上。</dd>
+        <dt>字</dt>
+        <dd>標題改用襯線（Fraunces 之類），內文維持無襯線。<b>日記的溫度回到字型上</b>，不再只靠配色。</dd>
+        <dt>狀態</dt>
+        <dd>badge 改為米底棕字加細框，像蓋在本子上的小章。</dd>
+      </dl>
+      <ul class="pros">
+        <li>與現況連續，既有 8 個畫面改動最小、風險最低</li>
+        <li>白邊在任何照片與底色之間都是安全的緩衝</li>
+        <li>襯線標題補上原本「靠配色傳達溫度」的不足</li>
+        <li class="risk">暖白底下照片的色彩會被襯得稍微溫吞</li>
+        <li class="risk">最不容易讓人「眼睛一亮」</li>
+      </ul>
+    </div>
+    <div class="phones">
+      <div class="phone"><div class="cap">首頁</div><div class="scr">
+        <div class="bar"><span class="brand">Tripay</span><span class="addbtn">＋ 新增行程</span></div>
+        <div class="tcard"><div class="tinner g-jeju"><div class="scrim"></div><div class="tmeta">
+          <span class="badge">已結算</span>
+          <div class="tname">2026 濟州島四寶團</div>
+          <div class="trow"><span class="temo">🍋🐟🐵🐱</span><span class="tdate">2/13 – 2/21</span></div></div></div></div>
+        <div class="tcard"><div class="tinner g-hok"><div class="scrim"></div><div class="tmeta">
+          <span class="badge">已結算</span>
+          <div class="tname">2025 北海道四寶團</div>
+          <div class="trow"><span class="temo">🍋🐟🐵🐱</span><span class="tdate">5/29 – 6/3</span></div></div></div></div>
+      </div></div>
+      <div class="phone"><div class="cap">結算</div><div class="scr settle">
+        <div class="sh">這趟結算下來</div>
+        <div class="srow"><span>🐟</span><span class="snm">Ziyu</span><span class="samt pos">可以拿回 $3,633</span></div>
+        <div class="srow"><span>🐵</span><span class="snm">Xiu</span><span class="samt neg">要給出 $1,929</span></div>
+        <div class="srow"><span>🐱</span><span class="snm">Mei</span><span class="samt neg">要給出 $1,356</span></div>
+        <div class="srow"><span>🍋</span><span class="snm">Ning</span><span class="samt neg">要給出 $348</span></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── D3 ── -->
+<section class="dir d3">
+  <div class="dir-head">
+    <span class="dir-num">方向 03</span>
+    <h2>票根</h2>
+    <span class="dir-tag">收藏感</span>
+  </div>
+  <p class="dir-sub">每趟旅行是一張存根——打孔的撕線、蓋章式的狀態、等寬字的號碼與金額。行程列表變成一疊蒐集起來的票根。</p>
+  <div class="cols">
+    <div>
+      <dl class="spec">
+        <dt>底色</dt>
+        <dd>深藍墨 #131A20，靠近車票／護照的印刷底。
+          <div class="sw"><i style="background:#131A20"></i><i style="background:#1B242C"></i><i style="background:#E6EDF2"></i><i style="background:#79B894"></i><i style="background:#DE9A63"></i></div></dd>
+        <dt>形</dt>
+        <dd>卡片兩側挖出半圓撕孔 ＋ 一條虛線撕縫，照片在撕縫上半，資訊在下半。</dd>
+        <dt>字</dt>
+        <dd>等寬字擔任主角：行程名、日期、金額全部對齊，像票面印刷。</dd>
+        <dt>狀態</dt>
+        <dd>badge 是外框 ＋ 等寬大寫，像蓋上去的通關章。</dd>
+      </dl>
+      <ul class="pros">
+        <li>記憶點最強，四趟排起來像一疊收藏</li>
+        <li>等寬數字讓金額天然對齊，132 筆的列表最好讀</li>
+        <li>「蒐集」的心理讓人想再開一趟</li>
+        <li class="risk">最容易做過頭變成噱頭，撕孔要很克制</li>
+        <li class="risk">離「日記」最遠，等於重新定義品牌敘事</li>
+      </ul>
+    </div>
+    <div class="phones">
+      <div class="phone"><div class="cap">首頁</div><div class="scr">
+        <div class="bar"><span class="brand">Tripay</span><span class="addbtn">＋ 新增</span></div>
+        <div class="tcard g-jeju"><div class="scrim"></div><div class="perf"></div><div class="tmeta">
+          <span class="badge">SETTLED</span>
+          <div class="tname">2026 濟州島四寶團</div>
+          <div class="trow"><span class="temo">🍋🐟🐵🐱</span><span class="tdate">02/13 – 02/21</span></div></div></div>
+        <div class="tcard g-hok"><div class="scrim"></div><div class="perf"></div><div class="tmeta">
+          <span class="badge">SETTLED</span>
+          <div class="tname">2025 北海道四寶團</div>
+          <div class="trow"><span class="temo">🍋🐟🐵🐱</span><span class="tdate">05/29 – 06/03</span></div></div></div>
+      </div></div>
+      <div class="phone"><div class="cap">結算</div><div class="scr settle">
+        <div class="sh">這趟結算下來</div>
+        <div class="srow"><span>🐟</span><span class="snm">Ziyu</span><span class="samt pos">＋3,633</span></div>
+        <div class="srow"><span>🐵</span><span class="snm">Xiu</span><span class="samt neg">−1,929</span></div>
+        <div class="srow"><span>🐱</span><span class="snm">Mei</span><span class="samt neg">−1,356</span></div>
+        <div class="srow"><span>🍋</span><span class="snm">Ning</span><span class="samt neg">−348</span></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section style="padding:52px 0 0">
+  <p class="eyebrow">並排比較</p>
+  <div class="tblwrap"><table>
+    <tr><th>面向</th><th>01 相紙</th><th>02 日記精裝</th><th>03 票根</th></tr>
+    <tr><td><b>照片表現</b></td><td>最強，深底襯照片</td><td>溫和，白邊緩衝</td><td>強，但被撕縫切一半</td></tr>
+    <tr><td><b>與現況的距離</b></td><td>遠——等於換品牌</td><td>近——同一套色延伸</td><td>最遠——重定敘事</td></tr>
+    <tr><td><b>既有 8 畫面改動量</b></td><td>大</td><td>小</td><td>大</td></tr>
+    <tr><td><b>新畫面好不好長</b></td><td>好（玻璃層通用）</td><td>好（框線系統通用）</td><td>普通（票根隱喻套到卡片管理較勉強）</td></tr>
+    <tr><td><b>132 筆列表可讀性</b></td><td>好</td><td>好</td><td>最好（等寬對齊）</td></tr>
+    <tr><td><b>記憶點</b></td><td>中</td><td>低</td><td>高</td></tr>
+    <tr><td><b>做過頭的風險</b></td><td>低</td><td>最低</td><td>高</td></tr>
+  </table></div>
+
+  <div class="rec">
+    <h3>UX Lead × Aria 的建議：02，但借 03 的等寬數字</h3>
+    <p>
+      理由是<b>時機</b>。這一輪的目的是讓卡片管理、帳單週期這些新畫面有地方長，
+      不是重新定義品牌。方向 02 的改動量最小、風險最低，而且它補上了原本視覺方向文件裡
+      最弱的一環——「日記的溫度靠配色傳達，不靠字型」。現在該讓字型也出力了。
+    </p>
+    <p>
+      方向 03 的等寬數字值得單獨借過來：132 筆的列表和結算金額用等寬對齊，可讀性明顯較好，
+      而這跟整套視覺換不換無關。
+    </p>
+    <p>
+      方向 01 建議留著。等真實照片進來、你實際用過一陣子，如果覺得「照片才是主角」，
+      那時候換 01 是有依據的決定，而不是現在憑想像換。
+    </p>
+  </div>
+</section>
+
+<footer>
+  示意用的四種底色，就是目前 <code>src/lib/destinations.ts</code> 實際在用的目的地色調
+  （濟州島玄武岩／小樽運河／博多屋台夜景）。真實照片置換後，三個方向的結構都不需要改。
+</footer>
+
+</div>
