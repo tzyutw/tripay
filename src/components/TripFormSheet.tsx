@@ -1,15 +1,13 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { searchCurrencies } from '@/lib/currencies';
+import EmojiPicker from '@/components/EmojiPicker';
 import type { TripWithMembers } from '@/types/database';
 
-// ── Preset emojis ──────────────────────────────────────────────────────────────
-
-const TRAVEL_EMOJIS = ['✈️','🗾','🏝️','🗻','🏔️','🎡','🌸','🗼','🌅','🏖️','🧳','🏯','🚂','🚢','🌺','🌻','🏕️','🎢','🌄','🎑','🪂','🚁'];
-const MEMBER_EMOJIS = ['🍋','🐟','🐵','🐱','🐶','🐻','🦊','🐸','🦁','🐯','🐼','🐨','🦄','🧸','🌸','🌻','🍑','🍊','🥝','🫐','🍇','🐧'];
-
-interface MemberEntry { emoji: string; name: string; }
+/** id 存在＝資料庫既有成員；不存在＝本次新加的 */
+interface MemberEntry { id?: string; emoji: string; name: string; }
 
 interface Props {
   tripId?: string;
@@ -40,7 +38,7 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
   // ── Form state ───────────────────────────────────────────────────────────────
   // Bug 2 fix: default to empty array — no pre-filled blank member
   const initialMembers: MemberEntry[] = existingTrip
-    ? existingTrip.trip_members.sort((a, b) => a.sort_order - b.sort_order).map(m => ({ emoji: m.emoji, name: m.name }))
+    ? existingTrip.trip_members.sort((a, b) => a.sort_order - b.sort_order).map(m => ({ id: m.id, emoji: m.emoji, name: m.name }))
     : [];
 
   const [coverEmoji,    setCoverEmoji]    = useState(existingTrip?.emoji ?? '✈️');
@@ -56,15 +54,53 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
   );
   const [currencySearch,  setCurrencySearch]  = useState('');
   const [showCurrency,    setShowCurrency]    = useState(false);
-  const [emojiSection,    setEmojiSection]    = useState<'travel' | 'member'>('travel');
-  // Bug 5: picker rendered as fixed overlay — track separately from form scroll
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [addingMember,    setAddingMember]    = useState(false);
   const [newMemberEmoji,  setNewMemberEmoji]  = useState('🙂');
   const [newMemberName,   setNewMemberName]   = useState('');
   const addMemberInputRef = useRef<HTMLInputElement>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [emojiPickerFor, setEmojiPickerFor] = useState<null | { kind: 'cover' } | { kind: 'member'; index: number } | { kind: 'new' }>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  // 編輯模式：existingTrip 是非同步載入的，useState 初始值抓不到，
+  // 必須在資料到位後補灌一次（否則編輯表單會是空白）。
+  useEffect(() => {
+    if (!isEdit || !existingTrip || hydrated) return;
+    setCoverEmoji(existingTrip.emoji);
+    setName(existingTrip.name);
+    setCurrency(existingTrip.currency);
+    setStartDate(existingTrip.start_date);
+    setEndDate(existingTrip.end_date);
+    const ms = [...existingTrip.trip_members].sort((a, b) => a.sort_order - b.sort_order);
+    setMembers(ms.map(m => ({ id: m.id, emoji: m.emoji, name: m.name })));
+    const oi = ms.findIndex(m => m.id === existingTrip.owner_member_id);
+    setMyMemberIdx(oi >= 0 ? oi : null);
+    setHydrated(true);
+  }, [isEdit, existingTrip, hydrated]);
+
+  // 編輯模式：查每位成員是否已有消費／分帳紀錄——有的話不准移除，避免 splits 變孤兒
+  const { data: memberUsage = {} } = useQuery<Record<string, number>>({
+    queryKey: ['trip-member-usage', tripId],
+    queryFn: async () => {
+      if (!tripId) return {};
+      const [{ data: exp }, { data: mem }] = await Promise.all([
+        supabase.from('expenses').select('id, payer_member_id').eq('trip_id', tripId).is('deleted_at', null),
+        supabase.from('trip_members').select('id').eq('trip_id', tripId),
+      ]);
+      const usage: Record<string, number> = {};
+      for (const m of mem ?? []) usage[m.id] = 0;
+      const liveIds = (exp ?? []).map(e => e.id);
+      for (const e of exp ?? []) usage[e.payer_member_id] = (usage[e.payer_member_id] ?? 0) + 1;
+      if (liveIds.length) {
+        const { data: sp } = await supabase
+          .from('expense_splits').select('member_id').in('expense_id', liveIds);
+        for (const s of sp ?? []) usage[s.member_id] = (usage[s.member_id] ?? 0) + 1;
+      }
+      return usage;
+    },
+    enabled: isEdit,
+  });
 
   // ── Mutations ─────────────────────────────────────────────────────────────────
   const mutation = useMutation({
@@ -78,6 +114,53 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
           .update({ name, emoji: coverEmoji, currency, start_date: startDate, end_date: endDate })
           .eq('id', tripId);
         if (error) throw error;
+
+        // 成員異動：更新既有、新增、刪除（刪除前擋掉已有紀錄者）
+        const kept = members.filter(m => m.name.trim());
+        const originalIds = (existingTrip?.trip_members ?? []).map(m => m.id);
+        const keptIds = kept.map(m => m.id).filter(Boolean) as string[];
+        const removed = originalIds.filter(id => !keptIds.includes(id));
+
+        for (const id of removed) {
+          if ((memberUsage[id] ?? 0) > 0) throw new Error('有成員已存在消費紀錄，無法移除');
+        }
+
+        for (let i = 0; i < kept.length; i++) {
+          const m = kept[i];
+          if (!m.id) continue;
+          const orig = existingTrip?.trip_members.find(x => x.id === m.id);
+          if (!orig || orig.name !== m.name.trim() || orig.emoji !== m.emoji || orig.sort_order !== i) {
+            const { error: uErr } = await supabase
+              .from('trip_members')
+              .update({ name: m.name.trim(), emoji: m.emoji, sort_order: i })
+              .eq('id', m.id);
+            if (uErr) throw uErr;
+          }
+        }
+
+        const toAdd = kept.map((m, i) => ({ m, i })).filter(x => !x.m.id);
+        let addedIds: string[] = [];
+        if (toAdd.length) {
+          const { data: created, error: iErr } = await supabase
+            .from('trip_members')
+            .insert(toAdd.map(({ m, i }) => ({ trip_id: tripId, name: m.name.trim(), emoji: m.emoji, sort_order: i })))
+            .select();
+          if (iErr) throw iErr;
+          addedIds = (created ?? []).map(c => c.id);
+        }
+
+        if (removed.length) {
+          const { error: dErr } = await supabase.from('trip_members').delete().in('id', removed);
+          if (dErr) throw dErr;
+        }
+
+        // owner_member_id 跟著走
+        if (myMemberIdx !== null && kept[myMemberIdx]) {
+          const target = kept[myMemberIdx].id ?? addedIds[toAdd.findIndex(x => x.i === myMemberIdx)];
+          if (target && target !== existingTrip?.owner_member_id) {
+            await supabase.from('trips').update({ owner_member_id: target }).eq('id', tripId);
+          }
+        }
         return tripId;
       }
 
@@ -128,7 +211,12 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: ['trips'] });
       if (!isEdit) onCreated(id);
-      else { qc.invalidateQueries({ queryKey: ['trip', tripId] }); onClose(); }
+      else {
+        qc.invalidateQueries({ queryKey: ['trip', tripId] });
+        qc.invalidateQueries({ queryKey: ['trip-member-usage', tripId] });
+        qc.invalidateQueries({ queryKey: ['expenses', tripId] });
+        onClose();
+      }
     },
   });
 
@@ -157,6 +245,13 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
   }
 
   function removeMember(i: number) {
+    const m = members[i];
+    const used = m?.id ? (memberUsage[m.id] ?? 0) : 0;
+    if (used > 0) {
+      setErrors(e => ({ ...e, members: `${m.name} 已經有消費或分帳紀錄，不能移除。要拿掉的話，請先刪掉相關消費。` }));
+      return;
+    }
+    setErrors(e => ({ ...e, members: '' }));
     setMembers(prev => prev.filter((_, idx) => idx !== i));
     if (myMemberIdx === i) setMyMemberIdx(null);
     else if (myMemberIdx !== null && myMemberIdx > i) setMyMemberIdx(myMemberIdx - 1);
@@ -164,7 +259,8 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
 
   const filteredCurrencies = searchCurrencies(currencySearch);
 
-  return (
+  // 同 EmojiPicker：portal 到 body，避開祖先 transform 造成的 fixed 定位錯亂
+  return createPortal(
     <>
       {/* ── Main sheet ──────────────────────────────────────────────────────── */}
       <div className="fixed inset-0 z-50 flex flex-col justify-end">
@@ -201,7 +297,7 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
               <label className="block text-[13px] font-bold text-mid tracking-wide mb-2">封面</label>
               {/* Bug 5 fix: clicking opens a fixed overlay picker, not inline */}
               <button
-                onClick={() => setShowEmojiPicker(true)}
+                onClick={() => setEmojiPickerFor({ kind: 'cover' })}
                 className="w-14 h-14 rounded-xl bg-white border-[1.5px] border-[#E4DFD9] flex items-center justify-center text-[28px]"
               >
                 {coverEmoji}
@@ -291,9 +387,11 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
               <p className="text-[11px] text-muted mb-3">點成員，標記哪位是你</p>
 
               <div className="flex flex-col gap-2">
-                {members.map((m, i) => (
+                {members.map((m, i) => {
+                  const used = m.id ? (memberUsage[m.id] ?? 0) : 0;
+                  return (
                   <div
-                    key={i}
+                    key={m.id ?? `new-${i}`}
                     onClick={() => setMyMemberIdx(myMemberIdx === i ? null : i)}
                     className={`bg-white rounded-xl px-[14px] py-[10px] flex items-center gap-[10px] cursor-pointer border-[1.5px] transition-colors ${myMemberIdx === i ? 'border-primary bg-[#FFF6F1]' : 'border-transparent'}`}
                   >
@@ -302,19 +400,28 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
                     >
                       {myMemberIdx === i ? '✓' : ''}
                     </div>
-                    <span className="text-[18px]">{m.emoji}</span>
+                    <button
+                      onClick={e => { e.stopPropagation(); setEmojiPickerFor({ kind: 'member', index: i }); }}
+                      aria-label={`換 ${m.name} 的 emoji`}
+                      className="text-[18px] w-8 h-8 rounded-lg border-[1.5px] border-[#E4DFD9] bg-white flex items-center justify-center flex-shrink-0"
+                    >
+                      {m.emoji}
+                    </button>
                     <span className="flex-1 text-[16px] font-semibold text-ink">{m.name}</span>
                     {myMemberIdx === i && (
                       <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-[2px] rounded-full">這是我</span>
                     )}
                     <button
                       onClick={e => { e.stopPropagation(); removeMember(i); }}
-                      className="text-muted text-sm ml-1 w-6 h-6 flex items-center justify-center"
+                      disabled={used > 0}
+                      title={used > 0 ? '這位已經有消費紀錄，不能移除' : '移除'}
+                      className={`text-sm ml-1 w-6 h-6 flex items-center justify-center ${used > 0 ? 'text-[#D8D2CC] cursor-not-allowed' : 'text-muted'}`}
                     >
                       ✕
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {errors.members && <p className="text-[11px] text-warn mt-1">{errors.members}</p>}
@@ -323,16 +430,14 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
               {addingMember ? (
                 <div className="mt-3 bg-white rounded-xl p-3 border border-[#E4DFD9]">
                   <p className="text-[13px] font-bold text-mid mb-2">加一個人</p>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {MEMBER_EMOJIS.slice(0, 12).map(e => (
-                      <button
-                        key={e}
-                        onClick={() => setNewMemberEmoji(e)}
-                        className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center border-[1.5px] ${newMemberEmoji === e ? 'border-primary bg-[#FFF5F0]' : 'border-[#E4DFD9]'}`}
-                      >
-                        {e}
-                      </button>
-                    ))}
+                  <div className="flex items-center gap-3 mb-3">
+                    <button
+                      onClick={() => setEmojiPickerFor({ kind: 'new' })}
+                      className="w-12 h-12 rounded-xl border-[1.5px] border-[#E4DFD9] bg-white text-[24px] flex items-center justify-center flex-shrink-0"
+                    >
+                      {newMemberEmoji}
+                    </button>
+                    <p className="text-[12px] text-muted leading-snug">點一下換 emoji<br />也可以貼上你自己的</p>
                   </div>
                   <input
                     ref={addMemberInputRef}
@@ -397,58 +502,24 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
         </div>
       </div>
 
-      {/* ── Bug 5 fix: Emoji picker as fixed bottom overlay (z-[60]) ──────── */}
-      {showEmojiPicker && (
-        <div className="fixed inset-0 z-[60] flex flex-col justify-end">
-          {/* Backdrop — click to dismiss */}
-          <div
-            className="absolute inset-0 bg-black/30 animate-fade-in"
-            onClick={() => setShowEmojiPicker(false)}
-          />
-          {/* Picker sheet — slides up from bottom, does not push form content */}
-          <div className="relative bg-surface rounded-t-[22px] shadow-sheet animate-sheet-up max-h-[60vh] flex flex-col">
-            <div className="w-9 h-1 bg-[#D0CBC5] rounded-full mx-auto mt-3 flex-shrink-0" />
-
-            {/* Section tabs */}
-            <div className="flex gap-2 px-4 pt-4 pb-3 flex-shrink-0">
-              {(['travel', 'member'] as const).map(s => (
-                <button
-                  key={s}
-                  onClick={() => setEmojiSection(s)}
-                  className={`px-4 py-[6px] rounded-full text-xs font-bold border transition-colors ${emojiSection === s ? 'bg-primary text-white border-primary' : 'text-muted border-[#E4DFD9]'}`}
-                >
-                  {s === 'travel' ? '旅遊' : '成員'}
-                </button>
-              ))}
-            </div>
-
-            {/* Emoji grid */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pb-4">
-              <div className="flex flex-wrap gap-2">
-                {(emojiSection === 'travel' ? TRAVEL_EMOJIS : MEMBER_EMOJIS).map(e => (
-                  <button
-                    key={e}
-                    onClick={() => { setCoverEmoji(e); setShowEmojiPicker(false); }}
-                    className={`w-12 h-12 rounded-xl text-[24px] flex items-center justify-center border-[1.5px] transition-colors ${coverEmoji === e ? 'border-primary bg-[#FFF5F0]' : 'border-[#E4DFD9] bg-white'}`}
-                  >
-                    {e}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Confirm */}
-            <div className="px-4 pb-8 pt-3 flex-shrink-0 border-t border-black/[0.05]">
-              <button
-                onClick={() => setShowEmojiPicker(false)}
-                className="w-full h-[50px] bg-primary text-white text-[15px] font-bold rounded-xl active:scale-[0.97] transition-transform"
-              >
-                就用這個
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* 共用 Emoji 選擇器（封面／成員）——含「搜尋，或直接貼上」自訂入口 */}
+      {emojiPickerFor && (
+        <EmojiPicker
+          mode={emojiPickerFor.kind === 'cover' ? 'cover' : 'member'}
+          value={
+            emojiPickerFor.kind === 'cover' ? coverEmoji
+              : emojiPickerFor.kind === 'new' ? newMemberEmoji
+              : (members[emojiPickerFor.index]?.emoji ?? '🙂')
+          }
+          onPick={(e) => {
+            if (emojiPickerFor.kind === 'cover') setCoverEmoji(e);
+            else if (emojiPickerFor.kind === 'new') setNewMemberEmoji(e);
+            else setMembers(prev => prev.map((m, i) => i === emojiPickerFor.index ? { ...m, emoji: e } : m));
+          }}
+          onClose={() => setEmojiPickerFor(null)}
+        />
       )}
-    </>
+    </>,
+    document.body,
   );
 }

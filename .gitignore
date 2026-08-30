@@ -40,3 +40,6 @@ dev-dist/
 # Claude Code local settings
 .claude/settings.local.json
 MEMORY_*.md
+
+# Playwright 登入 session（歷史資料匯入 Loop 任務）
+.auth/

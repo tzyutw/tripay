@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import type { TripWithMembers, ExpenseWithSplits, ExpenseType, PaymentMethod } from '@/types/database';
@@ -289,7 +290,8 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
 
   // ── Render ────────────────────────────────────────────────────────────────────
 
-  return (
+  // 同上：portal 到 body，避開祖先 transform
+  return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       {/* Backdrop */}
       <div
@@ -579,7 +581,8 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
 

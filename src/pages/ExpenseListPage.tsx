@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { deriveDisplayStatus } from '@/lib/deriveStatus';
@@ -7,6 +7,7 @@ import { getCurrencySymbol } from '@/lib/currencies';
 import { useToast } from '@/contexts/ToastContext';
 import type { TripWithMembers, ExpenseWithSplits } from '@/types/database';
 import ExpenseFormSheet from '@/components/ExpenseFormSheet';
+import TripFormSheet from '@/components/TripFormSheet';
 
 // ── Day grouping ──────────────────────────────────────────────────────────────
 
@@ -128,6 +129,7 @@ function ShareSheet({
 export default function ExpenseListPage() {
   const { id: tripId } = useParams<{ id: string }>();
   const navigate       = useNavigate();
+  const location       = useLocation();
   const qc             = useQueryClient();
 
   const [formOpen,        setFormOpen]        = useState(false);
@@ -255,6 +257,11 @@ export default function ExpenseListPage() {
   const memberMap    = Object.fromEntries(trip.trip_members.map(m => [m.id, m]));
   const showG05      = !g05Dismissed && expenses.length === 1;
 
+  // /trips/:id/edit → 開啟行程編輯（此路由原本是死碼，沒有任何地方渲染 TripFormSheet）
+  const tripFormOpen = location.pathname.endsWith('/edit');
+  function openTripEdit() { navigate(`/trips/${tripId}/edit`); }
+  function closeTripEdit() { navigate(`/trips/${tripId}`, { replace: true }); }
+
   function openNew() { setEditExpenseId(undefined); setFormOpen(true); }
   function openEdit(eid: string) { setEditExpenseId(eid); setFormOpen(true); }
   function dismissG05() { sessionStorage.setItem('g05-dismissed', '1'); setG05Dismissed(true); }
@@ -279,6 +286,17 @@ export default function ExpenseListPage() {
             ‹ 返回
           </button>
           <div className="flex gap-2">
+            {!isArchived && (
+              <button
+                onClick={openTripEdit}
+                className="w-[34px] h-[34px] rounded-xl flex items-center justify-center"
+                style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(6px)' }}
+                aria-label="編輯行程"
+                title="編輯行程"
+              >
+                <span className="text-white text-sm">✎</span>
+              </button>
+            )}
             <button
               onClick={() => setShareSheetOpen(true)}
               className="w-[34px] h-[34px] rounded-xl flex items-center justify-center"
@@ -478,6 +496,14 @@ export default function ExpenseListPage() {
       )}
 
       {/* Expense form sheet */}
+      {tripFormOpen && !isArchived && (
+        <TripFormSheet
+          tripId={tripId}
+          onClose={closeTripEdit}
+          onCreated={() => closeTripEdit()}
+        />
+      )}
+
       {formOpen && trip && (
         <ExpenseFormSheet
           tripId={tripId!}
