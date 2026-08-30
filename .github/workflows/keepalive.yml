@@ -1,13 +1,21 @@
 name: Supabase Keep-Alive
 
-# 免費 Supabase 專案閒置逾 7 天會被自動暫停。
-# 此 workflow 每 3 天對 REST API 發一次輕量請求，讓專案保持活躍。
+# 兩件事：
+#  1) ping  ──  免費 Supabase 專案閒置逾 7 天會被自動暫停，每 3 天打一次 REST 保持活躍。
+#  2) anti-disable ── GitHub 對「逾 60 天無 repo 活動」的排程 workflow 會自動停用。
+#     2026-07-22 與 2026-08-11 兩次休眠事故的真正根因就是這個：ping 本身沒問題，
+#     是排程被停用導致從未觸發。此處在接近門檻時自動推一個空 commit 重置計時。
+#     （方案 b′：GitHub 內部保活，不需外部帳號、不花錢）
+#
 # 使用既有的 repo secrets：VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY
 
 on:
   schedule:
     - cron: '17 3 */3 * *'   # 每 3 天 03:17 UTC
   workflow_dispatch:          # 也可在 Actions 頁手動觸發
+
+permissions:
+  contents: write             # anti-disable 需要推空 commit
 
 jobs:
   ping:
@@ -24,3 +32,34 @@ jobs:
           if [ "$code" -ge 500 ] || [ "$code" -eq 000 ]; then
             echo "Keep-alive ping failed"; exit 1
           fi
+
+  anti-disable:
+    # 防止排程 workflow 因 repo 長期無活動被 GitHub 停用
+    needs: ping
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push empty commit if repo is going stale
+        env:
+          THRESHOLD_DAYS: 45          # GitHub 門檻是 60 天，提前 15 天動作
+        run: |
+          last=$(git log -1 --format=%ct)
+          now=$(date +%s)
+          days=$(( (now - last) / 86400 ))
+          echo "距離最後一次 commit：${days} 天（門檻 ${THRESHOLD_DAYS} 天）"
+
+          if [ "$days" -lt "$THRESHOLD_DAYS" ]; then
+            echo "repo 仍活躍，不需要動作。"
+            exit 0
+          fi
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # [skip ci] 讓這個空 commit 不觸發前端重新部署
+          git commit --allow-empty -m "chore: keep scheduled workflows alive [skip ci]" \
+            -m "自動產生：repo 已 ${days} 天無 commit，接近 GitHub 停用排程 workflow 的 60 天門檻。"
+          git push
+          echo "已推空 commit，排程計時器重置。"

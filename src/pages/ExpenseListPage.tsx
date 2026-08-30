@@ -331,7 +331,7 @@ export default function ExpenseListPage() {
           </p>
           <p className="text-[11px] text-muted mt-[2px]">總花費</p>
           {stats.pendingCount > 0 && (
-            <p className="text-[10px] text-warn mt-[3px]">⚠️ 含 {stats.pendingCount} 筆待填</p>
+            <p className="text-[10px] text-warn mt-[3px]">⚠️ 含 {stats.pendingCount} 筆待填，數字僅供參考</p>
           )}
         </div>
         <div className="flex-1 text-center py-3 px-2 border-l border-[#EFEBE6]">
@@ -459,7 +459,7 @@ export default function ExpenseListPage() {
                 className="flex-1 h-[50px] bg-primary text-white rounded-xl text-[15px] font-bold active:scale-[0.97] transition-transform"
                 style={{ boxShadow: '0 3px 14px rgba(124,45,18,0.36)' }}
               >
-                ＋ 新增消費
+                ＋ 記一筆
               </button>
             </>
           )}

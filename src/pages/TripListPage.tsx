@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { deriveDisplayStatus, STATUS_LABEL, STATUS_BADGE_CLASS } from '@/lib/deriveStatus';
-import { getCurrencySymbol } from '@/lib/currencies';
 import type { TripWithMembers, Expense } from '@/types/database';
 import TripFormSheet from '@/components/TripFormSheet';
 
@@ -59,6 +58,9 @@ export default function TripListPage() {
         .from('trips')
         .select('*, trip_members!trip_members_trip_id_fkey(*), expenses(twd_amount, twd_pending, is_sponsor, deleted_at)')
         .eq('owner_id', user.id)
+        // S-01 排序規則：依出發日新→舊。準備旅遊的行程日期在未來，自然排最上，
+        // 不需另做置頂邏輯。同日則以建立時間新→舊作次要排序（穩定順序）。
+        .order('start_date', { ascending: false })
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data ?? []) as TripWithTotals[];
@@ -148,8 +150,8 @@ export default function TripListPage() {
                   <div className="text-right">
                     <p className="text-[17px] font-bold text-ink tabular-nums">
                       {total > 0
-                        ? `${getCurrencySymbol(trip.currency)} ${total.toLocaleString()}`
-                        : `${getCurrencySymbol(trip.currency)} —`}
+                        ? `$ ${total.toLocaleString()}`
+                        : '$ —'}
                     </p>
                     <p className="text-[11px] text-muted mt-[2px]">
                       {formatDateRange(trip.start_date, trip.end_date)}
