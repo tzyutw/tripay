@@ -15,6 +15,8 @@ const URL = ENV.match(/VITE_SUPABASE_URL=(.+)/)[1].trim(), KEY = ENV.match(/VITE
 const H = { apikey: KEY, Authorization: `Bearer ${KEY}` };
 const stFile = path.resolve(__dirname, '../../.auth/state.json');
 const tok = JSON.parse(JSON.parse(fs.readFileSync(stFile, 'utf8')).origins[0].localStorage.find(x => x.name.startsWith('sb-')).value);
+const { makeGuard } = require('./guard.cjs');
+const guard = makeGuard();
 const R = []; const ck = (n, ok, d = '') => { R.push(ok); console.log(`   ${ok ? '✅' : '❌'} ${n}${d ? ' — ' + d : ''}`); };
 const get = async (q) => (await (await fetch(`${URL}/rest/v1/${q}`, { headers: H })).json());
 
@@ -54,6 +56,7 @@ const get = async (q) => (await (await fetch(`${URL}/rest/v1/${q}`, { headers: H
   await p.getByRole('button', { name: '出發！' }).click();
   await p.waitForURL(/\/trips\/[0-9a-f-]{36}/, { timeout: 30000 });
   const tripId = p.url().match(/\/trips\/([0-9a-f-]{36})/)[1];
+  guard.register(tripId, 'ZZ E2E 狀態測試');   // 護欄：登記自己建立的測試資料
   await b.close();
 
   console.log('\n══ TC-STATUS-18：建立行程時 DB status = planned');
@@ -90,10 +93,9 @@ const get = async (q) => (await (await fetch(`${URL}/rest/v1/${q}`, { headers: H
 
   // ── 清理（P9：先刪 settlements 再刪 trip）─────────────────
   console.log('\n══ 清理臨時行程');
-  const ds = await fetch(`${URL}/rest/v1/settlements?trip_id=eq.${tripId}`, { method: 'DELETE', headers: AH });
-  const dt = await fetch(`${URL}/rest/v1/trips?id=eq.${tripId}`, { method: 'DELETE', headers: AH });
+  const rows = await guard.deleteTrip(URL, AH, tripId);
   const left = await get(`trips?select=id&id=eq.${tripId}`);
-  ck('臨時行程已刪除、不留殘料', ds.ok && dt.ok && left.length === 0);
+  ck('臨時行程已刪除、不留殘料', rows === 1 && left.length === 0 && guard.remaining().length === 0);
 
   const bad = R.filter(x => !x).length;
   console.log(`\n════ ${R.length - bad}/${R.length} 通過 ${bad ? '❌' : '✅'}`);

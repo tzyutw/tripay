@@ -10,6 +10,8 @@ const auth=st.origins[0].localStorage.find(x=>x.name.startsWith('sb-'));
 const tok=JSON.parse(auth.value);
 const R=[]; const ck=(n,ok,d='')=>{R.push(ok);console.log(`   ${ok?'✅':'❌'} ${n}${d?' — '+d:''}`)};
 const r2=n=>Math.round(n*100)/100;
+const { makeGuard } = require('./guard.cjs');
+const guard = makeGuard();
 
 (async()=>{
  // 取可寫 token（建測試行程用）
@@ -39,6 +41,7 @@ const r2=n=>Math.round(n*100)/100;
    owner_id:me.id,name:'ZZ 排序測試行程',emoji:'🧪',currency:'TWD',
    start_date:'2099-01-01',end_date:'2099-01-05',status:'planned',share_token:crypto.randomUUID()})});
  const [test]=await tRes.json();
+ guard.register(test.id, test.name);   // 護欄：登記自己建立的測試資料
  await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(2000);
  const b2=await p.locator('body').innerText();
  ck('未來日期行程排在最上',b2.indexOf('ZZ 排序測試行程')>=0 && b2.indexOf('ZZ 排序測試行程')<b2.indexOf('2026 濟州島四寶團'));
@@ -80,9 +83,9 @@ const r2=n=>Math.round(n*100)/100;
  ck('分享頁正常渲染',sh.includes('濟州島')&&sh.length>200);
 
  // 清掉測試行程
- const d=await fetch(`${URL}/rest/v1/trips?id=eq.${test.id}`,{method:'DELETE',headers:AH});
+ const rows=await guard.deleteTrip(URL,AH,test.id);
  const left=await (await fetch(`${URL}/rest/v1/trips?select=id&id=eq.${test.id}`,{headers:H})).json();
- ck('測試行程已刪除、不留殘料',d.ok&&left.length===0);
+ ck('測試行程已刪除、不留殘料',rows===1&&left.length===0&&guard.remaining().length===0);
 
  await b.close();
  const bad=R.filter(x=>!x).length;

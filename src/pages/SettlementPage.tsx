@@ -82,6 +82,23 @@ export default function SettlementPage() {
     enabled: Boolean(tripId),
   });
 
+  // UX-2：從已確認的 settlement_items 反推每人淨額。
+  // 原本的「計算依據」只吃「算清楚」那次 mutation 的暫存回應，重整後就空了，
+  // 使用者回頭想看「我到底該收多少」只剩轉帳明細要自己加總。
+  const netFromItems = useMemo(() => {
+    const items = settlement?.settlement_items ?? [];
+    if (!items.length || !trip) return [];
+    const net: Record<string, number> = {};
+    for (const m of trip.trip_members) net[m.id] = 0;
+    for (const i of items) {
+      net[i.from_member_id] = (net[i.from_member_id] ?? 0) - i.amount;
+      net[i.to_member_id]   = (net[i.to_member_id]   ?? 0) + i.amount;
+    }
+    return [...trip.trip_members]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map(m => ({ id: m.id, emoji: m.emoji, name: m.name, net: net[m.id] ?? 0 }));
+  }, [settlement, trip]);
+
   // ── Derived state ─────────────────────────────────────────────────────────────
 
   const pageState = useMemo<'pending' | 'partial' | 'done'>(() => {
@@ -425,6 +442,28 @@ export default function SettlementPage() {
         {showDetails && (
           <div className="mt-2">
             {/* Member balances from calculation result */}
+            {netFromItems.length > 0 && (
+              <div className="mb-4">
+                <p className="text-[12px] font-bold text-mid mb-2">這趟結算下來</p>
+                <div className="flex flex-col gap-[6px]">
+                  {netFromItems.map(b => (
+                    <div key={b.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2">
+                      <span className="text-[15px]">{b.emoji}</span>
+                      <span className="text-[13px] font-semibold text-ink flex-1">{b.name}</span>
+                      <span className={`text-[13px] font-bold tabular-nums ${b.net > 0 ? 'text-ok' : b.net < 0 ? 'text-warn' : 'text-muted'}`}>
+                        {b.net > 0 ? `可以拿回 $${b.net.toLocaleString()}`
+                          : b.net < 0 ? `要給出 $${Math.abs(b.net).toLocaleString()}`
+                          : '剛好打平'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted mt-2 leading-relaxed">
+                  ※ 對照 Excel 時注意：Excel 習慣用「負數」表示應收，Tripay 這裡相反，請看文字不要只看正負號。
+                </p>
+              </div>
+            )}
+
             {(calcData?.member_balances ?? []).length > 0 ? (
               <div className="bg-white rounded-xl shadow-card overflow-hidden mb-4">
                 <div className="grid grid-cols-4 text-[11px] font-bold text-muted px-4 py-2 border-b border-[#EFEBE6]">
@@ -445,7 +484,11 @@ export default function SettlementPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-[12px] text-muted py-2">（依消費明細自動計算，重新整理後需重新計算才能顯示）</p>
+              netFromItems.length === 0 ? (
+                <p className="text-[12px] text-muted py-2">（依消費明細自動計算，重新整理後需重新計算才能顯示）</p>
+              ) : (
+                <p className="text-[12px] text-muted py-2">（每人「實際付出／應分攤」的明細，按一次「重新計算」就會出現）</p>
+              )
             )}
           </div>
         )}

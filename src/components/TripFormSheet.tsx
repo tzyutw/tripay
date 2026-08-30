@@ -11,11 +11,13 @@ interface MemberEntry { id?: string; emoji: string; name: string; }
 
 interface Props {
   tripId?: string;
+  /** 新行程的預填來源：'full'＝複製行程（名稱/幣別/成員）；'members'＝G-09 只帶成員 */
+  prefill?: { tripId: string; mode: 'full' | 'members' };
   onClose: () => void;
   onCreated: (id: string) => void;
 }
 
-export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
+export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: Props) {
   const isEdit = Boolean(tripId);
   const qc     = useQueryClient();
 
@@ -79,6 +81,36 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
     setHydrated(true);
   }, [isEdit, existingTrip, hydrated]);
 
+  // 預填來源（複製行程 / G-09 帶上趟成員）
+  const { data: prefillTrip } = useQuery<TripWithMembers | null>({
+    queryKey: ['trip-prefill', prefill?.tripId],
+    queryFn: async () => {
+      if (!prefill) return null;
+      const { data, error } = await supabase
+        .from('trips')
+        .select('*, trip_members!trip_members_trip_id_fkey(*)')
+        .eq('id', prefill.tripId)
+        .single();
+      if (error) throw error;
+      return data as TripWithMembers;
+    },
+    enabled: !isEdit && !!prefill,
+  });
+
+  useEffect(() => {
+    if (isEdit || !prefill || !prefillTrip || hydrated) return;
+    const ms = [...prefillTrip.trip_members].sort((a, b) => a.sort_order - b.sort_order);
+    setMembers(ms.map(m => ({ emoji: m.emoji, name: m.name })));   // 不帶 id＝一律新建
+    const oi = ms.findIndex(m => m.id === prefillTrip.owner_member_id);
+    if (oi >= 0) setMyMemberIdx(oi);
+    if (prefill.mode === 'full') {
+      setCoverEmoji(prefillTrip.emoji);
+      setName(`${prefillTrip.name} 的複本`);
+      setCurrency(prefillTrip.currency);
+    }
+    setHydrated(true);
+  }, [isEdit, prefill, prefillTrip, hydrated]);
+
   // 編輯模式：查每位成員是否已有消費／分帳紀錄——有的話不准移除，避免 splits 變孤兒
   const { data: memberUsage = {} } = useQuery<Record<string, number>>({
     queryKey: ['trip-member-usage', tripId],
@@ -96,6 +128,18 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
         const { data: sp } = await supabase
           .from('expense_splits').select('member_id').in('expense_id', liveIds);
         for (const s of sp ?? []) usage[s.member_id] = (usage[s.member_id] ?? 0) + 1;
+      }
+      // 結算項目也要算——migration 005 會讓 settlement_items 對 trip_members CASCADE，
+      // 少了這道守衛，刪成員會連帶把結算紀錄悄悄刪掉。
+      const { data: stl } = await supabase.from('settlements').select('id').eq('trip_id', tripId);
+      const sIds = (stl ?? []).map(x => x.id);
+      if (sIds.length) {
+        const { data: si } = await supabase
+          .from('settlement_items').select('from_member_id, to_member_id').in('settlement_id', sIds);
+        for (const x of si ?? []) {
+          usage[x.from_member_id] = (usage[x.from_member_id] ?? 0) + 1;
+          usage[x.to_member_id]   = (usage[x.to_member_id]   ?? 0) + 1;
+        }
       }
       return usage;
     },
@@ -385,6 +429,11 @@ export default function TripFormSheet({ tripId, onClose, onCreated }: Props) {
             <div className="mb-5">
               <label className="block text-[13px] font-bold text-mid tracking-wide mb-1">誰一起去？</label>
               <p className="text-[11px] text-muted mb-3">點成員，標記哪位是你</p>
+              {!isEdit && prefill && members.length > 0 && (
+                <p className="text-[11px] text-primary mb-3 -mt-2">
+                  {prefill.mode === 'full' ? '已帶入原本那趟的成員與幣別，可以改' : '已帶入上一趟的成員，可以改'}
+                </p>
+              )}
 
               <div className="flex flex-col gap-2">
                 {members.map((m, i) => {

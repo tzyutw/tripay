@@ -137,6 +137,9 @@ export default function ExpenseListPage() {
   const [currencyMode,    setCurrencyMode]    = useState<'twd' | 'foreign'>('twd');
   const [shareSheetOpen,  setShareSheetOpen]  = useState(false);
   const [g05Dismissed,    setG05Dismissed]    = useState(() => sessionStorage.getItem('g05-dismissed') === '1');
+  const [copyOpen,        setCopyOpen]        = useState(false);
+  const [deleteOpen,      setDeleteOpen]      = useState(false);
+  const [deleteConfirm,   setDeleteConfirm]   = useState('');
   const { toast: showToast } = useToast();
 
   // ── Queries ──────────────────────────────────────────────────────────────────
@@ -172,6 +175,28 @@ export default function ExpenseListPage() {
   });
 
   // Archive (direct DB write — owner can update their own trip)
+  // 刪除行程（Phase 1.5）。硬刪：trips 沒有 deleted_at 欄位，加欄屬 schema 變更；
+  // 而「留著但不想看到」的需求已由封存負責，軟刪會與封存語意重疊。
+  // migration 005 之後子表靠 FK CASCADE 連帶清除，不留孤兒。
+  const deleteTripMutation = useMutation({
+    mutationFn: async () => {
+      // 先刪 settlements：settlement_items 對 trip_members 的 FK 雖已改 CASCADE，
+      // 顯式先刪可讓「影響列數」可被斷言，避免又一次靜默失敗。
+      const { error: sErr } = await supabase.from('settlements').delete().eq('trip_id', tripId!);
+      if (sErr) throw sErr;
+      const { data, error } = await supabase.from('trips').delete().eq('id', tripId!).select();
+      if (error) throw error;
+      if (!data || data.length !== 1) throw new Error('刪除沒有生效（影響 0 列），請重試或回報');
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trips'] });
+      showToast('行程已刪除');
+      navigate('/', { replace: true });
+    },
+    onError: (e: Error) => showToast(e.message || '刪不掉，請再試一次'),
+  });
+
   const archiveMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('trips').update({ status: 'archived' }).eq('id', tripId!);
@@ -297,6 +322,15 @@ export default function ExpenseListPage() {
                 <span className="text-white text-sm">✎</span>
               </button>
             )}
+            <button
+              onClick={() => setCopyOpen(true)}
+              className="w-[34px] h-[34px] rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(6px)' }}
+              aria-label="複製行程"
+              title="以這趟為範本開新行程"
+            >
+              <span className="text-white text-sm">⧉</span>
+            </button>
             <button
               onClick={() => setShareSheetOpen(true)}
               className="w-[34px] h-[34px] rounded-xl flex items-center justify-center"
@@ -483,6 +517,16 @@ export default function ExpenseListPage() {
         </div>
       )}
 
+      {/* 刪除行程入口：放在最下方、樣式弱化，避免誤觸 */}
+      <div className="px-5 pb-28 pt-2">
+        <button
+          onClick={() => { setDeleteConfirm(''); setDeleteOpen(true); }}
+          className="w-full py-2 text-[12px] text-muted underline underline-offset-2"
+        >
+          刪除這趟行程
+        </button>
+      </div>
+
       {isArchived && (
         <div className="fixed bottom-0 inset-x-0 px-5 py-3 pb-8 bg-surface border-t border-black/[0.05]">
           <button
@@ -501,6 +545,55 @@ export default function ExpenseListPage() {
           tripId={tripId}
           onClose={closeTripEdit}
           onCreated={() => closeTripEdit()}
+        />
+      )}
+
+      {/* 複製行程：以這趟為範本開新行程（成員／幣別／封面帶過去，消費不帶） */}
+      {deleteOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setDeleteOpen(false)} />
+          <div className="relative bg-white rounded-2xl p-6 w-full max-w-sm shadow-sheet">
+            <p className="text-[17px] font-bold text-ink mb-2 text-center">刪除「{trip.name}」？</p>
+            <p className="text-[13px] text-mid mb-3 leading-relaxed">
+              這會一併刪掉這趟的<b>全部資料</b>，而且救不回來：
+            </p>
+            <ul className="text-[13px] text-mid mb-4 leading-relaxed list-disc pl-5">
+              <li>{expenses.length} 筆消費與分帳紀錄</li>
+              <li>{trip.trip_members.length} 位成員</li>
+              <li>結算結果與分享連結</li>
+            </ul>
+            <p className="text-[12px] text-mid mb-2">確定的話，請輸入行程名稱：</p>
+            <input
+              type="text"
+              value={deleteConfirm}
+              onChange={e => setDeleteConfirm(e.target.value)}
+              placeholder={trip.name}
+              className="w-full h-[42px] px-3 mb-4 bg-[#F5F4F2] rounded-xl border-[1.5px] border-[#E4DFD9] text-[14px] text-ink outline-none focus:border-warn"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteOpen(false)}
+                className="flex-1 h-[46px] bg-[#F5F4F2] text-ink rounded-xl text-[14px] font-bold"
+              >
+                算了，留著
+              </button>
+              <button
+                onClick={() => deleteTripMutation.mutate()}
+                disabled={deleteConfirm.trim() !== trip.name || deleteTripMutation.isPending}
+                className="flex-1 h-[46px] bg-warn text-white rounded-xl text-[14px] font-bold disabled:opacity-40"
+              >
+                {deleteTripMutation.isPending ? '刪除中…' : '刪除'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {copyOpen && (
+        <TripFormSheet
+          prefill={{ tripId: tripId!, mode: 'full' }}
+          onClose={() => setCopyOpen(false)}
+          onCreated={(id) => { setCopyOpen(false); navigate(`/trips/${id}`); }}
         />
       )}
 

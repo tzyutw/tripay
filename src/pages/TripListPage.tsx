@@ -67,6 +67,9 @@ export default function TripListPage() {
     },
   });
 
+  // G-09：新行程預填上一趟的成員（trips 已依出發日新→舊排序，取第一筆）
+  const latestTripId = trips[0]?.id;
+
   function openNew() {
     setEditTripId(undefined);
     setFormOpen(true);
@@ -198,6 +201,7 @@ export default function TripListPage() {
       {formOpen && (
         <TripFormSheet
           tripId={editTripId}
+          prefill={!editTripId && latestTripId ? { tripId: latestTripId, mode: 'members' } : undefined}
           onClose={closeForm}
           onCreated={(id) => navigate(`/trips/${id}`)}
         />

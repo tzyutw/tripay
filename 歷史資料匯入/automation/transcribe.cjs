@@ -61,7 +61,12 @@ async function createTrip(page, plan) {
     if (emoji !== m.emoji) subs.push(`${m.name} ${m.emoji}→${emoji}`);
     await page.getByRole('button', { name: '＋ 新增成員' }).click();
     await page.locator('input[placeholder="叫什麼名字？"]').waitFor({ timeout: 10000 });
+    // 成員 emoji 改走共用 EmojiPicker（2026-08-30 改版）
+    await page.locator('xpath=//p[contains(text(),"點一下換 emoji")]/preceding-sibling::button').click();
+    await page.getByPlaceholder('搜尋，或直接貼上').waitFor({ timeout: 10000 });
     await page.locator(`button:text-is("${emoji}")`).first().click();
+    await page.getByRole('button', { name: '就用這個' }).click();
+    await page.waitForTimeout(250);
     await page.locator('input[placeholder="叫什麼名字？"]').fill(m.name);
     await page.getByRole('button', { name: '加進來' }).click();
     await page.waitForTimeout(150);

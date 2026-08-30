@@ -1,0 +1,22 @@
+const { chromium } = require('playwright');
+const fs=require('fs'),path=require('path');
+const ENV=fs.readFileSync(path.resolve(__dirname,'../../.env'),'utf8');
+const URL=ENV.match(/VITE_SUPABASE_URL=(.+)/)[1].trim(),KEY=ENV.match(/VITE_SUPABASE_ANON_KEY=(.+)/)[1].trim();
+const stf=path.resolve(__dirname,'../../.auth/state.json');
+const auth=JSON.parse(fs.readFileSync(stf,'utf8')).origins[0].localStorage.find(x=>x.name.startsWith('sb-'));
+(async()=>{
+ const t=await (await fetch(`${URL}/rest/v1/trips?select=id,name&name=like.*濟州島*`,{headers:{apikey:KEY,Authorization:`Bearer ${KEY}`}})).json();
+ const b=await chromium.launch({headless:true});
+ const ctx=await b.newContext({locale:'zh-TW',viewport:{width:320,height:568}});
+ await ctx.addInitScript(([k,v])=>{try{localStorage.setItem(k,v)}catch{}},[auth.name,auth.value]);
+ const p=await ctx.newPage();
+ const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('console',m=>{if(m.type()==='error')errs.push(m.text())});
+ await p.goto(`http://localhost:5173/trips/${t[0].id}`,{waitUntil:'networkidle'});
+ await p.waitForTimeout(2500);
+ console.log('URL:',p.url());
+ console.log('按鈕:',(await p.locator('button').allInnerTexts()).map(x=>x.trim()).filter(Boolean).slice(0,12).join(' | '));
+ console.log('aria-label:',await p.locator('button[aria-label]').evaluateAll(bs=>bs.map(b=>b.getAttribute('aria-label')).join(' | ')));
+ console.log('錯誤:',errs.slice(0,3).join(' || ')||'無');
+ console.log('body 前 150:',(await p.locator('body').innerText()).slice(0,150).replace(/\n/g,' | '));
+ await b.close();
+})();

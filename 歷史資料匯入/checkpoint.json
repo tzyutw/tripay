@@ -290,7 +290,7 @@
     "failed": []
   },
   "jeju": {
-    "tripUuid": "634b08eb-a329-44c5-b954-c2bda91956b3",
+    "tripUuid": "ad5f2ec4-ed75-43e3-a1c7-0662e562f00c",
     "done": [
       1,
       2,
@@ -425,6 +425,7 @@
       131,
       132
     ],
-    "failed": []
+    "failed": [],
+    "note": "2026-08-30 被 QA 腳本誤刪，依 plan-jeju.json 重新謄入"
   }
 }
