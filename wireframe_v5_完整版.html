@@ -69,7 +69,9 @@ header .lede{margin-top:16px;max-width:70ch;color:var(--pgink2);font-size:15.5px
   --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#B03A22;
   --ln:#DFE1DA;--gr:#78878F;--md:#4C5B64;--cd:#fff;position:relative}
 .ui *{box-sizing:border-box}
-.ui .mono,.ui .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+/* 等寬只用於金額（Rozi 2026-08-31 G）；日期／天數／筆數一律系統字 */
+.ui .money,.ui .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.ui .mono{font-variant-numeric:tabular-nums}
 
 /* 編號徽章 */
 .b{position:relative}
@@ -98,7 +100,7 @@ html.nonum .b::after{opacity:0}
 .ui .btnrow{display:flex;gap:8px;padding:11px 13px;background:#EDEEE8;border-top:1px solid var(--ln)}
 .ui .fixnote{font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;color:var(--gr);
   text-align:center;padding:3px 0 0;background:#EDEEE8}
-.ui .sec{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+.ui .sec{font-size:10px;font-weight:600;letter-spacing:.06em;
   color:var(--gr);padding:14px 13px 6px}
 .ui .card{background:#fff;border:1px solid var(--ln);border-radius:3px}
 .ui .lbl{font-size:11px;font-weight:600;color:var(--md);margin-bottom:5px;display:block}
@@ -124,8 +126,8 @@ html.nonum .b::after{opacity:0}
   display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff}
 .ui .ck.on{background:var(--w);border-color:var(--w)}
 .ui .ck.rd{border-radius:50%}
-.ui .stamp{display:inline-block;border:1px solid rgba(255,255,255,.72);color:#fff;font-family:var(--mono);
-  font-size:8px;letter-spacing:.1em;padding:1.5px 6px;border-radius:2px}
+.ui .stamp{display:inline-block;border:1px solid rgba(255,255,255,.72);color:#fff;
+  font-size:9px;font-weight:600;letter-spacing:.04em;padding:1.5px 6px;border-radius:2px}
 .ui .pill{font-size:9px;font-weight:600;padding:2px 6px;border-radius:999px;border:1px solid;line-height:1.5}
 .ui .pill.ind{color:var(--wi);border-color:#BFD9EE;background:#EEF5FB}
 .ui .pill.per{color:var(--md);border-color:var(--ln);background:#F4F5F1}
@@ -166,8 +168,7 @@ html.nonum .b::after{opacity:0}
 .ui .tcard .em{position:absolute;top:7px;right:9px;font-size:22px}
 .ui .tcard .nm{position:relative;color:#fff;font-size:15px;font-weight:700;letter-spacing:-.01em;margin-top:5px}
 .ui .tcard .mt{position:relative;display:flex;align-items:center;gap:6px;margin-top:3px}
-.ui .tcard .mt .em2{font-size:12px;letter-spacing:.06em}
-.ui .tcard .mt .dt{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.9)}
+.ui .tcard .mt .dt{font-size:9.5px;color:rgba(255,255,255,.9)}
 
 /* 統計條 */
 .ui .stats{display:flex;background:#fff;border-bottom:1px solid var(--ln)}
@@ -175,7 +176,7 @@ html.nonum .b::after{opacity:0}
 .ui .stats>div:last-child{border-right:0}
 .ui .stats b{display:block;font-family:var(--mono);font-size:14px;font-weight:600;
   font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.ui .stats span{font-family:var(--mono);font-size:8px;color:var(--gr);letter-spacing:.09em;text-transform:uppercase}
+.ui .stats span{font-size:9px;color:var(--gr);letter-spacing:.04em}
 
 /* 消費列 */
 .ui .exp{margin:0 13px 5px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:8px 9px;
@@ -260,7 +261,18 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
     畫面上只要看到橘紅色的<b>底</b>，就是刪除等級的動作。
   </div>
   <div class="callout">
-    <b>2026-08-31 第二次更新（最新）：</b>
+    <b>2026-08-31 第二批（最新）：</b>
+    <b>封面 emoji 全面取消</b>（S-02-5／S-02b-6），建立行程一律先套目的地色調；
+    S-02b 封面區改為「更換照片／重選色調」，色調是 8 種<b>預設盤</b>不是挑色器。
+    <b>Emoji 選擇器整個移除</b>（S-02c 九項全刪），改成三層 fallback＋就地編輯，
+    驗證放寬為「一個 grapheme，emoji 或文字皆可」。
+    <b>首頁行程卡移除成員識別列</b>（只有首頁，其他頁照常）。
+    日期改為出發預設今天、回程可留空。
+    <b>字體規則修正：等寬只用於金額</b>，日期／天數／筆數改回系統字（全稿與 tokens 頁同步）。
+    受影響的 S-01／S-02／S-02b／S-02c 已重新完整渲染。
+  </div>
+  <div class="callout">
+    <b>2026-08-31 第二次更新：</b>
     三個 UX 提案 Rozi 已全數裁定，提案節標示結論。
     <code>S-03-13</code>（G-05 分享橫幅）<b>移除</b>，改由 <code>S-05-29</code>（結算完成頁分享 CTA，新增）取代——
     推翻方式：恢復 G-05 觸發即可。<code>S-01-4</code> 確認為筆誤、維持保留並補 CTA。
@@ -274,6 +286,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
     <b>本批只動 S-00 與 S-01</b>，其餘各頁維持原樣等下一批。
   </div>
   <div class="callout">
+    <b>示意都會標明實際數量：</b>凡是稿上只畫幾筆代表的清單，一律註明實際有幾種、出處在哪（例：幣別示意 3 種、<b>實際 18 種</b>）。<br><br>
     <b>「不在稿上」是什麼：</b>盤點表有 18 列標了這個記號——它們是<b>看不見的行為</b>
     （查詢過濾、portal 掛載點、結算規則這類），有功能但沒有對應的視覺區塊，所以稿上找不到編號徽章。
     你問的 <code>S-01-12</code>（列表過濾 <code>.eq('kind','trip')</code>，讓帳單不混進首頁）正是其中一列。
@@ -289,11 +302,11 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
 
   <div class="toc">
     <a href="#s00"><span class="k">S-00</span><span class="t">登入</span><span class="n">7 項</span></a>
-    <a href="#s01"><span class="k">S-01</span><span class="t">首頁 · 行程列表</span><span class="n">13 項</span></a>
+    <a href="#s01"><span class="k">S-01</span><span class="t">首頁 · 行程列表</span><span class="n">14 項</span></a>
     <a href="#prop" class="new"><span class="k">提案</span><span class="t">UX 重新評估</span><span class="n">已全數裁定</span></a>
-    <a href="#s02"><span class="k">S-02</span><span class="t">新增行程</span><span class="n">18 項</span></a>
-    <a href="#s02b"><span class="k">S-02b</span><span class="t">編輯行程 · 封面</span><span class="n">9 項</span></a>
-    <a href="#s02c"><span class="k">S-02c</span><span class="t">Emoji 選擇器</span><span class="n">9 項</span></a>
+    <a href="#s02"><span class="k">S-02</span><span class="t">新增行程</span><span class="n">20 項</span></a>
+    <a href="#s02b"><span class="k">S-02b</span><span class="t">編輯行程 · 封面</span><span class="n">10 項</span></a>
+    <a href="#s02c"><span class="k">S-02c</span><span class="t">成員識別（新）</span><span class="n">13 項</span></a>
     <a href="#s03"><span class="k">S-03</span><span class="t">消費瀏覽</span><span class="n">26 項</span></a>
     <a href="#s03b"><span class="k">S-03b·c</span><span class="t">分享選單／刪除</span><span class="n">14 項</span></a>
     <a href="#s04"><span class="k">S-04</span><span class="t">記一筆</span><span class="n">28 項</span></a>
@@ -385,7 +398,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
           <span class="em">🏝️</span>
           <span class="b" data-n="S-01-6" style="position:relative;width:fit-content"><span class="stamp">旅途中</span></span>
           <div class="nm">2026 濟州島四寶團</div>
-          <div class="mt"><span class="em2">🐵🐱🍋🐟</span><span class="dt">3/14 – 3/18 · 2026</span></div>
+          <div class="mt"><span class="dt">3/14 – 3/18 · 2026</span></div>
         </div>
       </div>
 
@@ -395,7 +408,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
           <span class="em">🗻</span>
           <span style="position:relative;width:fit-content"><span class="stamp">已結算</span></span>
           <div class="nm">2024 東京富士山五寶團</div>
-          <div class="mt"><span class="em2">🐵🐱🍋🐟🐰</span><span class="dt">11/2 – 11/8 · 2024</span></div>
+          <div class="mt"><span class="dt">11/2 – 11/8 · 2024</span></div>
         </div>
       </div>
 
@@ -405,7 +418,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
           <span class="em">🍜</span>
           <span style="position:relative;width:fit-content"><span class="stamp">已封存</span></span>
           <div class="nm">2023 福岡三人行</div>
-          <div class="mt"><span class="em2">🐵🐱🍋</span><span class="dt">4/6 – 4/11 · 2023</span></div>
+          <div class="mt"><span class="dt">4/6 – 4/11 · 2023</span></div>
         </div>
       </div>
 
@@ -421,7 +434,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
   </div>
 
   <div>
-    <p class="cnt">功能盤點 · 13 項　—　<b>移除 2（S-01-9／S-01-10）</b>，S-01-4 已確認保留並補 CTA</p>
+    <p class="cnt">功能盤點 · 14 項　—　<b>移除 2（S-01-9／S-01-10）</b>，行程卡<b>再移除成員識別列</b>，新增 S-01-13 記錄適用範圍</p>
     <div class="tblwrap"><table>
       <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
       <tbody>
@@ -429,7 +442,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <tr><td class="n">S-01-2</td><td class="el">＋ 新增行程</td><td>開 TripFormSheet（S-02），無預填 tripId</td><td><span class="tag chg">改</span> 工作色</td><td class="src">TripListPage:67</td></tr>
       <tr><td class="n">S-01-3</td><td class="el">載入中</td><td>置中轉圈，py-12</td><td>照舊</td><td class="src">TripListPage:80</td></tr>
       <tr><td class="n">S-01-4</td><td class="el">空狀態</td><td>「還沒有行程。／第一趟要去哪？」<b>沒有 CTA 按鈕</b>，要按右上角</td><td><span class="tag new">新</span> Rozi 2026-08-31 確認先前是筆誤，<b>維持保留</b>；並依讀碼發現 #11 <b>補一顆 CTA</b></td><td class="src">TripListPage:86</td></tr>
-      <tr><td class="n">S-01-5</td><td class="el">行程卡</td><td>184px 目的地 gradient（<code>destinationOf()</code> 依行程名關鍵字比對，對不到用 id 雜湊挑預設色）＋底部壓暗遮罩；整張可點 → <code>/trips/:id</code></td><td><span class="tag chg">改</span> 卡片加白邊像貼進本子；<span class="tag new">新</span> 有封面照時改放照片</td><td class="src">TripListPage:104</td></tr>
+      <tr><td class="n">S-01-5</td><td class="el">行程卡</td><td>184px 目的地 gradient（<code>destinationOf()</code> 依行程名關鍵字比對，對不到用 id 雜湊挑預設色）＋底部壓暗遮罩；<b>卡上有成員 emoji 列</b>；整張可點 → <code>/trips/:id</code></td><td><span class="tag chg">改</span> 卡片加白邊像貼進本子；<span class="tag new">新</span> 有封面照時改放照片；<span class="tag del">移除</span> <b>成員識別列</b>（Rozi D）——首頁只留照片／色調、行程名、日期、狀態章</td><td class="src">TripListPage:104</td></tr>
       <tr><td class="n">S-01-6</td><td class="el">狀態徽章</td><td>四態：出發前／旅途中／✅ 已結算／已封存。由 <code>deriveDisplayStatus()</code> 推導，不是資料庫欄位</td><td><span class="tag chg">改</span> 膠囊底色→描邊章，✅ 拿掉（顏色已表意）</td><td class="src">deriveStatus.ts:10</td></tr>
       <tr><td class="n">S-01-7</td><td class="el">封存卡樣式</td><td>整張 <code>saturate(.55) brightness(.9)</code></td><td>照舊</td><td class="src">TripListPage:110</td></tr>
       <tr><td class="n">S-01-8</td><td class="el">G-02 幽靈卡</td><td>「你的下一趟在哪？」<b>可點</b>，開 S-02。blur 0.8／opacity .72</td><td><span class="tag chg">改</span> 暖米底→冷灰</td><td class="src">TripListPage:146</td></tr>
@@ -437,6 +450,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <tr class="gone"><td class="n">S-01-10</td><td class="el">「複製連結」鈕</td><td><b>沒有 onClick，按了沒反應</b>；且首頁沒有「哪一趟」的概念</td><td><span class="tag del">移除</span> 隨 S-01-9 一起拿掉 —— <b>讀碼發現 #1 因此結案為「拿掉」，不修</b></td><td class="src">TripListPage:176</td></tr>
       <tr><td class="n">S-01-11 <span class="tag inv">不在稿上</span></td><td class="el">排序</td><td>出發日新→舊，同日以建立時間次要排序（決策 23）</td><td>照舊</td><td class="src">TripListPage:39</td></tr>
       <tr><td class="n">S-01-12 <span class="tag inv">不在稿上</span></td><td class="el">列表過濾</td><td><code>.eq('kind','trip')</code>——帳單週期不混進來（D1）；<code>.eq('owner_id', user.id)</code></td><td>照舊</td><td class="src">TripListPage:34</td></tr>
+      <tr><td class="n">S-01-13</td><td class="el">成員識別的適用範圍</td><td>首頁卡與各內頁都顯示成員</td><td><span class="tag chg">改</span> Rozi 2026-08-31 D：<b>只有首頁行程卡不顯示成員</b>（首頁是回憶架，行程命名本身已含人數）。<b>行程內頁／記帳表單／結算頁／分享頁照常顯示</b>；<b>S-03E 空狀態依決策 D 仍顯示成員 emoji</b></td><td class="src">Rozi D</td></tr>
       <tr><td class="n">—</td><td class="el">設定入口</td><td><b>首頁沒有</b>。⚙ 只存在於行程內頁 S-03，沒有行程就進不去設定</td><td><span class="tag bug">議</span> 見發現 #3</td><td class="src">—</td></tr>
       </tbody>
     </table></div>
@@ -536,15 +550,11 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
         <div class="b grab" data-n="S-02-2"></div>
         <div class="b shd" data-n="S-02-3"><h3>這趟去哪？</h3><span class="b rt x" data-n="S-02-4">✕</span></div>
 
-        <div class="b fld" data-n="S-02-5">
-          <span class="lbl">封面</span>
-          <div style="width:44px;height:44px;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:22px">✈️</div>
-          <p class="hint">點 emoji 可自訂行程封面</p>
-        </div>
 
         <div class="b fld" data-n="S-02-6">
           <span class="lbl">去哪？</span>
           <div class="inp ph2">例如：沖繩四人行 ☀️</div>
+          <p class="b hint" data-n="S-02-19">封面會依行程名自動套目的地色調，建立後可在「編輯行程」換成照片</p>
           <p class="err">這欄還沒填喔　<span class="g">← 未填時</span></p>
         </div>
 
@@ -556,15 +566,16 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
             <div style="padding:8px 10px;font-size:11.5px;color:var(--wi);font-weight:600;display:flex;justify-content:space-between">JPY · 日圓 <span class="g">¥</span></div>
             <div style="padding:8px 10px;font-size:11.5px;display:flex;justify-content:space-between;border-top:1px solid #F1F2EE">KRW · 韓圜 <span class="g">₩</span></div>
             <div style="padding:8px 10px;font-size:11.5px;display:flex;justify-content:space-between;border-top:1px solid #F1F2EE">TWD · 新台幣 <span class="g">$</span></div>
+            <div style="padding:6px 10px;font-size:9.5px;color:var(--gr);border-top:1px solid #F1F2EE">示意 3 種，<b>實際 18 種</b>可搜尋（<code style="color:var(--md)">src/lib/currencies.ts</code>）</div>
           </div>
         </div>
 
         <div class="b fld" data-n="S-02-9">
           <div style="display:flex;gap:9px">
-            <div style="flex:1"><span class="lbl">出發</span><div class="inp num">2026-03-14</div></div>
-            <div style="flex:1"><span class="lbl">回程</span><div class="inp num">2026-03-18</div></div>
+            <div style="flex:1"><span class="lbl">出發</span><div class="inp mono">2026-08-31</div><p class="hint">預設今天</p></div>
+            <div style="flex:1"><span class="lbl">回程</span><div class="inp mono ph2">留空＝當天來回</div><p class="hint">可留空</p></div>
           </div>
-          <p class="hint">回程有 <code style="color:var(--md)">min=出發日</code> 限制；<code style="color:var(--md)">lang="en"</code> 避免中文 Chrome 弄亂格式</p>
+          <p class="hint">回程有 <code style="color:var(--md)">min=出發日</code> 限制；<code style="color:var(--md)">lang="en"</code> 避免中文 Chrome 弄亂格式。行程狀態依<b>出發日</b>判定</p>
         </div>
 
         <div class="b fld" data-n="S-02-10">
@@ -607,11 +618,19 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
 
         <div class="b btnrow" data-n="S-02-18" style="background:#EDEEE8"><span class="btn gh">取消</span><span class="btn">出發！</span></div>
       </div>
+      <div class="b scrim" data-n="S-02-20" style="padding:18px 0">
+        <div class="dlg">
+          <p style="margin:0 0 6px;font-size:13px;font-weight:700;text-align:center">〔文案佔位〕這是單日行程嗎？</p>
+          <p style="margin:0 0 11px;font-size:11px;color:var(--md);line-height:1.5;text-align:center">回程沒填。確認的話就以 8/31 當天來回建立。</p>
+          <div style="display:flex;gap:8px"><span class="btn qt">回去填回程</span><span class="btn">是，單日</span></div>
+        </div>
+      </div>
+      <div class="fixnote">回程留空時送出才出現　·　文案由 Copywriter 提案後經 Rozi 定案</div>
     </div></div>
   </div>
 
   <div>
-    <p class="cnt">功能盤點 · 18 項　—　現況全數保留</p>
+    <p class="cnt">功能盤點 · 20 項　—　<b>移除 1（S-02-5 封面 emoji）</b>，新增 2（S-02-19／S-02-20）</p>
     <div class="tblwrap"><table>
       <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
       <tbody>
@@ -619,20 +638,22 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <tr><td class="n">S-02-2</td><td class="el">拖曳條</td><td>純裝飾，<b>不能真的拖</b></td><td>照舊</td><td class="src">TripFormSheet:312</td></tr>
       <tr><td class="n">S-02-3</td><td class="el">標題</td><td>建立＝「這趟去哪？」／編輯＝「編輯行程」</td><td><span class="tag chg">改</span> 襯線→系統字</td><td class="src">TripFormSheet:316</td></tr>
       <tr><td class="n">S-02-4</td><td class="el">關閉 ✕</td><td>同遮罩；<code>/trips/new</code> 進來時會 replace 回 <code>/</code></td><td>照舊</td><td class="src">TripListPage:57</td></tr>
-      <tr><td class="n">S-02-5</td><td class="el">封面 emoji</td><td>開 EmojiPicker（cover 模式）。預設 ✈️</td><td>照舊</td><td class="src">TripFormSheet:331</td></tr>
+      <tr class="gone"><td class="n">S-02-5</td><td class="el">封面 emoji</td><td>開 EmojiPicker（cover 模式）。預設 ✈️</td><td><span class="tag del">移除</span> Rozi 2026-08-31：建立行程不設封面，一律先套<b>目的地色調</b>（依行程名自動判定）。<code>trips.emoji</code> 欄位保留不刪，前端不再使用</td><td class="src">TripFormSheet:331</td></tr>
       <tr><td class="n">S-02-6</td><td class="el">行程名稱</td><td>必填；驗證訊息「這欄還沒填喔」</td><td>照舊</td><td class="src">TripFormSheet:344</td></tr>
       <tr><td class="n">S-02-7</td><td class="el">幣別選擇</td><td>預設 JPY，點開下拉</td><td>照舊</td><td class="src">TripFormSheet:358</td></tr>
-      <tr><td class="n">S-02-8</td><td class="el">幣別搜尋</td><td>可搜代碼或名稱（<code>searchCurrencies</code>），最高 52 列可捲</td><td>照舊</td><td class="src">currencies.ts</td></tr>
-      <tr><td class="n">S-02-9</td><td class="el">出發／回程</td><td>兩個原生 date input，皆必填，回程 <code>min=startDate</code></td><td>照舊</td><td class="src">TripFormSheet:392</td></tr>
+      <tr><td class="n">S-02-8</td><td class="el">幣別搜尋</td><td>可搜代碼或名稱（<code>searchCurrencies</code>），<b>共 18 種</b>（含泰銖），下拉最高 13rem 可捲</td><td>照舊</td><td class="src">currencies.ts</td></tr>
+      <tr><td class="n">S-02-9</td><td class="el">出發／回程</td><td>兩個原生 date input，<b>皆必填</b>，回程 <code>min=startDate</code></td><td><span class="tag chg">改</span> <b>出發預設今天、回程可留空</b>。送出時回程為空 → 跳 S-02-20 確認，確認後以單日建立，<b>不強制填</b>。行程狀態仍依出發日判定</td><td class="src">TripFormSheet:392</td></tr>
       <tr><td class="n">S-02-10</td><td class="el">成員區標題</td><td>「誰一起去？／點成員，標記哪位是你」</td><td>照舊</td><td class="src">TripFormSheet:421</td></tr>
       <tr><td class="n">S-02-11</td><td class="el">G-09 預填提示</td><td>帶上一趟成員時顯示；複製行程時文案不同（「已帶入原本那趟的成員與幣別」）</td><td>照舊</td><td class="src">TripFormSheet:425</td></tr>
       <tr><td class="n">S-02-12</td><td class="el">成員列 · 這是我</td><td>整列可點＝切換 owner_member_id；再點一次取消</td><td><span class="tag chg">改</span> 選取底色 #FFF6F1→工作色淺底</td><td class="src">TripFormSheet:437</td></tr>
-      <tr><td class="n">S-02-13</td><td class="el">成員 emoji 鈕</td><td>單獨可點，開 EmojiPicker（member 模式），<code>stopPropagation</code> 避免誤觸整列</td><td>照舊</td><td class="src">TripFormSheet:447</td></tr>
+      <tr><td class="n">S-02-13</td><td class="el">成員識別圓圈</td><td>單獨可點，開 EmojiPicker（member 模式），<code>stopPropagation</code> 避免誤觸整列</td><td><span class="tag chg">改</span> 改為<b>就地編輯</b>（S-02c-11）：點一下變單字元輸入框，輸入後自動存檔。顯示走三層 fallback（S-02c-10）</td><td class="src">TripFormSheet:447</td></tr>
       <tr><td class="n">S-02-14</td><td class="el">移除成員 ✕</td><td>建立模式一律可移除；<b>編輯模式若該成員已有消費／分帳／結算紀錄則 disabled</b></td><td>照舊</td><td class="src">TripFormSheet:461</td></tr>
       <tr><td class="n">S-02-15</td><td class="el">新增成員展開表單</td><td>emoji 鈕＋名字（限 10 字）＋Enter 送出；取消／加進來</td><td>照舊</td><td class="src">TripFormSheet:478</td></tr>
       <tr><td class="n">S-02-16</td><td class="el">＋ 新增成員</td><td>虛線鈕，展開上一項</td><td>照舊</td><td class="src">TripFormSheet:513</td></tr>
       <tr><td class="n">S-02-17</td><td class="el">說明文</td><td>「標記哪位是你，統計卡的『我的花費』就會算你這一份。」<b>僅建立模式顯示</b></td><td>照舊</td><td class="src">TripFormSheet:523</td></tr>
       <tr><td class="n">S-02-18</td><td class="el">取消／出發！</td><td>建立＝「出發！」，成功後導向新行程；編輯＝「儲存」，關閉 sheet</td><td>照舊</td><td class="src">TripFormSheet:530</td></tr>
+      <tr><td class="n">S-02-19</td><td class="el">封面說明句</td><td>—</td><td><span class="tag new">新</span> 移除封面 emoji 後補一行：「封面會依行程名自動套目的地色調，建立後可在『編輯行程』換成照片」。<b>只是說明，不是控制項</b>——不想要就砍這一行</td><td class="src">Rozi A</td></tr>
+      <tr><td class="n">S-02-20</td><td class="el">單日行程確認</td><td>—</td><td><span class="tag new">新</span> 回程留空時送出才出現。<b>文案佔位</b>「這是單日行程嗎？」，由 Copywriter 提案後經 Rozi 定案</td><td class="src">Rozi F</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -657,25 +678,33 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
         <div class="b shd" data-n="S-02b-1"><h3>編輯行程</h3><span class="x">✕</span></div>
 
         <div class="b fld" data-n="S-02b-2">
-          <span class="lbl">封面照片</span>
+          <span class="lbl">封面</span>
           <div style="border:1px solid var(--ln);border-radius:3px;overflow:hidden;background:#fff;padding:4px">
             <div class="img g-jeju" style="height:96px;border-radius:2px;position:relative">
               <div class="scrimg"></div>
-              <span style="position:absolute;left:8px;bottom:7px;font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.92);letter-spacing:.08em">目前：目的地色調</span>
+              <span style="position:absolute;left:8px;bottom:7px;font-size:9px;color:rgba(255,255,255,.92)">目前：目的地色調（濟州）</span>
             </div>
           </div>
           <div style="display:flex;gap:7px;margin-top:7px">
-            <span class="b btn gh" data-n="S-02b-3" style="padding:7px 0">換一張照片</span>
-            <span class="b btn qt" data-n="S-02b-4" style="padding:7px 0">改回色調</span>
+            <span class="b btn gh" data-n="S-02b-3" style="padding:7px 0">更換照片</span>
+            <span class="b btn qt" data-n="S-02b-4" style="padding:7px 0">重選色調</span>
+          </div>
+          <div class="b" data-n="S-02b-10" style="margin-top:8px">
+            <p class="hint" style="margin:0 0 5px">色調＝目的地色系預設盤（<b>8 種</b>，出處 <code style="color:var(--md)">src/lib/destinations.ts</code>）。不做色票挑色器</p>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              <span class="g-jeju" style="width:30px;height:30px;border-radius:3px;outline:2px solid var(--w);outline-offset:1px"></span>
+              <span class="g-hok" style="width:30px;height:30px;border-radius:3px"></span>
+              <span class="g-tokyo" style="width:30px;height:30px;border-radius:3px"></span>
+              <span class="g-fuk" style="width:30px;height:30px;border-radius:3px"></span>
+              <span style="width:30px;height:30px;border-radius:3px;background:linear-gradient(160deg,#8B6914,#6B4E2E 40%,#3A5A6B 70%,#2D4A5E)"></span>
+              <span style="width:30px;height:30px;border-radius:3px;background:linear-gradient(160deg,#1B7A8C,#2FA3A8 35%,#7FD1C1 70%,#2E6B6B)"></span>
+              <span style="width:30px;height:30px;border-radius:3px;background:linear-gradient(160deg,#6B2B3A,#9A4A4A 40%,#C08552 75%,#4A2A2E)"></span>
+              <span style="width:30px;height:30px;border-radius:3px;background:linear-gradient(160deg,#2E6B4A,#4A9A6B 40%,#9AC98A 75%,#2A4A38)"></span>
+            </div>
           </div>
           <p class="b hint" data-n="S-02b-5">上傳後會自動壓成 webp、長邊 1600px。只有你和拿到分享連結的人看得到。</p>
         </div>
 
-        <div class="b fld" data-n="S-02b-6">
-          <span class="lbl">封面 emoji</span>
-          <div style="width:44px;height:44px;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:22px">🏝️</div>
-          <p class="hint">emoji 與照片同時存在：照片是底，emoji 是右上角標記</p>
-        </div>
 
         <div class="b fld" data-n="S-02b-7">
           <span class="lbl">誰一起去？</span>
@@ -698,87 +727,98 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
   </div>
 
   <div>
-    <p class="cnt">功能盤點 · 9 項　—　與 S-02 的差異；S-02-5～18 全部同樣存在</p>
+    <p class="cnt">功能盤點 · 10 項　—　<b>移除 1（S-02b-6）</b>，新增 1（S-02b-10 色調盤）。其餘與 S-02 相同</p>
     <div class="tblwrap"><table>
       <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
       <tbody>
       <tr><td class="n">S-02b-1</td><td class="el">標題</td><td>「編輯行程」；入口是 S-03 hero 的 ✎</td><td>照舊</td><td class="src">TripFormSheet:317</td></tr>
       <tr><td class="n">S-02b-2</td><td class="el">封面照片欄</td><td><b>目前沒有這個欄位</b></td><td><span class="tag new">新</span> 有照片顯示照片＋「目前：自訂照片」；無照片顯示 gradient＋「目前：目的地色調」</td><td class="src">008 migration</td></tr>
-      <tr><td class="n">S-02b-3</td><td class="el">換一張照片</td><td>—</td><td><span class="tag new">新</span> 開系統相簿 → 前端壓 webp／長邊 1600px／≤200KB → 上傳 <code>covers/{owner}/{trip}/{version}.webp</code> → 寫回 <code>cover_path</code> → 刪舊檔</td><td class="src">008:第 3 節</td></tr>
-      <tr><td class="n">S-02b-4</td><td class="el">改回色調</td><td>—</td><td><span class="tag new">新</span> <code>cover_path=NULL</code> ＋刪 Storage 檔，回到 gradient</td><td class="src">008:實作注意 B</td></tr>
+      <tr><td class="n">S-02b-3</td><td class="el">更換照片</td><td>—</td><td><span class="tag new">新</span> 開系統相簿 → 前端壓 webp／長邊 1600px／≤200KB → 上傳 <code>covers/{owner}/{trip}/{version}.webp</code> → 寫回 <code>cover_path</code> → 刪舊檔</td><td class="src">008:第 3 節</td></tr>
+      <tr><td class="n">S-02b-4</td><td class="el">重選色調</td><td>—</td><td><span class="tag chg">改</span> Rozi 2026-08-31：不只是「改回」，而是<b>可重選</b>。選色調＝<code>cover_path=NULL</code>＋刪 Storage 檔＋記下選的色調</td><td class="src">008:實作注意 B</td></tr>
       <tr><td class="n">S-02b-5</td><td class="el">上傳說明</td><td>—</td><td><span class="tag new">新</span> 交代壓縮規格與可見範圍（bucket 非公開，一律 signed URL）</td><td class="src">008:第 1 節</td></tr>
-      <tr><td class="n">S-02b-6</td><td class="el">封面 emoji</td><td>同 S-02-5</td><td><span class="tag new">新</span> 補說明：照片與 emoji 並存，不互斥</td><td class="src">TripFormSheet:331</td></tr>
+      <tr class="gone"><td class="n">S-02b-6</td><td class="el">封面 emoji</td><td>同 S-02-5</td><td><span class="tag del">移除</span> 隨 S-02-5 一併取消。封面只有<b>照片</b>與<b>色調</b>兩種，沒有第三種</td><td class="src">TripFormSheet:331</td></tr>
       <tr><td class="n">S-02b-7</td><td class="el">成員列（唯讀態）</td><td>已有紀錄的成員 ✕ 呈 disabled 灰，<code>title</code> 說明原因</td><td>照舊</td><td class="src">TripFormSheet:461</td></tr>
       <tr><td class="n">S-02b-8</td><td class="el">移除被擋的訊息</td><td>點 disabled 的 ✕ 會顯示完整說明句</td><td><span class="tag chg">改</span> 這不是錯誤是限制，改用中性色不用橘紅</td><td class="src">TripFormSheet:283</td></tr>
+      <tr><td class="n">S-02b-10</td><td class="el">色調預設盤</td><td>—</td><td><span class="tag new">新</span> <b>8 種</b>目的地色系（出處 <code>src/lib/destinations.ts</code>）。<b>不做色票挑色器</b>——自由選色會讓卡片失去「一眼看出是哪一國」的功能</td><td class="src">Rozi B</td></tr>
       <tr><td class="n">S-02b-9</td><td class="el">儲存</td><td>更新 trips，並逐項比對成員：改名／換 emoji／換排序才發 update；新增 insert；移除 delete（先擋有紀錄者）；owner_member_id 跟著走</td><td>照舊</td><td class="src">TripFormSheet:153</td></tr>
       </tbody>
     </table></div>
   </div>
 </section>
 
-<!-- ══════════ S-02c Emoji 選擇器 ══════════ -->
+<!-- ══════════ S-02c 成員識別（取代 Emoji 選擇器）══════════ -->
 <section class="scr" id="s02c">
   <div class="scrhd">
-    <span class="k">S-02c</span>
-    <h2>Emoji 選擇器</h2>
-    <p class="rt"><b>觸發</b> S-02／S-02b 的封面與成員 emoji　<b>原始碼</b> src/components/EmojiPicker.tsx（168 行）</p>
-    <p class="d">封面與成員共用同一個元件，靠 <code>mode</code> 切換。<b>emoji 是唯一允許的圖形語彙</b>
-      （成員與封面），其他地方一律不用——這是反模板要求裡明訂的。</p>
+    <span class="k new">S-02c</span>
+    <h2>成員識別（取代 Emoji 選擇器）</h2>
+    <p class="rt"><b>原本</b> src/components/EmojiPicker.tsx（168 行）　<b>本輪</b> 整個元件移除，改為<b>就地編輯</b></p>
+    <p class="d">Rozi 2026-08-31：<b>Emoji 選擇器整個拿掉。</b>成員識別改成三層 fallback＋點一下就地改。
+      驗證放寬為「限一個 grapheme，emoji 或文字皆可」——<code>firstGrapheme()</code> 等既有函式全部留用，
+      <b>只移除選擇器的 UI，不動驗證邏輯</b>。封面 emoji 也一併取消（S-02-5／S-02b-6），
+      所以 EmojiPicker 沒有任何呼叫端了。</p>
   </div>
 
   <div class="stick">
-    <p class="phcap">sheet · 最高 80vh</p>
-    <div class="ph"><div class="ui">
-      <div class="scrim" style="padding:12px 0 0"><div style="font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.7);letter-spacing:.1em;text-align:center;padding-bottom:8px">遮罩 30%</div></div>
-      <div class="sheet">
-        <div class="grab"></div>
-        <div class="b shd" data-n="S-02c-1"><h3>挑個封面</h3><span class="b rt x" data-n="S-02c-2">✕</span></div>
-        <div class="b" data-n="S-02c-3" style="padding:8px 13px 4px"><div class="chiprow"><span class="chip on">旅遊</span><span class="chip">人物</span></div></div>
-        <div class="b" data-n="S-02c-4" style="padding:8px 13px">
-          <div style="display:flex;gap:6px">
-            <div class="inp ph2" style="flex:1">搜尋，或直接貼上</div>
-            <div class="inp" style="font-size:10.5px;font-weight:600;color:var(--md);white-space:nowrap">直接貼上</div>
-          </div>
-          <p class="b err" data-n="S-02c-5">這看起來不是 emoji，換一個試試</p>
-        </div>
-        <div class="b" data-n="S-02c-6" style="padding:4px 13px 10px">
-          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px">
-            <span style="aspect-ratio:1;border:1px solid var(--w);background:#F2F8FD;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">✈️</span>
-            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🏝️</span>
-            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🗻</span>
-            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🍜</span>
-            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🚅</span>
-            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">⛩️</span>
-            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🏨</span>
-            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🎡</span>
-            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🛍️</span>
-            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🌸</span>
-            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🎿</span>
-            <span style="aspect-ratio:1;border:1px solid var(--ln);background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:17px">🍁</span>
-          </div>
-        </div>
-        <div class="b" data-n="S-02c-7" style="padding:9px 13px 11px;border-top:1px solid var(--ln);background:#EDEEE8">
-          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="font-size:10.5px;font-weight:600;color:var(--md)">選的是</span><span style="font-size:20px">✈️</span></div>
-          <div class="b btn" data-n="S-02c-8">就用這個</div>
-        </div>
+    <p class="phcap">成員識別 · 三層 fallback ＋ 就地編輯</p>
+    <div class="ph"><div class="ui" style="padding-bottom:14px">
+      <div class="b sec" data-n="S-02c-10">顯示：三層 fallback</div>
+      <div style="margin:0 13px" class="gap">
+        <div class="rowb"><span style="width:28px;height:28px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:15px;background:#fff">🐵</span>
+          <div style="flex:1"><div style="font-size:12.5px;font-weight:600">Rozi</div><div style="font-size:9.5px;color:var(--gr)">① 有 emoji → 顯示 emoji</div></div></div>
+        <div class="rowb"><span style="width:28px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:#2D6A8A">小</span>
+          <div style="flex:1"><div style="font-size:12.5px;font-weight:600">小美</div><div style="font-size:9.5px;color:var(--gr)">② 無 emoji → 名字第一個字，填色圓底（色取自成員索引 × 目的地色系）</div></div></div>
+        <div class="rowb"><span style="width:28px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:#A8663F">👨‍👩‍👧</span>
+          <div style="flex:1"><div style="font-size:12.5px;font-weight:600">👨‍👩‍👧 一家</div><div style="font-size:9.5px;color:var(--gr)">第一個字用 grapheme 取，ZWJ 組合不會被切斷</div></div></div>
+        <div class="rowb"><span style="width:28px;height:28px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:15px;background:#fff">🙂</span>
+          <div style="flex:1"><div style="font-size:12.5px;font-weight:600;color:var(--gr)">（沒有名字）</div><div style="font-size:9.5px;color:var(--gr)">③ 名字也空 → 🙂</div></div></div>
+      </div>
+
+      <div class="b sec" data-n="S-02c-11">編輯：點識別圓圈，就地改</div>
+      <div style="margin:0 13px" class="gap">
+        <div class="rowb"><span style="width:28px;height:28px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:15px;background:#fff">🐵</span>
+          <span style="flex:1;font-size:12px;font-weight:600">Rozi</span><span class="g" style="font-size:9.5px">① 點一下</span></div>
+        <div class="rowb" style="border-color:var(--w);background:#F2F8FD">
+          <span style="width:28px;height:28px;border:1.5px solid var(--w);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:15px;background:#fff">🐵<span style="width:1px;height:15px;background:var(--w);margin-left:1px"></span></span>
+          <span style="flex:1;font-size:12px;font-weight:600">Rozi</span><span class="g" style="font-size:9.5px">② 變單字元輸入框、自動聚焦</span></div>
+        <div class="rowb"><span style="width:28px;height:28px;border:1px solid var(--ln);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:15px;background:#fff">🦊</span>
+          <span style="flex:1;font-size:12px;font-weight:600">Rozi</span><span class="g" style="font-size:9.5px">③ 輸入後自動存檔收合</span></div>
+      </div>
+
+      <div class="b" data-n="S-02c-12" style="margin:12px 13px 0;background:#fff;border:1px solid var(--ln);border-left:2px solid var(--out);border-radius:3px;padding:10px">
+        <p style="margin:0;font-size:11px;font-weight:600">技術限制：網頁無法主動喚起系統 emoji 面板</p>
+        <p style="margin:4px 0 0;font-size:10px;color:var(--md);line-height:1.5">
+          聚焦後跳出的是<b>一般系統鍵盤</b>，使用者要自己切到 emoji 鍵盤（iOS 地球鍵／Android 表情鍵）。
+          這是瀏覽器的限制，不是實作問題——所以驗證放寬為<b>文字也可以</b>，不強迫使用者一定要找到 emoji。</p>
+      </div>
+
+      <div class="b" data-n="S-02c-13" style="margin:9px 13px 0;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:10px">
+        <p style="margin:0 0 4px;font-size:11px;font-weight:600">驗證規則</p>
+        <p style="margin:0;font-size:10px;color:var(--md);line-height:1.5">
+          限<b>一個 grapheme</b>，emoji 或文字皆可。超過一個字只取第一個。
+          空白＝清掉 emoji，回到第二層（名字首字）。</p>
       </div>
     </div></div>
   </div>
 
   <div>
-    <p class="cnt">功能盤點 · 9 項　—　現況全數保留</p>
+    <p class="cnt">功能盤點 · 13 項　—　<b>原選擇器 9 項全數移除</b>，新增 4 項</p>
     <div class="tblwrap"><table>
-      <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
+      <thead><tr><th>編號</th><th>元件</th><th>原行為</th><th>本輪</th><th>出處</th></tr></thead>
       <tbody>
-      <tr><td class="n">S-02c-1</td><td class="el">標題</td><td>cover＝「挑個封面」／member＝「挑個 emoji」</td><td>照舊</td><td class="src">EmojiPicker:81</td></tr>
-      <tr><td class="n">S-02c-2</td><td class="el">關閉</td><td>✕／點遮罩／<b>Esc 鍵</b>（Aria 審查補上的）</td><td>照舊</td><td class="src">EmojiPicker:34</td></tr>
-      <tr><td class="n">S-02c-3</td><td class="el">分類 tab</td><td><b>只有 cover 模式有</b>：旅遊／人物。member 模式改成「大家常用／旅遊風格」兩區塊直接並排</td><td>照舊</td><td class="src">EmojiPicker:93</td></tr>
-      <tr><td class="n">S-02c-4</td><td class="el">搜尋／貼上</td><td>可輸入任意 emoji，含 ZWJ 組合、膚色修飾、國旗；以 grapheme cluster 取用不截斷。「直接貼上」讀剪貼簿，沒權限則退回手動</td><td>照舊</td><td class="src">EmojiPicker:107</td></tr>
-      <tr><td class="n">S-02c-5</td><td class="el">錯誤訊息</td><td>「這看起來不是 emoji，換一個試試」／無剪貼簿權限時「請直接在上面欄位貼上（⌘V）」</td><td>照舊</td><td class="src">EmojiPicker:44</td></tr>
-      <tr><td class="n">S-02c-6</td><td class="el">emoji 格</td><td><code>auto-fill minmax(44px,1fr)</code>，選中者描邊工作色</td><td><span class="tag chg">改</span> 選中底色 #FFF5F0→工作色淺底</td><td class="src">EmojiPicker:139</td></tr>
-      <tr><td class="n">S-02c-7</td><td class="el">預覽列</td><td>「選的是 ＋ 目前 emoji」；沒選時顯示 —</td><td>照舊</td><td class="src">EmojiPicker:154</td></tr>
-      <tr><td class="n">S-02c-8</td><td class="el">就用這個</td><td>自訂欄有值優先用自訂；Enter 亦可送出</td><td>照舊</td><td class="src">EmojiPicker:59</td></tr>
-      <tr><td class="n">S-02c-9 <span class="tag inv">不在稿上</span></td><td class="el">portal 掛載</td><td>掛到 <code>document.body</code>——頁面根層的 <code>animate-slide-in</code> 帶 transform，會讓 <code>position:fixed</code> 以它為基準，sheet 被推到整頁最底部（P8 事故）</td><td>照舊</td><td class="src">EmojiPicker:76</td></tr>
+      <tr class="gone"><td class="n">S-02c-1</td><td class="el">標題</td><td>cover＝「挑個封面」／member＝「挑個 emoji」</td><td><span class="tag del">移除</span> 整個元件拿掉</td><td class="src">EmojiPicker:81</td></tr>
+      <tr class="gone"><td class="n">S-02c-2</td><td class="el">關閉（含 Esc）</td><td>✕／點遮罩／Esc</td><td><span class="tag del">移除</span></td><td class="src">EmojiPicker:34</td></tr>
+      <tr class="gone"><td class="n">S-02c-3</td><td class="el">分類 tab</td><td>旅遊／人物</td><td><span class="tag del">移除</span></td><td class="src">EmojiPicker:93</td></tr>
+      <tr class="gone"><td class="n">S-02c-4</td><td class="el">搜尋／貼上</td><td>可輸入任意 emoji，讀剪貼簿</td><td><span class="tag del">移除</span> 就地編輯直接輸入，不需要另一層 UI</td><td class="src">EmojiPicker:107</td></tr>
+      <tr class="gone"><td class="n">S-02c-5</td><td class="el">錯誤訊息</td><td>「這看起來不是 emoji，換一個試試」</td><td><span class="tag del">移除</span> 驗證放寬後不再需要——文字也可以</td><td class="src">EmojiPicker:44</td></tr>
+      <tr class="gone"><td class="n">S-02c-6</td><td class="el">emoji 格</td><td>預設清單網格</td><td><span class="tag del">移除</span></td><td class="src">EmojiPicker:139</td></tr>
+      <tr class="gone"><td class="n">S-02c-7</td><td class="el">預覽列</td><td>「選的是 ＋ emoji」</td><td><span class="tag del">移除</span></td><td class="src">EmojiPicker:154</td></tr>
+      <tr class="gone"><td class="n">S-02c-8</td><td class="el">就用這個</td><td>確認鈕</td><td><span class="tag del">移除</span> 改為輸入後自動存檔</td><td class="src">EmojiPicker:59</td></tr>
+      <tr class="gone"><td class="n">S-02c-9</td><td class="el">portal 掛載</td><td>掛 <code>document.body</code> 避開 transform 祖先</td><td><span class="tag del">移除</span> 就地編輯不是彈層，沒有這個問題</td><td class="src">EmojiPicker:76</td></tr>
+      <tr><td class="n">S-02c-10</td><td class="el">三層 fallback</td><td>—</td><td><span class="tag new">新</span> ① 有 emoji → emoji ② 無 emoji → <b>名字第一個 grapheme</b> 放填色圓底（色從成員索引取目的地色系）③ 名字也空 → 🙂</td><td class="src">Rozi C-1</td></tr>
+      <tr><td class="n">S-02c-11</td><td class="el">就地編輯</td><td>—</td><td><span class="tag new">新</span> 點識別圓圈 → 變單字元輸入框並自動聚焦（系統鍵盤彈出）→ <b>輸入後自動存檔收合</b>，沒有確認鈕</td><td class="src">Rozi C-2</td></tr>
+      <tr><td class="n">S-02c-12</td><td class="el">技術限制標註</td><td>—</td><td><span class="tag new">新</span> <b>網頁無法主動喚起系統 emoji 面板</b>；聚焦後是一般鍵盤，使用者自行切換。稿上明寫，避免日後被當成 bug</td><td class="src">Rozi C-5</td></tr>
+      <tr><td class="n">S-02c-13</td><td class="el">驗證規則</td><td>原本必須是 emoji</td><td><span class="tag chg">改</span> 放寬為<b>限一個 grapheme，emoji 或文字皆可</b>。沿用 <code>firstGrapheme()</code>；<b>UI 移除、驗證邏輯保留</b></td><td class="src">Rozi C-3</td></tr>
+      <tr><td class="n">—</td><td class="el">schema 附帶</td><td><code>trip_members.emoji</code> 有預設值</td><td><span class="tag chg">改</span> 預設改<b>空字串</b>讓 fallback 生效；<b>既有資料不追溯修改</b>。已備 <code>009_member_emoji_default.sql</code>，<b>待 Cowork 端套用</b></td><td class="src">Rozi C-4</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1007,12 +1047,12 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
                 <span style="font-size:10.5px;font-weight:600;color:var(--md)">外幣金額</span>
                 <span style="display:flex;align-items:center;gap:5px"><span class="sw"></span><span style="font-size:9.5px;color:var(--gr)">之後再填</span></span></div>
-              <div class="inp num" style="font-size:15px;font-weight:600">104,500</div></div>
+              <div class="inp mono" style="font-size:15px;font-weight:600">104,500</div></div>
             <div class="b" data-n="S-04-6" style="margin-top:9px">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
                 <span style="font-size:10.5px;font-weight:600;color:var(--md)">台幣金額</span>
                 <span style="display:flex;align-items:center;gap:5px"><span class="sw"></span><span style="font-size:9.5px;color:var(--gr)">之後再填</span></span></div>
-              <div class="inp num" style="font-size:15px;font-weight:600">2,480</div></div>
+              <div class="inp mono" style="font-size:15px;font-weight:600">2,480</div></div>
             <p class="b hint" data-n="S-04-7" style="text-align:right;margin-top:5px">匯率 ≈ 0.02</p>
             <p class="b err" data-n="S-04-8">填台幣金額，或開啟「之後再填」</p>
           </div>
@@ -1021,7 +1061,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
         <div class="b fld" data-n="S-04-9"><span class="lbl">怎麼付的？</span>
           <div style="display:flex;gap:6px"><span class="chip on" style="flex:1;text-align:center;padding:8px 0">現金</span><span class="chip" style="flex:1;text-align:center;padding:8px 0">信用卡</span><span class="chip" style="flex:1;text-align:center;padding:8px 0">儲值卡</span></div></div>
 
-        <div class="b fld" data-n="S-04-10"><span class="lbl">日期</span><div class="inp num">2026-03-14</div></div>
+        <div class="b fld" data-n="S-04-10"><span class="lbl">日期</span><div class="inp mono">2026-03-14</div></div>
 
         <div class="b fld" data-n="S-04-11"><span class="lbl">分帳方式</span>
           <div class="seg"><i class="on">一起分</i><i>各付各的</i><i>只算我</i></div>
@@ -1041,8 +1081,8 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
           <div class="b" data-n="S-04-15" style="margin-top:12px;border-top:1px dashed var(--ln);padding-top:10px">
             <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:var(--md)">各自多少？　<span class="g" style="font-weight:400">← 「各付各的」子區塊</span></p>
             <div class="gap">
-              <div class="rowb"><span style="font-size:14px">🐵</span><span style="flex:1;font-size:12px">Rozi</span><span class="inp num" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1">1,200</span></div>
-              <div class="rowb"><span style="font-size:14px">🐱</span><span style="flex:1;font-size:12px">小美</span><span class="inp num" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1">1,280</span></div>
+              <div class="rowb"><span style="font-size:14px">🐵</span><span style="flex:1;font-size:12px">Rozi</span><span class="inp mono" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1">1,200</span></div>
+              <div class="rowb"><span style="font-size:14px">🐱</span><span style="flex:1;font-size:12px">小美</span><span class="inp mono" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1">1,280</span></div>
               <div class="rowb"><span style="font-size:14px">🍋</span><span style="flex:1;font-size:12px">阿明</span><span class="inp ph2" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1;font-size:10px">輸入金額</span></div>
             </div>
             <p class="b" data-n="S-04-16" style="margin:6px 0 0;text-align:right;font-size:10.5px;font-weight:600;color:var(--out);font-family:var(--mono)">已填 $2,480 ／ 總額 $2,480，差 $0</p>
@@ -1231,8 +1271,8 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <div class="b" data-n="S-05-17" style="margin:0 13px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:12px">
         <p style="margin:0 0 10px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--gr);text-transform:uppercase">這趟的回顧</p>
         <div style="display:flex">
-          <div style="flex:1;text-align:center;border-right:1px solid #F1F2EE"><div class="num" style="font-size:19px;font-weight:600">5<span style="font-size:11px;color:var(--md)">天</span></div><div style="font-size:9px;color:var(--gr);margin-top:2px">出遊</div></div>
-          <div style="flex:1;text-align:center;border-right:1px solid #F1F2EE"><div class="num" style="font-size:19px;font-weight:600">132<span style="font-size:11px;color:var(--md)">筆</span></div><div style="font-size:9px;color:var(--gr);margin-top:2px">共記了</div></div>
+          <div style="flex:1;text-align:center;border-right:1px solid #F1F2EE"><div class="mono" style="font-size:19px;font-weight:600">5<span style="font-size:11px;color:var(--md)">天</span></div><div style="font-size:9px;color:var(--gr);margin-top:2px">出遊</div></div>
+          <div style="flex:1;text-align:center;border-right:1px solid #F1F2EE"><div class="mono" style="font-size:19px;font-weight:600">132<span style="font-size:11px;color:var(--md)">筆</span></div><div style="font-size:9px;color:var(--gr);margin-top:2px">共記了</div></div>
           <div style="flex:1;text-align:center"><div class="num" style="font-size:19px;font-weight:600">28,400</div><div style="font-size:9px;color:var(--gr);margin-top:2px">最大手筆 ₩</div></div>
         </div>
       </div>
@@ -1574,7 +1614,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <div class="b sec" data-n="S-09-9">新增／編輯卡片（展開）</div>
       <div style="margin:0 13px 12px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
         <span class="lbl">卡片暱稱</span><div class="inp ph2" style="margin-bottom:9px">例如：玉山主卡</div>
-        <span class="lbl">末四碼</span><div class="inp num ph2" style="margin-bottom:9px">4821　<span style="font-size:9.5px">（選填，帳單比對用）</span></div>
+        <span class="lbl">末四碼</span><div class="inp mono ph2" style="margin-bottom:9px">4821　<span style="font-size:9.5px">（選填，帳單比對用）</span></div>
         <span class="lbl">發卡行</span><div class="inp ph2" style="margin-bottom:9px">玉山銀行（選填）</div>
         <div class="b" data-n="S-09-10" style="margin-bottom:9px"><span class="lbl">這是</span>
           <div class="seg"><i class="on">主卡</i><i>副卡</i></div></div>
@@ -1696,10 +1736,10 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <div class="b sec" data-n="S-10-12">開新週期（展開）</div>
       <div style="margin:0 13px 14px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
         <span class="lbl">哪張卡</span><div class="chiprow" style="margin-bottom:9px"><span class="chip on">玉山主卡</span><span class="chip">國泰主卡</span></div>
-        <span class="lbl">帳單月份</span><div class="inp num" style="margin-bottom:9px">2026-09</div>
+        <span class="lbl">帳單月份</span><div class="inp mono" style="margin-bottom:9px">2026-09</div>
         <div style="display:flex;gap:9px;margin-bottom:9px">
-          <div style="flex:1"><span class="lbl">起</span><div class="inp num">2026-09-01</div></div>
-          <div style="flex:1"><span class="lbl">迄</span><div class="inp num">2026-09-30</div></div></div>
+          <div style="flex:1"><span class="lbl">起</span><div class="inp mono">2026-09-01</div></div>
+          <div style="flex:1"><span class="lbl">迄</span><div class="inp mono">2026-09-30</div></div></div>
         <p class="hint" style="margin:0 0 9px">起迄預設整月，可改成實際帳單週期（例如 8/26 – 9/25）</p>
         <div style="display:flex;gap:8px"><span class="btn qt">取消</span><span class="btn">開好了</span></div>
       </div>
@@ -1895,9 +1935,9 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
 </section>
 
 <footer>
-  <div>Tripay · Wireframe v5 · 2026-08-31（第二次更新：S-01／S-03／S-05）</div>
+  <div>Tripay · Wireframe v5 · 2026-08-31（第二批：S-01／S-02／S-02b／S-02c）</div>
   <div style="margin-top:6px">16 個畫面段落 · 220 個編號項目 · 14 條讀碼發現 · 盤點自 src/pages 與 src/components 共 3,302 行</div>
-  <div style="margin-top:6px">下一步：等 Rozi 的第二批逐頁清單（S-02 起）→ 修完 → 才進實作。三個提案與 S-05-29 文案均已定案</div>
+  <div style="margin-top:6px">下一步：等 Rozi 的第三批逐頁清單（S-03 起）→ 修完 → 才進實作</div>
 </footer>
 
 </div>

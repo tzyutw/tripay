@@ -131,11 +131,11 @@ td.m{font-family:var(--mono);font-size:11.5px;white-space:nowrap}
   box-shadow:0 1px 2px rgba(20,30,38,.08)}
 .af .img{height:98px;position:relative;padding:8px;display:flex;flex-direction:column;justify-content:flex-end}
 .af .bg{position:absolute;inset:0;font-size:23px;text-align:right;padding:6px 8px}
-.af .stamp{display:inline-block;border:1px solid rgba(255,255,255,.72);color:#fff;font-family:var(--mono);
-  font-size:8px;letter-spacing:.1em;padding:1.5px 6px;border-radius:2px;width:fit-content;
+.af .stamp{display:inline-block;border:1px solid rgba(255,255,255,.72);color:#fff;
+  font-size:9px;font-weight:600;letter-spacing:.04em;padding:1.5px 6px;border-radius:2px;width:fit-content;
   margin-bottom:4px;position:relative}
 .af .nm{color:#fff;font-weight:700;font-size:13px;position:relative;letter-spacing:-.01em}
-.af .dt{color:rgba(255,255,255,.9);font-size:9px;position:relative;margin-top:2px;font-family:var(--mono);
+.af .dt{color:rgba(255,255,255,.9);font-size:9.5px;position:relative;margin-top:2px;
   font-variant-numeric:tabular-nums}
 .af .money{position:absolute;right:8px;bottom:8px;font-family:var(--mono);font-size:9.5px;font-weight:600;
   padding:2px 6px;border-radius:2px;background:rgba(255,255,255,.94)}
@@ -144,7 +144,7 @@ td.m{font-family:var(--mono);font-size:11.5px;white-space:nowrap}
 .af .hero .t{font-family:var(--serif);font-weight:700;font-size:15px;letter-spacing:-.01em}
 .af .chips{display:flex;gap:6px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--ln);
   overflow:hidden}
-.af .chip{font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 9px;border-radius:999px;
+.af .chip{font-size:10px;padding:4px 9px;border-radius:999px;
   border:1px solid var(--ln);color:var(--gr);white-space:nowrap}
 .af .chip.on{background:var(--w);border-color:var(--w);color:#fff}
 .af .stats{display:flex;background:#fff;border-bottom:1px solid var(--ln)}
@@ -152,9 +152,8 @@ td.m{font-family:var(--mono);font-size:11.5px;white-space:nowrap}
 .af .stats div:last-child{border-right:0}
 .af .stats b{display:block;font-family:var(--mono);font-size:14px;font-weight:600;
   font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.af .stats span{font-family:var(--mono);font-size:8.5px;color:var(--gr);letter-spacing:.08em;text-transform:uppercase}
-.af .day{padding:13px 14px 6px;font-family:var(--mono);font-size:9px;color:var(--gr);letter-spacing:.1em;
-  text-transform:uppercase}
+.af .stats span{font-size:9px;color:var(--gr);letter-spacing:.04em}
+.af .day{padding:13px 14px 6px;font-size:10px;font-weight:600;color:var(--gr);letter-spacing:.06em}
 .af .row{margin:0 14px 6px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:9px 10px;
   display:flex;align-items:center;gap:9px}
 .af .row .m{flex:1;min-width:0}
@@ -163,10 +162,10 @@ td.m{font-family:var(--mono);font-size:11.5px;white-space:nowrap}
 .af .row .amwrap{text-align:right}
 .af .row .am{font-family:var(--mono);font-weight:600;font-size:12.5px;font-variant-numeric:tabular-nums;
   letter-spacing:-.02em;display:block}
-.af .row .sub2{font-family:var(--mono);font-size:8.5px;color:var(--gr);font-variant-numeric:tabular-nums}
+.af .row .sub2{font-size:9px;color:var(--gr);font-variant-numeric:tabular-nums}
 .af .row.pend{border-left:2px solid var(--out)}
 .af .curr{display:flex;gap:0;margin:10px 14px 0;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
-.af .seg{flex:1;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:.06em;
+.af .seg{flex:1;text-align:center;font-size:10px;
   padding:5px 0;color:var(--gr);background:#fff}
 .af .seg.on{background:var(--w);color:#fff}
 
@@ -194,6 +193,11 @@ footer{padding:40px 0 70px;color:var(--pgink3);font-size:12.5px;font-family:var(
     金錢只有兩個方向色，情緒全部交給大面積內容區。Tripay 照這個結構走，但**明亮由真實旅行照片承擔**，
     不是插畫。
   </p>
+  <div class="callout">
+    <b>字體規則修正（Rozi 2026-08-31）：</b>等寬（IBM Plex Mono）<b>只用於金額</b>。
+    日期、天數、筆數等其他數字一律用 PingFang TC（需要對齊時只加 <code>tabular-nums</code>，不換字體）。
+    等寬字是「這是錢」的訊號，用在別處就把訊號稀釋掉了。
+  </div>
   <div class="callout warn">
     <b>上一版被推翻的兩件事：</b>
     ① accent <code>#D2764A</code> 是 AI 模板陶土橘。
