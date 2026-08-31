@@ -261,7 +261,17 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
     畫面上只要看到橘紅色的<b>底</b>，就是刪除等級的動作。
   </div>
   <div class="callout">
-    <b>2026-08-31 第二批（最新）：</b>
+    <b>2026-08-31 第三次更新（最新）：</b>
+    <b>行程 emoji 全站退場</b>——稿上清掉 S-01 三張卡與 S-06-3 的圖示；
+    <b>碼上 7 處一次清完</b>（顯示端 2、寫入端 3、UI 端 2），欄位保留供既有資料相容。
+    字體規則落地：移除 Google Fonts 載入（Cormorant Garamond＋Noto Sans TC）、
+    <code>font-serif</code> 8 處全清、非金額的 <code>tabular-nums</code> 清掉那唯一 1 處。
+    幽靈卡自登入頁移除（首頁那張依 P-2 保留）。
+    <b>明確保留</b>：行程內頁 hero 成員列、分享頁成員與付款人、消費列的類別 emoji。
+    <b>S-03E 裁示採①</b>：決策 D 由 hero 滿足，空狀態不新增成員列。
+  </div>
+  <div class="callout">
+    <b>2026-08-31 第二批：</b>
     <b>封面 emoji 全面取消</b>（S-02-5／S-02b-6），建立行程一律先套目的地色調；
     S-02b 封面區改為「更換照片／重選色調」，色調是 8 種<b>預設盤</b>不是挑色器。
     <b>Emoji 選擇器整個移除</b>（S-02c 九項全刪），改成三層 fallback＋就地編輯，
@@ -302,7 +312,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
 
   <div class="toc">
     <a href="#s00"><span class="k">S-00</span><span class="t">登入</span><span class="n">7 項</span></a>
-    <a href="#s01"><span class="k">S-01</span><span class="t">首頁 · 行程列表</span><span class="n">14 項</span></a>
+    <a href="#s01"><span class="k">S-01</span><span class="t">首頁 · 行程列表</span><span class="n">15 項</span></a>
     <a href="#prop" class="new"><span class="k">提案</span><span class="t">UX 重新評估</span><span class="n">已全數裁定</span></a>
     <a href="#s02"><span class="k">S-02</span><span class="t">新增行程</span><span class="n">20 項</span></a>
     <a href="#s02b"><span class="k">S-02b</span><span class="t">編輯行程 · 封面</span><span class="n">10 項</span></a>
@@ -395,7 +405,6 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <div class="b tcard" data-n="S-01-5">
         <div class="img g-jeju">
           <div class="scrimg"></div>
-          <span class="em">🏝️</span>
           <span class="b" data-n="S-01-6" style="position:relative;width:fit-content"><span class="stamp">旅途中</span></span>
           <div class="nm">2026 濟州島四寶團</div>
           <div class="mt"><span class="dt">3/14 – 3/18 · 2026</span></div>
@@ -405,7 +414,6 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <div class="tcard">
         <div class="img g-tokyo">
           <div class="scrimg"></div>
-          <span class="em">🗻</span>
           <span style="position:relative;width:fit-content"><span class="stamp">已結算</span></span>
           <div class="nm">2024 東京富士山五寶團</div>
           <div class="mt"><span class="dt">11/2 – 11/8 · 2024</span></div>
@@ -415,7 +423,6 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <div class="b tcard" data-n="S-01-7">
         <div class="img g-fuk" style="filter:saturate(.5) brightness(.9)">
           <div class="scrimg"></div>
-          <span class="em">🍜</span>
           <span style="position:relative;width:fit-content"><span class="stamp">已封存</span></span>
           <div class="nm">2023 福岡三人行</div>
           <div class="mt"><span class="dt">4/6 – 4/11 · 2023</span></div>
@@ -434,7 +441,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
   </div>
 
   <div>
-    <p class="cnt">功能盤點 · 14 項　—　<b>移除 2（S-01-9／S-01-10）</b>，行程卡<b>再移除成員識別列</b>，新增 S-01-13 記錄適用範圍</p>
+    <p class="cnt">功能盤點 · 15 項　—　<b>移除 2（S-01-9／S-01-10）</b>，行程卡<b>再移除成員識別列與行程 emoji</b></p>
     <div class="tblwrap"><table>
       <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
       <tbody>
@@ -442,7 +449,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <tr><td class="n">S-01-2</td><td class="el">＋ 新增行程</td><td>開 TripFormSheet（S-02），無預填 tripId</td><td><span class="tag chg">改</span> 工作色</td><td class="src">TripListPage:67</td></tr>
       <tr><td class="n">S-01-3</td><td class="el">載入中</td><td>置中轉圈，py-12</td><td>照舊</td><td class="src">TripListPage:80</td></tr>
       <tr><td class="n">S-01-4</td><td class="el">空狀態</td><td>「還沒有行程。／第一趟要去哪？」<b>沒有 CTA 按鈕</b>，要按右上角</td><td><span class="tag new">新</span> Rozi 2026-08-31 確認先前是筆誤，<b>維持保留</b>；並依讀碼發現 #11 <b>補一顆 CTA</b></td><td class="src">TripListPage:86</td></tr>
-      <tr><td class="n">S-01-5</td><td class="el">行程卡</td><td>184px 目的地 gradient（<code>destinationOf()</code> 依行程名關鍵字比對，對不到用 id 雜湊挑預設色）＋底部壓暗遮罩；<b>卡上有成員 emoji 列</b>；整張可點 → <code>/trips/:id</code></td><td><span class="tag chg">改</span> 卡片加白邊像貼進本子；<span class="tag new">新</span> 有封面照時改放照片；<span class="tag del">移除</span> <b>成員識別列</b>（Rozi D）——首頁只留照片／色調、行程名、日期、狀態章</td><td class="src">TripListPage:104</td></tr>
+      <tr><td class="n">S-01-5</td><td class="el">行程卡</td><td>184px 目的地 gradient（<code>destinationOf()</code> 依行程名關鍵字比對，對不到用 id 雜湊挑預設色）＋底部壓暗遮罩；<b>卡上有成員 emoji 列</b>；整張可點 → <code>/trips/:id</code></td><td><span class="tag chg">改</span> 卡片加白邊像貼進本子；<span class="tag new">新</span> 有封面照時改放照片；<span class="tag del">移除</span> <b>成員識別列</b>（#8-D）＋<b>右上角行程 emoji</b>（#9-A，TripListPage:119）——首頁只留照片／色調、行程名、日期、狀態章</td><td class="src">TripListPage:104</td></tr>
       <tr><td class="n">S-01-6</td><td class="el">狀態徽章</td><td>四態：出發前／旅途中／✅ 已結算／已封存。由 <code>deriveDisplayStatus()</code> 推導，不是資料庫欄位</td><td><span class="tag chg">改</span> 膠囊底色→描邊章，✅ 拿掉（顏色已表意）</td><td class="src">deriveStatus.ts:10</td></tr>
       <tr><td class="n">S-01-7</td><td class="el">封存卡樣式</td><td>整張 <code>saturate(.55) brightness(.9)</code></td><td>照舊</td><td class="src">TripListPage:110</td></tr>
       <tr><td class="n">S-01-8</td><td class="el">G-02 幽靈卡</td><td>「你的下一趟在哪？」<b>可點</b>，開 S-02。blur 0.8／opacity .72</td><td><span class="tag chg">改</span> 暖米底→冷灰</td><td class="src">TripListPage:146</td></tr>
@@ -451,6 +458,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <tr><td class="n">S-01-11 <span class="tag inv">不在稿上</span></td><td class="el">排序</td><td>出發日新→舊，同日以建立時間次要排序（決策 23）</td><td>照舊</td><td class="src">TripListPage:39</td></tr>
       <tr><td class="n">S-01-12 <span class="tag inv">不在稿上</span></td><td class="el">列表過濾</td><td><code>.eq('kind','trip')</code>——帳單週期不混進來（D1）；<code>.eq('owner_id', user.id)</code></td><td>照舊</td><td class="src">TripListPage:34</td></tr>
       <tr><td class="n">S-01-13</td><td class="el">成員識別的適用範圍</td><td>首頁卡與各內頁都顯示成員</td><td><span class="tag chg">改</span> Rozi 2026-08-31 D：<b>只有首頁行程卡不顯示成員</b>（首頁是回憶架，行程命名本身已含人數）。<b>行程內頁／記帳表單／結算頁／分享頁照常顯示</b>；<b>S-03E 空狀態依決策 D 仍顯示成員 emoji</b></td><td class="src">Rozi D</td></tr>
+      <tr><td class="n">S-01-14</td><td class="el">行程 emoji 全站退場</td><td>卡片右上角 34px emoji（<code>trips.emoji</code>）</td><td><span class="tag del">移除</span> #9-A：<b>全站 7 處一次清完</b>——顯示端 <code>TripListPage:119</code>／<code>SharePage:159</code>，寫入端 <code>TripFormSheet:46/158/216</code>，UI 端 <code>:347/:559</code>。<b>欄位保留供既有資料相容</b>。推翻＝恢復顯示</td><td class="src">#9-A</td></tr>
       <tr><td class="n">—</td><td class="el">設定入口</td><td><b>首頁沒有</b>。⚙ 只存在於行程內頁 S-03，沒有行程就進不去設定</td><td><span class="tag bug">議</span> 見發現 #3</td><td class="src">—</td></tr>
       </tbody>
     </table></div>
@@ -1350,7 +1358,6 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
         <div class="scrimg"></div>
         <span class="b rt" data-n="S-06-2" style="position:absolute;top:9px;right:11px"><span class="stamp">朋友檢視</span></span>
         <div style="position:relative;display:flex;align-items:center;gap:9px">
-          <span class="b" data-n="S-06-3" style="font-size:24px">🏝️</span>
           <div><h1 style="font-size:16px">2026 濟州島四寶團</h1>
             <p class="mono" style="margin:3px 0 0;font-size:9.5px;color:rgba(255,255,255,.78)">3/14 – 3/18 · 🐵🐱🍋🐟</p></div>
         </div>
@@ -1398,7 +1405,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <tbody>
       <tr><td class="n">S-06-1</td><td class="el">Hero</td><td>與 S-03 一樣<b>寫死同一個 gradient</b></td><td><span class="tag bug">議</span> 併入發現 #4；<span class="tag new">新</span> 有封面照時放照片（走 signed URL）</td><td class="src">SharePage:150</td></tr>
       <tr><td class="n">S-06-2</td><td class="el">「朋友檢視」徽章</td><td>右上角常駐，宣告唯讀</td><td><span class="tag chg">改</span> 膠囊→描邊章</td><td class="src">SharePage:155</td></tr>
-      <tr><td class="n">S-06-3</td><td class="el">行程 emoji／名稱／日期</td><td>日期用 M/D 短格式＋成員 emoji 串</td><td>照舊</td><td class="src">SharePage:161</td></tr>
+      <tr><td class="n">S-06-3</td><td class="el">名稱／日期／成員</td><td>行程 emoji ＋ 名稱 ＋ 日期（M/D 短格式）＋成員 emoji 串</td><td><span class="tag del">移除</span> <b>行程 emoji</b>（SharePage:159）。<b>成員 emoji 與付款人照常顯示</b>（Rozi C 明訂保留）</td><td class="src">SharePage:159</td></tr>
       <tr><td class="n">S-06-4</td><td class="el">總花費</td><td>加總已填台幣。<b>與 S-03 不同：這裡沒有排除贊助</b>，同一趟兩頁數字會不一樣</td><td><span class="tag bug">議</span> 見發現 #13</td><td class="src">SharePage:125</td></tr>
       <tr><td class="n">S-06-5</td><td class="el">外幣格</td><td><code>symbol==='$' ? 總額 : '—'</code>——<b>非台幣行程永遠顯示「—」</b>，等於一格廢版位</td><td><span class="tag bug">議</span> 見發現 #14</td><td class="src">SharePage:184</td></tr>
       <tr><td class="n">S-06-6</td><td class="el">人均</td><td>總額 ÷ 成員數，四捨五入</td><td>照舊</td><td class="src">SharePage:126</td></tr>
@@ -1935,7 +1942,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
 </section>
 
 <footer>
-  <div>Tripay · Wireframe v5 · 2026-08-31（第二批：S-01／S-02／S-02b／S-02c）</div>
+  <div>Tripay · Wireframe v5 · 2026-08-31（第三次更新：行程 emoji 退場＋字體規則落地）</div>
   <div style="margin-top:6px">16 個畫面段落 · 220 個編號項目 · 14 條讀碼發現 · 盤點自 src/pages 與 src/components 共 3,302 行</div>
   <div style="margin-top:6px">下一步：等 Rozi 的第三批逐頁清單（S-03 起）→ 修完 → 才進實作</div>
 </footer>

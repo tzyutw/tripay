@@ -43,7 +43,6 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
     ? existingTrip.trip_members.sort((a, b) => a.sort_order - b.sort_order).map(m => ({ id: m.id, emoji: m.emoji, name: m.name }))
     : [];
 
-  const [coverEmoji,    setCoverEmoji]    = useState(existingTrip?.emoji ?? '✈️');
   const [name,          setName]          = useState(existingTrip?.name ?? '');
   const [currency,      setCurrency]      = useState(existingTrip?.currency ?? 'JPY');
   const [startDate,     setStartDate]     = useState(existingTrip?.start_date ?? '');
@@ -62,14 +61,13 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
   const addMemberInputRef = useRef<HTMLInputElement>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [emojiPickerFor, setEmojiPickerFor] = useState<null | { kind: 'cover' } | { kind: 'member'; index: number } | { kind: 'new' }>(null);
+  const [emojiPickerFor, setEmojiPickerFor] = useState<null | { kind: 'member'; index: number } | { kind: 'new' }>(null);
   const [hydrated, setHydrated] = useState(false);
 
   // 編輯模式：existingTrip 是非同步載入的，useState 初始值抓不到，
   // 必須在資料到位後補灌一次（否則編輯表單會是空白）。
   useEffect(() => {
     if (!isEdit || !existingTrip || hydrated) return;
-    setCoverEmoji(existingTrip.emoji);
     setName(existingTrip.name);
     setCurrency(existingTrip.currency);
     setStartDate(existingTrip.start_date);
@@ -104,7 +102,6 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
     const oi = ms.findIndex(m => m.id === prefillTrip.owner_member_id);
     if (oi >= 0) setMyMemberIdx(oi);
     if (prefill.mode === 'full') {
-      setCoverEmoji(prefillTrip.emoji);
       setName(`${prefillTrip.name} 的複本`);
       setCurrency(prefillTrip.currency);
     }
@@ -155,7 +152,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
       if (isEdit && tripId) {
         const { error } = await supabase
           .from('trips')
-          .update({ name, emoji: coverEmoji, currency, start_date: startDate, end_date: endDate })
+          .update({ name, currency, start_date: startDate, end_date: endDate })
           .eq('id', tripId);
         if (error) throw error;
 
@@ -213,7 +210,6 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
         .insert({
           owner_id:    user.id,
           name,
-          emoji:       coverEmoji,
           currency,
           start_date:  startDate,
           end_date:    endDate,
@@ -322,7 +318,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
 
           {/* Header */}
           <div className="px-5 pt-4 pb-0 flex items-center justify-between flex-shrink-0">
-            <h2 className="font-serif text-[22px] font-bold text-ink">
+            <h2 className="text-[22px] font-bold text-ink">
               {isEdit ? '編輯行程' : '這趟去哪？'}
             </h2>
             <button
@@ -336,18 +332,6 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
           {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pt-4 pb-0">
 
-            {/* Cover emoji */}
-            <div className="mb-5">
-              <label className="block text-[13px] font-bold text-mid tracking-wide mb-2">封面</label>
-              {/* Bug 5 fix: clicking opens a fixed overlay picker, not inline */}
-              <button
-                onClick={() => setEmojiPickerFor({ kind: 'cover' })}
-                className="w-14 h-14 rounded-xl bg-white border-[1.5px] border-[#E4DFD9] flex items-center justify-center text-[28px]"
-              >
-                {coverEmoji}
-              </button>
-              <p className="text-[11px] text-muted mt-1">點 emoji 可自訂行程封面</p>
-            </div>
 
             {/* Trip name */}
             <div className="mb-5">
@@ -551,18 +535,16 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
         </div>
       </div>
 
-      {/* 共用 Emoji 選擇器（封面／成員）——含「搜尋，或直接貼上」自訂入口 */}
+      {/* 成員 Emoji 選擇器（封面用途已隨行程 emoji 退場而移除）*/}
       {emojiPickerFor && (
         <EmojiPicker
-          mode={emojiPickerFor.kind === 'cover' ? 'cover' : 'member'}
+          mode="member"
           value={
-            emojiPickerFor.kind === 'cover' ? coverEmoji
-              : emojiPickerFor.kind === 'new' ? newMemberEmoji
+            emojiPickerFor.kind === 'new' ? newMemberEmoji
               : (members[emojiPickerFor.index]?.emoji ?? '🙂')
           }
           onPick={(e) => {
-            if (emojiPickerFor.kind === 'cover') setCoverEmoji(e);
-            else if (emojiPickerFor.kind === 'new') setNewMemberEmoji(e);
+            if (emojiPickerFor.kind === 'new') setNewMemberEmoji(e);
             else setMembers(prev => prev.map((m, i) => i === emojiPickerFor.index ? { ...m, emoji: e } : m));
           }}
           onClose={() => setEmojiPickerFor(null)}

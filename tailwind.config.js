@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans:  ['Noto Sans TC', 'PingFang TC', 'PingFang SC', 'Heiti TC', 'sans-serif'],
-        serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+        // 不載任何中文 webfont：標題與內文一律系統字，層級靠字重與字階建立
+        sans: ['PingFang TC', 'PingFang SC', 'Heiti TC', 'system-ui', 'sans-serif'],
       },
       colors: {
         primary: 'var(--color-primary)',

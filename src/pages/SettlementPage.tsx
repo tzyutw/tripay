@@ -292,8 +292,8 @@ export default function SettlementPage() {
             <span className="text-[62px] block mb-4" style={{ animation: 'popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both' }}>
               ✨
             </span>
-            <h2 className="font-serif text-[30px] font-bold text-ink mb-2">帳算清楚了 ✨</h2>
-            <p className="font-serif text-[18px] italic text-mid">下次去哪？</p>
+            <h2 className="text-[30px] font-bold text-ink mb-2">帳算清楚了 ✨</h2>
+            <p className="text-[18px] text-mid">下次去哪？</p>
           </div>
 
           {/* G-08 Highlights */}

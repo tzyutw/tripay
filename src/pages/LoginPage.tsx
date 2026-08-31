@@ -38,7 +38,7 @@ export default function LoginPage() {
 
         {/* Slogan */}
         <p
-          className="font-serif text-[17px] italic mb-9 tracking-widest"
+          className="text-[17px] mb-9 tracking-widest"
           style={{ color: 'rgba(255,255,255,0.78)' }}
         >
           每一趟，都記得
@@ -63,25 +63,6 @@ export default function LoginPage() {
         </button>
       </div>
 
-      {/* G-02 Ghost card */}
-      <div className="absolute inset-x-6 bottom-6 pointer-events-none">
-        <div
-          className="rounded-2xl overflow-hidden animate-ghost-pulse"
-          style={{ filter: 'blur(1.8px)', opacity: 0.5 }}
-        >
-          <div
-            className="h-24 flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #D6C4B5, #C2AFA0)' }}
-          >
-            <p
-              className="font-serif text-[18px] italic"
-              style={{ color: 'rgba(80,55,42,0.5)' }}
-            >
-              你的下一趟在哪？
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

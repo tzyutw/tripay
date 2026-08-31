@@ -78,7 +78,7 @@ export default function EmojiPicker({ mode, value, onPick, onClose }: Props) {
 
         {/* 標題列（版位與 S-02／S-04 的 sheet header 一致） */}
         <div className="px-4 pt-3 pb-0 flex items-center justify-between flex-shrink-0">
-          <h3 className="font-serif text-[17px] font-bold text-ink">
+          <h3 className="text-[17px] font-bold text-ink">
             {mode === 'cover' ? '挑個封面' : '挑個 emoji'}
           </h3>
           <button

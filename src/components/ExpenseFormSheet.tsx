@@ -306,7 +306,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
 
         {/* Header */}
         <div className="px-5 pt-4 pb-0 flex items-center justify-between flex-shrink-0">
-          <h2 className="font-serif text-[22px] font-bold text-ink">
+          <h2 className="text-[22px] font-bold text-ink">
             {isEdit ? '編輯消費' : '記一筆'}
           </h2>
           <button

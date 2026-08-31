@@ -15,7 +15,7 @@
 }
 
 body {
-  font-family: 'Noto Sans TC', 'PingFang TC', 'PingFang SC', 'Heiti TC', sans-serif;
+  font-family: 'PingFang TC', 'PingFang SC', 'Heiti TC', system-ui, sans-serif;
   background-color: var(--color-bg);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;

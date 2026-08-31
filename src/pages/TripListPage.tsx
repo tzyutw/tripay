@@ -116,8 +116,6 @@ export default function TripListPage() {
                     className="absolute inset-0 pointer-events-none"
                     style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 38%, rgba(0,0,0,0.46) 100%)' }}
                   />
-                  <span className="absolute top-4 right-4 text-[34px] leading-none drop-shadow">{trip.emoji}</span>
-
                   <div className="relative">
                     <span
                       className={`inline-flex items-center px-[10px] py-[3px] rounded-full text-[11px] font-bold tracking-[0.04em] w-fit mb-[6px] ${STATUS_BADGE_CLASS[display]}`}
@@ -131,7 +129,7 @@ export default function TripListPage() {
 
                     <div className="flex items-center gap-2 mt-[6px]">
                       <span className="text-[17px] tracking-wider">{memberEmojis}</span>
-                      <span className="text-[12px] text-white/85 tabular-nums">
+                      <span className="text-[12px] text-white/85">
                         {formatDateRange(trip.start_date, trip.end_date)}
                       </span>
                     </div>
@@ -155,7 +153,7 @@ export default function TripListPage() {
             style={{ background: 'linear-gradient(135deg, #D6C4B5, #C2AFA0)' }}
           >
             <p
-              className="font-serif text-[18px] italic"
+              className="text-[18px]"
               style={{ color: 'rgba(80,55,42,0.72)' }}
             >
               你的下一趟在哪？
