@@ -59,6 +59,7 @@ const WIDTHS = [320, 375, 414];
       f = blankForm(store.trips[0].members); f.owner = 0; f.showCur = true; f.adding = true; renderS02();
       fb = null; renderS02b(); fb.tonePick = true; fb.errs.members = '測試訊息'; renderS02b();
       store.expenses.t1 = demoExpenses(); renderS03();
+      store.s03bView = 'del'; renderS03b(); store.s07dlg = true; renderS07();
       store.s03Filter = { kind: 'member', memberId: tripOf('t1').members[0].id }; renderS03d();
       store.s05 = 'check'; renderS05();
       const M = tripOf('t1').members.map(m => m.id);

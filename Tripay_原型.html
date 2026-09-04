@@ -107,6 +107,11 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 /* 金額：不靠字體差異，改靠字重與 tabular-nums 對齊 */
 .ui .money{font-variant-numeric:tabular-nums;font-weight:600}
 .ic{display:inline-block;vertical-align:-.15em;flex:none}
+/* S-00-5 整頁唯一動作。白底深字、與任何「選取態」的語彙都不同 */
+.gbtn{width:min(250px,100%);height:48px;background:#fff;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font-size:14px;font-weight:600;color:#151C21;box-shadow:0 1px 3px rgba(0,0,0,.24)}
+.gmark{flex:none}
 .ui .tnum{font-variant-numeric:tabular-nums}
 .ui .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;
   background:#fff;border-bottom:1px solid var(--ln)}
@@ -139,6 +144,9 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .rowb{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
   border-radius:3px;padding:8px 10px;width:100%;text-align:left}
 .ui .rowb.on{border-color:var(--w);background:#F2F8FD}
+/* flex 子元素預設 min-width:auto，長字串（例如 email）會把整列撐爆 */
+.ui .rowb>*{min-width:0}
+.ui .trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 /* 全站唯一的「選取／未選取」語彙：未選＝描邊、選了＝填實工作色。
    S-04 的分給誰／贊助／大家各付各的都用同一個。 */
 .ui .selchip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;flex:none;
@@ -252,6 +260,10 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .exprow .a{font-size:12.5px;font-weight:600;text-align:right;flex:none}
 .ui .delrow{padding:14px;text-align:center;font-size:11px;color:var(--dg)}
 .ui .delrow span{border-bottom:1px solid #D7BCB2;display:inline-flex;align-items:center;gap:4px}
+.ui .shopt{padding:11px 0;border-bottom:1px solid var(--ln)}
+.ui .shopt.last{border-bottom:0}
+.ui .shopt .t{margin:0;font-size:12.5px;font-weight:600}
+.ui .shopt .s{margin:2px 0 0;font-size:10.5px;color:var(--gr)}
 .ui .sharedhead{display:flex;align-items:center;justify-content:space-between;gap:10px;
   background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px}
 .ui .expandbtn{border:1px solid var(--w);color:var(--wi);font-size:11.5px;font-weight:600;
@@ -327,7 +339,7 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
 
 <div class="top">
   <span class="nm">Tripay 原型</span>
-  <span class="bt">批一 ✓ ／批二 S-03 · S-03d · S-04 · S-05</span>
+  <span class="bt">批一 ✓ 批二 ✓ ／批三 S-02c · S-03b · S-03c · S-06 · S-07</span>
   <span class="copied" id="copied">已複製 ✓</span>
   <div class="modesw" id="modesw">
     <button data-m="anno">標註模式</button>
@@ -474,12 +486,82 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
   <div><p class="cnt">編號清單 · 30 項</p><div class="idx" id="idx-s05"></div></div>
 </section>
 
+
+<!-- ══════════ S-02c ══════════ -->
+<section class="scr" id="s02c">
+  <div class="scrhd"><span class="k">S-02c</span><h2>成員識別</h2>
+    <p>取代原本的 Emoji 選擇器。行為在批一就實作了（S-02／S-02b 的成員列可以直接點著改），
+      這裡把三層 fallback 與就地編輯的各個狀態並排列出來對照。</p></div>
+  <div class="phwrap">
+    <p class="phcap">成員識別 · 三層 fallback ＋ 就地編輯</p>
+    <div class="ph"><div class="ui" id="scr-s02c"></div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 13 項（原選擇器 9 項已移除）</p><div class="idx" id="idx-s02c"></div></div>
+</section>
+
+<!-- ══════════ S-03b / S-03c ══════════ -->
+<section class="scr" id="s03b">
+  <div class="scrhd"><span class="k">S-03b · S-03c</span><h2>分享選單　與　刪除行程</h2>
+    <p>放在一起對照——<b>左邊是安全動作、右邊是危險動作</b>。
+      只有危險動作用實心橘紅填底，而且要打字確認。</p></div>
+  <div class="phwrap">
+    <p class="phcap">兩個彈出層</p>
+    <div class="ph"><div class="ui" id="scr-s03b"></div></div>
+    <div class="rig"><div class="t">原型控制</div>
+      <div class="row" id="s03brig"><button data-o="share">分享選單</button><button data-o="del">刪除行程</button></div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 14 項</p><div class="idx" id="idx-s03b"></div></div>
+</section>
+
+<!-- ══════════ S-06 ══════════ -->
+<section class="scr" id="s06">
+  <div class="scrhd"><span class="k">S-06</span><h2>分享頁 · 免登入唯讀</h2>
+    <p>唯一匿名可看的頁面，全頁<b>沒有任何編輯入口</b>。資料跟著 S-03 走——
+      在 S-04 記一筆，這裡也會變。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/share/:token</p>
+    <div class="ph"><div class="ui" id="scr-s06"></div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 13 項</p><div class="idx" id="idx-s06"></div></div>
+</section>
+
+<!-- ══════════ S-07 ══════════ -->
+<section class="scr" id="s07">
+  <div class="scrhd"><span class="k">S-07</span><h2>設定</h2>
+    <p>四個新畫面（通訊錄／卡片／帳單）都掛在這裡，所以它從「只能登出」變成真正的樞紐。
+      那三個入口指向批四，本輪只畫入口。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/settings</p>
+    <div class="ph"><div class="ui" id="scr-s07"></div></div>
+    <div class="rig"><div class="t">原型控制</div>
+      <div class="row"><button id="s07logout">登出確認框</button></div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 8 項</p><div class="idx" id="idx-s07"></div></div>
+</section>
+
 <footer>
   Tripay · 唯一原型 · 批一（S-00／S-01／S-02／S-02b）· 2026-09-04<br>
-  下一批：S-06 分享頁、S-07 設定與各子彈窗
+  批四（S-08～S-11）依 Rozi 裁示延後到 Phase 1＋1.5 上線並實際使用後再做
 </footer>
 </div>
 
+
+<script>
+/* Google 官方 "G" mark
+   來源：https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg
+   （Copyright (c) 2016 Google Inc. All rights reserved.）
+   四色 #4285F4 / #34A853 / #FBBC05 / #EA4335 為官方值，path 原樣內嵌未重繪。
+
+   ⚠️ 這是全站 icon 規則的**唯一例外**：不套 currentColor。
+      Google 品牌規範要求使用官方 logo，不得改色、變形或重繪；
+      套 currentColor 會把四色 logo 壓成單色，正是規範禁止的。 */
+const GOOGLE_G = `<svg class="gmark" viewBox="0 0 118 120" width="18" height="18" aria-hidden="true">
+  <path fill="#4285F4" d="M117.6,61.3636364 C117.6,57.1090909 117.218182,53.0181818 116.509091,49.0909091 L60,49.0909091 L60,72.3 L92.2909091,72.3 C90.9,79.8 86.6727273,86.1545455 80.3181818,90.4090909 L80.3181818,105.463636 L99.7090909,105.463636 C111.054545,95.0181818 117.6,79.6363636 117.6,61.3636364 L117.6,61.3636364 Z"/>
+  <path fill="#34A853" d="M60,120 C76.2,120 89.7818182,114.627273 99.7090909,105.463636 L80.3181818,90.4090909 C74.9454545,94.0090909 68.0727273,96.1363636 60,96.1363636 C44.3727273,96.1363636 31.1454545,85.5818182 26.4272727,71.4 L6.38181818,71.4 L6.38181818,86.9454545 C16.2545455,106.554545 36.5454545,120 60,120 L60,120 Z"/>
+  <path fill="#FBBC05" d="M26.4272727,71.4 C25.2272727,67.8 24.5454545,63.9545455 24.5454545,60 C24.5454545,56.0454545 25.2272727,52.2 26.4272727,48.6 L26.4272727,33.0545455 L6.38181818,33.0545455 C2.31818182,41.1545455 0,50.3181818 0,60 C0,69.6818182 2.31818182,78.8454545 6.38181818,86.9454545 L26.4272727,71.4 L26.4272727,71.4 Z"/>
+  <path fill="#EA4335" d="M60,23.8636364 C68.8090909,23.8636364 76.7181818,26.8909091 82.9363636,32.8363636 L100.145455,15.6272727 C89.7545455,5.94545455 76.1727273,0 60,0 C36.5454545,0 16.2545455,13.4454545 6.38181818,33.0545455 L26.4272727,48.6 C31.1454545,34.4181818 44.3727273,23.8636364 60,23.8636364 L60,23.8636364 Z"/>
+</svg>`;
+</script>
 
 <script>
 /* ═══════════════════════════════════════════════════════════
@@ -621,9 +703,7 @@ function renderS00() {
       ${b('S-00-3', `<div style="color:rgba(255,255,255,.8);font-size:13px;letter-spacing:.32em;margin-top:12px">每一趟，都記得</div>`)}
       ${b('S-00-4', `<div style="color:rgba(255,255,255,.66);font-size:13.5px;text-align:center;max-width:200px;margin-top:28px">大家一起出發，帳交給 Tripay。</div>`)}
       <div style="height:34px"></div>
-      ${b('S-00-5', `<button id="s00login" style="width:min(250px,100%);height:46px;background:#fff;border-radius:3px;
-        display:flex;align-items:center;justify-content:center;gap:9px;font-size:13.5px;font-weight:600;color:#151C21">
-        <span style="font-size:15px">◉</span> 用 Google 帳號繼續</button>`)}
+      ${b('S-00-5', `<button id="s00login" class="gbtn">${GOOGLE_G} 用 Google 繼續</button>`)}
       <div style="flex:1;min-height:24px"></div>
       <div style="color:rgba(255,255,255,.4);font-size:10px;text-align:center;line-height:1.5">
         移除了 App icon 與幽靈卡<br>識別由字標與 slogan 承擔</div>
@@ -838,11 +918,10 @@ function renderS02b() {
         ${b('S-02b-5', `<p class="hint">只有你和拿到分享連結的人看得到</p>`)}
       </div>`)}
 
-      ${b('S-02b-12', `<div class="fld"><span class="lbl" data-group="兩列各自帶國旗標籤，非單一輸入欄">這趟的現金匯率</span>
-        <p class="hint" style="margin:-2px 0 9px">在當地換錢後填一次就好</p>
-        ${rateRows(fb)}
-        <p class="hint">刷卡不用這個匯率，直接填台幣</p>
-      </div>`)}
+      ${`<div class="fld"><span class="lbl" data-group="成員清單，非單一輸入欄">誰一起去？</span>
+        <div class="gap">${memberRows(fb, 'b')}</div>
+        ${fb.errs.members ? b('S-02b-8', `<p class="hint" style="color:var(--md)">${fb.errs.members}</p>`) : ''}
+      </div>`}
 
       ${b('S-02b-13', `<div class="fld"><span class="lbl" data-group="兩種模式二選一，非單一輸入欄">這趟怎麼結算？</span>
         <div class="gap">
@@ -875,10 +954,11 @@ function renderS02b() {
         <p class="hint">已經有消費在用的不能刪</p>
       </div>`)}
 
-      ${`<div class="fld"><span class="lbl" data-group="成員清單，非單一輸入欄">誰一起去？</span>
-        <div class="gap">${memberRows(fb, 'b')}</div>
-        ${fb.errs.members ? b('S-02b-8', `<p class="hint" style="color:var(--md)">${fb.errs.members}</p>`) : ''}
-      </div>`}
+      ${b('S-02b-12', `<div class="fld"><span class="lbl" data-group="兩列各自帶國旗標籤，非單一輸入欄">這趟的現金匯率</span>
+        <p class="hint" style="margin:-2px 0 9px">在當地換錢後填一次就好</p>
+        ${rateRows(fb)}
+        <p class="hint">刷卡不用這個匯率，直接填台幣</p>
+      </div>`)}
 
       ${b('S-02b-9', `<div class="btnrow"><button class="btn gh" id="s02bcancel">取消</button><button class="btn" id="s02bsave">儲存</button></div>`)}
     </div>
@@ -906,7 +986,7 @@ const INDEX = {
     ['S-00-2','Tripay 字標','st','42px 系統字，識別主體'],
     ['S-00-3','Slogan','st','「每一趟，都記得」，拉開字距'],
     ['S-00-4','Tagline','st','「大家一起出發，帳交給 Tripay。」'],
-    ['S-00-5','Google 登入鈕','op','整頁唯一動作，可點（原型只跳提示）'],
+    ['S-00-5','Google 登入鈕','op','<b>改（#23）</b>：原本用 <code>◉</code>（那是「已選取的單選鈕」圖示，整顆看起來像選取態）。改用<b>官方四色 G</b>（gstatic 釋出檔原樣內嵌，<b>不套 currentColor</b>——全站 icon 規則的唯一例外）；文案縮短為「用 Google 繼續」'],
     ['S-00-6','G-02 幽靈卡','del','已移除：登入頁不可點卻長得可點，稀釋唯一動作'],
     ['S-00-7','G-01 登入後跳轉','inv','無行程時自動開 S-02。看不見的行為，無區塊'],
   ],
@@ -1529,18 +1609,19 @@ function renderS04() {
   h += b('S-04-10', `<div class="fld"><div class="fieldrow"><span class="lbl">日期</span>
     <input type="date" id="e-date" value="${g.date}"></div></div>`);
 
-  h += b('S-04-11', `<div class="fld"><span class="lbl" data-group="三選一切換，非單一輸入欄">分帳方式</span>
-    <div class="seg">${[['shared','一起分'],['individual','各付各的'],['single','只算一個人']].map(([k,v]) =>
-      `<button class="${g.type===k?'on':''}" data-etype="${k}">${v}</button>`).join('')}</div>
-    <div id="typebody"></div></div>`);
-
-  // #17-10：「當場各付各的」本來就是在回答「誰付的」——答案是沒有人代墊
   h += b('S-04-21', `<div class="fld"><span class="lbl" data-group="chips 多選一，非單一輸入欄">誰付的？</span>
     <div class="chips">${t.members.map(m =>
       `<button class="chip${!g.onSpot && g.payer===m.id?' on':''}" data-epayer="${m.id}">${m.emoji||firstGrapheme(m.name)} ${esc(m.name)}</button>`).join('')}
       <span class="paysep"></span>
       ${b('S-04-18', `<button class="chip alt${g.onSpot?' on':''}" data-eflag="onSpot">當場就清了</button>`, 'inl')}
     </div></div>`);
+
+  h += b('S-04-11', `<div class="fld"><span class="lbl" data-group="三選一切換，非單一輸入欄">分帳方式</span>
+    <div class="seg">${[['shared','一起分'],['individual','各付各的'],['single','只算一個人']].map(([k,v]) =>
+      `<button class="${g.type===k?'on':''}" data-etype="${k}">${v}</button>`).join('')}</div>
+    <div id="typebody"></div></div>`);
+
+  // #17-10：「當場各付各的」本來就是在回答「誰付的」——答案是沒有人代墊
 
   h += b('S-04-19', `<div class="fld"><span class="lbl" data-group="型別開關，非單一輸入欄">這筆是</span>
       <div class="chips">
@@ -2073,5 +2154,263 @@ function paintS04Note(c, t) {
     return b('S-04-35', `<div class="note warn">${ic('warn',14)} 補上 ${sym} 總額才算得出各自要付多少</div>`);
   return '';
 }
+render();
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   批三：S-02c / S-03b / S-03c / S-06 / S-07
+   ═══════════════════════════════════════════════════════════ */
+store.s03bView = 'share';
+store.s07dlg = false;
+
+/* ── S-02c 成員識別（行為在批一，這裡並排各狀態）── */
+function renderS02c() {
+  const demo = [
+    ['🐵', 'Rozi',  'S-02c-10', '① 有 emoji → 直接顯示'],
+    ['',   '小美',  null,       '② 沒有 emoji → 名字第一個字，填色圓底'],
+    ['',   '👨‍👩‍👧 一家', null, 'grapheme 取字，ZWJ 組合不會被切斷'],
+    ['',   '',      null,       '③ 名字也空 → 🙂'],
+  ];
+  let h = `<div class="sec">顯示：三層 fallback</div><div style="margin:0 14px" class="gap">`;
+  h += demo.map(([em, nm, id, note], i) => {
+    const av = em ? `<span class="avatar">${em}</span>`
+      : firstGrapheme(nm) ? `<span class="avatar letter" style="background:${LETTER_COLORS[i % LETTER_COLORS.length]}">${esc(firstGrapheme(nm))}</span>`
+      : `<span class="avatar">🙂</span>`;
+    const row = `<div class="rowb">${av}
+      <span style="flex:1"><span style="font-size:12.5px;font-weight:600">${esc(nm) || '<span style="color:var(--gr)">（沒有名字）</span>'}</span>
+      <span style="display:block;font-size:9.5px;color:var(--gr);margin-top:1px">${note}</span></span></div>`;
+    return id ? b(id, row) : row;
+  }).join('');
+  h += `</div>`;
+
+  h += `<div class="sec">編輯：點識別圓圈，就地改</div><div style="margin:0 14px" class="gap">`;
+  h += b('S-02c-11', `<div class="rowb"><span class="avatar">🐵</span>
+      <span style="flex:1;font-size:12.5px;font-weight:600">Rozi</span>
+      <span style="font-size:9.5px;color:var(--gr)">① 點一下圓圈</span></div>`);
+  h += `<div class="rowb on"><span class="avatar" style="border-color:var(--w)">🐵<span style="display:inline-block;width:1px;height:14px;background:var(--w);margin-left:1px"></span></span>
+      <span style="flex:1;font-size:12.5px;font-weight:600">Rozi</span>
+      <span style="font-size:9.5px;color:var(--gr)">② 變單字元輸入框、自動聚焦</span></div>
+    <div class="rowb"><span class="avatar">🦊</span>
+      <span style="flex:1;font-size:12.5px;font-weight:600">Rozi</span>
+      <span style="font-size:9.5px;color:var(--gr)">③ 輸入後自動存檔收合</span></div></div>`;
+
+  h += b('S-02c-12', `<div style="margin:12px 14px 0;background:#fff;border:1px solid var(--ln);
+      border-left:2px solid var(--out);border-radius:3px;padding:10px">
+      <p style="margin:0;font-size:11.5px;font-weight:600">${ic('warn',14)} 網頁沒辦法主動叫出 emoji 鍵盤</p>
+      <p style="margin:4px 0 0;font-size:10.5px;color:var(--md);line-height:1.5">
+        聚焦後跳出的是一般鍵盤，要自己切到 emoji（iOS 地球鍵／Android 表情鍵）。
+        這是瀏覽器的限制——所以驗證放寬成<b>文字也可以</b>，不逼使用者一定要找到 emoji。</p></div>`);
+  h += b('S-02c-13', `<div style="margin:9px 14px 16px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:10px">
+      <p style="margin:0 0 4px;font-size:11.5px;font-weight:600">驗證規則</p>
+      <p style="margin:0;font-size:10.5px;color:var(--md);line-height:1.5">
+        限<b>一個 grapheme</b>，emoji 或文字皆可。超過只取第一個；清空就回到第二層。</p></div>`);
+  $('#scr-s02c').innerHTML = h;
+}
+
+/* ── S-03b 分享選單 ／ S-03c 刪除行程 ── */
+function renderS03b() {
+  const t = tripOf(store.s03Trip), n = expsOf(store.s03Trip).length;
+  let h;
+  if (store.s03bView === 'share') {
+    h = b('S-03b-1', `<div class="scrim" style="padding:22px 0 0">
+        <div style="font-size:10px;color:rgba(255,255,255,.7);text-align:center;padding-bottom:12px">遮罩 · 點擊關閉</div></div>`)
+      + `<div class="sheet"><div class="grab"></div><div style="padding:10px 14px 0">`
+      + b('S-03b-2', `<div class="shopt"><p class="t">複製結算摘要</p><p class="s">貼到 LINE 群組，讓大家知道誰付誰</p></div>`)
+      + b('S-03b-3', `<div class="shopt"><p class="t">複製分享連結</p><p class="s">任何人打開都能看消費明細，不用登入</p></div>`)
+      + b('S-03b-4', `<div class="shopt last"><p class="t">預覽分享頁面</p><p class="s">看看對方收到連結會看到什麼</p></div>`)
+      + `</div>` + b('S-03b-5', `<div style="padding:4px 14px 16px"><div class="btn qt">取消</div></div>`)
+      + `</div><div id="s03btoast"></div>`;
+  } else {
+    h = `<div class="scrim" style="padding:26px 0">`
+      + b('S-03c-1', `<div class="dlg">
+          <p style="margin:0 0 8px;font-size:13.5px;font-weight:700;text-align:center">刪除「${esc(t.name)}」？</p>
+          ${b('S-03c-2', `<p style="margin:0 0 7px;font-size:11.5px;color:var(--md);line-height:1.5">這會一併刪掉這趟的<b>全部資料</b>，而且救不回來：</p>`)}
+          ${b('S-03c-3', `<ul style="margin:0 0 11px;padding-left:16px;font-size:11.5px;color:var(--md);line-height:1.7">
+            <li>${n} 筆消費與分帳紀錄</li><li>${t.members.length} 位成員</li><li>結算結果與分享連結</li></ul>`)}
+          ${b('S-03c-4', `<p style="margin:0 0 6px;font-size:11px;color:var(--md)">確定的話，請輸入「刪除」二字：</p>`)}
+          ${b('S-03c-5', `<div class="fieldrow" style="margin-bottom:11px"><input type="text" id="delconfirm" value="${esc(store.delText||'')}" placeholder="刪除"></div>`)}
+          <div style="display:flex;gap:8px">
+            ${b('S-03c-6', `<button class="btn qt">算了，留著</button>`)}
+            ${b('S-03c-7', `<button class="btn dg" ${store.delText==='刪除'?'':'disabled'}>刪除</button>`)}</div>
+          ${b('S-03c-8', `<p class="hint" style="text-align:center">沒打對「刪除」二字之前，刪除鈕維持不可按</p>`)}
+        </div>`)
+      + `</div>`;
+  }
+  $('#scr-s03b').innerHTML = h;
+  document.querySelectorAll('#s03brig button').forEach(x => x.classList.toggle('on', x.dataset.o === store.s03bView));
+}
+</script>
+
+<script>
+/* ── S-06 分享頁 ── */
+function renderS06() {
+  const S = tripSummary(store.s03Trip), t = S.t;
+  const { tx } = settleTrip(store.s03Trip);
+  const per = S.t.members.length ? Math.round(S.total / S.t.members.length) : 0;
+  const list = [...S.list].sort((a,c) => a.date.localeCompare(c.date));
+
+  let h = b('S-06-1', `<div class="hero" style="background:${toneFor(t.name, t.tone)};padding-top:22px">
+    <div class="sc"></div>
+    ${b('S-06-2', `<span style="position:absolute;top:10px;right:12px"><span class="stamp">朋友檢視</span></span>`, 'rt')}
+    ${b('S-06-3', `<div style="position:relative"><div class="tt">${esc(t.name)}</div>
+      <div class="dt">${dateRange(t.start, t.end)}　${t.members.map(m=>m.emoji||firstGrapheme(m.name)).join('')}</div></div>`)}
+  </div>`);
+
+  h += `<div class="stats">
+    ${b('S-06-4', `<div><b class="money">${money(S.total)}</b><span>總花費</span></div>`)}
+    ${b('S-06-6', `<div><b class="money">${money(per)}</b><span>人均</span></div>`)}
+  </div>`;
+
+  h += b('S-06-7', `<div class="sec">誰付給誰</div>`);
+  h += tx.length
+    ? `<div style="margin:0 14px">${tx.map(x => `<div class="rowb" style="margin-bottom:6px">
+        <span style="flex:1;font-size:12px">${nm2(t,x.from)} <span style="color:var(--gr)">→</span> ${nm2(t,x.to)}</span>
+        <span class="money">${money(x.amount)}</span></div>`).join('')}</div>`
+    : b('S-06-8', `<div style="margin:0 14px" class="rowb"><span style="flex:1;font-size:11.5px;color:var(--gr)">這趟旅程還沒結算。</span></div>`);
+
+  h += b('S-06-9', `<div class="sec">消費明細</div>`);
+  if (!list.length) {
+    h += b('S-06-11', `<div class="empty"><p>還沒有消費紀錄。</p></div>`);
+  } else {
+    h += list.map((e, i) => {
+      const c = calc(e, t), payer = t.members.find(m => m.id === e.payer);
+      const pend = c.twdPending;
+      const amt = pend ? '<span style="color:var(--out)">還沒填</span>'
+        : e.sponsor ? `<span class="money" style="color:var(--in)">−${money(c.twdTotal)}</span>`
+        : `<span class="money">${money(c.twdTotal)}</span>`;
+      const row = `<div class="exprow${pend ? ' pend' : ''}"><span class="ic">${e.emoji}</span>
+        <span class="mid"><span class="t">${esc(e.title)}</span>
+          <span class="s">${payer ? esc((payer.emoji||firstGrapheme(payer.name)) + ' ' + payer.name) : ''} · ${e.date}</span></span>
+        <span class="a">${amt}</span></div>`;
+      return pend ? b('S-06-10', row) : row;
+    }).join('');
+  }
+
+  h += b('S-06-12', `<div style="margin-top:12px;padding:12px 14px 16px;background:#EDEEE8;border-top:1px solid var(--ln);
+      display:flex;align-items:center;gap:9px">
+      <p style="margin:0;flex:1;font-size:11.5px;color:var(--md)">想自己記帳？下載 Tripay</p>
+      <span class="chip">複製連結</span>
+      ${b('S-06-13', `<span class="chip" style="background:var(--w);border-color:var(--w);color:#fff;font-weight:600">安裝</span>`, 'inl')}
+    </div>`);
+  $('#scr-s06').innerHTML = h;
+}
+
+/* ── S-07 設定 ── */
+function renderS07() {
+  let h = b('S-07-1', `<div class="bar"><span class="bk">${ic('back',15)} 返回</span><span class="ttl">設定</span><span style="width:52px"></span></div>`);
+  h += b('S-07-2', `<div class="sec">登入帳號</div>`);
+  h += b('S-07-3', `<div style="margin:0 14px"><div class="rowb">
+      <span class="avatar letter" style="background:#2D6A8A">R</span>
+      <span style="flex:1;min-width:0"><span class="trunc" style="font-size:12.5px;font-weight:600">Rozi</span>
+      <span class="trunc" style="font-size:10px;color:var(--gr)">msziyu@gmail.com</span></span></div></div>`);
+
+  h += b('S-07-4', `<div class="sec">我的資料</div>
+    <div style="margin:0 14px" class="gap">
+      <div class="rowb"><span style="font-size:15px">👥</span><span style="flex:1;font-size:12.5px;font-weight:600">通訊錄</span>
+        <span style="font-size:10px;color:var(--gr)">批四</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
+      <div class="rowb"><span style="font-size:15px">💳</span><span style="flex:1;font-size:12.5px;font-weight:600">卡片管理</span>
+        <span style="font-size:10px;color:var(--gr)">批四</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
+      <div class="rowb"><span style="font-size:15px">🧾</span><span style="flex:1;font-size:12.5px;font-weight:600">帳單週期</span>
+        <span style="font-size:10px;color:var(--gr)">批四</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
+    </div>`);
+
+  h += b('S-07-5', `<div class="sec">顯示</div>
+    <div style="margin:0 14px" class="gap">
+      <div class="rowb"><span style="flex:1;font-size:12.5px;font-weight:600">深色模式</span>
+        <span style="font-size:10.5px;color:var(--gr)">跟隨系統</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
+    </div>`);
+
+  h += b('S-07-6', `<div style="margin:16px 14px 0"><button class="btn qt" id="s07logout2" style="color:var(--dg)">登出</button></div>`);
+  h += b('S-07-7', `<div style="padding:14px;text-align:center;font-size:9.5px;color:var(--gr)">Tripay · 每一趟，都記得</div>`);
+  if (store.s07dlg) h += b('S-07-8', `<div class="scrim" style="padding:20px 0"><div class="dlg">
+      <p style="margin:0 0 14px;font-size:13.5px;font-weight:700;text-align:center">確定要登出嗎？</p>
+      <div style="display:flex;gap:8px"><button class="btn qt" id="s07no">取消</button><button class="btn dg">登出</button></div>
+    </div></div>`);
+  $('#scr-s07').innerHTML = h;
+}
+</script>
+
+<script>
+/* ── 批三的編號清單 ── */
+Object.assign(INDEX, {
+  s02c: [
+    ['S-02c-1','標題','del','已移除：Emoji 選擇器整個元件拿掉'],
+    ['S-02c-2','關閉（含 Esc）','del','已移除'],
+    ['S-02c-3','分類 tab','del','已移除'],
+    ['S-02c-4','搜尋／貼上','del','已移除：就地編輯直接輸入，不需要另一層 UI'],
+    ['S-02c-5','錯誤訊息','del','已移除：驗證放寬後不再需要——文字也可以'],
+    ['S-02c-6','emoji 格','del','已移除'],
+    ['S-02c-7','預覽列','del','已移除'],
+    ['S-02c-8','就用這個','del','已移除：改為輸入後自動存檔'],
+    ['S-02c-9','portal 掛載','del','已移除：就地編輯不是彈層，沒有這個問題'],
+    ['S-02c-10','三層 fallback','op','① 有 emoji → emoji ② 無 → 名字第一個 grapheme 放填色圓底 ③ 名字也空 → 🙂。<b>可在 S-02／S-02b 直接操作</b>'],
+    ['S-02c-11','就地編輯','op','點識別圓圈 → 單字元輸入框自動聚焦 → <b>輸入後自動存檔收合</b>，沒有確認鈕'],
+    ['S-02c-12','技術限制標註','st','<b>網頁無法主動喚起系統 emoji 面板</b>。稿上明寫，避免日後被當成 bug'],
+    ['S-02c-13','驗證規則','st','限一個 grapheme，emoji 或文字皆可。<code>firstGrapheme()</code> 留用'],
+  ],
+  s03b: [
+    ['S-03b-1','分享 sheet','st','底部彈出，三個選項＋取消'],
+    ['S-03b-2','複製結算摘要','st','從已確認的結算組多行文字'],
+    ['S-03b-3','複製分享連結','st','實作時要記得補 BASE_URL（讀碼發現 #2 已 hotfix）'],
+    ['S-03b-4','預覽分享頁','st','開新分頁看 S-06'],
+    ['S-03b-5','取消','st','關閉'],
+    ['S-03b-6','Toast','inv','「已複製 ✓」／「連結已複製 ✓」'],
+    ['S-03c-1','刪除對話框','op','置中對話框。<b>只有這裡出現實心橘紅填底</b>'],
+    ['S-03c-2','後果說明','st','「會一併刪掉這趟的全部資料，而且救不回來」'],
+    ['S-03c-3','影響清單','st','即時帶入真實數字：N 筆消費、N 位成員、結算與分享連結'],
+    ['S-03c-4','確認提示','st','<b>改（#20-A）</b>：輸入「刪除」二字，不是行程名'],
+    ['S-03c-5','確認字輸入','op','打「刪除」才會 enable'],
+    ['S-03c-6','算了，留著','st','關閉，不做任何事'],
+    ['S-03c-7','刪除','op','實作時<b>必須斷言影響列數</b>，不是只看 HTTP 狀態'],
+    ['S-03c-8','不可按的說明','st','沒打對之前刪除鈕維持 disabled'],
+  ],
+  s06: [
+    ['S-06-1','Hero','st','<b>改</b>：改用 destinationOf() 的目的地色調，與首頁卡一致（讀碼發現 #4）'],
+    ['S-06-2','「朋友檢視」徽章','st','右上常駐，宣告唯讀'],
+    ['S-06-3','名稱／日期／成員','st','<b>改</b>：行程 emoji 已退場；成員 emoji 依既有決策保留'],
+    ['S-06-4','總花費','op','<b>改</b>：與行程頁同一套算法（排除贊助），不再兩頁數字不同（讀碼發現 #5）'],
+    ['S-06-5','外幣格','del','已移除：非台幣行程永遠顯示「—」，是廢版位（讀碼發現 #14）'],
+    ['S-06-6','人均','op','總額 ÷ 成員數'],
+    ['S-06-7','誰付給誰','op','已確認的結算明細，隨 S-05 的模式變'],
+    ['S-06-8','未結算狀態','st','「這趟旅程還沒結算。」'],
+    ['S-06-9','消費明細','op','不分天，平鋪；每列顯示付款人與日期'],
+    ['S-06-10','還沒填的列','st','<b>改</b>：補上橘紅左邊框，與 S-03 一致（讀碼發現 #6）'],
+    ['S-06-11','空狀態','st','「還沒有消費紀錄。」'],
+    ['S-06-12','G-06 頁尾 CTA','st','「想自己記帳？下載 Tripay」'],
+    ['S-06-13','PWA 安裝鈕','st','只有瀏覽器丟出 <code>beforeinstallprompt</code> 才顯示——<b>iOS Safari 不支援</b>'],
+  ],
+  s07: [
+    ['S-07-1','導覽列','st','從 S-03 的 ⚙ 進來'],
+    ['S-07-2','「登入帳號」標題','st',''],
+    ['S-07-3','帳號卡','st','Google 頭像／名字首字＋姓名＋email'],
+    ['S-07-4','我的資料','op','通訊錄／卡片管理／帳單週期三個入口。<b>沒有這段，批四的畫面沒有地方進去</b>'],
+    ['S-07-5','顯示設定','op','<b>改</b>：預設幣別已移除（S-03 就能切），只留深色模式'],
+    ['S-07-6','登出','op','<b>改</b>：登出可復原（再登入即可）→ 用描邊不用實心填底，與刪除區隔'],
+    ['S-07-7','版本 footer','st','Slogan 收尾'],
+    ['S-07-8','登出確認','op','「確定要登出嗎？」取消／登出'],
+  ],
+});
+
+/* ── 批三互動與樣式掛載 ── */
+const _renderBatch2 = renderBatch2;
+renderBatch2 = function () {
+  _renderBatch2();
+  renderS02c(); renderS03b(); renderS06(); renderS07();
+};
+document.addEventListener('click', ev => {
+  const t = ev.target;
+  const o = t.closest('#s03brig button');
+  if (o) { store.s03bView = o.dataset.o; store.delText=''; renderS03b(); return; }
+  if (t.closest('#s07logout') || t.closest('#s07logout2')) { store.s07dlg = true; renderS07(); return; }
+  if (t.closest('#s07no')) { store.s07dlg = false; renderS07(); return; }
+});
+document.addEventListener('input', ev => {
+  if (ev.target.id === 'delconfirm') {
+    store.delText = ev.target.value;
+    const btn = document.querySelector('#scr-s03b .btn.dg');
+    if (btn) btn.disabled = store.delText !== '刪除';   // 只切按鈕狀態，不重建輸入框
+  }
+});
 render();
 </script>
