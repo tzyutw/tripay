@@ -1,0 +1,881 @@
+<title>Tripay 原型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ══ 文件外框 ══ */
+:root{
+  --pg:#141A1E; --pg2:#1B2329; --pg3:#232D34;
+  --pgink:#E8EDF0; --pgink2:#9FB0BA; --pgink3:#6B7C87;
+  --pgrule:#2A353C; --mark:#4EA3E8; --okd:#63B588; --nod:#E0714E;
+  --sans:"PingFang TC","Noto Sans TC","Hiragino Sans",system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+:root[data-theme="light"]{--pg:#E7E9E4;--pg2:#FFF;--pg3:#F2F3EF;--pgink:#151C21;
+  --pgink2:#4C5B64;--pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--okd:#276E45;--nod:#B03A22}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --pg:#E7E9E4;--pg2:#FFF;--pg3:#F2F3EF;--pgink:#151C21;
+  --pgink2:#4C5B64;--pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--okd:#276E45;--nod:#B03A22}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg);color:var(--pgink);font-family:var(--sans);font-size:15px;
+  line-height:1.6;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+input{font-family:inherit}
+h1,h2,h3{margin:0;text-wrap:balance}
+code{font-family:var(--mono);font-size:.88em;color:var(--mark)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 22px 80px}
+
+/* ══ 頂列 ══ */
+.top{position:sticky;top:0;z-index:200;background:var(--pg);border-bottom:1px solid var(--pgrule);
+  padding:12px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.top .nm{font-weight:700;font-size:16px;letter-spacing:-.01em}
+.top .bt{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--pgink3);
+  border:1px solid var(--pgrule);border-radius:2px;padding:3px 8px}
+.modesw{margin-left:auto;display:flex;border:1px solid var(--pgrule);border-radius:3px;overflow:hidden}
+.modesw button{padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--pgink3);background:var(--pg2)}
+.modesw button.on{background:var(--mark);color:#fff}
+.copied{font-family:var(--mono);font-size:11px;color:var(--okd);opacity:0;transition:opacity .2s}
+.copied.show{opacity:1}
+
+header{padding:34px 0 8px}
+header h1{font-size:clamp(24px,3.4vw,32px);font-weight:700;letter-spacing:-.02em}
+header p{margin:12px 0 0;max-width:74ch;color:var(--pgink2);font-size:14.5px}
+.callout{margin-top:14px;padding:13px 17px;background:var(--pg2);border-left:2px solid var(--mark);
+  border-radius:2px;font-size:13.5px;color:var(--pgink2);max-width:78ch}
+.callout b{color:var(--pgink)}
+
+/* ══ 畫面版面 ══ */
+.scr{padding:40px 0;border-top:1px solid var(--pgrule);display:grid;
+  grid-template-columns:400px minmax(0,1fr);gap:32px;align-items:start}
+@media(max-width:980px){.scr{grid-template-columns:1fr}}
+.scrhd{grid-column:1/-1;margin-bottom:2px}
+.scrhd .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--mark)}
+.scrhd h2{font-size:23px;font-weight:700;letter-spacing:-.01em;margin-top:5px}
+.scrhd p{color:var(--pgink2);font-size:13.5px;margin:8px 0 0;max-width:80ch}
+.phwrap{position:sticky;top:64px}
+.phcap{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--pgink3);margin:0 0 8px}
+.ph{width:390px;border:1px solid var(--pgrule);border-radius:20px;overflow:hidden;
+  box-shadow:0 18px 40px rgba(0,0,0,.34)}
+
+/* 原型控制（非產品的一部分） */
+.rig{margin-top:12px;border:1px dashed var(--pgrule);border-radius:3px;padding:9px 11px}
+.rig .t{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--pgink3);margin-bottom:6px}
+.rig .row{display:flex;gap:5px;flex-wrap:wrap}
+.rig button{font-size:11.5px;padding:4px 9px;border:1px solid var(--pgrule);border-radius:3px;
+  background:var(--pg2);color:var(--pgink2)}
+.rig button.on{background:var(--mark);border-color:var(--mark);color:#fff}
+
+/* 編號清單 */
+.idx{background:var(--pg2);border:1px solid var(--pgrule);border-radius:3px;overflow:hidden}
+.idx table{width:100%;border-collapse:collapse;font-size:12.5px}
+.idx th,.idx td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--pgrule);vertical-align:top}
+.idx tr:last-child td{border-bottom:0}
+.idx th{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--pgink3);font-weight:400;background:var(--pg3)}
+.idx td.n{font-family:var(--mono);font-size:10.5px;color:var(--mark);white-space:nowrap}
+.idx tr.gone td{opacity:.45}
+.idx tr.gone td.el{text-decoration:line-through}
+.kind{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;padding:1px 5px;
+  border-radius:2px;border:1px solid;line-height:1.7;white-space:nowrap}
+.kind.op{color:var(--okd);border-color:var(--okd)}
+.kind.st{color:var(--pgink3);border-color:var(--pgrule)}
+.kind.inv{color:var(--pgink3);border-color:var(--pgrule);opacity:.8}
+.kind.del{color:var(--nod);border-color:var(--nod)}
+.cnt{font-family:var(--mono);font-size:11px;color:var(--pgink3);margin:0 0 8px}
+
+/* ══ 標註徽章 ══ */
+.b{position:relative}
+html.anno .b{outline:1px dashed rgba(78,163,232,.55);outline-offset:1px}
+.b>.bdg{display:none}
+html.anno .b>.bdg{display:block;position:absolute;top:0;left:0;z-index:40;
+  font-family:var(--mono);font-size:8px;letter-spacing:.03em;line-height:1;
+  padding:2.5px 4px;border-radius:2px;background:rgba(18,118,196,.94);color:#fff;cursor:pointer}
+html.anno .b.rt>.bdg{left:auto;right:0}
+.b.inl{display:inline-flex}
+html.anno .b.inl>.bdg{top:-9px;left:-4px}
+html.anno .b>.bdg:hover{background:#0F5E9E}
+
+/* ══ 產品 UI（日記精裝 tokens）══ */
+.ui{background:#EDEEE8;color:#151C21;font-size:13px;line-height:1.5;
+  --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#B03A22;
+  --ln:#DFE1DA;--gr:#78878F;--md:#4C5B64;position:relative}
+.ui .money{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.ui .tnum{font-variant-numeric:tabular-nums}
+.ui .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;
+  background:#fff;border-bottom:1px solid var(--ln)}
+.ui .lbl{display:block;font-size:11.5px;font-weight:600;color:var(--md);margin-bottom:6px}
+.ui .hint{font-size:10.5px;color:var(--gr);margin:5px 0 0;line-height:1.45}
+.ui .err{font-size:10.5px;color:var(--out);margin:5px 0 0}
+.ui .fld{padding:0 14px 14px}
+.ui input[type=text],.ui input[type=number],.ui input[type=date]{width:100%;background:#fff;
+  border:1px solid var(--ln);border-radius:3px;padding:9px 10px;font-size:13px;color:#151C21;outline:none}
+.ui input:focus{border-color:var(--w)}
+.ui .btn{width:100%;background:var(--w);color:#fff;font-size:14px;font-weight:600;padding:11px 0;
+  border-radius:3px;text-align:center}
+.ui .btn.gh{background:#fff;color:var(--wi);border:1px solid var(--w)}
+.ui .btn.qt{background:#fff;color:var(--md);border:1px solid var(--ln)}
+.ui .btn.dg{background:var(--dg);color:#fff}
+.ui .btn:disabled{opacity:.4;cursor:not-allowed}
+.ui .btnrow{display:flex;gap:8px;padding:12px 14px 16px;background:#EDEEE8;border-top:1px solid var(--ln)}
+.ui .seg{display:flex;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
+.ui .seg button{flex:1;padding:8px 0;font-size:12px;background:#fff;color:var(--gr);border-right:1px solid var(--ln)}
+.ui .seg button:last-child{border-right:0}
+.ui .seg button.on{background:var(--w);color:#fff;font-weight:600}
+.ui .chips{display:flex;gap:6px;flex-wrap:wrap}
+.ui .chip{font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--ln);background:#fff;color:var(--md)}
+.ui .chip.on{background:var(--w);border-color:var(--w);color:#fff;font-weight:600}
+.ui .gap{display:flex;flex-direction:column;gap:6px}
+.ui .rowb{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
+  border-radius:3px;padding:8px 10px;width:100%;text-align:left}
+.ui .rowb.on{border-color:var(--w);background:#F2F8FD}
+.ui .ck{width:18px;height:18px;border-radius:50%;border:1.5px solid #B9C1C5;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.ui .rowb.on .ck{background:var(--w);border-color:var(--w)}
+.ui .pill{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:999px;border:1px solid;line-height:1.6}
+.ui .pill.ind{color:var(--wi);border-color:#BFD9EE;background:#EEF5FB}
+.ui .pill.gr{color:var(--md);border-color:var(--ln);background:#F4F5F1}
+.ui .stamp{display:inline-block;border:1px solid rgba(255,255,255,.72);color:#fff;
+  font-size:9px;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:2px}
+.ui .sheet{background:#EDEEE8;border-radius:14px 14px 0 0;overflow:hidden}
+.ui .grab{width:30px;height:3px;border-radius:2px;background:#CBD1CC;margin:9px auto 2px}
+.ui .shd{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 10px}
+.ui .shd h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.ui .x{width:24px;height:24px;border-radius:50%;background:#E2E5DE;color:var(--md);font-size:11px;
+  display:flex;align-items:center;justify-content:center;flex:none}
+.ui .scrim{background:rgba(20,28,33,.45);padding:18px 0}
+.ui .dlg{background:#fff;border:1px solid var(--ln);border-radius:4px;margin:0 18px;padding:16px}
+.ui .empty{padding:38px 22px;text-align:center}
+.ui .empty p{margin:0;font-size:13.5px;font-weight:600}
+.ui .empty p+p{font-size:11.5px;color:var(--gr);font-weight:400;margin-top:5px}
+.ui .spin{padding:34px 0;text-align:center}
+.ui .spin i{display:inline-block;width:20px;height:20px;border:2px solid var(--w);
+  border-top-color:transparent;border-radius:50%;font-style:normal}
+@media(prefers-reduced-motion:no-preference){.ui .spin i{animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}}
+.ui .toast{position:absolute;left:14px;right:14px;bottom:14px;z-index:60;background:#151C21;color:#fff;
+  font-size:12.5px;padding:10px 13px;border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+
+/* 行程卡 */
+.ui .tcard{margin:11px 14px 0;background:#fff;padding:4px;border:1px solid var(--ln);border-radius:3px;
+  display:block;width:calc(100% - 28px);text-align:left}
+.ui .tcard .img{height:150px;position:relative;padding:10px;display:flex;flex-direction:column;
+  justify-content:flex-end;border-radius:2px;overflow:hidden}
+.ui .tcard .sc{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 38%,rgba(0,0,0,.46))}
+.ui .tcard .nm{position:relative;color:#fff;font-size:17px;font-weight:700;letter-spacing:-.01em;margin-top:6px}
+.ui .tcard .dt{position:relative;font-size:10.5px;color:rgba(255,255,255,.9);margin-top:3px;
+  font-variant-numeric:tabular-nums}
+.ui .ghost{margin:11px 14px 0;border:1px solid var(--ln);border-radius:3px;overflow:hidden;opacity:.78;
+  display:block;width:calc(100% - 28px)}
+.ui .ghost div{height:60px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#DCDED6,#C9CDC3);font-size:13.5px;color:#5C6660}
+.ui .avatar{width:28px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;background:#fff;border:1px solid var(--ln);flex:none;overflow:hidden}
+.ui .avatar.letter{color:#fff;font-size:13px;font-weight:700;border-color:transparent}
+.ui .avatar input{width:100%;height:100%;text-align:center;padding:0;border:0;background:#fff;font-size:15px}
+.ui .tone{width:32px;height:32px;border-radius:3px;flex:none}
+.ui .tone.on{outline:2px solid var(--w);outline-offset:1px}
+.ui .drop{margin-top:6px;border:1px solid var(--ln);background:#fff;border-radius:3px;
+  max-height:190px;overflow-y:auto}
+.ui .drop button{width:100%;padding:8px 10px;font-size:12px;display:flex;justify-content:space-between;
+  border-bottom:1px solid #F1F2EE;text-align:left}
+.ui .drop button:last-child{border-bottom:0}
+.ui .drop button.on{color:var(--wi);font-weight:600}
+footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
+  color:var(--pgink3);font-size:12.5px;font-family:var(--mono)}
+</style>
+
+<div class="top">
+  <span class="nm">Tripay 原型</span>
+  <span class="bt">批一 · S-00 / S-01 / S-02 / S-02b</span>
+  <span class="copied" id="copied">已複製 ✓</span>
+  <div class="modesw" id="modesw">
+    <button data-m="anno">標註模式</button>
+    <button data-m="op">操作模式</button>
+  </div>
+</div>
+
+<div class="wrap">
+<header>
+  <h1>唯一的原型：視覺稿與可點原型合成一份</h1>
+  <p>套用已定案的日記精裝視覺（工作色富士青、紙 <code>#EDEEE8</code>、等寬只用於金額）。
+    <b>標註模式</b>會浮出每個區塊的編號徽章與虛線框，<b>點徽章可複製編號</b>；
+    <b>操作模式</b>把標註全部收起來，純粹操作。預設標註模式。</p>
+  <div class="callout">
+    <b>本輪只做批一</b>（S-00 登入、S-01 首頁、S-02 建立行程、S-02b 編輯行程）。
+    這四頁之間是<b>真的連動的</b>——在 S-02 建一趟，S-01 的列表就會多一張卡；
+    在 S-02b 改成員或色調，卡片跟著變。
+  </div>
+  <div class="callout">
+    <b>編號沿用盤點表，不重編。</b>已移除的項目（S-00-1、S-00-6、S-01-9、S-01-10、S-02-5、S-02b-6）
+    不出現在原型上，號碼也不回收。<b>看不見的行為</b>（排序、列表過濾、登入後跳轉）沒有區塊可標，
+    在右側清單標為「隱形」。
+  </div>
+</header>
+
+<!-- ══════════ S-00 ══════════ -->
+<section class="scr" id="s00">
+  <div class="scrhd"><span class="k">S-00</span><h2>登入</h2>
+    <p>未登入者唯一入口，整頁只有一個動作。底色改為工作色富士青的深夜版——情緒由大面積底色承擔。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/login</p>
+    <div class="ph"><div class="ui" id="scr-s00"></div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 7 項（2 項已移除）</p><div class="idx" id="idx-s00"></div></div>
+</section>
+
+<!-- ══════════ S-01 ══════════ -->
+<section class="scr" id="s01">
+  <div class="scrhd"><span class="k">S-01</span><h2>首頁 · 行程列表</h2>
+    <p>依決策 22 <b>不顯示任何金額</b>，日期是唯一的數字。卡片上不放行程 emoji、不放成員列
+      （成員只在行程內頁以後才出現）。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/</p>
+    <div class="ph"><div class="ui" id="scr-s01"></div></div>
+    <div class="rig"><div class="t">原型控制（不是產品的一部分）</div>
+      <div class="row" id="s01state">
+        <button data-s="list">有行程</button><button data-s="empty">空狀態</button><button data-s="loading">載入中</button>
+      </div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 14 項（2 項已移除、2 項隱形）</p><div class="idx" id="idx-s01"></div></div>
+</section>
+
+<!-- ══════════ S-02 ══════════ -->
+<section class="scr" id="s02">
+  <div class="scrhd"><span class="k">S-02</span><h2>建立行程</h2>
+    <p>底部彈出 sheet。<b>可以真的建立</b>——填完按「出發！」，回到 S-01 就會看到新卡片。
+      封面 emoji 已取消，改為依行程名自動套目的地色調（打「沖繩」「京都」試試）。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/trips/new</p>
+    <div class="ph"><div class="ui" id="scr-s02"></div></div>
+    <div class="rig"><div class="t">原型控制</div>
+      <div class="row"><button id="s02reset">重來一張空表</button><button id="s02prefill">帶上一趟成員（G-09）</button></div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 20 項（1 項已移除）</p><div class="idx" id="idx-s02"></div></div>
+</section>
+
+<!-- ══════════ S-02b ══════════ -->
+<section class="scr" id="s02b">
+  <div class="scrhd"><span class="k">S-02b</span><h2>編輯行程 · 封面與支付方式</h2>
+    <p>與 S-02 同一個元件，差別列在右表。封面只有<b>照片</b>與<b>色調</b>兩種，色調是 8 種預設盤、不是挑色器。
+      已有消費紀錄的成員不能移除。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/trips/:id/edit</p>
+    <div class="ph"><div class="ui" id="scr-s02b"></div></div>
+    <div class="rig"><div class="t">原型控制</div>
+      <div class="row" id="s02bpick"></div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 11 項（1 項已移除）</p><div class="idx" id="idx-s02b"></div></div>
+</section>
+
+<footer>
+  Tripay · 唯一原型 · 批一（S-00／S-01／S-02／S-02b）· 2026-09-04<br>
+  下一批：S-03 行程頁、S-04 記帳表單、S-05 結算
+</footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   共用資料與工具
+   ═══════════════════════════════════════════════════════════ */
+const TONES = [
+  { k:'北海道', kw:['北海道','小樽','札幌','富良野'], g:'linear-gradient(160deg,#5B8FA8,#3A6E8C 35%,#8B5E52 75%,#6B4A3E)' },
+  { k:'濟州',   kw:['濟州','济州'],                    g:'linear-gradient(160deg,#1E4C6B,#2D6A8A 35%,#3D7A6A 65%,#2A5050)' },
+  { k:'首爾',   kw:['首爾','韓國','首尔'],             g:'linear-gradient(160deg,#8B6914,#6B4E2E 40%,#3A5A6B 70%,#2D4A5E)' },
+  { k:'東京',   kw:['東京','富士山'],                  g:'linear-gradient(160deg,#6BAED6,#4A90B8 30%,#2E6A9B 60%,#5B8FA8)' },
+  { k:'福岡',   kw:['福岡','博多','由布院','別府'],     g:'linear-gradient(160deg,#7A4B3A,#A8663F 35%,#C98A4B 70%,#5E3A2E)' },
+  { k:'沖繩',   kw:['沖繩','冲绳','那霸'],             g:'linear-gradient(160deg,#1B7A8C,#2FA3A8 35%,#7FD1C1 70%,#2E6B6B)' },
+  { k:'京都',   kw:['京都','大阪','關西'],             g:'linear-gradient(160deg,#6B2B3A,#9A4A4A 40%,#C08552 75%,#4A2A2E)' },
+  { k:'台灣',   kw:['台東','花蓮','墾丁','台南','台灣'],g:'linear-gradient(160deg,#2E6B4A,#4A9A6B 40%,#9AC98A 75%,#2A4A38)' },
+];
+const FALLBACK_TONE = 'linear-gradient(148deg,#1A3558,#2B5590 42%,#684533)';
+function toneFor(name, forced) {
+  if (forced != null) return TONES[forced].g;
+  for (const t of TONES) if (t.kw.some(k => (name||'').includes(k))) return t.g;
+  return FALLBACK_TONE;
+}
+const CURRENCIES = [
+  ['JPY','日圓','¥'],['TWD','台幣','$'],['KRW','韓元','₩'],['USD','美元','$'],['EUR','歐元','€'],
+  ['HKD','港幣','HK$'],['SGD','新幣','S$'],['THB','泰銖','฿'],['CNY','人民幣','¥'],['AUD','澳幣','A$'],
+  ['GBP','英鎊','£'],['MYR','馬來幣','RM'],['VND','越南盾','₫'],['PHP','菲律賓披索','₱'],
+  ['IDR','印尼盾','Rp'],['INR','印度盧比','₹'],['CAD','加拿大幣','C$'],['CHF','瑞士法郎','Fr'],
+];
+const LETTER_COLORS = ['#2D6A8A','#A8663F','#4A9A6B','#6B4E2E','#9A4A4A','#3A6E8C'];
+
+/* 取第一個 grapheme（ZWJ 組合、膚色修飾、國旗都不切斷） */
+function firstGrapheme(s) {
+  s = (s || '').trim(); if (!s) return '';
+  if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+    for (const seg of new Intl.Segmenter('zh', { granularity:'grapheme' }).segment(s)) return seg.segment;
+  }
+  return Array.from(s)[0] || '';
+}
+const today = () => new Date().toISOString().slice(0,10);
+const md = d => d ? `${+d.slice(5,7)}/${+d.slice(8,10)}` : '';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = s => document.querySelector(s);
+let uid = 100; const nid = () => 'x' + (++uid);
+
+/* ═══ 狀態（S-01 / S-02 / S-02b 共用同一份 mock store）═══ */
+const store = {
+  trips: [
+    { id:'t1', name:'2026 濟州島四寶團', start:'2026-03-14', end:'2026-03-18', status:'active',  tone:null,
+      currency:'KRW', members:[m('🐵','Rozi',1),m('🐱','小美'),m('🍋','阿明'),m('🐟','小魚')], owner:0,
+      pays:['現金','信用卡'], usedPays:{'現金':3,'信用卡':12} },
+    { id:'t2', name:'2024 東京富士山五寶團', start:'2024-11-02', end:'2024-11-08', status:'settled', tone:null,
+      currency:'JPY', members:[m('🐵','Rozi'),m('🐱','小美'),m('🍋','阿明'),m('🐟','小魚'),m('🐰','小兔')], owner:0,
+      pays:['現金','信用卡'], usedPays:{} },
+    { id:'t3', name:'2023 福岡三人行', start:'2023-04-06', end:'2023-04-11', status:'archived', tone:null,
+      currency:'JPY', members:[m('🐵','Rozi'),m('🐱','小美'),m('🍋','阿明')], owner:0,
+      pays:['現金'], usedPays:{} },
+  ],
+  s01: 'list',
+};
+function m(emoji, name, used) { return { id:nid(), emoji, name, used: used||0 }; }
+
+function statusOf(t) {
+  if (t.status === 'settled') return 'settled';
+  if (t.status === 'archived') return 'archived';
+  return today() < t.start ? 'planned' : 'active';
+}
+const STATUS_LABEL = { planned:'出發前', active:'旅途中', settled:'已結算', archived:'已封存' };
+function dateRange(s, e) {
+  const y = s.slice(0,4);
+  return e && e !== s ? `${md(s)} – ${md(e)} · ${y}` : `${md(s)} · ${y}（單日）`;
+}
+
+/* 成員識別：三層 fallback（S-02c-10 的規則，批一先用上）*/
+function avatar(mem, idx, editable, ctx) {
+  const key = ctx ? `${ctx}:${mem.id}` : mem.id;
+  if (editing === key) return `<span class="avatar"><input type="text" data-avin="${key}" value="" maxlength="4" autofocus></span>`;
+  const click = editable ? ` data-av="${key}"` : '';
+  if (mem.emoji) return `<button class="avatar"${click}>${mem.emoji}</button>`;
+  const g = firstGrapheme(mem.name);
+  if (g) return `<button class="avatar letter" style="background:${LETTER_COLORS[idx % LETTER_COLORS.length]}"${click}>${esc(g)}</button>`;
+  return `<button class="avatar"${click}>🙂</button>`;
+}
+let editing = null;
+
+/* 徽章 */
+function b(id, html, cls) {
+  return `<div class="b ${cls||''}"><span class="bdg" data-copy="${id}">${id}</span>${html}</div>`;
+}
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   S-00 登入
+   ═══════════════════════════════════════════════════════════ */
+function renderS00() {
+  $('#scr-s00').innerHTML = `
+    <div style="background:linear-gradient(158deg,#0B2233 0%,#0F5E9E 48%,#1276C4 100%);
+      padding:64px 26px 30px;display:flex;flex-direction:column;align-items:center;min-height:520px">
+      ${b('S-00-2', `<div style="color:#fff;font-size:42px;font-weight:700;letter-spacing:-.03em;line-height:1">Tripay</div>`)}
+      ${b('S-00-3', `<div style="color:rgba(255,255,255,.8);font-size:13px;letter-spacing:.32em;margin-top:12px">每一趟，都記得</div>`)}
+      ${b('S-00-4', `<div style="color:rgba(255,255,255,.66);font-size:13.5px;text-align:center;max-width:200px;margin-top:28px">大家一起出發，帳交給 Tripay。</div>`)}
+      <div style="height:34px"></div>
+      ${b('S-00-5', `<button id="s00login" style="width:250px;height:46px;background:#fff;border-radius:3px;
+        display:flex;align-items:center;justify-content:center;gap:9px;font-size:13.5px;font-weight:600;color:#151C21">
+        <span style="font-size:15px">◉</span> 用 Google 帳號繼續</button>`)}
+      <div style="flex:1;min-height:24px"></div>
+      <div style="color:rgba(255,255,255,.4);font-size:10px;text-align:center;line-height:1.5">
+        移除了 App icon 與幽靈卡<br>識別由字標與 slogan 承擔</div>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   S-01 首頁
+   ═══════════════════════════════════════════════════════════ */
+function renderS01() {
+  const head = `${b('S-01-1', `<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 11px;border-bottom:1px solid var(--ln)">
+      <span style="font-size:21px;font-weight:700;letter-spacing:-.02em;color:var(--wi)">Tripay</span>
+      ${b('S-01-2', `<button id="s01new" style="background:var(--w);color:#fff;font-size:12px;font-weight:600;padding:7px 12px;border-radius:3px">＋ 新增行程</button>`, 'rt')}
+    </div>`)}`;
+
+  let body = '';
+  if (store.s01 === 'loading') {
+    body = b('S-01-3', `<div class="spin"><i></i><div style="font-size:11px;color:var(--gr);margin-top:8px">載入中</div></div>`);
+  } else if (store.s01 === 'empty') {
+    body = b('S-01-4', `<div class="empty"><p>還沒有行程。</p><p>第一趟要去哪？</p>
+      <button id="s01empty" class="btn" style="width:auto;padding:9px 18px;margin-top:14px;display:inline-block">＋ 建立第一趟</button></div>`);
+  } else {
+    // 排序：出發日新→舊（S-01-11，隱形行為）
+    const list = [...store.trips].sort((a,c) => c.start.localeCompare(a.start));
+    body = list.map(t => {
+      const st = statusOf(t);
+      const dim = st === 'archived' ? 'filter:saturate(.5) brightness(.9);' : '';
+      const card = `<button class="tcard" data-open="${t.id}">
+        <div class="img" style="background:${toneFor(t.name, t.tone)};${dim}">
+          <div class="sc"></div>
+          ${b('S-01-6', `<span style="position:relative;width:fit-content;display:block"><span class="stamp">${STATUS_LABEL[st]}</span></span>`)}
+          <div class="nm">${esc(t.name)}</div>
+          <div class="dt">${dateRange(t.start, t.end)}</div>
+        </div></button>`;
+      return st === 'archived' ? b('S-01-7', card) : b('S-01-5', card);
+    }).join('');
+    body += b('S-01-8', `<button class="ghost" id="s01ghost"><div>你的下一趟在哪？</div></button>`);
+    body += `<div style="height:18px"></div>
+      <div style="font-size:10px;color:var(--gr);text-align:center;padding-bottom:12px">
+        列表到此結束。首頁沒有固定底部操作列</div>`;
+  }
+  $('#scr-s01').innerHTML = head + body + `<div id="s01sheet"></div>`;
+  document.querySelectorAll('#s01state button').forEach(x => x.classList.toggle('on', x.dataset.s === store.s01));
+}
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   S-02 建立行程 / S-02b 編輯行程（同一個元件）
+   ═══════════════════════════════════════════════════════════ */
+let f = null;            // 建立表單
+let fb = null;           // 編輯表單
+let editTripId = 't1';
+
+function blankForm(prefill) {
+  return { name:'', currency:'JPY', start:today(), end:'', members: prefill ? prefill.map(x => m(x.emoji, x.name)) : [],
+           owner:null, showCur:false, curQ:'', adding:false, newName:'', errs:{}, dlg:false, prefilled:!!prefill };
+}
+function tripToForm(t) {
+  return { name:t.name, currency:t.currency, start:t.start, end:t.end,
+           members:t.members.map(x => ({...x})), owner:t.owner, showCur:false, curQ:'',
+           adding:false, newName:'', errs:{}, tone:t.tone, pays:[...t.pays], usedPays:t.usedPays,
+           newPay:'', photo:t.photo || null, tonePick:false };
+}
+
+function memberRows(form, ctx) {
+  // 徽章只掛在第一列（代表整組），避免每一列都掛一顆把版面塞爆
+  const av = ctx === 'f' ? 'S-02-13' : 'S-02b-7';
+  const rmId = 'S-02-14';
+  return form.members.map((mem, i) => {
+    const isMe = form.owner === i;
+    const used = mem.used > 0;
+    const avHtml = avatar(mem, i, true, ctx);
+    const rmHtml = `<button data-rm="${ctx}:${i}" style="font-size:12px;color:${used?'#CDD3D0':'var(--gr)'};width:20px">✕</button>`;
+    return `<div class="rowb ${isMe?'on':''}" data-me="${ctx}:${i}">
+      <span class="ck">${isMe?'✓':''}</span>
+      ${i === 0 ? b(av, avHtml, 'inl') : avHtml}
+      <span style="flex:1;font-size:13px;font-weight:600">${esc(mem.name)}</span>
+      ${isMe ? '<span class="pill ind">這是我</span>' : ''}
+      ${i === 0 && ctx === 'f' ? b(rmId, rmHtml, 'inl') : rmHtml}
+    </div>`;
+  }).join('');
+}
+
+function currencyBlock(form, ctx) {
+  const cur = CURRENCIES.find(c => c[0] === form.currency) || CURRENCIES[0];
+  const q = form.curQ.trim().toLowerCase();
+  const list = CURRENCIES.filter(c => !q || c[0].toLowerCase().includes(q) || c[1].includes(form.curQ));
+  return b('S-02-7', `<div class="fld"><span class="lbl">當地幣別</span>
+    <button data-curtoggle="${ctx}" style="width:100%;background:#fff;border:1px solid var(--ln);border-radius:3px;
+      padding:9px 10px;font-size:13px;display:flex;justify-content:space-between;text-align:left">
+      <span>${cur[0]} · ${cur[1]}</span><span style="color:var(--gr)">▾</span></button>
+    ${form.showCur ? b('S-02-8', `<div class="drop">
+      <div style="padding:8px;border-bottom:1px solid var(--ln)">
+        <input type="text" data-curq="${ctx}" value="${esc(form.curQ)}" placeholder="搜尋幣別名稱或代碼" style="padding:6px 8px;font-size:12px">
+      </div>
+      ${list.map(c => `<button data-cur="${ctx}:${c[0]}" class="${c[0]===form.currency?'on':''}"><span>${c[0]} · ${c[1]}</span><span style="color:var(--gr)">${c[2]}</span></button>`).join('')
+        || '<div style="padding:10px;font-size:12px;color:var(--gr)">找不到</div>'}
+      <div style="padding:6px 10px;font-size:9.5px;color:var(--gr);border-top:1px solid #F1F2EE">共 18 種可搜尋</div>
+    </div>`) : ''}
+  </div>`);
+}
+
+function renderS02() {
+  if (!f) f = blankForm();
+  const tone = toneFor(f.name);
+  $('#scr-s02').innerHTML = `
+    ${b('S-02-1', `<div class="scrim" style="padding:12px 0 0"><div style="font-size:10px;color:rgba(255,255,255,.7);text-align:center;padding-bottom:8px">遮罩 · 點擊關閉</div></div>`)}
+    <div class="sheet">
+      ${b('S-02-2', `<div class="grab"></div>`)}
+      ${b('S-02-3', `<div class="shd"><h3>這趟去哪？</h3>${b('S-02-4', `<button class="x" id="s02x">✕</button>`, 'rt')}</div>`)}
+
+      ${b('S-02-6', `<div class="fld"><span class="lbl">去哪？</span>
+        <input type="text" id="s02name" value="${esc(f.name)}" placeholder="例如：沖繩四人行">
+        ${b('S-02-19', `<p class="hint">封面會依行程名自動套目的地色調，建立後可在「編輯行程」換成照片</p>`)}
+        <div style="margin-top:7px;height:44px;border-radius:3px;background:${tone}"></div>
+        ${f.errs.name ? `<p class="err">${f.errs.name}</p>` : ''}
+      </div>`)}
+
+      ${currencyBlock(f, 'f')}
+
+      ${b('S-02-9', `<div class="fld"><div style="display:flex;gap:9px">
+        <div style="flex:1"><span class="lbl">出發</span><input type="date" id="s02start" value="${f.start}">
+          <p class="hint">預設今天</p></div>
+        <div style="flex:1"><span class="lbl">回程</span><input type="date" id="s02end" value="${f.end}" min="${f.start}">
+          <p class="hint">可留空＝當天來回</p></div>
+      </div>${f.errs.start ? `<p class="err">${f.errs.start}</p>` : ''}</div>`)}
+
+      ${b('S-02-10', `<div class="fld"><span class="lbl">誰一起去？</span>
+        <p class="hint" style="margin:0 0 8px">點成員，標記哪位是你</p>
+        ${f.prefilled && f.members.length ? b('S-02-11', `<p style="font-size:11px;color:var(--wi);margin:0 0 8px">已帶入上一趟的成員，可以改</p>`) : ''}
+        ${b('S-02-12', `<div class="gap">${memberRows(f, 'f')}</div>`)}
+        ${f.errs.members ? `<p class="err">${f.errs.members}</p>` : ''}
+        ${f.adding
+          ? b('S-02-15', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+              <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:var(--md)">加一個人</p>
+              <input type="text" id="s02newname" value="${esc(f.newName)}" placeholder="叫什麼名字？" maxlength="10">
+              <p class="hint" style="margin-bottom:8px">最多 10 個字。<b>不用挑 emoji</b>——沒填就用名字第一個字</p>
+              <div style="display:flex;gap:7px"><button class="btn qt" id="s02addcancel">取消</button><button class="btn" id="s02adddo">加進來</button></div>
+            </div>`)
+          : b('S-02-16', `<button id="s02add" style="margin-top:9px;width:100%;border:1px dashed #B9C1BB;border-radius:3px;padding:9px;font-size:12.5px;color:var(--md);font-weight:600">＋ 新增成員</button>`)}
+      </div>`)}
+
+      ${b('S-02-17', `<div class="fld"><p class="hint" style="margin:0">標記哪位是你，統計卡的「我的花費」就會算你這一份。</p></div>`)}
+      ${b('S-02-18', `<div class="btnrow"><button class="btn gh" id="s02cancel">取消</button><button class="btn" id="s02go">出發！</button></div>`)}
+    </div>
+    ${f.dlg ? b('S-02-20', `<div class="scrim"><div class="dlg">
+      <p style="margin:0 0 6px;font-size:14px;font-weight:700;text-align:center">〔文案佔位〕這是單日行程嗎？</p>
+      <p style="margin:0 0 12px;font-size:12px;color:var(--md);text-align:center;line-height:1.5">回程沒填。確認的話就以 ${md(f.start)} 當天來回建立。</p>
+      <div style="display:flex;gap:8px"><button class="btn qt" id="s02dlgno">回去填回程</button><button class="btn" id="s02dlgyes">是，單日</button></div>
+    </div></div>`) : ''}
+    <div id="s02toast"></div>`;
+}
+</script>
+
+<script>
+/* ═══ S-02b 編輯行程 ═══ */
+function renderS02b() {
+  const t = store.trips.find(x => x.id === editTripId);
+  if (!fb || fb._id !== editTripId) { fb = tripToForm(t); fb._id = editTripId; }
+  const tone = fb.photo ? null : toneFor(fb.name, fb.tone);
+
+  $('#scr-s02b').innerHTML = `
+    <div class="sheet" style="border-radius:0">
+      ${b('S-02b-1', `<div class="shd" style="padding-top:14px"><h3>編輯行程</h3><button class="x">✕</button></div>`)}
+
+      ${b('S-02b-2', `<div class="fld"><span class="lbl">封面</span>
+        <div style="border:1px solid var(--ln);border-radius:3px;background:#fff;padding:4px">
+          <div style="height:104px;border-radius:2px;position:relative;overflow:hidden;
+            background:${fb.photo ? '#3A4750' : tone}">
+            ${fb.photo ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+              color:rgba(255,255,255,.7);font-size:12px">（示意）已上傳的照片</div>` : ''}
+            <div style="position:absolute;left:9px;bottom:8px;font-size:10px;color:rgba(255,255,255,.94)">
+              目前：${fb.photo ? '自訂照片' : '目的地色調'}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:7px;margin-top:8px">
+          ${b('S-02b-3', `<button class="btn gh" id="s02bphoto" style="padding:8px 0">更換照片</button>`)}
+          ${b('S-02b-4', `<button class="btn qt" id="s02btone" style="padding:8px 0">重選色調</button>`)}
+        </div>
+        ${fb.tonePick ? b('S-02b-10', `<div style="margin-top:9px">
+          <p class="hint" style="margin:0 0 6px">色調＝目的地色系預設盤（<b>8 種</b>）。不做色票挑色器</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${TONES.map((x,i) => `<button class="tone ${fb.tone===i?'on':''}" data-tone="${i}" style="background:${x.g}" title="${x.k}"></button>`).join('')}
+            <button class="tone ${fb.tone===null?'on':''}" data-tone="auto" style="background:${FALLBACK_TONE}" title="自動（依行程名）"></button>
+          </div>
+          <p class="hint">最後一個是「自動依行程名判定」</p></div>`) : ''}
+        ${b('S-02b-5', `<p class="hint">上傳後會自動壓成 webp、長邊 1600px。只有你和拿到分享連結的人看得到。</p>`)}
+      </div>`)}
+
+      ${b('S-02b-11', `<div class="fld"><span class="lbl">這趟的支付方式</span>
+        <div class="gap">${fb.pays.map((p,i) => {
+          const used = fb.usedPays[p] || 0;
+          return `<div class="rowb" style="padding:7px 10px">
+            <span style="color:var(--gr);font-size:12px">⠿</span>
+            <span style="flex:1;font-size:12.5px;font-weight:600">${esc(p)}</span>
+            <span style="font-size:10.5px;color:var(--gr)">${used ? used + ' 筆在用' : '還沒用到'}</span>
+            <button data-rmpay="${i}" style="font-size:12px;color:${used?'#CDD3D0':'var(--gr)'};width:20px">✕</button>
+          </div>`;
+        }).join('')}</div>
+        <div style="display:flex;gap:7px;margin-top:8px">
+          <input type="text" id="s02bnewpay" value="${esc(fb.newPay)}" placeholder="新增一種支付方式" style="flex:1">
+          <button class="btn" id="s02baddpay" style="width:auto;padding:0 14px">加入</button>
+        </div>
+        <p class="hint">預設<b>現金、信用卡</b>，可自訂新增與排序（⠿ 拖曳）。<b>已被使用的不可刪</b></p>
+      </div>`)}
+
+      ${`<div class="fld"><span class="lbl">誰一起去？</span>
+        <div class="gap">${memberRows(fb, 'b')}</div>
+        ${fb.errs.members ? b('S-02b-8', `<p class="hint" style="color:var(--md)">${fb.errs.members}</p>`) : ''}
+      </div>`}
+
+      ${b('S-02b-9', `<div class="btnrow"><button class="btn gh" id="s02bcancel">取消</button><button class="btn" id="s02bsave">儲存</button></div>`)}
+    </div>
+    <div id="s02btoast"></div>`;
+
+  $('#s02bpick').innerHTML = store.trips.map(t =>
+    `<button data-picktrip="${t.id}" class="${t.id===editTripId?'on':''}">${esc(t.name.slice(0,12))}</button>`).join('');
+}
+
+function toast(host, msg) {
+  const el = $(host); if (!el) return;
+  el.innerHTML = `<div class="toast">${esc(msg)}</div>`;
+  setTimeout(() => { if (el) el.innerHTML = ''; }, 2600);
+}
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   編號清單
+   ═══════════════════════════════════════════════════════════ */
+const INDEX = {
+  s00: [
+    ['S-00-1','App icon','del','已移除：App 未設計 logo，不放代用圖示'],
+    ['S-00-2','Tripay 字標','st','42px 系統字，識別主體'],
+    ['S-00-3','Slogan','st','「每一趟，都記得」，拉開字距'],
+    ['S-00-4','Tagline','st','「大家一起出發，帳交給 Tripay。」'],
+    ['S-00-5','Google 登入鈕','op','整頁唯一動作，可點（原型只跳提示）'],
+    ['S-00-6','G-02 幽靈卡','del','已移除：登入頁不可點卻長得可點，稀釋唯一動作'],
+    ['S-00-7','G-01 登入後跳轉','inv','無行程時自動開 S-02。看不見的行為，無區塊'],
+  ],
+  s01: [
+    ['S-01-1','標題列','st','Tripay 字標，不吸頂'],
+    ['S-01-2','＋ 新增行程','op','開 S-02 建立表單'],
+    ['S-01-3','載入中','st','置中轉圈（用右側原型控制切換）'],
+    ['S-01-4','空狀態','op','「還沒有行程」＋<b>已補上 CTA</b>（讀碼發現 #11）'],
+    ['S-01-5','行程卡','op','目的地色調＋壓暗遮罩，整張可點；<b>無金額、無成員、無 emoji</b>'],
+    ['S-01-6','狀態徽章','st','四態描邊章，由出發日與 status 推導'],
+    ['S-01-7','封存卡樣式','st','整張降飽和'],
+    ['S-01-8','G-02 幽靈卡','op','可點，開 S-02'],
+    ['S-01-9','G-06 分享橫幅','del','已移除：首頁沒有「哪一趟」的 context'],
+    ['S-01-10','「複製連結」鈕','del','已移除：隨 S-01-9 一起'],
+    ['S-01-11','排序','inv','出發日新→舊，同日以建立時間次要排序'],
+    ['S-01-12','列表過濾','inv','只顯示 kind=trip，帳單週期不混進來'],
+    ['S-01-13','成員識別的適用範圍','inv','僅首頁不顯示成員；其他頁照常'],
+    ['S-01-14','行程 emoji 全站退場','inv','卡片右上角 emoji 已拿掉，欄位保留'],
+  ],
+  s02: [
+    ['S-02-1','遮罩','st','黑 45%，點擊關閉'],
+    ['S-02-2','拖曳條','st','純裝飾，不能真的拖'],
+    ['S-02-3','標題','st','「這趟去哪？」'],
+    ['S-02-4','關閉 ✕','op','關閉 sheet'],
+    ['S-02-5','封面 emoji','del','已移除：改為依行程名自動套目的地色調'],
+    ['S-02-6','行程名稱','op','必填。<b>打字即時換下方色調預覽</b>（試「沖繩」「京都」）'],
+    ['S-02-7','幣別選擇','op','點開下拉'],
+    ['S-02-8','幣別搜尋','op','可搜代碼或名稱，共 18 種'],
+    ['S-02-9','出發／回程','op','出發預設今天；<b>回程可留空</b>'],
+    ['S-02-10','成員區標題','st','「誰一起去？／點成員，標記哪位是你」'],
+    ['S-02-11','G-09 預填提示','op','用右側控制載入上一趟成員時才出現'],
+    ['S-02-12','成員列 · 這是我','op','整列可點切換，再點一次取消'],
+    ['S-02-13','成員識別圓圈','op','<b>就地編輯</b>：點圓圈變單字輸入，輸入即存、收合'],
+    ['S-02-14','移除成員 ✕','op','建立模式一律可移除'],
+    ['S-02-15','新增成員展開表單','op','只要名字，<b>不必挑 emoji</b>'],
+    ['S-02-16','＋ 新增成員','op','展開上一項'],
+    ['S-02-17','說明文','st','只在建立模式顯示'],
+    ['S-02-18','取消／出發！','op','<b>真的會建立</b>，S-01 立刻多一張卡'],
+    ['S-02-19','封面說明句','st','說明自動色調，不是控制項'],
+    ['S-02-20','單日行程確認','op','回程留空按「出發！」才出現'],
+  ],
+  s02b: [
+    ['S-02b-1','標題','st','「編輯行程」'],
+    ['S-02b-2','封面照片欄','op','有照片顯示照片，無則顯示目的地色調'],
+    ['S-02b-3','更換照片','op','原型以示意色塊代替真實上傳'],
+    ['S-02b-4','重選色調','op','展開 8 種預設盤'],
+    ['S-02b-5','上傳說明','st','壓縮規格與可見範圍'],
+    ['S-02b-6','封面 emoji','del','已移除：封面只有照片與色調兩種'],
+    ['S-02b-7','成員列（唯讀態）','op','已有紀錄的成員 ✕ 呈 disabled'],
+    ['S-02b-8','移除被擋的訊息','op','點 disabled 的 ✕ 才出現，用中性色不用橘紅'],
+    ['S-02b-9','儲存','op','寫回 store，S-01 的卡片跟著變'],
+    ['S-02b-10','色調預設盤','op','8 種＋1 個「自動依行程名」'],
+    ['S-02b-11','這趟的支付方式','op','可新增；<b>已被使用的不可刪</b>'],
+  ],
+};
+const KIND = { op:['可操作','op'], st:['靜態','st'], inv:['隱形','inv'], del:['已移除','del'] };
+
+function renderIndex() {
+  for (const [k, rows] of Object.entries(INDEX)) {
+    $('#idx-' + k).innerHTML = `<table>
+      <thead><tr><th>編號</th><th>元件</th><th>型態</th><th>說明</th></tr></thead><tbody>
+      ${rows.map(([id, el, kind, desc]) => `<tr class="${kind==='del'?'gone':''}">
+        <td class="n">${id}</td><td class="el">${el}</td>
+        <td><span class="kind ${KIND[kind][1]}">${KIND[kind][0]}</span></td>
+        <td>${desc}</td></tr>`).join('')}
+      </tbody></table>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   模式切換與徽章複製
+   ═══════════════════════════════════════════════════════════ */
+let mode = 'anno';
+function setMode(mNew) {
+  mode = mNew;
+  document.documentElement.classList.toggle('anno', mode === 'anno');
+  [...$('#modesw').children].forEach(x => x.classList.toggle('on', x.dataset.m === mode));
+}
+function copyId(id) {
+  const done = () => { const c = $('#copied'); c.textContent = '已複製 ' + id + ' ✓'; c.classList.add('show');
+    setTimeout(() => c.classList.remove('show'), 1600); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(id).then(done, () => fallback(id, done));
+  } else fallback(id, done);
+}
+function fallback(id, done) {                       // iframe 內 clipboard 可能被擋，退回 execCommand
+  const ta = document.createElement('textarea');
+  ta.value = id; ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) {}
+  document.body.removeChild(ta);
+}
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   互動
+   ═══════════════════════════════════════════════════════════ */
+function renderAll() { renderS00(); renderS01(); renderS02(); renderS02b(); }
+
+document.addEventListener('click', ev => {
+  const t = ev.target;
+  const hit = s => t.closest('[' + s + ']');
+
+  // 模式
+  const mb = t.closest('#modesw button'); if (mb) { setMode(mb.dataset.m); return; }
+  const bd = t.closest('.bdg'); if (bd) { copyId(bd.dataset.copy); return; }
+
+  // 原型控制
+  const ss = t.closest('#s01state button');
+  if (ss) { store.s01 = ss.dataset.s; renderS01(); return; }
+  if (t.closest('#s02reset'))   { f = blankForm(); renderS02(); return; }
+  if (t.closest('#s02prefill')) { f = blankForm(store.trips[0].members); f.owner = 0; renderS02(); return; }
+  const pt = hit('data-picktrip'); if (pt) { editTripId = pt.dataset.picktrip; fb = null; renderS02b(); return; }
+
+  // S-00
+  if (t.closest('#s00login')) { alert('原型不做真的登入。實際會走 Google OAuth，登入後若沒有任何行程就自動開 S-02。'); return; }
+
+  // S-01
+  if (t.closest('#s01new') || t.closest('#s01ghost') || t.closest('#s01empty')) {
+    f = blankForm(); renderS02();
+    document.getElementById('s02').scrollIntoView({ behavior:'smooth', block:'start' }); return;
+  }
+  const op = hit('data-open');
+  if (op) { editTripId = op.dataset.open; fb = null; renderS02b();
+    document.getElementById('s02b').scrollIntoView({ behavior:'smooth', block:'start' }); return; }
+
+  // 成員識別圓圈：就地編輯
+  const av = hit('data-av');
+  if (av) { editing = av.dataset.av; renderS02(); renderS02b();
+    const inp = document.querySelector(`[data-avin="${editing}"]`); if (inp) inp.focus(); return; }
+
+  // 幣別
+  const ct = hit('data-curtoggle');
+  if (ct) { const form = ct.dataset.curtoggle === 'f' ? f : fb; form.showCur = !form.showCur; form.curQ = '';
+    ct.dataset.curtoggle === 'f' ? renderS02() : renderS02b(); return; }
+  const cc = hit('data-cur');
+  if (cc) { const [ctx, code] = cc.dataset.cur.split(':'); const form = ctx === 'f' ? f : fb;
+    form.currency = code; form.showCur = false; form.curQ = '';
+    ctx === 'f' ? renderS02() : renderS02b(); return; }
+
+  // 成員：這是我 / 移除
+  const me = hit('data-me');
+  if (me && !t.closest('[data-rm]') && !t.closest('[data-av]')) {
+    const [ctx, i] = me.dataset.me.split(':'); const form = ctx === 'f' ? f : fb;
+    form.owner = form.owner === +i ? null : +i;
+    ctx === 'f' ? renderS02() : renderS02b(); return;
+  }
+  const rm = hit('data-rm');
+  if (rm) {
+    const [ctx, i] = rm.dataset.rm.split(':'); const form = ctx === 'f' ? f : fb;
+    const mem = form.members[+i];
+    if (mem.used > 0) { form.errs.members = `${mem.name} 已經有消費或分帳紀錄，不能移除。要拿掉的話，請先刪掉相關消費。`; }
+    else { form.members.splice(+i, 1); form.errs.members = '';
+      if (form.owner === +i) form.owner = null; else if (form.owner > +i) form.owner--; }
+    ctx === 'f' ? renderS02() : renderS02b(); return;
+  }
+
+  // S-02 新增成員
+  if (t.closest('#s02add'))       { f.adding = true;  renderS02(); return; }
+  if (t.closest('#s02addcancel')) { f.adding = false; f.newName = ''; renderS02(); return; }
+  if (t.closest('#s02adddo')) {
+    const n = f.newName.trim();
+    if (n) { f.members.push(m('', n)); f.newName = ''; f.adding = false; f.errs.members = ''; }
+    renderS02(); return;
+  }
+  // S-02 送出
+  if (t.closest('#s02cancel') || t.closest('#s02x')) { f = blankForm(); renderS02(); return; }
+  if (t.closest('#s02go')) {
+    f.errs = {};
+    if (!f.name.trim()) f.errs.name = '這欄還沒填喔';
+    if (!f.start)       f.errs.start = '出發日還沒填喔';
+    if (!f.members.length) f.errs.members = '至少要有一位成員';
+    if (Object.keys(f.errs).length) { renderS02(); return; }
+    if (!f.end) { f.dlg = true; renderS02(); return; }
+    createTrip(); return;
+  }
+  if (t.closest('#s02dlgno'))  { f.dlg = false; renderS02(); return; }
+  if (t.closest('#s02dlgyes')) { f.end = f.start; f.dlg = false; createTrip(); return; }
+
+  // S-02b
+  if (t.closest('#s02btone'))  { fb.tonePick = !fb.tonePick; renderS02b(); return; }
+  if (t.closest('#s02bphoto')) { fb.photo = fb.photo ? null : 'mock'; fb.tonePick = false;
+    renderS02b();   // 先重繪再 toast——toast 容器在重繪範圍內，順序反了會被沖掉
+    toast('#s02btoast', fb.photo ? '（示意）照片已換上。實際會開相簿並壓成 webp' : '已改回目的地色調'); return; }
+  const tn = hit('data-tone');
+  if (tn) { const v = tn.dataset.tone; fb.tone = v === 'auto' ? null : +v; fb.photo = null; renderS02b(); return; }
+  if (t.closest('#s02baddpay')) {
+    const n = fb.newPay.trim();
+    if (n && !fb.pays.includes(n)) { fb.pays.push(n); fb.newPay = ''; }
+    renderS02b(); return;
+  }
+  const rp = hit('data-rmpay');
+  if (rp) { const i = +rp.dataset.rmpay; const p = fb.pays[i];
+    const blocked = (fb.usedPays[p] || 0) > 0;
+    if (!blocked) fb.pays.splice(i, 1);
+    renderS02b();
+    if (blocked) toast('#s02btoast', `「${p}」已經有 ${fb.usedPays[p]} 筆在用，不能刪。可以改成停用。`);
+    return; }
+  if (t.closest('#s02bcancel')) { fb = null; renderS02b(); return; }
+  if (t.closest('#s02bsave')) {
+    const tr = store.trips.find(x => x.id === editTripId);
+    Object.assign(tr, { name:fb.name, currency:fb.currency, tone:fb.tone, photo:fb.photo,
+                        members:fb.members.map(x => ({...x})), owner:fb.owner, pays:[...fb.pays] });
+    toast('#s02btoast', '已儲存。回頭看 S-01 的卡片。');
+    renderS01(); return;
+  }
+});
+
+function createTrip() {
+  const t = { id:nid(), name:f.name.trim(), start:f.start, end:f.end || f.start, status:'planned',
+              tone:null, currency:f.currency, members:f.members.map(x => ({...x})), owner:f.owner,
+              pays:['現金','信用卡'], usedPays:{} };
+  store.trips.push(t);
+  store.s01 = 'list';
+  f = blankForm();
+  renderS02(); renderS01();
+  toast('#s02toast', `「${t.name}」建立好了。往上看 S-01 的列表。`);
+  document.getElementById('s01').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+/* 輸入：只寫 state，不重建正在輸入的欄位（避免游標錯亂／倒序） */
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if (t.id === 's02name')    { f.name = t.value;
+    const prev = document.querySelector('#scr-s02 .fld div[style*="height:44px"]');
+    if (prev) prev.style.background = toneFor(f.name); return; }
+  if (t.id === 's02start')   { f.start = t.value; const e = document.getElementById('s02end'); if (e) e.min = f.start; return; }
+  if (t.id === 's02end')     { f.end = t.value; return; }
+  if (t.id === 's02newname') { f.newName = t.value; return; }
+  if (t.id === 's02bnewpay') { fb.newPay = t.value; return; }
+  const cq = t.dataset.curq;
+  if (cq) { const form = cq === 'f' ? f : fb; form.curQ = t.value;
+    // 只重畫下拉清單，不動搜尋框本身
+    const drop = t.closest('.drop'); if (!drop) return;
+    const q = form.curQ.trim().toLowerCase();
+    const list = CURRENCIES.filter(c => !q || c[0].toLowerCase().includes(q) || c[1].includes(form.curQ));
+    [...drop.querySelectorAll('button[data-cur]')].forEach(x => x.remove());
+    const tail = drop.querySelector('div:last-child');
+    list.forEach(c => { const el = document.createElement('button');
+      el.dataset.cur = cq + ':' + c[0]; el.className = c[0] === form.currency ? 'on' : '';
+      el.innerHTML = `<span>${c[0]} · ${c[1]}</span><span style="color:var(--gr)">${c[2]}</span>`;
+      drop.insertBefore(el, tail); });
+    return; }
+  const ai = t.dataset.avin;
+  if (ai) {
+    const [ctx, id] = ai.split(':'); const form = ctx === 'f' ? f : fb;
+    const mem = form.members.find(x => x.id === id);
+    if (mem) mem.emoji = firstGrapheme(t.value);   // 限一個 grapheme，emoji 或文字皆可
+    editing = null;
+    ctx === 'f' ? renderS02() : renderS02b();
+  }
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Enter' && ev.target.id === 's02newname') { ev.preventDefault();
+    const n = f.newName.trim(); if (n) { f.members.push(m('', n)); f.newName = ''; f.adding = false; } renderS02(); }
+  if (ev.key === 'Escape' && editing) { editing = null; renderS02(); renderS02b(); }
+});
+
+/* 啟動 */
+setMode('anno');
+renderAll();
+renderIndex();
+</script>
