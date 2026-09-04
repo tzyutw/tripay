@@ -311,13 +311,70 @@ const SC=[
 SC.forEach(([n,o,total,debts])=>{
   const c=E(`calc(exp(${JSON.stringify(o)}),tripOf('t1'))`);
   const ids=o.parts||M0, sum=ids.reduce((a,id)=>a+(c.shares[id]||0),0);
-  console.log('  ',n,'→ Σ各人台幣',sum,'｜欠款',c.debts.length);
+  // 註：debts 是「這一筆內部的分攤關係數」，不是結算欠款筆數。
+  // 結算結果由 settleTrip() 決定，見下方 #21 的結算層測試。
+  console.log('  ',n,'→ Σ各人台幣',sum,'｜單筆分攤關係數',c.debts.length);
   ok(sum===total,`${n} 的 Σ各人台幣應等於 ${total}，實際 ${sum}`);
-  ok(c.debts.length===debts,`${n} 的欠款筆數應為 ${debts}，實際 ${c.debts.length}`);
+  ok(c.debts.length===debts,`${n} 的單筆分攤關係數應為 ${debts}，實際 ${c.debts.length}`);
 });
 const s3=E(`calc(exp(${JSON.stringify(SC[2][1])}),tripOf('t1'))`);
 console.log('   情境③ 比例回推:',M0.map(id=>s3.shares[id]).join(','),'（1035×各人韓圜÷45000）');
 ok(s3.shares[M0[0]]===276 && s3.shares[M0[1]]===414,'情境③ 應依 R5 比例回推');
+
+
+console.log('\n=== #21 結算層的帳務規則（驗 settleTrip，不是 calc）===');
+E("tripOf('t1').rateTwd='1'; tripOf('t1').rateFor='45'; store.s03Cur='TWD'");
+const netOf = () => E("(function(){var r=settleTrip('t1');return r.net;})()");
+const txOf  = () => E("settleTrip('t1').tx.length");
+const sumNet = n => Object.values(n).reduce((a,b)=>a+b,0);
+
+// 基準：兩筆一般消費
+E(`(function(){var M=M0;
+  store.expenses.t1=[
+    exp({title:'烤肉',twdAmt:'3308',pay:'card',type:'shared',parts:M,payer:M[0]}),
+    exp({title:'汗蒸幕',twdAmt:'1240',pay:'card',type:'shared',parts:[M[1],M[3]],payer:M[1]}),
+  ];})()`);
+const base = netOf(), baseTx = txOf();
+console.log('   基準淨額:', JSON.stringify(base), '｜轉帳', baseTx, '筆');
+ok(sumNet(base)===0, 'Σ 淨額必須為 0，實際 ' + sumNet(base));
+
+// R10：加一筆 onSpot 後，每人淨額必須「完全不變」
+E(`(function(){var M=M0;
+  store.expenses.t1.push(exp({title:'機場接送',twdAmt:'1600',pay:'cash',type:'shared',parts:M,payer:M[0],onSpot:true}));})()`);
+const afterSpot = netOf();
+console.log('   加 onSpot 後:', JSON.stringify(afterSpot));
+ok(JSON.stringify(afterSpot)===JSON.stringify(base),
+   'R10：當場各付各的不得影響結算淨額。加入前後應完全相同');
+ok(sumNet(afterSpot)===0,'Σ 淨額必須為 0');
+
+// R7 的結算面：加一筆台幣總額空白的消費，淨額也必須不變
+E(`(function(){var M=M0;
+  store.expenses.t1.push(exp({title:'計程車',twdAmt:'',forAmt:'',pay:'cash',type:'shared',parts:M,payer:M[1]}));})()`);
+const afterPending = netOf();
+console.log('   加 twd_pending 後:', JSON.stringify(afterPending));
+ok(JSON.stringify(afterPending)===JSON.stringify(base),
+   'R7：沒有台幣金額的消費不得進結算，淨額應完全不變');
+ok(sumNet(afterPending)===0,'Σ 淨額必須為 0');
+
+// Σ 淨額恆為 0：再塞各種型別的組合
+E(`(function(){var M=M0;
+  store.expenses.t1.push(
+    exp({title:'藥妝店',twdAmt:'1035',forAmt:'45000',fillCur:'FOR',pay:'card',type:'individual',
+         parts:M,indiv:{[M[0]]:'12000',[M[1]]:'18000',[M[2]]:'15000'},payer:M[2]}),
+    exp({title:'紀念品',twdAmt:'860',pay:'cash',type:'single',parts:[M[3]],payer:M[3]}),
+    exp({title:'贊助',twdAmt:'50000',pay:'cash',type:'shared',parts:M,payer:M[0],sponsor:true}));})()`);
+const mixed = netOf();
+console.log('   混合六筆後:', JSON.stringify(mixed), '｜Σ =', sumNet(mixed));
+ok(sumNet(mixed)===0,'任何組合下 Σ 淨額都必須為 0，實際 ' + sumNet(mixed));
+
+// 結算恆為台幣：切到外幣顯示後，結算數字不得變
+const beforeCur = netOf(), beforeTx = E("JSON.stringify(settleTrip('t1').tx)");
+E("store.s03Cur='FOR'; renderS03()");
+const afterCur = netOf(), afterTx = E("JSON.stringify(settleTrip('t1').tx)");
+console.log('   幣別切到外幣後淨額相同:', JSON.stringify(beforeCur)===JSON.stringify(afterCur));
+ok(JSON.stringify(beforeCur)===JSON.stringify(afterCur),'結算恆為台幣，切換顯示幣別不得改變結算結果');
+ok(beforeTx===afterTx,'轉帳明細也不得因顯示幣別而變');
+E("store.s03Cur='TWD'; store.expenses.t1=demoExpenses(); render()");
 
 console.log('\n=== 徽章 vs 編號清單（批二四頁）===');
 const IDX=E('INDEX'); const seen=new Set();
