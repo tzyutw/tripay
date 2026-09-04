@@ -1,0 +1,614 @@
+<title>分帳模型試用原型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --pg:#141A1E; --pg2:#1B2329; --pg3:#232D34;
+  --pgink:#E8EDF0; --pgink2:#9FB0BA; --pgink3:#6B7C87;
+  --pgrule:#2A353C; --mark:#4EA3E8; --okd:#63B588; --nod:#E0714E;
+  --sans:"PingFang TC","Noto Sans TC","Hiragino Sans",system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+:root[data-theme="light"]{--pg:#E7E9E4;--pg2:#FFF;--pg3:#F2F3EF;--pgink:#151C21;
+  --pgink2:#4C5B64;--pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--okd:#276E45;--nod:#B03A22}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --pg:#E7E9E4;--pg2:#FFF;--pg3:#F2F3EF;--pgink:#151C21;
+  --pgink2:#4C5B64;--pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--okd:#276E45;--nod:#B03A22}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg);color:var(--pgink);font-family:var(--sans);font-size:15px;
+  line-height:1.6;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input{font-family:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 70px}
+h1,h2,h3,h4{margin:0;text-wrap:balance}
+code{font-family:var(--mono);font-size:.88em;color:var(--mark)}
+header{padding:44px 0 22px}
+header h1{font-size:clamp(26px,4vw,36px);font-weight:700;letter-spacing:-.02em}
+header p{margin:12px 0 0;max-width:70ch;color:var(--pgink2);font-size:14.5px}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--mark);margin:0 0 10px}
+.callout{margin-top:16px;padding:14px 18px;background:var(--pg2);border-left:2px solid var(--mark);
+  border-radius:2px;font-size:13.5px;color:var(--pgink2);max-width:76ch}
+.callout b{color:var(--pgink)}
+
+/* 版本切換 */
+.vswitch{display:flex;gap:0;border:1px solid var(--pgrule);border-radius:3px;overflow:hidden;
+  width:fit-content;margin:22px 0 6px}
+.vswitch button{padding:10px 20px;font-size:13.5px;font-weight:600;color:var(--pgink3);background:var(--pg2)}
+.vswitch button.on{background:var(--mark);color:#fff}
+.vnote{font-size:13px;color:var(--pgink2);margin:0 0 20px}
+
+/* 版面 */
+.stage{display:grid;grid-template-columns:390px minmax(0,1fr);gap:28px;align-items:start}
+@media(max-width:900px){.stage{grid-template-columns:1fr}}
+.side{display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--pg2);border:1px solid var(--pgrule);border-radius:3px;padding:16px 18px}
+.panel h3{font-size:14px;font-weight:700;margin-bottom:4px}
+.panel .sub{font-size:12px;color:var(--pgink3);margin:0 0 12px}
+.sticky{position:sticky;top:14px}
+
+/* 情境 */
+.scen{display:flex;flex-direction:column;gap:6px}
+.scen button{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:9px 11px;
+  border:1px solid var(--pgrule);border-radius:3px;background:var(--pg3);font-size:12.5px}
+.scen button:hover{border-color:var(--mark)}
+.scen button.done{opacity:.5}
+.scen .n{font-family:var(--mono);font-size:11px;color:var(--mark);flex:none}
+.scen .t{font-weight:600}
+.scen .d{font-size:11px;color:var(--pgink3);margin-top:1px}
+
+/* 手機 */
+.ph{width:390px;border:1px solid var(--pgrule);border-radius:20px;overflow:hidden;
+  box-shadow:0 18px 40px rgba(0,0,0,.34)}
+.ui{background:#EDEEE8;color:#151C21;font-size:13px;line-height:1.5;
+  --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--ln:#DFE1DA;--gr:#78878F;--md:#4C5B64}
+.ui .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;
+  background:#fff;border-bottom:1px solid var(--ln)}
+.ui .bar h2{font-size:15px;font-weight:700}
+.ui .bar .who{font-size:10.5px;color:var(--gr)}
+.ui .fld{padding:0 14px 14px}
+.ui .lbl{display:block;font-size:11.5px;font-weight:600;color:var(--md);margin-bottom:6px}
+.ui .hint{font-size:10.5px;color:var(--gr);margin:5px 0 0;line-height:1.45}
+.ui input[type=text],.ui input[type=number]{width:100%;background:#fff;border:1px solid var(--ln);
+  border-radius:3px;padding:9px 10px;font-size:13px;color:#151C21;outline:none}
+.ui input:focus{border-color:var(--w)}
+.ui .money{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.ui .seg{display:flex;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
+.ui .seg button{flex:1;padding:8px 0;font-size:12px;background:#fff;color:var(--gr);
+  border-right:1px solid var(--ln)}
+.ui .seg button:last-child{border-right:0}
+.ui .seg button.on{background:var(--w);color:#fff;font-weight:600}
+.ui .chips{display:flex;gap:6px;flex-wrap:wrap}
+.ui .chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--ln);background:#fff;color:var(--md)}
+.ui .chip.on{background:var(--w);border-color:var(--w);color:#fff;font-weight:600}
+.ui .mrow{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
+  border-radius:3px;padding:8px 10px;width:100%;text-align:left}
+.ui .mrow.on{border-color:var(--w);background:#F2F8FD}
+.ui .ck{width:17px;height:17px;border-radius:3px;border:1.5px solid #B9C1C5;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.ui .mrow.on .ck{background:var(--w);border-color:var(--w)}
+.ui .gap{display:flex;flex-direction:column;gap:6px}
+.ui .calc{margin-top:8px;text-align:center;background:#EAF3E9;border:1px solid #C9DFC8;border-radius:3px;
+  padding:8px;font-size:13px;font-weight:600;color:var(--in);font-family:var(--mono);
+  font-variant-numeric:tabular-nums}
+.ui .calc.bad{background:#FBF0EC;border-color:#E8C4B8;color:var(--out)}
+.ui .amtrow{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
+  border-radius:3px;padding:7px 10px}
+.ui .amtrow input{width:106px;text-align:right;background:#F4F5F1;padding:6px 8px;
+  font-family:var(--mono);font-variant-numeric:tabular-nums}
+.ui .btn{width:100%;background:var(--w);color:#fff;font-size:14px;font-weight:600;padding:12px 0;
+  border-radius:3px}
+.ui .btn.gh{background:#fff;color:var(--wi);border:1px solid var(--w)}
+.ui .btn:disabled{opacity:.4;cursor:not-allowed}
+.ui .foot{padding:12px 14px 16px;background:#EDEEE8;border-top:1px solid var(--ln);display:flex;flex-direction:column;gap:8px}
+.ui .expand{border:1px solid var(--w);color:var(--wi);font-size:11.5px;font-weight:600;padding:6px 10px;border-radius:3px}
+.ui .sec{font-size:10.5px;font-weight:600;letter-spacing:.06em;color:var(--gr);padding:12px 14px 5px}
+
+/* 結果 */
+.res dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:13px}
+.res dt{color:var(--pgink3);white-space:nowrap}
+.res dd{margin:0}
+.money2{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.in2{color:var(--okd)} .out2{color:var(--nod)}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--pgrule);
+  color:var(--pgink2)}
+.warnbox{margin-top:10px;padding:9px 11px;background:var(--pg3);border-left:2px solid var(--nod);
+  border-radius:2px;font-size:12px;color:var(--pgink2)}
+.tap{display:flex;align-items:baseline;gap:8px;margin-top:10px}
+.tap b{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:-.02em}
+.tap span{font-size:12px;color:var(--pgink3)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--pgrule);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--pgink3);font-weight:400}
+td.m{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cmp b{font-family:var(--mono);font-size:16px}
+.reset{font-size:12px;color:var(--pgink3);text-decoration:underline;text-underline-offset:3px}
+.empty{font-size:12.5px;color:var(--pgink3);padding:8px 0}
+footer{padding:34px 0 0;margin-top:34px;border-top:1px solid var(--pgrule);
+  color:var(--pgink3);font-size:12.5px;font-family:var(--mono)}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">分帳模型 · 可點原型 · 供 Rozi 試用後裁示</p>
+  <h1>兩版分帳模型，實際點過一遍再決定</h1>
+  <p>你是<b>記帳者</b>——幫全家登記整趟的帳。所以每一筆都要先指定「誰付的」，
+    <b>不會預設是你</b>。兩版都用同一組成員與同五個情境，右邊即時顯示這一筆的結果，
+    並記錄「完成這筆用了幾次點選」，讓兩版可以客觀比較。</p>
+  <div class="callout">
+    <b>這是純前端 mock</b>：不連資料庫、不碰正式環境、不影響 v5 主稿。
+    金額、選人、幣別都可以真的操作。想重來就按各區塊的「重置」。
+  </div>
+
+  <div class="vswitch" id="vsw">
+    <button data-v="v1">版本一 · 維持三型</button>
+    <button data-v="v2">版本二 · 兩個維度</button>
+  </div>
+  <p class="vnote" id="vnote"></p>
+</header>
+
+<div class="stage">
+  <div>
+    <div class="ph"><div class="ui">
+      <div class="bar">
+        <h2>記一筆</h2>
+        <span class="who">記帳者：🐟 Ziyu（Rozi）</span>
+      </div>
+      <div id="form"></div>
+      <div class="foot">
+        <button class="btn" id="save">記下來</button>
+        <button class="btn gh" id="clear">清空這筆</button>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="side">
+    <div class="panel">
+      <h3>五個情境</h3>
+      <p class="sub">點一下載入「標題／金額／幣別」——<b>分帳決定要自己做</b>，那才是要比較的部分。</p>
+      <div class="scen" id="scen"></div>
+    </div>
+
+    <div class="panel res">
+      <h3>這一筆會怎麼算</h3>
+      <p class="sub">邊填邊更新。</p>
+      <div id="live"></div>
+      <div class="tap"><b id="taps">0</b><span>次點選（完成這一筆用掉的）</span></div>
+    </div>
+
+    <div class="panel">
+      <h3>已記下的帳</h3>
+      <p class="sub">下面是把已記的筆數跑一次結算的結果（最小轉帳筆數，與正式引擎同演算法）。</p>
+      <div id="ledger"></div>
+      <div id="settle"></div>
+      <p style="margin:12px 0 0"><button class="reset" id="resetAll">全部清空重來</button></p>
+    </div>
+
+    <div class="panel cmp">
+      <h3>兩版比較</h3>
+      <p class="sub">同樣五個情境，各版累計用了幾次點選。</p>
+      <div id="cmp"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Tripay · 分帳模型試用原型 · 2026-09-04<br>
+  規則集中在原始碼最上方的 <code>RULES</code> 區塊，方便逐條調整
+</footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   RULES —— 兩版的規則全部集中在這裡，要調整規則改這一區就好
+   ═══════════════════════════════════════════════════════════════════════ */
+const RULES = {
+  // 原型示意匯率：結算一律以台幣計，外幣照此換算
+  rate: { TWD: 1, KRW: 0.023 },
+  symbol: { TWD: '$', KRW: '₩' },
+
+  v1: {
+    label: '版本一 · 維持三型',
+    note: '先選「這是哪一型」，三型各自有自己的子區塊。一起分預設全員、要排除人才點開。',
+    types: [
+      { id: 'shared',     label: '一起分' },
+      { id: 'individual', label: '各付各的' },
+      { id: 'single',     label: '只算一個人' },
+    ],
+    sharedDefaultsToAll:   true,   // 一起分預設全員參與
+    sharedExpandToExclude: true,   // 要排除誰時才展開勾選
+    singleDefaultsToPayer: true,   // 「只算一個人」預設帶付款人（可改）
+  },
+
+  v2: {
+    label: '版本二 · 兩個維度',
+    note: '只問兩件事：這筆誰要分、怎麼分。三型退到背後自動判定，只用來下 badge。',
+    whoDefaultsToAll:  true,       // 「誰要分」預設全勾
+    whoAlwaysVisible:  true,       // 成員列常駐，不必先點開
+    hows: [
+      { id: 'even', label: '平均' },
+      { id: 'each', label: '各自金額' },
+    ],
+  },
+
+  // 結算納入規則（兩版共用，與正式引擎一致）
+  settlement: {
+    excludeSettledOnSpot: true,    // 當場各付：記錄但不進結算
+    // 參與者只有一人且就是付款人 → 沒有欠款（等同現行 personal）
+  },
+};
+
+const MEMBERS = [
+  { id: 'ning', emoji: '🍋', name: 'Ning' },
+  { id: 'ziyu', emoji: '🐟', name: 'Ziyu' },
+  { id: 'xiu',  emoji: '🐵', name: 'Xiu'  },
+  { id: 'mei',  emoji: '🐱', name: 'Mei'  },
+];
+const RECORDER = 'ziyu';   // 記帳者。付款人不預設為他
+
+const SCENARIOS = [
+  { n:'①', t:'四人吃飯，Ning 刷卡',        d:'韓式烤肉 · 四個人都吃',            title:'韓式烤肉', amount:'3308',  currency:'TWD' },
+  { n:'②', t:'兩人汗蒸幕，Ziyu 付',        d:'只有 Ziyu 和 Mei 去',              title:'汗蒸幕',   amount:'1240',  currency:'TWD' },
+  { n:'③', t:'藥妝店一起結帳，買各自的',   d:'Xiu 結帳，三個人各買各的 · 韓圜',  title:'藥妝店',   amount:'45000', currency:'KRW' },
+  { n:'④', t:'Mei 個人購物，自己付',       d:'只算 Mei 一個人',                  title:'紀念品',   amount:'860',   currency:'TWD' },
+  { n:'⑤', t:'大家當場各付各的',           d:'機場接送 · 當場就清了',            title:'機場接送', amount:'1600',  currency:'TWD' },
+];
+
+/* ═══ 狀態 ═══ */
+const M = id => MEMBERS.find(m => m.id === id);
+const nm = id => { const m = M(id); return m ? m.emoji + ' ' + m.name : '—'; };
+const allIds = () => MEMBERS.map(m => m.id);
+
+let st, entries = [], taps = 0, tapLog = { v1: [], v2: [] }, version = 'v1', doneScen = { v1: [], v2: [] };
+
+function blank() {
+  return {
+    title: '', amount: '', currency: 'TWD',
+    type: 'shared', excluded: [], expandExclude: false, single: null,
+    who: allIds(), how: 'even',
+    indiv: {}, payer: null, onSpot: false, scen: null,
+  };
+}
+function reset() { st = blank(); taps = 0; render(); }
+
+function tap() { taps++; }
+
+/* ═══ 把兩版的選擇正規化成同一組結果，計算才不會有兩套 ═══ */
+function normalize() {
+  if (version === 'v1') {
+    if (st.type === 'shared')     return { parts: allIds().filter(i => !st.excluded.includes(i)), mode: 'even' };
+    if (st.type === 'individual') return { parts: allIds(), mode: 'each' };
+    return { parts: st.single ? [st.single] : [], mode: 'even' };
+  }
+  return { parts: st.who.slice(), mode: st.how };
+}
+
+function twd(v, cur) { return Math.round(v * RULES.rate[cur]); }
+function fmt(v, cur) { return RULES.symbol[cur] + ' ' + Math.round(v).toLocaleString(); }
+
+function compute() {
+  const { parts, mode } = normalize();
+  const amt = parseFloat(st.amount);
+  const ok = Number.isFinite(amt) && amt > 0 && parts.length > 0 && st.payer;
+  const totalTwd = ok ? twd(amt, st.currency) : 0;
+
+  let shares = {}, filled = 0, allFilled = true;
+  if (mode === 'even' && ok) {
+    const per = Math.round(totalTwd / parts.length);
+    parts.forEach(p => shares[p] = per);
+  } else if (mode === 'each') {
+    parts.forEach(p => {
+      const raw = parseFloat(st.indiv[p]);
+      if (Number.isFinite(raw)) { shares[p] = twd(raw, st.currency); filled += raw; }
+      else { shares[p] = null; allFilled = false; }
+    });
+  }
+
+  const debts = parts
+    .filter(p => p !== st.payer && shares[p])
+    .map(p => ({ from: p, to: st.payer, amount: shares[p] }));
+
+  const noDebt = debts.length === 0;
+  const enters = ok && !st.onSpot && !noDebt;
+
+  let badge = '共同';
+  if (st.onSpot) badge = '當場各付';
+  else if (mode === 'each') badge = '各付各的';
+  else if (parts.length === 1) badge = '只算 ' + (M(parts[0]) ? M(parts[0]).name : '?');
+  else if (parts.length < MEMBERS.length) badge = parts.length + ' 人分';
+
+  // 只有一個參與者、而付款人不是他 —— 現行引擎會把 personal 整筆排除，欠款不會產生
+  const orphan = parts.length === 1 && st.payer && parts[0] !== st.payer;
+
+  return { ok, parts, mode, amt, totalTwd, shares, debts, enters, badge, orphan, filled, allFilled };
+}
+
+/* ═══ 結算（最小轉帳筆數，與正式引擎同演算法）═══ */
+function settle() {
+  const net = {}; MEMBERS.forEach(m => net[m.id] = 0);
+  entries.forEach(e => {
+    if (RULES.settlement.excludeSettledOnSpot && e.onSpot) return;
+    e.debts.forEach(d => { net[d.from] -= d.amount; net[d.to] += d.amount; });
+  });
+  const cred = [], debt = [];
+  Object.entries(net).forEach(([id, v]) => { if (v > 0) cred.push([id, v]); else if (v < 0) debt.push([id, -v]); });
+  cred.sort((a, b) => b[1] - a[1]); debt.sort((a, b) => b[1] - a[1]);
+  const tx = []; let i = 0, j = 0;
+  while (i < debt.length && j < cred.length) {
+    const amt = Math.min(debt[i][1], cred[j][1]);
+    if (amt > 0) tx.push({ from: debt[i][0], to: cred[j][0], amount: amt });
+    debt[i][1] -= amt; cred[j][1] -= amt;
+    if (debt[i][1] === 0) i++;
+    if (cred[j][1] === 0) j++;
+  }
+  return { net, tx };
+}
+</script>
+
+<script>
+/* ═══ 畫面 ═══ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+function memberRow(id, on, act) {
+  const m = M(id);
+  return `<button class="mrow${on ? ' on' : ''}" data-act="${act}" data-id="${id}">
+    <span class="ck">${on ? '✓' : ''}</span><span style="font-size:15px">${m.emoji}</span>
+    <span style="flex:1;font-weight:600">${m.name}</span></button>`;
+}
+
+function renderForm() {
+  const c = compute();
+  const cur = st.currency, sym = RULES.symbol[cur];
+  let h = '';
+
+  h += `<div class="fld" style="padding-top:14px">
+    <label class="lbl">什麼花費？</label>
+    <input type="text" id="f-title" value="${esc(st.title)}" placeholder="例如：韓式烤肉">
+  </div>`;
+
+  h += `<div class="fld">
+    <label class="lbl">金額</label>
+    <div class="seg" style="margin-bottom:7px">
+      ${['TWD','KRW'].map(k => `<button data-act="cur" data-v="${k}" class="${cur===k?'on':''}">${RULES.symbol[k]} ${k==='TWD'?'台幣':'韓圜'}</button>`).join('')}
+    </div>
+    <input type="number" id="f-amt" class="money" value="${esc(st.amount)}" placeholder="0">
+    ${cur !== 'TWD' && c.amt ? `<p class="hint">結算以台幣計 → 約 $ ${twd(c.amt, cur).toLocaleString()}（示意匯率 ${RULES.rate[cur]}）</p>` : ''}
+  </div>`;
+
+  if (version === 'v1') {
+    h += `<div class="fld"><label class="lbl">分帳方式</label>
+      <div class="seg">${RULES.v1.types.map(t => `<button data-act="type" data-v="${t.id}" class="${st.type===t.id?'on':''}">${t.label}</button>`).join('')}</div>`;
+
+    if (st.type === 'shared') {
+      const parts = c.parts;
+      h += `<div style="margin-top:10px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div><div style="font-size:12.5px;font-weight:600">${parts.length} 人均分</div>
+            <div class="money" style="font-size:15px;font-weight:600;margin-top:2px">${c.ok ? '每人 $ ' + Math.round(c.totalTwd/parts.length).toLocaleString() : '每人 —'}</div></div>
+          <button class="expand" data-act="expand">${st.expandExclude ? '收起' : '要排除誰？'}</button>
+        </div>
+        ${st.expandExclude ? `<div class="gap" style="margin-top:9px">
+          ${allIds().map(id => memberRow(id, !st.excluded.includes(id), 'excl')).join('')}
+        </div>` : ''}
+      </div>`;
+    }
+
+    if (st.type === 'individual') {
+      h += `<div style="margin-top:10px">
+        <p class="lbl">各自多少？（${sym} ${cur}）</p>
+        <div class="gap">${allIds().map(id => {
+          const m = M(id);
+          return `<div class="amtrow"><span style="font-size:15px">${m.emoji}</span>
+            <span style="flex:1">${m.name}</span>
+            <input type="number" data-act="indiv" data-id="${id}" value="${esc(st.indiv[id] ?? '')}" placeholder="空＝待填"></div>`;
+        }).join('')}</div>
+        ${c.amt ? `<div class="calc${Math.abs(c.filled - c.amt) < 1 ? '' : ' bad'}">已填 ${fmt(c.filled, cur)} ／ 總額 ${fmt(c.amt, cur)}${Math.abs(c.filled - c.amt) < 1 ? ' ✓' : '，差 ' + fmt(Math.abs(c.amt - c.filled), cur)}</div>` : ''}
+        <p class="hint">比對列<b>跟這筆同幣別</b>。結算時再換算台幣，不會拿韓圜當台幣加</p>
+      </div>`;
+    }
+
+    if (st.type === 'single') {
+      h += `<div style="margin-top:10px">
+        <p class="lbl">算誰的？</p>
+        <div class="chips">${MEMBERS.map(m => `<button class="chip${st.single===m.id?' on':''}" data-act="single" data-id="${m.id}">${m.emoji} ${m.name}</button>`).join('')}</div>
+        <p class="hint">預設帶付款人，但可以改——<b>記帳者未必是花錢的人</b></p>
+      </div>`;
+    }
+    h += `</div>`;
+  } else {
+    h += `<div class="fld"><label class="lbl">這筆誰要分？</label>
+      <div class="gap">${allIds().map(id => memberRow(id, st.who.includes(id), 'who')).join('')}</div>
+      <p class="hint">預設全勾，點一下切換。<b>只勾一個人＝這筆只算他</b></p>
+    </div>`;
+    h += `<div class="fld"><label class="lbl">怎麼分？</label>
+      <div class="seg">${RULES.v2.hows.map(o => `<button data-act="how" data-v="${o.id}" class="${st.how===o.id?'on':''}">${o.label}</button>`).join('')}</div>`;
+    if (st.how === 'even') {
+      h += c.ok ? `<div class="calc">${c.parts.length} 人均分 · 每人 $ ${Math.round(c.totalTwd/c.parts.length).toLocaleString()}</div>` : '';
+    } else {
+      h += `<div style="margin-top:10px">
+        <div class="gap">${c.parts.map(id => {
+          const m = M(id);
+          return `<div class="amtrow"><span style="font-size:15px">${m.emoji}</span>
+            <span style="flex:1">${m.name}</span>
+            <input type="number" data-act="indiv" data-id="${id}" value="${esc(st.indiv[id] ?? '')}" placeholder="空＝待填"></div>`;
+        }).join('')}</div>
+        ${c.amt ? `<div class="calc${Math.abs(c.filled - c.amt) < 1 ? '' : ' bad'}">已填 ${fmt(c.filled, cur)} ／ 總額 ${fmt(c.amt, cur)}${Math.abs(c.filled - c.amt) < 1 ? ' ✓' : '，差 ' + fmt(Math.abs(c.amt - c.filled), cur)}</div>` : ''}
+        <p class="hint">金額欄跟著這筆的幣別（${sym} ${cur}），比對列同幣別比對</p>
+      </div>`;
+    }
+    h += `</div>`;
+  }
+
+  h += `<div class="fld"><label class="lbl">誰付的？<span style="font-weight:400;color:var(--gr)">（沒有預設，一定要選）</span></label>
+    <div class="chips">${MEMBERS.map(m => `<button class="chip${st.payer===m.id?' on':''}" data-act="payer" data-id="${m.id}">${m.emoji} ${m.name}</button>`).join('')}</div>
+  </div>`;
+
+  h += `<div class="fld">
+    <button class="mrow${st.onSpot ? ' on' : ''}" data-act="onspot">
+      <span class="ck">${st.onSpot ? '✓' : ''}</span>
+      <span style="flex:1;font-weight:600">大家當場各付各的，不用結算</span>
+      <span style="font-size:10.5px;color:var(--gr)">記錄但不算欠款</span></button>
+  </div>`;
+
+  $('#form').innerHTML = h;
+  $('#save').disabled = !c.ok;
+}
+</script>
+
+<script>
+function renderLive() {
+  const c = compute();
+  if (!c.ok) {
+    $('#live').innerHTML = `<p class="empty">填金額、選分帳、選付款人之後，這裡會即時顯示結果。</p>`;
+    $('#taps').textContent = taps; return;
+  }
+  const partsTxt = c.parts.map(p => `${nm(p)}${c.shares[p] != null ? ` <span class="money2">$${c.shares[p].toLocaleString()}</span>` : ' <span class="out2">待填</span>'}`).join('、');
+  const debtTxt = c.debts.length
+    ? c.debts.map(d => `${nm(d.from)} → ${nm(d.to)} <span class="money2 out2">$${d.amount.toLocaleString()}</span>`).join('<br>')
+    : '<span class="in2">沒有欠款</span>';
+
+  $('#live').innerHTML = `<dl>
+    <dt>誰付</dt><dd>${nm(st.payer)}</dd>
+    <dt>誰分攤</dt><dd>${partsTxt}</dd>
+    <dt>誰欠誰</dt><dd>${st.onSpot ? '<span class="in2">當場清了，不記欠款</span>' : debtTxt}</dd>
+    <dt>進結算</dt><dd>${c.enters ? '<span class="in2">會進</span>' : '<span class="out2">不進</span>'}</dd>
+    <dt>badge</dt><dd><span class="badge">${c.badge}</span></dd>
+  </dl>
+  ${c.orphan ? `<div class="warnbox"><b>注意：</b>只有 ${nm(c.parts[0])} 分攤，但付款人是 ${nm(st.payer)}。
+    這在<b>現行引擎會被整筆排除</b>（<code>personal</code> 不寫 splits），欠款不會產生。
+    如果這種情況真的會發生，兩版都需要補規則。</div>` : ''}
+  ${c.mode === 'each' && !c.allFilled ? `<div class="warnbox">有人的金額空著＝待填。<b>結算會跳過那個人</b>，不會整筆失敗。</div>` : ''}
+  ${st.currency !== 'TWD' ? `<div class="warnbox">這筆是 ${st.currency}。上面的欠款金額<b>已換算成台幣</b>——結算恆為台幣。
+    這正是 E 要修的地方：現行 <code>split_amount</code> 沒有幣別，填韓圜會被<b>直接當台幣加</b>。</div>` : ''}`;
+  $('#taps').textContent = taps;
+}
+
+function renderLedger() {
+  if (!entries.length) { $('#ledger').innerHTML = `<p class="empty">還沒有記下任何一筆。</p>`; $('#settle').innerHTML = ''; return; }
+  $('#ledger').innerHTML = `<table><thead><tr><th>花費</th><th>付款</th><th>badge</th><th>結算</th><th>點選</th></tr></thead><tbody>
+    ${entries.map(e => `<tr><td>${esc(e.title || '（未命名）')}<br><span class="money2" style="color:var(--pgink3)">${fmt(e.amt, e.currency)}</span></td>
+      <td>${nm(e.payer)}</td><td><span class="badge">${e.badge}</span></td>
+      <td>${e.enters ? '<span class="in2">進</span>' : '<span class="out2">不進</span>'}</td>
+      <td class="m">${e.taps}</td></tr>`).join('')}
+  </tbody></table>`;
+
+  const { net, tx } = settle();
+  $('#settle').innerHTML = `<p class="sub" style="margin:14px 0 6px"><b>跑一次結算</b></p>
+    <table><tbody>${MEMBERS.map(m => {
+      const v = net[m.id];
+      return `<tr><td>${m.emoji} ${m.name}</td><td class="m" style="text-align:right">${
+        v > 0 ? `<span class="in2">可以拿回 $${v.toLocaleString()}</span>`
+        : v < 0 ? `<span class="out2">要給出 $${Math.abs(v).toLocaleString()}</span>`
+        : '<span style="color:var(--pgink3)">剛好打平</span>'}</td></tr>`;
+    }).join('')}</tbody></table>
+    <p class="sub" style="margin:12px 0 6px">最小轉帳（${tx.length} 筆）</p>
+    ${tx.length ? `<table><tbody>${tx.map(t => `<tr><td>${nm(t.from)} → ${nm(t.to)}</td><td class="m" style="text-align:right">$ ${t.amount.toLocaleString()}</td></tr>`).join('')}</tbody></table>`
+      : '<p class="empty">目前沒有人欠誰。</p>'}`;
+}
+
+function renderScen() {
+  $('#scen').innerHTML = SCENARIOS.map((s, i) =>
+    `<button data-act="scen" data-i="${i}" class="${doneScen[version].includes(i) ? 'done' : ''}">
+      <span class="n">${s.n}</span><span><span class="t">${s.t}</span><span class="d">${s.d}</span></span></button>`).join('');
+}
+
+function renderCmp() {
+  const row = v => {
+    const l = tapLog[v];
+    const sum = l.reduce((a, b) => a + b, 0);
+    return `<tr><td>${RULES[v].label}</td><td class="m" style="text-align:right">${l.length} / 5 筆</td>
+      <td class="m" style="text-align:right"><b>${sum}</b> 次</td></tr>`;
+  };
+  const done = tapLog.v1.length === 5 && tapLog.v2.length === 5;
+  const s1 = tapLog.v1.reduce((a, b) => a + b, 0), s2 = tapLog.v2.reduce((a, b) => a + b, 0);
+  $('#cmp').innerHTML = `<table><tbody>${row('v1')}${row('v2')}</tbody></table>
+    ${done ? `<p class="sub" style="margin-top:10px">${s1 === s2 ? '兩版點選次數相同。' :
+      `<b>${s1 < s2 ? RULES.v1.label : RULES.v2.label}</b> 少 <b>${Math.abs(s1 - s2)}</b> 次點選。`}
+      次數只是其中一個面向——<b>哪一版比較不用想</b>才是重點。</p>`
+    : `<p class="sub" style="margin-top:10px">兩版都走完五個情境後，這裡會出現比較。</p>`}`;
+}
+
+function render() { renderForm(); renderLive(); renderLedger(); renderScen(); renderCmp(); }
+
+/* ═══ 互動 ═══ */
+document.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-act]'); if (!el) return;
+  const a = el.dataset.act, id = el.dataset.id, v = el.dataset.v;
+
+  if (a === 'cur')    { tap(); st.currency = v; }
+  else if (a === 'type')  { tap(); st.type = v; if (v === 'single' && RULES.v1.singleDefaultsToPayer && !st.single) st.single = st.payer; }
+  else if (a === 'expand'){ tap(); st.expandExclude = !st.expandExclude; }
+  else if (a === 'excl')  { tap(); st.excluded = st.excluded.includes(id) ? st.excluded.filter(x => x !== id) : st.excluded.concat(id); }
+  else if (a === 'single'){ tap(); st.single = id; }
+  else if (a === 'who')   { tap(); st.who = st.who.includes(id) ? st.who.filter(x => x !== id) : st.who.concat(id); }
+  else if (a === 'how')   { tap(); st.how = v; }
+  else if (a === 'payer') { tap(); st.payer = id; if (version === 'v1' && st.type === 'single' && RULES.v1.singleDefaultsToPayer && !st.single) st.single = id; }
+  else if (a === 'onspot'){ tap(); st.onSpot = !st.onSpot; }
+  else if (a === 'scen')  {
+    const s = SCENARIOS[+el.dataset.i];
+    st = blank(); st.title = s.title; st.amount = s.amount; st.currency = s.currency; st.scen = +el.dataset.i;
+    taps = 0;
+  }
+  else return;
+  render();
+});
+
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if (t.id === 'f-title') { st.title = t.value; renderLive(); return; }
+  if (t.id === 'f-amt')   { st.amount = t.value; renderLive(); renderFormAmountsOnly(); return; }
+  if (t.dataset.act === 'indiv') { st.indiv[t.dataset.id] = t.value; renderLive(); renderCalcOnly(); return; }
+});
+
+// 只更新受金額影響的即時字串，避免重繪把輸入焦點吃掉
+function renderFormAmountsOnly() {
+  const c = compute();
+  const el = document.querySelector('#form .money[style*="15px"]');
+  if (el && version === 'v1' && st.type === 'shared') el.textContent = c.ok ? '每人 $ ' + Math.round(c.totalTwd / c.parts.length).toLocaleString() : '每人 —';
+  $('#save').disabled = !c.ok;
+  renderCalcOnly();
+}
+function renderCalcOnly() {
+  const c = compute(), cur = st.currency;
+  const box = document.querySelector('#form .calc');
+  if (!box) return;
+  if (c.mode === 'each') {
+    const okAmt = Math.abs(c.filled - c.amt) < 1;
+    box.className = 'calc' + (okAmt ? '' : ' bad');
+    box.textContent = `已填 ${fmt(c.filled, cur)} ／ 總額 ${fmt(c.amt || 0, cur)}` + (okAmt ? ' ✓' : `，差 ${fmt(Math.abs((c.amt || 0) - c.filled), cur)}`);
+  } else if (c.ok) {
+    box.textContent = `${c.parts.length} 人均分 · 每人 $ ${Math.round(c.totalTwd / c.parts.length).toLocaleString()}`;
+  }
+}
+
+$('#save').addEventListener('click', () => {
+  const c = compute(); if (!c.ok) return;
+  entries.push({ title: st.title, amt: c.amt, currency: st.currency, payer: st.payer,
+                 badge: c.badge, enters: c.enters, onSpot: st.onSpot, debts: c.debts, taps });
+  tapLog[version].push(taps);
+  if (st.scen != null && !doneScen[version].includes(st.scen)) doneScen[version].push(st.scen);
+  reset();
+});
+$('#clear').addEventListener('click', reset);
+$('#resetAll').addEventListener('click', () => {
+  entries = []; tapLog = { v1: [], v2: [] }; doneScen = { v1: [], v2: [] }; reset();
+});
+
+$('#vsw').addEventListener('click', ev => {
+  const b = ev.target.closest('button[data-v]'); if (!b) return;
+  version = b.dataset.v;
+  [...$('#vsw').children].forEach(x => x.classList.toggle('on', x.dataset.v === version));
+  $('#vnote').textContent = RULES[version].note;
+  reset();
+});
+
+/* 啟動 */
+[...$('#vsw').children].forEach(x => x.classList.toggle('on', x.dataset.v === version));
+$('#vnote').textContent = RULES[version].note;
+reset();
+</script>
