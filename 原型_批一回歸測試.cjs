@@ -189,15 +189,24 @@ ok(rateHtml.includes('刷卡不用這個匯率，直接填台幣'), '缺少底�
 ok(!rateHtml.includes('現金與儲值卡用它換算'), '舊的重複灰字沒清掉');
 console.log('   副標與底部說明都在，舊句已清');
 
-console.log('\n=== 「這是我」標記常駐（不靠灰字說明）===');
+console.log('\n=== #19 「這是我」整組移除 ===');
 E("f=blankForm(store.trips[0].members); renderS02()");
-const chips=d.querySelectorAll('#scr-s02 .selchip');
-console.log('   成員',E('f.members.length'),'人，常駐標記',chips.length,'個；已選',d.querySelectorAll('#scr-s02 .selchip.on').length);
-ok(chips.length===E('f.members.length'),'每一列都要有常駐的「這是我」標記');
-ok(!d.querySelector('#scr-s02').innerHTML.includes('點成員，標記哪位是你'),'說明性灰字沒有砍乾淨');
-d.querySelector('[data-me="f:1"]').click();
-ok(E('f.owner')===1,'點列沒有切換 owner');
-ok(d.querySelectorAll('#scr-s02 .selchip.on').length===1,'選取後應只有一個填實');
+const s02html=d.querySelector('#scr-s02').innerHTML, s02bhtml=d.querySelector('#scr-s02b').innerHTML;
+console.log('   S-02 出現「這是我」:',s02html.includes('這是我'),'｜S-02b:',s02bhtml.includes('這是我'));
+ok(!s02html.includes('這是我') && !s02bhtml.includes('這是我'),'「這是我」標記應已整組移除');
+ok(!d.querySelector('[data-me]'),'不該再有點列切換 owner 的互動');
+const formKeys=E("Object.keys(f)");
+console.log('   建立表單欄位:',formKeys.join(','));
+ok(!formKeys.includes('owner'),'表單不得再有 owner 欄位');
+const tripKeys=E("Object.keys(store.trips[0])");
+ok(!tripKeys.includes('owner'),'行程資料不得再寫入 owner（寫入端也要清，不只顯示端）');
+console.log('   行程資料欄位:',tripKeys.join(','));
+E("f=blankForm(); f.members=[m('','阿華')]; renderS02()");
+ok(d.querySelectorAll('#scr-s02 .selchip').length===0,'S-02 的成員列不該再有選取標記');
+// 選取語彙本身仍在（S-04 用）
+E("(function(){var t=tripOf('t1'),M=t.members.map(x=>x.id);g=exp({twdAmt:'4000',type:'shared',parts:M,payer:M[0]});renderS04();g._partsOpen=true;paintS04();})()");
+ok(d.querySelectorAll('#scr-s04 .selchip').length>0,'S-04 的選取語彙仍應存在');
+console.log('   S-04 選取語彙仍在:',d.querySelectorAll('#scr-s04 .selchip').length,'個');
 
 console.log('\n=== 砍掉的灰字不得再出現 ===');
 const html=d.querySelector('#scr-s02').innerHTML+d.querySelector('#scr-s02b').innerHTML;

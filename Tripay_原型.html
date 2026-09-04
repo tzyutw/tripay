@@ -1,7 +1,7 @@
 <title>Tripay 原型</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap">
 
 <style>
 /* ══ 文件外框 ══ */
@@ -9,8 +9,7 @@
   --pg:#141A1E; --pg2:#1B2329; --pg3:#232D34;
   --pgink:#E8EDF0; --pgink2:#9FB0BA; --pgink3:#6B7C87;
   --pgrule:#2A353C; --mark:#4EA3E8; --okd:#63B588; --nod:#E0714E;
-  --sans:"PingFang TC","Noto Sans TC","Hiragino Sans",system-ui,sans-serif;
-  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --sans:"Onest","PingFang TC","Noto Sans TC",-apple-system,sans-serif;
 }
 :root[data-theme="light"]{--pg:#E7E9E4;--pg2:#FFF;--pg3:#F2F3EF;--pgink:#151C21;
   --pgink2:#4C5B64;--pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--okd:#276E45;--nod:#B03A22}
@@ -27,19 +26,19 @@ body{margin:0;background:var(--pg);color:var(--pgink);font-family:var(--sans);fo
 button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
 input{font-family:inherit}
 h1,h2,h3{margin:0;text-wrap:balance}
-code{font-family:var(--mono);font-size:.88em;color:var(--mark)}
+code{font-family:inherit;font-size:.9em;color:var(--mark)}
 .wrap{max-width:1240px;margin:0 auto;padding:0 22px 80px}
 
 /* ══ 頂列 ══ */
 .top{position:sticky;top:0;z-index:200;background:var(--pg);border-bottom:1px solid var(--pgrule);
   padding:12px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .top .nm{font-weight:700;font-size:16px;letter-spacing:-.01em}
-.top .bt{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--pgink3);
+.top .bt{font-size:10.5px;letter-spacing:.1em;color:var(--pgink3);
   border:1px solid var(--pgrule);border-radius:2px;padding:3px 8px}
 .modesw{margin-left:auto;display:flex;border:1px solid var(--pgrule);border-radius:3px;overflow:hidden}
 .modesw button{padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--pgink3);background:var(--pg2)}
 .modesw button.on{background:var(--mark);color:#fff}
-.copied{font-family:var(--mono);font-size:11px;color:var(--okd);opacity:0;transition:opacity .2s}
+.copied{font-size:11px;color:var(--okd);opacity:0;transition:opacity .2s}
 .copied.show{opacity:1}
 
 header{padding:34px 0 8px}
@@ -55,17 +54,17 @@ header p{margin:12px 0 0;max-width:74ch;color:var(--pgink2);font-size:14.5px}
 @media(max-width:980px){.scr{grid-template-columns:1fr}}
 .scr>*{min-width:0}   /* grid item 預設 min-width:auto 會被內容撐開 */
 .scrhd{grid-column:1/-1;margin-bottom:2px}
-.scrhd .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--mark)}
+.scrhd .k{font-size:11px;letter-spacing:.14em;color:var(--mark)}
 .scrhd h2{font-size:23px;font-weight:700;letter-spacing:-.01em;margin-top:5px}
 .scrhd p{color:var(--pgink2);font-size:13.5px;margin:8px 0 0;max-width:80ch}
 .phwrap{position:sticky;top:64px}
-.phcap{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--pgink3);margin:0 0 8px}
+.phcap{font-size:10px;letter-spacing:.1em;color:var(--pgink3);margin:0 0 8px}
 .ph{width:min(390px,100%);border:1px solid var(--pgrule);border-radius:20px;overflow:hidden;
   box-shadow:0 18px 40px rgba(0,0,0,.34)}
 
 /* 原型控制（非產品的一部分） */
 .rig{margin-top:12px;border:1px dashed var(--pgrule);border-radius:3px;padding:9px 11px}
-.rig .t{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--pgink3);margin-bottom:6px}
+.rig .t{font-size:9.5px;letter-spacing:.1em;color:var(--pgink3);margin-bottom:6px}
 .rig .row{display:flex;gap:5px;flex-wrap:wrap}
 .rig button{font-size:11.5px;padding:4px 9px;border:1px solid var(--pgrule);border-radius:3px;
   background:var(--pg2);color:var(--pgink2)}
@@ -76,25 +75,25 @@ header p{margin:12px 0 0;max-width:74ch;color:var(--pgink2);font-size:14.5px}
 .idx table{width:100%;border-collapse:collapse;font-size:12.5px}
 .idx th,.idx td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--pgrule);vertical-align:top}
 .idx tr:last-child td{border-bottom:0}
-.idx th{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+.idx th{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--pgink3);font-weight:400;background:var(--pg3)}
-.idx td.n{font-family:var(--mono);font-size:10.5px;color:var(--mark);white-space:nowrap}
+.idx td.n{font-size:10.5px;color:var(--mark);white-space:nowrap}
 .idx tr.gone td{opacity:.45}
 .idx tr.gone td.el{text-decoration:line-through}
-.kind{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;padding:1px 5px;
+.kind{display:inline-block;font-size:8.5px;letter-spacing:.06em;padding:1px 5px;
   border-radius:2px;border:1px solid;line-height:1.7;white-space:nowrap}
 .kind.op{color:var(--okd);border-color:var(--okd)}
 .kind.st{color:var(--pgink3);border-color:var(--pgrule)}
 .kind.inv{color:var(--pgink3);border-color:var(--pgrule);opacity:.8}
 .kind.del{color:var(--nod);border-color:var(--nod)}
-.cnt{font-family:var(--mono);font-size:11px;color:var(--pgink3);margin:0 0 8px}
+.cnt{font-size:11px;color:var(--pgink3);margin:0 0 8px}
 
 /* ══ 標註徽章 ══ */
 .b{position:relative}
 html.anno .b{outline:1px dashed rgba(78,163,232,.55);outline-offset:1px}
 .b>.bdg{display:none}
 html.anno .b>.bdg{display:block;position:absolute;top:0;left:0;z-index:40;
-  font-family:var(--mono);font-size:8px;letter-spacing:.03em;line-height:1;
+  font-size:8px;letter-spacing:.03em;line-height:1;
   padding:2.5px 4px;border-radius:2px;background:rgba(18,118,196,.94);color:#fff;cursor:pointer}
 html.anno .b.rt>.bdg{left:auto;right:0}
 .b.inl{display:inline-flex}
@@ -105,7 +104,8 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui{background:#EDEEE8;color:#151C21;font-size:13px;line-height:1.5;
   --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#B03A22;
   --ln:#DFE1DA;--gr:#78878F;--md:#4C5B64;position:relative}
-.ui .money{font-family:var(--mono);font-variant-numeric:tabular-nums}
+/* 金額：不靠字體差異，改靠字重與 tabular-nums 對齊 */
+.ui .money{font-variant-numeric:tabular-nums;font-weight:600}
 .ic{display:inline-block;vertical-align:-.15em;flex:none}
 .ui .tnum{font-variant-numeric:tabular-nums}
 .ui .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;
@@ -137,7 +137,7 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
   border-radius:3px;padding:8px 10px;width:100%;text-align:left}
 .ui .rowb.on{border-color:var(--w);background:#F2F8FD}
 /* 全站唯一的「選取／未選取」語彙：未選＝描邊、選了＝填實工作色。
-   S-02 的「這是我」、S-04 的分給誰／贊助／大家各付各的都用同一個。 */
+   S-04 的分給誰／贊助／大家各付各的都用同一個。 */
 .ui .selchip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;flex:none;
   border:1px solid var(--ln);color:#A9B2B7;background:#fff;display:inline-flex;align-items:center;gap:3px}
 .ui .selchip.on{border-color:var(--w);background:var(--w);color:#fff}
@@ -266,7 +266,7 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .raterow .flag{font-size:19px;flex:none;line-height:1}
 .ui .raterow .code{font-size:11.5px;font-weight:600;color:var(--gr);flex:none;width:34px;text-align:right}
 .ui .rateinput{flex:1;min-width:0;border:0;background:transparent;padding:4px 0;
-  font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:20px;font-weight:600;
+  font-variant-numeric:tabular-nums;font-size:20px;font-weight:600;
   color:#151C21;letter-spacing:-.02em}
 .ui .rateinput:focus{border:0;outline:none}
 .ui .ratebox.editing .rateinput{color:#A9B2B7}
@@ -282,7 +282,7 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .drop button:last-child{border-bottom:0}
 .ui .drop button.on{color:var(--wi);font-weight:600}
 footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
-  color:var(--pgink3);font-size:12.5px;font-family:var(--mono)}
+  color:var(--pgink3);font-size:12.5px;}
 </style>
 
 <div class="top">
@@ -527,13 +527,13 @@ let uid = 100; const nid = () => 'x' + (++uid);
 const store = {
   trips: [
     { id:'t1', name:'2026 濟州島四寶團', start:'2026-03-14', end:'2026-03-18', status:'active',  tone:null,
-      currency:'KRW', members:[m('🐵','Rozi',1),m('🐱','小美'),m('🍋','阿明'),m('🐟','小魚')], owner:0,
+      currency:'KRW', members:[m('🐵','Rozi',1),m('🐱','小美'),m('🍋','阿明'),m('🐟','小魚')],
       pays:['現金','信用卡'], usedPays:{'現金':3,'信用卡':12} },
     { id:'t2', name:'2024 東京富士山五寶團', start:'2024-11-02', end:'2024-11-08', status:'settled', tone:null,
-      currency:'JPY', members:[m('🐵','Rozi'),m('🐱','小美'),m('🍋','阿明'),m('🐟','小魚'),m('🐰','小兔')], owner:0,
+      currency:'JPY', members:[m('🐵','Rozi'),m('🐱','小美'),m('🍋','阿明'),m('🐟','小魚'),m('🐰','小兔')],
       pays:['現金','信用卡'], usedPays:{} },
     { id:'t3', name:'2023 福岡三人行', start:'2023-04-06', end:'2023-04-11', status:'archived', tone:null,
-      currency:'JPY', members:[m('🐵','Rozi'),m('🐱','小美'),m('🍋','阿明')], owner:0,
+      currency:'JPY', members:[m('🐵','Rozi'),m('🐱','小美'),m('🍋','阿明')],
       pays:['現金'], usedPays:{} },
   ],
   s01: 'list',
@@ -640,7 +640,7 @@ let editTripId = 't1';
 
 function blankForm(prefill) {
   return { name:'', currency:'JPY', start:today(), end:'', members: prefill ? prefill.map(x => m(x.emoji, x.name)) : [],
-           owner:null, showCur:false, curQ:'', adding:false, newName:'', errs:{}, dlg:false, prefilled:!!prefill };
+           showCur:false, curQ:'', adding:false, newName:'', errs:{}, dlg:false, prefilled:!!prefill };
 }
 /* 內部匯率 ＝ 外幣 ÷ 台幣（1 台幣換得到幾單位外幣）。
    使用者填的兩個數字本身就是匯率，不需要再算出第三個值給他看。 */
@@ -655,7 +655,7 @@ function tripToForm(t) {
   return { name:t.name, currency:t.currency, start:t.start, end:t.end,
            rateTwd: t.rateTwd ?? (oneSideOf(t.currency) === 'twd' ? '1' : ''),
            rateFor: t.rateFor ?? (oneSideOf(t.currency) === 'for' ? '1' : ''),
-           members:t.members.map(x => ({...x})), owner:t.owner, showCur:false, curQ:'',
+           members:t.members.map(x => ({...x})), showCur:false, curQ:'',
            adding:false, newName:'', errs:{}, tone:t.tone, pays:[...t.pays], usedPays:t.usedPays,
            newPay:'', photo:t.photo || null, tonePick:false };
 }
@@ -665,17 +665,14 @@ function memberRows(form, ctx) {
   const av = ctx === 'f' ? 'S-02-13' : 'S-02b-7';
   const rmId = 'S-02-14';
   return form.members.map((mem, i) => {
-    const isMe = form.owner === i;
     const used = mem.used > 0;
     const avHtml = avatar(mem, i, true, ctx);
     const rmHtml = `<button data-rm="${ctx}:${i}" style="font-size:12px;color:${used?'#CDD3D0':'var(--gr)'};width:20px">${ic('close',12)}</button>`;
-    // 「這是我」標記常駐在每一列右側：未選是描邊、選了填實。
-    // 讓可點性由元件自己表達，不再用「點成員，標記哪位是你」這種灰字補救。
-    const meChip = `<span class="selchip ${isMe?'on':''}">這是我</span>`;
-    return `<div class="rowb ${isMe?'on':''}" data-me="${ctx}:${i}">
+    // #19：「這是我」整組移除。owner_member_id 只被用來算「我的花費」，
+    // 統計卡改成收合／展開後那個數字不再需要，欄位失去用途。
+    return `<div class="rowb">
       ${i === 0 ? b(av, avHtml, 'inl') : avHtml}
       <span style="flex:1;font-size:13px;font-weight:600">${esc(mem.name)}</span>
-      ${meChip}
       ${i === 0 && ctx === 'f' ? b(rmId, rmHtml, 'inl') : rmHtml}
     </div>`;
   }).join('');
@@ -723,7 +720,7 @@ function renderS02() {
 
       ${b('S-02-10', `<div class="fld"><span class="lbl">誰一起去？</span>
         ${f.prefilled && f.members.length ? b('S-02-11', `<p style="font-size:11px;color:var(--wi);margin:0 0 8px">已帶入上一趟的成員，可以改</p>`) : ''}
-        ${b('S-02-12', `<div class="gap">${memberRows(f, 'f')}</div>`)}
+        ${`<div class="gap">${memberRows(f, 'f')}</div>`}
         ${f.errs.members ? `<p class="err">${f.errs.members}</p>` : ''}
         ${f.adding
           ? b('S-02-15', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
@@ -886,7 +883,7 @@ const INDEX = {
     ['S-02-9','出發／回程','op','出發預設今天；<b>回程可留空</b>'],
     ['S-02-10','成員區標題','st','「誰一起去？」。副標灰字已砍'],
     ['S-02-11','G-09 預填提示','op','用右側控制載入上一趟成員時才出現'],
-    ['S-02-12','成員列 · 這是我','op','每列右側常駐「這是我」標記，未選描邊、選了填實；整列可點'],
+    ['S-02-12','成員列 · 這是我','del','已移除（#19）：owner_member_id 只被用來算「我的花費」，統計卡改版後那個數字不再需要，欄位失去用途。<b>欄位保留不刪</b>，前端不再讀寫'],
     ['S-02-13','成員識別圓圈','op','<b>就地編輯</b>：點圓圈變單字輸入，輸入即存、收合'],
     ['S-02-14','移除成員 ✕','op','建立模式一律可移除'],
     ['S-02-15','新增成員展開表單','op','只要名字。超過 10 字才提示，不預先說'],
@@ -968,7 +965,7 @@ document.addEventListener('click', ev => {
   const ss = t.closest('#s01state button');
   if (ss) { store.s01 = ss.dataset.s; renderS01(); return; }
   if (t.closest('#s02reset'))   { f = blankForm(); renderS02(); return; }
-  if (t.closest('#s02prefill')) { f = blankForm(store.trips[0].members); f.owner = 0; renderS02(); return; }
+  if (t.closest('#s02prefill')) { f = blankForm(store.trips[0].members); renderS02(); return; }
   const pt = hit('data-picktrip'); if (pt) { editTripId = pt.dataset.picktrip; fb = null; renderS02b(); return; }
 
   // S-00
@@ -997,20 +994,13 @@ document.addEventListener('click', ev => {
     form.currency = code; form.showCur = false; form.curQ = '';
     ctx === 'f' ? renderS02() : renderS02b(); return; }
 
-  // 成員：這是我 / 移除
-  const me = hit('data-me');
-  if (me && !t.closest('[data-rm]') && !t.closest('[data-av]')) {
-    const [ctx, i] = me.dataset.me.split(':'); const form = ctx === 'f' ? f : fb;
-    form.owner = form.owner === +i ? null : +i;
-    ctx === 'f' ? renderS02() : renderS02b(); return;
-  }
+  // 成員：移除（「這是我」已於 #19 整組拿掉）
   const rm = hit('data-rm');
   if (rm) {
     const [ctx, i] = rm.dataset.rm.split(':'); const form = ctx === 'f' ? f : fb;
     const mem = form.members[+i];
     if (mem.used > 0) { form.errs.members = `${mem.name} 已經有消費或分帳紀錄，不能移除。要拿掉的話，請先刪掉相關消費。`; }
-    else { form.members.splice(+i, 1); form.errs.members = '';
-      if (form.owner === +i) form.owner = null; else if (form.owner > +i) form.owner--; }
+    else { form.members.splice(+i, 1); form.errs.members = ''; }
     ctx === 'f' ? renderS02() : renderS02b(); return;
   }
 
@@ -1059,7 +1049,7 @@ document.addEventListener('click', ev => {
   if (t.closest('#s02bsave')) {
     const tr = store.trips.find(x => x.id === editTripId);
     Object.assign(tr, { name:fb.name, currency:fb.currency, tone:fb.tone, photo:fb.photo,
-                        members:fb.members.map(x => ({...x})), owner:fb.owner, pays:[...fb.pays],
+                        members:fb.members.map(x => ({...x})), pays:[...fb.pays],
                         rateTwd:fb.rateTwd, rateFor:fb.rateFor });
     toast('#s02btoast', '已儲存。回頭看 S-01 的卡片。');
     renderS01(); return;
@@ -1068,7 +1058,7 @@ document.addEventListener('click', ev => {
 
 function createTrip() {
   const t = { id:nid(), name:f.name.trim(), start:f.start, end:f.end || f.start, status:'planned',
-              tone:null, currency:f.currency, members:f.members.map(x => ({...x})), owner:f.owner,
+              tone:null, currency:f.currency, members:f.members.map(x => ({...x})),
               pays:['現金','信用卡'], usedPays:{} };
   store.trips.push(t);
   store.s01 = 'list';
@@ -1714,7 +1704,7 @@ Object.assign(INDEX, {
     ['S-03-8','日期＋成員','st','成員 emoji 在這裡顯示（首頁卡不顯示）'],
     ['S-03-9','總花費（可展開）','op','<b>改（#17-2）</b>：預設只顯示總花費，每人分擔收合。有人被標「約」時收合列上有提示點'],
     ['S-03-10','待填警語','del','已移除：「N 筆待填，數字僅供參考」整條刪除，功能由 S-03-29 取代'],
-    ['S-03-11','我的花費','del','已併入 S-03-27 的每人分擔列'],
+    ['S-03-11','我的花費','del','已移除（#19）：不顯示。「切換成員視角」也從 Phase 1.5 候選移除'],
     ['S-03-12','幣別切換','op','<b>改（#17-3）</b>：真的能切，整頁金額換算。<b>結算恆為台幣</b>。沒設匯率時不可用並說明原因'],
     ['S-03-13','G-05 分享橫幅','del','已移除，由 S-05-29 取代'],
     ['S-03-14','空狀態','op','<b>改（#17-7）</b>：內嵌 SVG＋CSS 動畫，遵守 prefers-reduced-motion'],
