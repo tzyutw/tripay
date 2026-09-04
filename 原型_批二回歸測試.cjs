@@ -38,8 +38,9 @@ const mk=(n)=>E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
   ok(n<=1 ? !r.uns : r.uns, `${n} 人未輸入的未定案判定不對`);});
 
 console.log('\n=== §2.3 外幣總額空白且有人沒填 → 不自動均分 ===');
+// #20-4 後：這條只在「填寫幣別＝外幣」時成立，所以要明確指定 fillCur:'FOR'
 const r23=E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
-  var e=exp({forAmt:'',twdAmt:'3400',pay:'card',type:'individual',parts:M,indiv:{[M[0]]:'4000'},payer:M[0]});
+  var e=exp({forAmt:'',twdAmt:'3400',fillCur:'FOR',pay:'card',type:'individual',parts:M,indiv:{[M[0]]:'4000'},payer:M[0]});
   var c=calc(e,t); return {reason:c.noAutoReason, vals:M.map(id=>c.valInCur[id])};})()`);
 console.log('   noAutoReason =',r23.reason,'｜各人值 =',JSON.stringify(r23.vals));
 ok(r23.reason==='noForeignTotal','應標示無法自動均分');
@@ -47,7 +48,7 @@ ok(r23.vals.filter(v=>v!==null).length===1,'不該替沒填的人猜值（會嚴
 
 console.log('\n=== §2.2 比例回推換算 ===');
 const r22=E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
-  var e=exp({forAmt:'45000',twdAmt:'1035',pay:'card',type:'individual',parts:M,
+  var e=exp({forAmt:'45000',twdAmt:'1035',fillCur:'FOR',pay:'card',type:'individual',parts:M,
     indiv:{[M[0]]:'12000',[M[1]]:'18000',[M[2]]:'15000'},payer:M[1]});
   var c=calc(e,t); return {shares:M.map(id=>c.shares[id]), sum:M.reduce((a,id)=>a+(c.shares[id]||0),0)};})()`);
 console.log('   各人台幣 =',JSON.stringify(r22.shares),'總和 =',r22.sum);
@@ -222,6 +223,102 @@ const phones=[...d.querySelectorAll('.ui')].map(x=>x.innerHTML).join('');
 console.log('   手機框內文字符號：無 ✓｜SVG icon 數：',d.querySelectorAll('.ui svg.ic').length);
 ok(d.querySelectorAll('.ui svg.ic').length>10,'icon 應已改為 SVG');
 
+
+console.log('\n=== #20 補修 ===');
+E("window.M0 = tripOf('t1').members.map(m=>m.id)");
+const M0=E('M0');
+const CALC=o=>E(`calc(exp(${JSON.stringify(Object.assign({type:'individual',parts:M0,payer:M0[0]},o))}),tripOf('t1'))`);
+
+// #20-4 Rozi 實測到的錯誤，逐字對照
+const bug=CALC({twdAmt:'2457',forAmt:'',fillCur:'TWD',parts:[M0[0],M0[1],M0[3]],
+                indiv:{[M0[0]]:'1000',[M0[1]]:'400'}});
+console.log('   台幣 2457｜1000/400/未填 → 未填者',bug.valInCur[M0[3]],
+            '｜noAutoReason',bug.noAutoReason,'｜估計標記',Object.keys(bug.estimated).length);
+ok(bug.valInCur[M0[3]]===1057,'未填者應為 2457−1400=1057，實際 '+bug.valInCur[M0[3]]);
+ok(bug.noAutoReason===null,'填台幣時不得觸發 noForeignTotal');
+ok(Object.keys(bug.estimated).length===0,'剩 1 人未填是唯一解，不得標記估計');
+
+// #20-4 回歸：填台幣的各種情況
+const t1=CALC({twdAmt:'3000',fillCur:'TWD',indiv:{[M0[0]]:'1000',[M0[1]]:'500',[M0[2]]:'500'}});
+ok(t1.valInCur[M0[3]]===1000 && Object.keys(t1.estimated).length===0,'填台幣剩 1 人 → 唯一解不標記');
+const t2=CALC({twdAmt:'3000',fillCur:'TWD',indiv:{[M0[0]]:'1000',[M0[1]]:'500'}});
+console.log('   填台幣剩 2 人 → 各',t2.valInCur[M0[2]],t2.valInCur[M0[3]],'｜標記',Object.keys(t2.estimated).length);
+ok(t2.valInCur[M0[2]]===750 && t2.valInCur[M0[3]]===750,'剩 2 人應平分餘額 1500');
+ok(Object.keys(t2.estimated).length===2,'剩 2 人以上應全部標記估計');
+const t3=CALC({twdAmt:'3000',forAmt:'',fillCur:'TWD',indiv:{[M0[0]]:'1000'}});
+ok(t3.noAutoReason===null,'填台幣時外幣總額空白照常算得出來');
+
+// #20-4 填外幣
+const f1=CALC({twdAmt:'1035',forAmt:'',fillCur:'FOR',
+  indiv:{[M0[0]]:'12000',[M0[1]]:'18000',[M0[2]]:'10000',[M0[3]]:'5000'}});
+console.log('   填外幣全員填完、總額空白 → 自動補',f1.forTotalEff,'｜自動標記',f1.forTotalAuto);
+ok(f1.forTotalAuto && f1.forTotalEff===45000,'全員填完時外幣總額應自動補為 Σ');
+const f2=CALC({twdAmt:'1035',forAmt:'',fillCur:'FOR',indiv:{[M0[0]]:'12000'}});
+ok(f2.noAutoReason==='noForeignTotal','填外幣、有人沒填、總額空白 → 不猜');
+ok(f2.valInCur[M0[1]]===null,'停用自動值時不得給數字');
+
+// #20-3 切換器存在且切換不清空
+E(`(function(){var t=tripOf('t1');
+  g=exp({twdAmt:'3000',forAmt:'45000',type:'individual',parts:M0,indiv:{[M0[0]]:'1000'},payer:M0[0],fillCur:'TWD'});
+  renderS04();})()`);
+ok(d.querySelectorAll('[data-fillcur]').length===2,'填寫幣別切換器應有兩顆按鈕');
+d.querySelector('[data-fillcur="FOR"]').click();
+console.log('   切到外幣後 fillCur =',E("g.fillCur"),'｜已填數字保留 =',E(`g.indiv['${M0[0]}']`));
+ok(E("g.fillCur")==='FOR','切換器應能切到外幣');
+ok(E(`g.indiv['${M0[0]}']`)==='1000','切換幣別不得清空已填數字');
+
+// #20-2 互斥
+E(`(function(){g=exp({twdAmt:'1600',type:'shared',parts:M0,payer:M0[0]}); renderS04();})()`);
+d.querySelector('[data-eflag="onSpot"]').click();
+ok(E("g.onSpot")===true,'應能選「大家各付各的」');
+ok(!d.querySelector('#scr-s04 .chip.on[data-epayer]'),'選了大家各付各的，成員高亮應熄掉');
+d.querySelector(`[data-epayer="${M0[1]}"]`).click();
+console.log('   點成員後 onSpot =',E("g.onSpot"),'｜payer =',E("g.payer")===M0[1]);
+ok(E("g.onSpot")===false,'點成員應自動取消「大家各付各的」');
+ok(!!d.querySelector('#scr-s04 .chip.on[data-epayer]'),'點成員後該成員要亮起來');
+
+// #20-1 金額欄一行
+E("renderS04()");
+const curLabel=d.querySelector('#scr-s04 .amtline .cur');
+ok(!!curLabel,'金額欄應為一行版面（幣別標籤與輸入框同列）');
+ok(d.querySelectorAll('#scr-s04 .amtline').length===2,'應有兩條金額列');
+console.log('   金額列數:',d.querySelectorAll('#scr-s04 .amtline').length);
+
+// #20-5 R9 差額三級皆可存檔
+const d0=CALC({twdAmt:'3000',fillCur:'TWD',indiv:{[M0[0]]:'750',[M0[1]]:'750',[M0[2]]:'750',[M0[3]]:'750'}});
+const dS=CALC({twdAmt:'3000',fillCur:'TWD',indiv:{[M0[0]]:'750',[M0[1]]:'750',[M0[2]]:'750',[M0[3]]:'730'}});
+const dB=CALC({twdAmt:'3000',fillCur:'TWD',indiv:{[M0[0]]:'500',[M0[1]]:'500',[M0[2]]:'500',[M0[3]]:'500'}});
+const lvl=c=>{const base=c.fillsAreForeign?c.forTotalEff:c.twdTotal;
+  const sum=Object.values(c.valInCur).reduce((a,v)=>a+(v||0),0);const df=base-sum;
+  return Math.abs(df)<1?'ok':(Math.abs(df)/base>0.01?'bad':'soft');};
+console.log('   差額三級:',lvl(d0),lvl(dS),lvl(dB));
+ok(lvl(d0)==='ok' && lvl(dS)==='soft' && lvl(dB)==='bad','差額分級不對');
+E(`(function(){g=exp({twdAmt:'3000',fillCur:'TWD',type:'individual',parts:M0,
+  indiv:{[M0[0]]:'500',[M0[1]]:'500',[M0[2]]:'500',[M0[3]]:'500'},payer:M0[0]}); renderS04();})()`);
+ok(!d.querySelector('#s04save').disabled,'差額 >1% 也不得擋存檔');
+
+// 五個情境
+console.log('\n=== #20-7 五個情境（分帳模型原型的 SCENARIOS）===');
+E("tripOf('t1').rateTwd='1'; tripOf('t1').rateFor='45'");
+const SC=[
+ ['① 四人吃飯 Ning 刷卡',{type:'shared',parts:M0,twdAmt:'3308',pay:'card',payer:M0[0]},3308,3],
+ ['② 兩人汗蒸幕 Ziyu 付',{type:'shared',parts:[M0[1],M0[3]],twdAmt:'1240',pay:'card',payer:M0[1]},1240,1],
+ ['③ 藥妝店 用韓圜填',{type:'individual',parts:M0,twdAmt:'1035',forAmt:'45000',fillCur:'FOR',
+   indiv:{[M0[0]]:'12000',[M0[1]]:'18000',[M0[2]]:'15000'},pay:'card',payer:M0[2]},1035,2],
+ ['④ Mei 個人購物',{type:'single',parts:[M0[3]],twdAmt:'860',pay:'cash',payer:M0[3]},860,0],
+ ['⑤ 大家當場各付各的',{type:'shared',parts:M0,twdAmt:'1600',pay:'cash',payer:M0[1],onSpot:true},1600,3],
+];
+SC.forEach(([n,o,total,debts])=>{
+  const c=E(`calc(exp(${JSON.stringify(o)}),tripOf('t1'))`);
+  const ids=o.parts||M0, sum=ids.reduce((a,id)=>a+(c.shares[id]||0),0);
+  console.log('  ',n,'→ Σ各人台幣',sum,'｜欠款',c.debts.length);
+  ok(sum===total,`${n} 的 Σ各人台幣應等於 ${total}，實際 ${sum}`);
+  ok(c.debts.length===debts,`${n} 的欠款筆數應為 ${debts}，實際 ${c.debts.length}`);
+});
+const s3=E(`calc(exp(${JSON.stringify(SC[2][1])}),tripOf('t1'))`);
+console.log('   情境③ 比例回推:',M0.map(id=>s3.shares[id]).join(','),'（1035×各人韓圜÷45000）');
+ok(s3.shares[M0[0]]===276 && s3.shares[M0[1]]===414,'情境③ 應依 R5 比例回推');
+
 console.log('\n=== 徽章 vs 編號清單（批二四頁）===');
 const IDX=E('INDEX'); const seen=new Set();
 const snap=()=>d.querySelectorAll('.bdg').forEach(x=>seen.add(x.dataset.copy));
@@ -252,6 +349,12 @@ E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
   g=exp({forAmt:'40000',twdAmt:'1000',pay:'card',type:'individual',parts:M,
     indiv:{[M[0]]:'9000',[M[1]]:'9000',[M[2]]:'9000',[M[3]]:'9000'},payer:M[0]}); renderS04();})()`); snap();
 E("g.sponsor=true; renderS04()"); snap();
+E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
+  g=exp({forAmt:'',twdAmt:'1035',fillCur:'FOR',pay:'card',type:'individual',parts:M,
+    indiv:{[M[0]]:'12000',[M[1]]:'18000',[M[2]]:'10000',[M[3]]:'5000'},payer:M[0]}); renderS04();})()`); snap();
+E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
+  g=exp({forAmt:'',twdAmt:'1035',fillCur:'FOR',pay:'card',type:'individual',parts:M,
+    indiv:{[M[0]]:'12000'},payer:M[0]}); renderS04();})()`); snap();
 E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
   g=exp({forAmt:'',twdAmt:'1035',pay:'card',type:'individual',parts:M,
     indiv:{[M[0]]:'12000',[M[1]]:'18000',[M[2]]:'10000',[M[3]]:'5000'},payer:M[0]}); renderS04();})()`); snap();

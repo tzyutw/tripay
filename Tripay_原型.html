@@ -141,6 +141,27 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .selchip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;flex:none;
   border:1px solid var(--ln);color:#A9B2B7;background:#fff;display:inline-flex;align-items:center;gap:3px}
 .ui .selchip.on{border-color:var(--w);background:var(--w);color:#fff}
+/* #20-1 金額欄一行：幣別標籤固定寬靠左，輸入框吃剩餘寬度。
+   輸入的數字字級刻意小於區塊標題——表單裡的數字是輸入不是展示。 */
+.ui .amtstack{display:flex;flex-direction:column;gap:7px}
+.ui .amtline{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
+  border-radius:3px;padding:7px 10px}
+.ui .amtline.needfill{border-color:var(--out);background:#FBF0EC}
+.ui .amtline .cur{width:58px;flex:none;font-size:11.5px;font-weight:600;color:var(--md)}
+.ui .amtline input{flex:1;min-width:0;border:0;background:transparent;padding:2px 0;
+  font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;text-align:right}
+.ui .amtline input:focus{border:0;outline:none}
+.ui .autotag{font-size:8.5px;letter-spacing:.06em;color:var(--gr);
+  border:1px solid var(--ln);border-radius:2px;padding:1px 4px;flex:none}
+/* R9 差額三級：剛好／淡色／橘色警示，三種都可存檔 */
+.ui .cmp{margin-top:8px;border-radius:3px;padding:8px 10px;font-size:12px;font-weight:500;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+  font-variant-numeric:tabular-nums}
+.ui .cmp .d{font-weight:600;display:inline-flex;align-items:center}
+.ui .cmp .sub2{width:100%;font-weight:400;margin-top:2px}
+.ui .cmp.ok{background:#EAF3E9;border:1px solid #C9DFC8;color:var(--in)}
+.ui .cmp.soft{background:#F4F5F1;border:1px solid var(--ln);color:var(--md)}
+.ui .cmp.bad{background:#FBF0EC;border:1px solid #E8C4B8;color:var(--out)}
 .ui .pill{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:999px;border:1px solid;line-height:1.6}
 .ui .pill.ind{color:var(--wi);border-color:#BFD9EE;background:#EEF5FB}
 .ui .pill.gr{color:var(--md);border-color:var(--ln);background:#F4F5F1}
@@ -1202,17 +1223,19 @@ function calc(e, t) {
   });
 
   const cur = t.currency;
-  const fillsAreForeign = isEach && Number.isFinite(forT);      // 有外幣總額 → 各自金額填外幣
+  // #20-3／#20-4：填寫幣別是使用者<b>明確選的狀態</b>，不是從「有沒有外幣總額」推斷出來的。
+  // 餘額的基準跟著它走——填台幣就用台幣總額，根本用不到外幣總額。
+  const fillsAreForeign = isEach && (e.fillCur === 'FOR');
   let forTotalEff = Number.isFinite(forT) ? forT : null, forTotalAuto = false;
   let noAutoReason = null;
-  if (isEach && forTotalEff == null) {
-    if (blanks.length === 0 && sumManual > 0) { forTotalEff = sumManual; forTotalAuto = true; }
-    else if (blanks.length > 0 && sumManual > 0) noAutoReason = 'noForeignTotal';   // §2.3 第三種
+  if (fillsAreForeign && forTotalEff == null) {
+    if (blanks.length === 0 && sumManual > 0) { forTotalEff = sumManual; forTotalAuto = true; }   // R6
+    else if (sumManual > 0 || blanks.length) noAutoReason = 'noForeignTotal';
   }
 
   const valInCur = {}, shares = {};
   if (isEach) {
-    const base = fillsAreForeign || forTotalAuto ? forTotalEff : twdTotal;
+    const base = fillsAreForeign ? forTotalEff : twdTotal;   // #20-4 基準跟著填寫幣別
     if (base != null && !noAutoReason) {
       const remain = base - sumManual;
       const auto = blanks.length ? Math.max(0, Math.floor(remain / blanks.length)) : null;
@@ -1225,8 +1248,9 @@ function calc(e, t) {
     parts.forEach(id => {
       const v = valInCur[id];
       if (v == null || twdPending) { shares[id] = null; return; }
-      shares[id] = (fillsAreForeign || forTotalAuto) && forTotalEff
-        ? Math.round(twdTotal * v / forTotalEff) : Math.round(v);
+      shares[id] = fillsAreForeign && forTotalEff
+        ? Math.round(twdTotal * v / forTotalEff)   // R5 比例回推
+        : Math.round(v);
     });
     if (!twdPending && parts.includes(e.payer) && parts.every(id => shares[id] != null)) {
       const sum = parts.reduce((a,id) => a + shares[id], 0);
@@ -1440,15 +1464,17 @@ function renderS04() {
 
   // 金額（§2.3 §2.4 §2A.3）
   h += b('S-04-4', `<div class="fld"><span class="lbl">金額</span>
-    <div class="two">
-      ${b('S-04-5', `<div><span class="hint" style="display:block;margin:0 0 4px">${sym} ${cur}${
-        c.forTotalAuto ? ' ' + b('S-04-30', '<span class="autotag">自動</span>', 'inl') : ''}</span>
+    <div class="amtstack">
+      ${b('S-04-5', `<div class="amtline${c.noAutoReason === 'noForeignTotal' ? ' needfill' : ''}">
+        <span class="cur">${sym} ${cur}</span>
         <input type="text" inputmode="decimal" id="e-for" value="${esc(g.forAmt)}"
-          class="${c.forTotalAuto ? 'auto' : ''}" placeholder="${c.forTotalAuto ? c.forTotalEff : '可留空'}"></div>`)}
-      ${b('S-04-6', `<div><span class="hint" style="display:block;margin:0 0 4px">$ 台幣${
-        c.twdFromRate ? ' <span class="autotag">自動</span>' : ''}</span>
+          class="${c.forTotalAuto ? 'auto' : ''}" placeholder="${c.forTotalAuto ? c.forTotalEff : '可留空'}">
+        ${c.forTotalAuto ? b('S-04-30', '<span class="autotag">自動</span>', 'inl') : ''}</div>`)}
+      ${b('S-04-6', `<div class="amtline">
+        <span class="cur">$ 台幣</span>
         <input type="text" inputmode="decimal" id="e-twd" value="${esc(g.twdAmt)}"
-          class="${c.twdFromRate ? 'auto' : ''}" placeholder="${c.twdFromRate ? c.twdTotal : '可留空'}"></div>`)}
+          class="${c.twdFromRate ? 'auto' : ''}" placeholder="${c.twdFromRate ? c.twdTotal : '可留空'}">
+        ${c.twdFromRate ? '<span class="autotag">自動</span>' : ''}</div>`)}
     </div>
     <div id="amtnote"></div></div>`);
 
@@ -1526,11 +1552,13 @@ function paintS04() {
       <div class="chips">${t2.members.map(m =>
         `<button class="chip${(g.parts||[])[0]===m.id?' on':''}" data-esingle="${m.id}">${m.emoji||firstGrapheme(m.name)} ${esc(m.name)}</button>`).join('')}</div></div>`);
   } else {
-    const fillCur = c.fillsAreForeign || c.forTotalAuto ? cur : 'TWD';
+    const fillCur = c.fillsAreForeign ? cur : 'TWD';
     const fs = fillCur === 'TWD' ? '$' : sym;
     let inner = `<div style="margin-top:10px">` +
       b('S-04-15', `<span class="lbl" style="display:block">各自多少？</span>`) +
-      b('S-04-31', `<p class="hint" style="margin:0 0 7px">${fs} ${fillCur}</p>`);
+      b('S-04-31', `<div class="seg" style="margin-bottom:8px">
+        <button class="${g.fillCur !== 'FOR' ? 'on' : ''}" data-fillcur="TWD">$ 台幣填</button>
+        <button class="${g.fillCur === 'FOR' ? 'on' : ''}" data-fillcur="FOR">${RULES_CUR_SYM(cur)} ${cur} 填</button></div>`);
     inner += `<div class="gap">${(g.parts||[]).map((id, i) => {
       const m = t2.members.find(x => x.id === id) || {};
       const auto = c.valInCur[id] != null && !(id in c.manual);
@@ -1539,7 +1567,8 @@ function paintS04() {
         <span style="flex:1;font-size:12.5px">${esc(m.name||'')}</span>
         <span data-eauto="${id}">${auto ? '<span class="autotag">自動</span>' : ''}</span>
         <input type="text" inputmode="decimal" data-eindiv="${id}" value="${esc(g.indiv[id] ?? '')}"
-          class="${auto ? 'auto' : ''}" placeholder="${auto ? c.valInCur[id] : '0'}"></div>`;
+          class="${auto ? 'auto' : ''}" placeholder="${
+            c.noAutoReason ? '—' : (auto ? c.valInCur[id] : '0')}"></div>`;
       return i === 0 ? b('S-04-32', cell) : cell; }).join('')}</div>`;
     inner += `<div id="eachcmp"></div><div id="eachnote"></div>`;
     inner += `</div>`;
@@ -1552,17 +1581,24 @@ function paintS04() {
   }
 }
 /* §2.6 比對列：以該筆幣別顯示，下方小字顯示換算後台幣 */
+/* §2.6 比對列：以該筆幣別顯示，下方小字顯示換算後台幣。
+   R9（#20-5 補漏）：加總不必等於總額。0＝剛好、≤1% 淡色、>1% 橘色，三種都可存檔。 */
 function cmpRow(c, t) {
   if (!c.isEach || c.noAutoReason) return '';
-  const fillCur = c.fillsAreForeign || c.forTotalAuto ? t.currency : 'TWD';
+  const fillCur = c.fillsAreForeign ? t.currency : 'TWD';
   const fs = fillCur === 'TWD' ? '$' : RULES_CUR_SYM(t.currency);
-  const base = c.fillsAreForeign || c.forTotalAuto ? c.forTotalEff : c.twdTotal;
+  const base = c.fillsAreForeign ? c.forTotalEff : c.twdTotal;
   if (base == null) return '';
   const sum = Object.values(c.valInCur).reduce((a,v) => a + (v||0), 0);
   const twdSum = Object.values(c.shares).reduce((a,v) => a + (v||0), 0);
-  return b('S-04-16', `<div class="calc" style="margin-top:8px">已填＋自動 ${fs} ${sum.toLocaleString()} ／ 總額 ${fs} ${base.toLocaleString()}
-    <div class="sub2">${c.twdPending ? '台幣總額還沒填，結算會跳過這筆'
-      : (fillCur === 'TWD' ? '結算就用這個台幣數字' : `換算後台幣 $ ${twdSum.toLocaleString()}`)}</div></div>`);
+  const diff = base - sum;
+  const lvl = Math.abs(diff) < 1 ? 'ok' : (Math.abs(diff) / base > 0.01 ? 'bad' : 'soft');
+  return b('S-04-16', `<div class="cmp ${lvl}">
+    <span>${fs} ${sum.toLocaleString()} ／ ${fs} ${base.toLocaleString()}</span>
+    <span class="d">${lvl === 'ok' ? ic('check',14)
+      : `差 ${fs} ${Math.abs(diff).toLocaleString()}`}</span>
+    <div class="sub2">${c.twdPending ? '沒有台幣金額，結算會跳過這筆'
+      : (fillCur === 'TWD' ? '' : `換算後台幣 $ ${twdSum.toLocaleString()}`)}</div></div>`);
 }
 function tripFormShim(t) { return { currency:t.currency, rateTwd:t.rateTwd ?? (oneSideOf(t.currency)==='twd'?'1':''), rateFor:t.rateFor ?? (oneSideOf(t.currency)==='for'?'1':'') }; }
 </script>
@@ -1869,17 +1905,21 @@ document.addEventListener('click', ev => {
     if (g.type === 'single' && (!g.parts || g.parts.length !== 1)) g.parts = [g.payer || tripOf(store.s03Trip).members[0].id];
     if (g.type !== 'single' && (g.parts||[]).length < 2) g.parts = tripOf(store.s03Trip).members.map(m => m.id);
     renderS04(); return; }
+  const fc = hit('data-fillcur');
+  if (fc) { g.fillCur = fc.dataset.fillcur; renderS04(); return; }   // 切幣別不清空已填的數字
   if (hit('data-eexpand')) { g._partsOpen = !g._partsOpen; paintS04(); return; }
   const ep = hit('data-epart');    if (ep) { const id = ep.dataset.epart;
     g.parts = (g.parts||[]).includes(id) ? g.parts.filter(x => x !== id) : (g.parts||[]).concat(id);
     paintS04(); return; }
   const es = hit('data-esingle');  if (es) { g.parts = [es.dataset.esingle]; paintS04(); return; }
   const ey = hit('data-epayer');   if (ey) { g.payer = ey.dataset.epayer;
+    g.onSpot = false;                       // #20-2 兩者互斥：選了人就不是「大家各付各的」
     if (g.type === 'single' && !(g.parts||[]).length) g.parts = [g.payer];
     renderS04(); return; }
   const ef = hit('data-eflag');    if (ef) { const k = ef.dataset.eflag;
     g[k] = !g[k];
-    if (k === 'onSpot' && g.onSpot) g.payer = g.payer || tripOf(store.s03Trip).members[0].id;
+    // #20-2：選「大家各付各的」時，成員的高亮要跟著熄掉；payer 仍留著當記錄者
+    if (k === 'onSpot' && g.onSpot && !g.payer) g.payer = tripOf(store.s03Trip).members[0].id;
     renderS04(); return; }
   if (t.closest('#s04cancel') || t.closest('#s04x')) { g = blankExp(); renderS04(); return; }
   if (t.closest('#s04save')) { saveExpense(); return; }
