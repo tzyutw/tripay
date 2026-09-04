@@ -49,11 +49,12 @@ E("fb.errs.members='測試訊息'; renderS02b()"); snap();   // S-02b-8
 E("f=blankForm(); f.dlg=false; renderS02()"); E("fb=null; renderS02b()");
 
 let missing=[],unexpected=[];
-for(const rows of Object.values(IDX)) rows.forEach(([id,el,kind])=>{
+// 只檢查批一四頁；批二的編號由 原型_批二回歸測試.cjs 負責
+['s00','s01','s02','s02b'].forEach(k=>IDX[k].forEach(([id,el,kind])=>{
   const has=seen.has(id);
   if((kind==='op'||kind==='st')&&!has) missing.push(id);
   if((kind==='del'||kind==='inv')&&has) unexpected.push(id);
-});
+}));
 console.log('   曾出現的徽章數：',seen.size);
 console.log('   應有卻從未出現：',missing.length?missing.join(','):'（無）');
 console.log('   不該有卻出現：',unexpected.length?unexpected.join(','):'（無）');

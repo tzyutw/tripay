@@ -53,12 +53,31 @@ const WIDTHS = [320, 375, 414];
     console.log('   容器溢出：', strict.length ? JSON.stringify(strict) : '（無）');
     ok(strict.length === 0, `${w}px：容器橫向溢出 ${JSON.stringify(strict)}`);
 
-    // 展開所有會長出來的狀態，再測一次
+    // 展開所有會長出來的狀態，再測一次（含批二）
     await page.evaluate(() => {
       store.s01 = 'empty'; renderS01();
       f = blankForm(store.trips[0].members); f.owner = 0; f.showCur = true; f.adding = true; renderS02();
       fb = null; renderS02b(); fb.tonePick = true; fb.errs.members = '測試訊息'; renderS02b();
+      store.expenses.t1 = demoExpenses(); renderS03();
+      store.s03Filter = { kind: 'member', memberId: tripOf('t1').members[0].id }; renderS03d();
+      store.s05 = 'check'; renderS05();
+      const M = tripOf('t1').members.map(m => m.id);
+      g = exp({ title:'藥妝店', forAmt:'45000', twdAmt:'1035', pay:'cash', type:'individual',
+                parts:M, indiv:{ [M[0]]:'12000' }, payer:M[0], sponsor:true });
+      tripOf('t1').rateTwd = undefined; tripOf('t1').rateFor = undefined;
+      renderS04(); g._rateOpen = true; paintS04();
     });
+    const doc3 = await page.evaluate(() => ({
+      sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
+    ok(doc3.sw <= doc3.cw, `${w}px 批二全狀態：整頁橫向溢出 ${doc3.sw - doc3.cw}px`);
+    const bad2 = await page.evaluate(() => {
+      const out = [];
+      document.querySelectorAll('.ph, .ui, .sheet').forEach(el => {
+        if (el.scrollWidth > el.clientWidth + 1) out.push({ cls: el.className.split(' ')[0], over: el.scrollWidth - el.clientWidth });
+      });
+      return out; });
+    console.log('   批二容器溢出：', bad2.length ? JSON.stringify(bad2) : '（無）');
+    ok(bad2.length === 0, `${w}px 批二：容器橫向溢出 ${JSON.stringify(bad2)}`);
     const doc2 = await page.evaluate(() => ({
       sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
     console.log(`   全狀態展開：scrollWidth ${doc2.sw} / clientWidth ${doc2.cw}`);

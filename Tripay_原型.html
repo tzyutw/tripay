@@ -162,6 +162,59 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .toast{position:absolute;left:14px;right:14px;bottom:14px;z-index:60;background:#151C21;color:#fff;
   font-size:12.5px;padding:10px 13px;border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
 
+
+/* ══ 批二：S-03 / S-03d / S-04 / S-05 ══ */
+.ui .hero{padding:30px 14px 13px;color:#fff;position:relative}
+.ui .hero .sc{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 34%,rgba(0,0,0,.5))}
+.ui .hero .navrow{position:relative;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ui .hero .nb{font-size:12px;font-weight:600;color:rgba(255,255,255,.92)}
+.ui .hero .icons{display:flex;gap:6px}
+.ui .hero .ic2{width:26px;height:26px;border-radius:4px;background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;font-size:12px}
+.ui .hero .tt{position:relative;font-size:19px;font-weight:700;letter-spacing:-.01em}
+.ui .hero .dt{position:relative;font-size:11px;color:rgba(255,255,255,.86);margin-top:4px}
+.ui .statcard{background:#fff;border-bottom:1px solid var(--ln)}
+.ui .statcard .tot{display:flex;align-items:baseline;justify-content:space-between;padding:12px 14px 10px;
+  border-bottom:1px solid #F1F2EE}
+.ui .statcard .tot span{font-size:11.5px;color:var(--gr)}
+.ui .statcard .tot b{font-size:20px;font-weight:600;letter-spacing:-.02em}
+.ui .perlist{display:flex;flex-direction:column}
+.ui .perrow{display:flex;align-items:center;gap:9px;padding:8px 14px;width:100%;text-align:left;
+  border-bottom:1px solid #F5F6F3}
+.ui .perrow:last-child{border-bottom:0}
+.ui .perrow .av{font-size:15px;width:20px;text-align:center;flex:none}
+.ui .perrow .nm{flex:1;font-size:12.5px;font-weight:600}
+.ui .perrow .am{font-size:13px;font-weight:600;display:flex;align-items:baseline;gap:3px}
+.ui .perrow .am.ap{color:var(--wi)}
+.ui .perrow .am.ap .money{border-bottom:1px dashed var(--w)}
+.ui .perrow .am i{font-style:normal;font-size:11px;color:var(--gr)}
+.ui .statcard .foot{padding:8px 14px 11px;font-size:10.5px;color:var(--gr)}
+.ui .curswitch{padding:10px 14px;background:#fff;border-bottom:1px solid var(--ln)}
+.ui .listhd{padding:14px 14px 4px;font-size:11px;font-weight:600;color:var(--gr)}
+.ui .unsettled{display:flex;align-items:center;justify-content:space-between;width:100%;
+  margin:0 0 4px;padding:10px 14px;background:#FBF0EC;border-top:1px solid #E8C4B8;
+  border-bottom:1px solid #E8C4B8;font-size:12.5px;font-weight:600;color:var(--out);text-align:left}
+.ui .exprow{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  margin:0 14px 5px;width:calc(100% - 28px);background:#fff;border:1px solid var(--ln);
+  border-radius:3px;padding:8px 10px}
+.ui .exprow.pend{border-left:2px solid var(--out)}
+.ui .exprow .ic{font-size:17px;width:24px;text-align:center;flex:none}
+.ui .exprow .mid{flex:1;min-width:0;display:flex;flex-direction:column}
+.ui .exprow .t{font-size:12.5px;font-weight:600}
+.ui .exprow .s{font-size:9.5px;color:var(--gr);margin-top:2px;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.ui .exprow .a{font-size:12.5px;font-weight:600;text-align:right;flex:none}
+.ui .delrow{padding:14px;text-align:center;font-size:11px;color:var(--dg)}
+.ui .delrow span{border-bottom:1px solid #D7BCB2}
+.ui .detailtoggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 28px);
+  margin:0 14px;padding:11px 0;border-top:1px solid var(--ln);font-size:12px;font-weight:600;color:var(--md)}
+.ui .detailhd,.ui .detailrow{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:4px;padding:6px 9px;font-size:10.5px}
+.ui .detailhd{color:var(--gr);border-bottom:1px solid var(--ln);font-weight:600}
+.ui .detailhd span:not(:first-child),.ui .detailrow span:not(:first-child){text-align:right}
+.ui .detailrow{border-bottom:1px solid #F5F6F3}
+.ui .detailrow:last-child{border-bottom:0}
+.ui .bar .bk{font-size:12px;font-weight:600;color:var(--wi)}
+.ui .bar .ttl{font-size:13px;font-weight:600;color:var(--md)}
+
 /* 行程卡 */
 .ui .tcard{margin:11px 14px 0;background:#fff;padding:4px;border:1px solid var(--ln);border-radius:3px;
   display:block;width:calc(100% - 28px);text-align:left}
@@ -206,7 +259,7 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
 
 <div class="top">
   <span class="nm">Tripay 原型</span>
-  <span class="bt">批一（含 #15 修正）· S-00 / S-01 / S-02 / S-02b</span>
+  <span class="bt">批一 ✓ ／批二 S-03 · S-03d · S-04 · S-05</span>
   <span class="copied" id="copied">已複製 ✓</span>
   <div class="modesw" id="modesw">
     <button data-m="anno">標註模式</button>
@@ -221,9 +274,9 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
     <b>標註模式</b>會浮出每個區塊的編號徽章與虛線框，<b>點徽章可複製編號</b>；
     <b>操作模式</b>把標註全部收起來，純粹操作。預設標註模式。</p>
   <div class="callout">
-    <b>本輪只做批一</b>（S-00 登入、S-01 首頁、S-02 建立行程、S-02b 編輯行程）。
-    這四頁之間是<b>真的連動的</b>——在 S-02 建一趟，S-01 的列表就會多一張卡；
-    在 S-02b 改成員或色調，卡片跟著變。
+    <b>目前到批二</b>：批一（S-00／S-01／S-02／S-02b）已確認，批二加上 S-03 行程頁、S-04 記帳表單、S-05 結算，
+    以及規格 §5.3 的篩選後列表 S-03d。<b>全部連動</b>——在 S-04 記一筆，S-03 的統計與列表立刻跟著變；
+    在 S-02b 設匯率，S-04 的現金消費就換算得出台幣。
   </div>
   <div class="callout">
     <b>編號沿用盤點表，不重編。</b>已移除的項目（S-00-1、S-00-6、S-01-9、S-01-10、S-02-5、S-02b-6）
@@ -287,9 +340,75 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
   <div><p class="cnt">編號清單 · 12 項（1 項已移除、1 項新增）</p><div class="idx" id="idx-s02b"></div></div>
 </section>
 
+
+<!-- ══════════ S-03 ══════════ -->
+<section class="scr" id="s03">
+  <div class="scrhd"><span class="k">S-03</span><h2>行程頁 · 消費瀏覽</h2>
+    <p>產品的主畫面。統計卡改成<b>每人一列</b>，算不清楚的金額前面標「約」、可以點進去看是哪幾筆。
+      原本那條「N 筆待填，數字僅供參考」整條移除，功能由列表上方的入口取代。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/trips/:id</p>
+    <div class="ph"><div class="ui" id="scr-s03"></div></div>
+    <div class="rig"><div class="t">原型控制</div>
+      <div class="row" id="s03rig">
+        <button data-st="active">旅途中</button><button data-st="settled">已結算</button>
+        <button data-st="empty">還沒記帳</button><button data-st="reset">重置示範資料</button>
+      </div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 30 項</p><div class="idx" id="idx-s03"></div></div>
+</section>
+
+<!-- ══════════ S-03d ══════════ -->
+<section class="scr" id="s03d">
+  <div class="scrhd"><span class="k new">S-03d</span><h2>還沒算清楚 · 篩選後列表</h2>
+    <p>兩種進入方式（點統計卡的人、點列表上方的入口）走的是<b>同一個畫面</b>，只有標題與範圍不同。
+      在 S-03 點點看就會出現。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/trips/:id?filter=unsettled</p>
+    <div class="ph"><div class="ui" id="scr-s03d"></div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 4 項（新畫面）</p><div class="idx" id="idx-s03d"></div></div>
+</section>
+
+<!-- ══════════ S-04 ══════════ -->
+<section class="scr" id="s04">
+  <div class="scrhd"><span class="k">S-04</span><h2>記一筆 · 消費表單</h2>
+    <p>最複雜的一頁。分帳三型、各自金額的幣別與自動均分、現金匯率換算、四種存檔提示都在這裡。
+      <b>存檔一律成功</b>，不擋、不跳確認框。</p></div>
+  <div class="phwrap">
+    <p class="phcap">S-04 sheet</p>
+    <div class="ph"><div class="ui" id="scr-s04"></div></div>
+    <div class="rig"><div class="t">原型控制</div>
+      <div class="row" id="s04rig">
+        <button data-d="blank">空白表單</button>
+        <button data-d="drug">藥妝店 · 各付各的 · ₩</button>
+        <button data-d="cash">現金但還沒設匯率</button>
+        <button data-d="clearrate">清掉這趟的匯率</button>
+      </div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 39 項</p><div class="idx" id="idx-s04"></div></div>
+</section>
+
+<!-- ══════════ S-05 ══════════ -->
+<section class="scr" id="s05">
+  <div class="scrhd"><span class="k">S-05</span><h2>結算</h2>
+    <p>按下「結算行程」的<b>當下</b>先檢查有沒有還沒算清楚的筆數——有就先攔一層，
+      但<b>「就這樣結算」一定要能真的結算</b>，這是提醒不是禁止。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/trips/:id/settlement</p>
+    <div class="ph"><div class="ui" id="scr-s05"></div></div>
+    <div class="rig"><div class="t">原型控制</div>
+      <div class="row" id="s05rig">
+        <button data-p="pending">未結算</button><button data-p="check">檢查層</button>
+        <button data-p="partial">部分付清</button><button data-p="done">全員付清</button>
+      </div></div>
+  </div>
+  <div><p class="cnt">編號清單 · 30 項</p><div class="idx" id="idx-s05"></div></div>
+</section>
+
 <footer>
   Tripay · 唯一原型 · 批一（S-00／S-01／S-02／S-02b）· 2026-09-04<br>
-  下一批：S-03 行程頁、S-04 記帳表單、S-05 結算
+  下一批：S-06 分享頁、S-07 設定與各子彈窗
 </footer>
 </div>
 
@@ -657,9 +776,10 @@ function renderS02b() {
     `<button data-picktrip="${t.id}" class="${t.id===editTripId?'on':''}">${esc(t.name.slice(0,12))}</button>`).join('');
 }
 
-function toast(host, msg) {
+function toast(host, msg, badgeId) {
   const el = $(host); if (!el) return;
-  el.innerHTML = `<div class="toast">${esc(msg)}</div>`;
+  const inner = `<div class="toast">${esc(msg)}</div>`;
+  el.innerHTML = badgeId ? b(badgeId, inner) : inner;
   setTimeout(() => { if (el) el.innerHTML = ''; }, 2600);
 }
 </script>
@@ -950,4 +1070,826 @@ document.addEventListener('keydown', ev => {
 setMode('anno');
 renderAll();
 renderIndex();
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   批二：消費資料與判定引擎（規格_金額未定案與幣別.md）
+   ═══════════════════════════════════════════════════════════ */
+const PAY = { cash:'現金', card:'信用卡', stored:'儲值卡' };
+
+function exp(o) {
+  return Object.assign({ id:nid(), title:'', emoji:'➕', date:'2026-03-14',
+    forAmt:'', twdAmt:'', pay:'cash', type:'shared', parts:null, indiv:{},
+    onSpot:false, sponsor:false, payer:null, rateOverride:null }, o);
+}
+
+/* 示範資料：濟州島（t1，KRW）*/
+function demoExpenses() {
+  const t = store.trips.find(x => x.id === 't1'), M = t.members.map(x => x.id);
+  return [
+    exp({ title:'機票 ×4', emoji:'✈️', date:'2026-02-10', twdAmt:'28400', pay:'card',
+          type:'shared', parts:M, payer:M[0] }),
+    exp({ title:'黑豬肉晚餐', emoji:'🍜', date:'2026-03-14', forAmt:'108000', twdAmt:'2480',
+          pay:'card', type:'shared', parts:M, payer:M[2] }),
+    exp({ title:'藥妝店', emoji:'🛍️', date:'2026-03-15', forAmt:'45000', twdAmt:'1035',
+          pay:'card', type:'individual', parts:M,
+          indiv:{ [M[0]]:'12000', [M[1]]:'18000' }, payer:M[1] }),      // 2 人沒填 → 未定案
+    exp({ title:'城山日出峰門票', emoji:'🎡', date:'2026-03-15', forAmt:'20000',
+          pay:'cash', type:'shared', parts:M, payer:M[3] }),            // 現金、沒台幣 → 看匯率
+    exp({ title:'紀念品', emoji:'🛍️', date:'2026-03-16', twdAmt:'860', pay:'cash',
+          type:'single', parts:[M[1]], payer:M[1] }),
+    exp({ title:'機場接送', emoji:'🚌', date:'2026-03-18', twdAmt:'1600', pay:'cash',
+          type:'shared', parts:M, payer:M[0], onSpot:true }),
+    exp({ title:'計程車', emoji:'🚕', date:'2026-03-16', pay:'cash',
+          type:'shared', parts:M, payer:M[0] }),                        // 整筆沒金額 → twd_pending
+    exp({ title:'爸爸贊助', emoji:'💝', date:'2026-03-14', twdAmt:'50000', pay:'cash',
+          type:'shared', parts:M, payer:M[0], sponsor:true }),          // 負額共同項
+  ];
+}
+store.expenses = { t1: demoExpenses(), t2: [], t3: [] };
+store.s03Trip = 't1';
+store.s03Filter = null;     // {kind:'all'|'member', memberId}
+
+const tripOf = id => store.trips.find(x => x.id === id);
+const expsOf = id => store.expenses[id] || (store.expenses[id] = []);
+
+/* 行程現金匯率：外幣 ÷ 台幣。沒設定回 null */
+function tripRate(t) {
+  const twd = parseFloat(t.rateTwd), fr = parseFloat(t.rateFor);
+  if (!Number.isFinite(twd) || !Number.isFinite(fr) || twd <= 0) return null;
+  return fr / twd;
+}
+
+/* ── 單筆消費的判定（規格 §1 §2 §3）── */
+function calc(e, t) {
+  const rate = e.rateOverride != null ? e.rateOverride : tripRate(t);
+  const parts = e.parts || [];
+  const forT = parseFloat(e.forAmt), twdIn = parseFloat(e.twdAmt);
+
+  // 整筆台幣：刷卡直接用填的；現金／儲值卡在沒填台幣時用行程匯率換算（§2A.3 / §2b.2）
+  let twdTotal = Number.isFinite(twdIn) ? twdIn : null;
+  let twdFromRate = false;
+  if (twdTotal == null && e.pay !== 'card' && Number.isFinite(forT) && rate) {
+    twdTotal = Math.round(forT / rate); twdFromRate = true;
+  }
+  const twdPending = twdTotal == null;
+
+  // 各自金額（§2.2 §2.3）
+  const isEach = e.type === 'individual';
+  const manual = {}, blanks = [];
+  let sumManual = 0;
+  if (isEach) parts.forEach(id => {
+    const raw = (e.indiv[id] ?? '').toString().trim();
+    const v = parseFloat(raw);
+    if (raw !== '' && Number.isFinite(v)) { manual[id] = v; sumManual += v; }
+    else blanks.push(id);
+  });
+
+  const cur = t.currency;
+  const fillsAreForeign = isEach && Number.isFinite(forT);      // 有外幣總額 → 各自金額填外幣
+  let forTotalEff = Number.isFinite(forT) ? forT : null, forTotalAuto = false;
+  let noAutoReason = null;
+  if (isEach && forTotalEff == null) {
+    if (blanks.length === 0 && sumManual > 0) { forTotalEff = sumManual; forTotalAuto = true; }
+    else if (blanks.length > 0 && sumManual > 0) noAutoReason = 'noForeignTotal';   // §2.3 第三種
+  }
+
+  const valInCur = {}, shares = {};
+  if (isEach) {
+    const base = fillsAreForeign || forTotalAuto ? forTotalEff : twdTotal;
+    if (base != null && !noAutoReason) {
+      const remain = base - sumManual;
+      const auto = blanks.length ? Math.max(0, Math.floor(remain / blanks.length)) : null;
+      parts.forEach(id => valInCur[id] = (id in manual) ? manual[id] : (auto ?? 0));
+      if (blanks.length && remain > 0) valInCur[blanks[blanks.length-1]] += remain - auto * blanks.length;
+    } else {
+      parts.forEach(id => valInCur[id] = (id in manual) ? manual[id] : null);
+    }
+    // 換算台幣：比例回推（§2.2），不用匯率
+    parts.forEach(id => {
+      const v = valInCur[id];
+      if (v == null || twdPending) { shares[id] = null; return; }
+      shares[id] = (fillsAreForeign || forTotalAuto) && forTotalEff
+        ? Math.round(twdTotal * v / forTotalEff) : Math.round(v);
+    });
+    if (!twdPending && parts.includes(e.payer) && parts.every(id => shares[id] != null)) {
+      const sum = parts.reduce((a,id) => a + shares[id], 0);
+      shares[e.payer] += twdTotal - sum;
+    }
+  } else if (!twdPending && parts.length) {
+    const per = Math.round(twdTotal / parts.length);
+    parts.forEach(id => { shares[id] = per; valInCur[id] = per; });
+    if (parts.includes(e.payer)) shares[e.payer] += twdTotal - per * parts.length;
+  } else {
+    parts.forEach(id => { shares[id] = null; valInCur[id] = null; });
+  }
+
+  // §3 未定案判定：未輸入 0 或 1 人不標記，2 人以上標記
+  const estimated = {};
+  if (isEach && blanks.length >= 2 && !noAutoReason) blanks.forEach(id => estimated[id] = true);
+  const unsettled = twdPending || (isEach && blanks.length >= 2);
+
+  const debts = parts.filter(id => id !== e.payer && shares[id])
+                     .map(id => ({ from:id, to:e.payer, amount:shares[id] }));
+  return { rate, twdTotal, twdPending, twdFromRate, isEach, manual, blanks, sumManual,
+           forTotalEff, forTotalAuto, noAutoReason, fillsAreForeign, valInCur, shares,
+           estimated, unsettled, debts, cur };
+}
+
+/* ── 行程層級彙總（規格 §5.1 §5.2）── */
+function tripSummary(tid) {
+  const t = tripOf(tid), list = expsOf(tid);
+  const readonly = statusOf(t) === 'settled' || statusOf(t) === 'archived';   // §5.6
+  let total = 0;
+  const per = {}, approx = {};
+  t.members.forEach(m => { per[m.id] = 0; approx[m.id] = false; });
+  const unsettledList = [];
+  list.forEach(e => {
+    const c = calc(e, t);
+    if (!c.twdPending && !e.sponsor) total += c.twdTotal;
+    (e.parts || []).forEach(id => {
+      if (c.shares[id] != null) per[id] += c.shares[id];
+      if (c.twdPending || c.estimated[id]) approx[id] = true;     // §5.1 (a)(b)
+    });
+    if (c.unsettled) unsettledList.push({ e, c });                 // §5.2 同筆只算一次
+  });
+  return { t, list, readonly, total, per, approx, unsettledList };
+}
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   S-03 行程頁
+   ═══════════════════════════════════════════════════════════ */
+const money = v => '$ ' + Math.round(v).toLocaleString();
+function dayLabel(t, d) {
+  if (d < t.start) return '出發前';
+  const n = Math.floor((new Date(d) - new Date(t.start)) / 86400000) + 1;
+  const wd = '日一二三四五六'[new Date(d).getDay()];
+  return `第 ${n} 天 · ${md(d)}（${wd}）`;
+}
+
+function expenseRow(e, c, S, forFilter) {
+  const t = S.t, payer = t.members.find(m => m.id === e.payer);
+  const badges = [];
+  if (e.type === 'individual') badges.push(b('S-03-18','<span class="pill ind">各付各的</span>','inl'));
+  if (e.type === 'single' && e.parts && e.parts[0])
+    badges.push(b('S-03-19', `<span class="pill gr">只算 ${esc((t.members.find(m=>m.id===e.parts[0])||{}).name||'')}</span>`,'inl'));
+  if (e.onSpot) badges.push(b('S-03-20','<span class="pill gr">當場各付</span>','inl'));
+  if (e.sponsor) badges.push(b('S-03-21','<span class="pill ind">贊助回饋</span>','inl'));
+  // §5.4：整筆未定 → 橘紅左邊框＋「還沒填」，不再有「待補填」badge
+  const pend = c.twdPending;
+  const approx = !pend && Object.keys(c.estimated).length > 0;
+  const amt = pend ? '<span style="color:var(--out)">還沒填</span>'
+    : `${approx ? '<span style="color:var(--gr);font-size:11px">約 </span>' : ''}<span class="money">${money(c.twdTotal)}</span>`;
+  const rowHtml = `<button class="exprow${pend ? ' pend' : ''}" data-editexp="${e.id}">
+    <span class="ic">${e.emoji}</span>
+    <span class="mid"><span class="t">${esc(e.title)}</span>
+      <span class="s">${payer ? esc(payer.emoji + ' ' + payer.name) : ''} ${badges.join(' ')}</span></span>
+    <span class="a">${amt}</span></button>`;
+  return pend ? b('S-03-17', rowHtml) : rowHtml;   // 整筆未定的列有自己的編號
+}
+
+function renderS03() {
+  const S = tripSummary(store.s03Trip), t = S.t, st = statusOf(t);
+  const nUn = S.unsettledList.length;
+  const anyApprox = t.members.some(m => S.approx[m.id]);
+
+  let h = b('S-03-1', `<div class="hero" style="background:${toneFor(t.name, t.tone)}">
+    <div class="sc"></div>
+    <div class="navrow">
+      ${b('S-03-2', '<span class="nb">‹ 返回</span>')}
+      <span class="icons">${b('S-03-3','<span class="ic2">✎</span>')}${b('S-03-4','<span class="ic2">⧉</span>')}${b('S-03-5','<span class="ic2">↑</span>')}${b('S-03-6','<span class="ic2">⚙</span>')}</span>
+    </div>
+    ${b('S-03-7', `<div class="tt">${esc(t.name)}</div>`)}
+    ${b('S-03-8', `<div class="dt tnum">${dateRange(t.start, t.end)}　${t.members.map(m=>m.emoji||firstGrapheme(m.name)).join('')}</div>`)}
+  </div>`);
+
+  // 統計卡：總花費 ＋ 每人一列（§5.1）
+  h += `<div class="statcard">
+    ${b('S-03-9', `<div class="tot"><span>總花費</span><b class="money">${money(S.total)}</b></div>`)}
+    ${b('S-03-27', `<div class="perlist">${t.members.map(m => {
+      const ap = S.approx[m.id];
+      return `<button class="perrow" data-permember="${m.id}">
+        <span class="av">${m.emoji || firstGrapheme(m.name) || '🙂'}</span>
+        <span class="nm">${esc(m.name)}</span>
+        <span class="am ${ap ? 'ap' : ''}">${ap ? '<i>約</i>' : ''}<span class="money">${money(S.per[m.id])}</span></span>
+      </button>`; }).join('')}</div>`)}
+    ${anyApprox && !S.readonly ? b('S-03-28', `<div class="foot">標「約」的金額還沒算清楚，點名字看是哪幾筆</div>`) : ''}
+  </div>`;
+
+  h += b('S-03-12', `<div class="curswitch"><div class="seg">
+    <button class="on">$ 台幣</button><button>${RULES_CUR_SYM(t.currency)} ${t.currency}</button></div></div>`);
+
+  h += `<div class="listhd"><span>消費紀錄 · ${S.list.length} 筆</span></div>`;
+  if (nUn > 0 && !S.readonly)
+    h += b('S-03-29', `<button class="unsettled" data-openfilter="all">有 ${nUn} 筆還沒算清楚 <span>›</span></button>`);
+
+  if (!S.list.length) {
+    h += b('S-03-14', `<div class="empty"><p>第一筆從哪裡開始？</p><p>早餐、計程車、門票，都可以記</p></div>`);
+  } else {
+    const groups = {};
+    [...S.list].sort((a,c2) => a.date.localeCompare(c2.date))
+      .forEach(e => { const k = dayLabel(t, e.date); (groups[k] = groups[k] || []).push(e); });
+    let first = true;
+    for (const [k, arr] of Object.entries(groups)) {
+      h += first ? b('S-03-15', `<div class="sec">${k}</div>`) : `<div class="sec">${k}</div>`;
+      arr.forEach((e, i) => {
+        const c = calc(e, t);
+        const row = expenseRow(e, c, S);
+        h += (first && i === 0) ? b('S-03-16', row) : row;
+      });
+      first = false;
+    }
+  }
+
+  h += st === 'archived'
+    ? b('S-03-24', `<div class="btnrow"><span class="btn gh">重新開啟</span></div>`)
+    : st === 'settled'
+      ? b('S-03-23', `<div class="btnrow"><span class="btn gh">查看結算</span><span class="btn qt">封存行程</span></div>`)
+      : b('S-03-22', `<div class="btnrow"><button class="btn gh" id="s03settle">結算行程</button><button class="btn" id="s03add">＋ 記一筆</button></div>`);
+  h += b('S-03-25', `<div class="delrow"><span>刪除這趟行程</span></div>`);
+  h += `<div id="s03toast"></div>`;
+  $('#scr-s03').innerHTML = h;
+  document.querySelectorAll('#s03rig button').forEach(x => x.classList.toggle('on', x.dataset.st === st));
+}
+function RULES_CUR_SYM(c) { const f = CURRENCIES.find(x => x[0] === c); return f ? f[2] : '¥'; }
+
+/* ═══ S-03d 篩選後列表（§5.3）═══ */
+function renderS03d() {
+  const S = tripSummary(store.s03Trip), t = S.t;
+  const fl = store.s03Filter;
+  let rows = S.unsettledList, title = `還沒算清楚 · ${S.unsettledList.length} 筆`;
+  if (fl && fl.kind === 'member') {
+    const m = t.members.find(x => x.id === fl.memberId);
+    rows = S.unsettledList.filter(({e,c}) => (e.parts||[]).includes(fl.memberId) && (c.twdPending || c.estimated[fl.memberId]));
+    title = `影響 ${m ? m.name : ''} 的 · ${rows.length} 筆`;
+  }
+  $('#scr-s03d').innerHTML =
+    b('S-03d-2', `<div class="bar"><button class="bk" id="s03dback">‹ 回行程</button><span class="ttl">${esc(title.split(' · ')[0])}</span><span style="width:52px"></span></div>`) +
+    b('S-03d-1', `<div class="sec">${esc(title)}</div>`) +
+    (rows.length
+      ? rows.map(({e,c}, i) => {
+          const row = expenseRow(e, c, S, true);
+          return i === 0 ? b('S-03d-3', row) : row; }).join('')
+      : b('S-03d-4', `<div class="empty"><p>都算清楚了。</p><p>沒有需要補的筆數</p></div>`)) +
+    `<div style="height:18px"></div>`;
+}
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   S-04 記一筆
+   ═══════════════════════════════════════════════════════════ */
+let g = null;                       // S-04 表單狀態（正在編輯的消費）
+function blankExp() {
+  const t = tripOf(store.s03Trip);
+  return exp({ date: t.start, parts: t.members.map(m => m.id), payer: null });
+}
+function loadExp(id) {
+  const e = expsOf(store.s03Trip).find(x => x.id === id);
+  g = e ? JSON.parse(JSON.stringify(e)) : blankExp();
+}
+
+function renderS04() {
+  const t = tripOf(store.s03Trip);
+  if (!g) g = blankExp();
+  const c = calc(g, t), cur = t.currency, sym = RULES_CUR_SYM(cur);
+  const rate = tripRate(t);
+  const needRate = g.pay !== 'card' && !rate;      // §2b.5 現金但還沒設匯率
+
+  let h = b('S-04-1', `<div class="shd" style="padding-top:14px"><h3>${g._edit ? '編輯消費' : '記一筆'}</h3><button class="x" id="s04x">✕</button></div>`);
+
+  h += b('S-04-2', `<div class="fld"><span class="lbl">什麼花費？</span>
+    <div style="display:flex;gap:8px;align-items:center">
+      ${b('S-04-3', `<span style="font-size:20px;width:28px;text-align:center">${g.emoji}</span>`, 'inl')}
+      <input type="text" id="e-title" value="${esc(g.title)}" placeholder="例如：藥妝店"></div></div>`);
+
+  // 金額（§2.3 §2.4 §2A.3）
+  h += b('S-04-4', `<div class="fld"><span class="lbl">金額</span>
+    <div class="two">
+      ${b('S-04-5', `<div><span class="hint" style="display:block;margin:0 0 4px">${sym} ${cur}</span>
+        <input type="text" inputmode="decimal" id="e-for" value="${esc(g.forAmt)}" placeholder="可留空"></div>`)}
+      ${b('S-04-6', `<div><span class="hint" style="display:block;margin:0 0 4px">$ 台幣</span>
+        <input type="text" inputmode="decimal" id="e-twd" value="${esc(g.twdAmt)}"
+          placeholder="${c.twdFromRate ? c.twdTotal : '可留空'}"></div>`)}
+    </div>
+    <div id="amtnote"></div></div>`);
+
+  h += b('S-04-9', `<div class="fld"><span class="lbl">怎麼付的？</span>
+    <div class="chips">${Object.entries(PAY).map(([k,v]) =>
+      `<button class="chip${g.pay===k?' on':''}" data-pay="${k}">${v}</button>`).join('')}</div>
+    ${needRate ? b('S-04-38', `<button class="ratecta" id="e-setrate">設定這趟的匯率 ›</button>`) : ''}
+    <div id="rateinline"></div></div>`);
+
+  h += b('S-04-10', `<div class="fld"><span class="lbl">日期</span>
+    <input type="date" id="e-date" value="${g.date}"></div>`);
+
+  h += b('S-04-11', `<div class="fld"><span class="lbl">分帳方式</span>
+    <div class="seg">${[['shared','一起分'],['individual','各付各的'],['single','只算一個人']].map(([k,v]) =>
+      `<button class="${g.type===k?'on':''}" data-etype="${k}">${v}</button>`).join('')}</div>
+    <div id="typebody"></div></div>`);
+
+  h += b('S-04-21', `<div class="fld"><span class="lbl">誰付的？</span>
+    <div class="chips">${t.members.map(m =>
+      `<button class="chip${g.payer===m.id?' on':''}" data-epayer="${m.id}">${m.emoji||firstGrapheme(m.name)} ${esc(m.name)}</button>`).join('')}</div></div>`);
+
+  h += b('S-04-18', `<div class="fld"><button class="rowb${g.onSpot?' on':''}" data-eflag="onSpot">
+      <span class="mechip ${g.onSpot?'on':''}">✓</span>
+      <span style="flex:1;font-weight:600">大家當場各付各的，不用結算</span></button></div>`);
+  h += b('S-04-19', `<div class="fld"><button class="rowb${g.sponsor?' on':''}" data-eflag="sponsor">
+      <span class="mechip ${g.sponsor?'on':''}">✓</span>
+      <span style="flex:1;font-weight:600">這是贊助／回饋</span></button>
+      ${g.sponsor ? b('S-04-20', `<p class="hint">金額會記成負數，由 ${(g.parts||[]).length} 人均分扣抵。「誰付的」請選<b>實際代收這筆錢的人</b></p>`) : ''}</div>`);
+
+  h += b('S-04-22', `<div class="btnrow"><button class="btn gh" id="s04cancel">取消</button>
+    <button class="btn" id="s04save">記下來</button></div>`);
+  if (g._edit) h += b('S-04-23', `<div class="delrow"><span>刪除這筆</span></div>`);
+  h += `<div id="s04toast"></div>`;
+  $('#scr-s04').innerHTML = h;
+  paintS04();
+}
+
+/* 只更新衍生內容——不重建任何 input（#13 的教訓、規格 §5.5 明訂） */
+function paintS04() {
+  const t = tripOf(store.s03Trip);
+  const c = calc(g, t), cur = t.currency, sym = RULES_CUR_SYM(cur);
+  const note = document.getElementById('amtnote');
+  if (note) {
+    note.innerHTML = c.twdPending
+      ? `<div class="note warn">台幣金額還沒填，這筆<b>不會算進總花費</b>，結算也會跳過。之後補上就好。</div>`
+      : c.twdFromRate
+        ? `<div class="note calm">用這趟的現金匯率換算成 <b>${money(c.twdTotal)}</b>。刷卡的話請直接填台幣。</div>`
+        : '';
+  }
+  const rin = document.getElementById('rateinline');
+  if (rin) rin.innerHTML = g._rateOpen
+    ? `<div class="note calm" style="padding:10px 11px">
+        <div style="font-weight:600;margin-bottom:6px">這趟的現金匯率</div>${rateRows(tripFormShim(t))}
+        <div style="display:flex;gap:7px;margin-top:8px">
+          <button class="btn qt" id="e-ratecancel" style="padding:7px 0">取消</button>
+          <button class="btn" id="e-ratesave" style="padding:7px 0">設好了</button></div></div>` : '';
+
+  const tb = document.getElementById('typebody');
+  if (!tb) return;
+  const t2 = t;
+  if (g.type === 'shared') {
+    tb.innerHTML = b('S-04-12', `<div style="margin-top:10px"><div class="gap">${t2.members.map(m => {
+      const on = (g.parts||[]).includes(m.id);
+      return `<button class="rowb${on?' on':''}" data-epart="${m.id}">
+        <span class="mechip ${on?'on':''}">✓</span><span style="font-size:15px">${m.emoji||firstGrapheme(m.name)}</span>
+        <span style="flex:1;font-weight:600">${esc(m.name)}</span></button>`; }).join('')}</div>
+      ${b('S-04-13', c.twdPending ? '' : `<div class="calc">${(g.parts||[]).length} 人均分 · 每人 ${money(Math.round(c.twdTotal/Math.max(1,(g.parts||[]).length)))}</div>`)}</div>`);
+  } else if (g.type === 'single') {
+    tb.innerHTML = b('S-04-17', `<div style="margin-top:10px"><span class="lbl">算誰的？</span>
+      <div class="chips">${t2.members.map(m =>
+        `<button class="chip${(g.parts||[])[0]===m.id?' on':''}" data-esingle="${m.id}">${m.emoji||firstGrapheme(m.name)} ${esc(m.name)}</button>`).join('')}</div></div>`);
+  } else {
+    const fillCur = c.fillsAreForeign || c.forTotalAuto ? cur : 'TWD';
+    const fs = fillCur === 'TWD' ? '$' : sym;
+    let inner = `<div style="margin-top:10px">` +
+      b('S-04-15', `<span class="lbl" style="display:block">各自多少？</span>`) +
+      b('S-04-31', `<p class="hint" style="margin:0 0 7px">這一筆填 <b>${fs} ${fillCur}</b>，同一筆不混填</p>`);
+    inner += `<div class="gap">${(g.parts||[]).map((id, i) => {
+      const m = t2.members.find(x => x.id === id) || {};
+      const auto = c.valInCur[id] != null && !(id in c.manual);
+      const cell = `<div class="amtrow" data-arow="${id}">
+        <span style="font-size:15px">${m.emoji||firstGrapheme(m.name||'')}</span>
+        <span style="flex:1;font-size:12.5px">${esc(m.name||'')}</span>
+        <span data-eauto="${id}">${auto ? '<span class="autotag">自動</span>' : ''}</span>
+        <input type="text" inputmode="decimal" data-eindiv="${id}" value="${esc(g.indiv[id] ?? '')}"
+          class="${auto ? 'auto' : ''}" placeholder="${auto ? c.valInCur[id] : '0'}"></div>`;
+      return i === 0 ? b('S-04-32', cell) : cell; }).join('')}</div>`;
+    inner += `<div id="eachcmp"></div><div id="eachnote"></div>`;
+    inner += b('S-04-37', `<p class="hint">沒填的先照均分算，之後可以再改</p>`) + `</div>`;
+    tb.innerHTML = inner;
+    const ec = document.getElementById('eachcmp'); if (ec) ec.innerHTML = cmpRow(c, t2);
+    const en = document.getElementById('eachnote');
+    if (en) {
+      if (c.noAutoReason === 'noForeignTotal') {
+        en.innerHTML = b('S-04-35', `<div class="note warn">還沒填 ${sym} 總額，先補上才算得出各自要付多少。<b>還是可以存。</b></div>`);
+      } else if (c.forTotalAuto) {
+        en.innerHTML = b('S-04-30', `<div class="note calm">${sym} 總額空著，先用各自金額加總 <b>${c.forTotalEff}</b>，想改就填上面那格。</div>`);
+      } else if (c.blanks.length) {
+        en.innerHTML = b('S-04-33', `<div class="note good">剩下的平均分給還沒填的 ${c.blanks.length} 人。<b>空白不等於 0</b>——真的不分攤請填 0。</div>`);
+      } else if (!c.twdPending) {
+        const sum = (g.parts||[]).reduce((a,id) => a + (c.valInCur[id]||0), 0);
+        const base = c.fillsAreForeign||c.forTotalAuto ? c.forTotalEff : c.twdTotal;
+        const diff = base - sum;
+        en.innerHTML = b('S-04-34', Math.abs(diff) < 1
+          ? `<div class="note good">加總剛好等於總額 ✓</div>`
+          : `<div class="note ${Math.abs(diff)/base > 0.01 ? 'warn':'calm'}">差 <b>${Math.abs(diff).toLocaleString()}</b>，由付款人承擔。<b>可以存檔。</b></div>`);
+      }
+    }
+  }
+}
+/* §2.6 比對列：以該筆幣別顯示，下方小字顯示換算後台幣 */
+function cmpRow(c, t) {
+  if (!c.isEach || c.noAutoReason) return '';
+  const fillCur = c.fillsAreForeign || c.forTotalAuto ? t.currency : 'TWD';
+  const fs = fillCur === 'TWD' ? '$' : RULES_CUR_SYM(t.currency);
+  const base = c.fillsAreForeign || c.forTotalAuto ? c.forTotalEff : c.twdTotal;
+  if (base == null) return '';
+  const sum = Object.values(c.valInCur).reduce((a,v) => a + (v||0), 0);
+  const twdSum = Object.values(c.shares).reduce((a,v) => a + (v||0), 0);
+  return b('S-04-16', `<div class="calc" style="margin-top:8px">已填＋自動 ${fs} ${sum.toLocaleString()} ／ 總額 ${fs} ${base.toLocaleString()}
+    <div class="sub2">${c.twdPending ? '台幣總額還沒填，結算會跳過這筆'
+      : (fillCur === 'TWD' ? '結算就用這個台幣數字' : `換算後台幣 $ ${twdSum.toLocaleString()}`)}</div></div>`);
+}
+function tripFormShim(t) { return { currency:t.currency, rateTwd:t.rateTwd ?? (oneSideOf(t.currency)==='twd'?'1':''), rateFor:t.rateFor ?? (oneSideOf(t.currency)==='for'?'1':'') }; }
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   S-05 結算
+   ═══════════════════════════════════════════════════════════ */
+store.s05 = 'pending'; store.s05open = false;
+function settleTrip(tid) {
+  const S = tripSummary(tid), net = {};
+  S.t.members.forEach(m => net[m.id] = 0);
+  S.list.forEach(e => {
+    if (e.onSpot) return;
+    const c = calc(e, S.t);
+    if (c.twdPending) return;
+    c.debts.forEach(d => { net[d.from] -= d.amount; net[d.to] += d.amount; });
+  });
+  const cred = [], debt = [];
+  Object.entries(net).forEach(([id,v]) => { if (v > 0) cred.push([id,v]); else if (v < 0) debt.push([id,-v]); });
+  cred.sort((a,b2)=>b2[1]-a[1]); debt.sort((a,b2)=>b2[1]-a[1]);
+  const tx = []; let i=0,j=0;
+  while (i<debt.length && j<cred.length) {
+    const amt = Math.min(debt[i][1], cred[j][1]);
+    if (amt>0) tx.push({from:debt[i][0], to:cred[j][0], amount:amt});
+    debt[i][1]-=amt; cred[j][1]-=amt;
+    if(debt[i][1]===0)i++; if(cred[j][1]===0)j++;
+  }
+  return { net, tx, S };
+}
+
+function renderS05() {
+  const { net, tx, S } = settleTrip(store.s03Trip), t = S.t;
+  const nUn = S.unsettledList.length;
+  const nav = `<div class="bar"><span class="bk">‹ 返回</span><span class="ttl">結算</span><span style="width:52px"></span></div>`;
+  let h = '';
+
+  if (store.s05 === 'check') {
+    // §6 結算前檢查層
+    h = nav + b('S-05-4', `<div class="fld" style="padding-top:16px">
+      <div style="font-size:16px;font-weight:700;margin-bottom:5px">有 ${nUn} 筆還沒算清楚</div>
+      <div style="font-size:12.5px;color:var(--md);margin-bottom:12px">結算之後金額就固定了。要先去看一下嗎？</div>
+      ${b('S-05-30', `<div class="gap">${S.unsettledList.map(({e,c}) => {
+        const why = c.twdPending ? '金額還沒填' : `${c.blanks.length} 人還沒填`;
+        return `<button class="rowb" data-editexp="${e.id}"><span style="font-size:15px">${e.emoji}</span>
+          <span style="flex:1;font-weight:600">${esc(e.title)}</span>
+          <span style="font-size:10.5px;color:var(--gr)">${why}</span></button>`; }).join('')}</div>`)}
+    </div>`) + b('S-05-5', `<div class="btnrow"><button class="btn qt" id="s05anyway">就這樣結算</button>
+      <button class="btn" id="s05look">先去看一下</button></div>`);
+  } else if (store.s05 === 'pending') {
+    h = nav + b('S-05-1', `<div class="empty" style="padding:40px 24px">
+      <p style="font-size:26px">🧮</p>
+      <p style="font-weight:400;color:var(--md);font-size:12.5px">準備好了嗎？結算後可以標記付清，也可以隨時回來修改。</p></div>`)
+      + b('S-05-28', `<div class="fld"><div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+        <div style="font-size:12.5px;font-weight:700">暫時算一下</div>
+        <div style="font-size:10.5px;color:var(--gr);margin-bottom:8px">記帳還在變，按「結算行程」才算數</div>
+        <div class="gap">${t.members.map(m => {
+          const v = net[m.id];
+          return `<div class="rowb" style="padding:6px 9px"><span style="font-size:14px">${m.emoji||firstGrapheme(m.name)}</span>
+            <span style="flex:1;font-size:12px;font-weight:600">${esc(m.name)}</span>
+            <span class="money" style="font-size:12px;font-weight:600;color:${v>0?'var(--in)':v<0?'var(--out)':'var(--gr)'}">${
+              v>0?`可以拿回 ${money(v)}`:v<0?`要給出 ${money(-v)}`:'剛好打平'}</span></div>`; }).join('')}</div>
+      </div></div>`)
+      + b('S-05-3', `<div class="btnrow"><button class="btn" id="s05go">結算行程</button></div>`);
+  } else if (store.s05 === 'partial') {
+    h = nav + b('S-05-6', `<div class="fld" style="padding-top:12px"><div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+      <div style="font-size:11.5px;font-weight:600;color:var(--md);margin-bottom:6px">1 / ${Math.max(1,tx.length)} 筆已確認</div>
+      <div style="height:4px;background:#E4E7E0;border-radius:2px;overflow:hidden"><div style="width:${tx.length?100/tx.length:0}%;height:100%;background:var(--in)"></div></div>
+    </div></div>`)
+      + b('S-05-7', `<div class="fld">${tx.map((x,i) => `<div class="rowb" style="margin-bottom:6px">
+        <span style="flex:1;font-size:12px">${nm2(t,x.from)} <span style="color:var(--gr)">→</span> ${nm2(t,x.to)}</span>
+        <span class="money" style="font-weight:600">${money(x.amount)}</span>
+        ${i===0 ? b('S-05-9','<span style="font-size:10px;color:var(--in);font-weight:600;margin-left:8px">✓ 已付清</span>','inl')
+                : b('S-05-8','<span style="border:1px solid var(--w);color:var(--wi);font-size:10px;font-weight:600;padding:3px 8px;border-radius:3px;margin-left:8px">標記付清</span>','inl')}
+      </div>`).join('') || '<div class="empty"><p>沒有人欠誰。</p></div>'}</div>`)
+      + b('S-05-10', `<button class="detailtoggle" id="s05detail">查看計算依據 <span>${store.s05open ? '▲' : '▼'}</span></button>`)
+      + (store.s05open ? `<div class="fld">
+          ${b('S-05-11', `<div class="gap">${t.members.map(m => { const v = net[m.id];
+            return `<div class="rowb" style="padding:6px 9px"><span style="font-size:14px">${m.emoji||firstGrapheme(m.name)}</span>
+              <span style="flex:1;font-size:12px;font-weight:600">${esc(m.name)}</span>
+              <span class="money" style="font-size:12px;font-weight:600;color:${v>0?'var(--in)':v<0?'var(--out)':'var(--gr)'}">${
+                v>0?`可以拿回 ${money(v)}`:v<0?`要給出 ${money(-v)}`:'剛好打平'}</span></div>`; }).join('')}</div>`)}
+          ${b('S-05-12', `<p class="hint">對照 Excel 時注意：Excel 習慣用負數表示應收，Tripay 這裡相反，請看文字不要只看正負號</p>`)}
+          ${b('S-05-13', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:3px;overflow:hidden">
+            <div class="detailhd"><span>成員</span><span>實際付出</span><span>應分攤</span><span>差額</span></div>
+            ${t.members.map(m => { const v = net[m.id];
+              const paid = S.list.filter(e => e.payer === m.id && !e.onSpot).reduce((a,e) => a + (calc(e,t).twdTotal||0), 0);
+              return `<div class="detailrow tnum"><span style="font-family:var(--sans)">${m.emoji||firstGrapheme(m.name)} ${esc(m.name)}</span>
+                <span>${paid.toLocaleString()}</span><span>${(paid-v).toLocaleString()}</span>
+                <span style="color:${v>=0?'var(--in)':'var(--out)'}">${v>=0?'+':''}${v.toLocaleString()}</span></div>`; }).join('')}
+          </div>`)}
+          ${b('S-05-14', `<p class="hint">待填的筆不進結算，所以這裡的數字可能小於總花費</p>`)}
+        </div>` : '')
+      + b('S-05-15', `<div class="btnrow"><span class="btn qt">重新計算</span><span class="btn">封存行程</span></div>`);
+  } else {
+    h = nav + b('S-05-16', `<div class="empty" style="padding:30px 22px">
+      <svg viewBox="0 0 100 76" style="width:78px;height:60px" aria-label="收據摺成紙飛機">
+        <path d="M14 10 h54 l18 18 v40 h-72 z" fill="none" stroke="#0F5E9E" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M68 10 v18 h18" fill="none" stroke="#0F5E9E" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M14 68 l72 -32" fill="none" stroke="#B03A22" stroke-width="1" stroke-dasharray="3 3"/>
+        <path d="M26 26 h30 M26 36 h38 M26 46 h22" stroke="#9FB0BA" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <p style="font-size:20px;margin-top:10px">帳算清楚了</p><p>下次去哪？</p></div>`)
+      + b('S-05-17', `<div class="fld"><div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:12px;display:flex">
+        ${[['5','天','出遊'],[String(S.list.length),'筆','共記了'],[money(Math.max(0,...S.list.map(e=>calc(e,t).twdTotal||0))).replace('$ ',''),'','最大手筆 $']]
+          .map(([n,u,l],i)=>`<div style="flex:1;text-align:center;${i<2?'border-right:1px solid #F1F2EE':''}">
+            <div class="tnum" style="font-size:18px;font-weight:600">${n}<span style="font-size:11px;color:var(--md)">${u}</span></div>
+            <div style="font-size:9px;color:var(--gr);margin-top:2px">${l}</div></div>`).join('')}
+      </div></div>`)
+      + b('S-05-18', `<div class="fld"><span class="lbl">誰付給誰</span>${tx.map(x=>`<div class="rowb" style="margin-bottom:6px">
+        <span style="flex:1;font-size:12px">${nm2(t,x.from)} <span style="color:var(--gr)">→</span> ${nm2(t,x.to)}</span>
+        <span class="money" style="font-weight:600">${money(x.amount)}</span></div>`).join('') || '<div class="empty"><p>沒有人欠誰。</p></div>'}</div>`)
+      + b('S-05-29', `<div class="fld"><button class="btn">把結果傳給大家</button>
+        <p class="hint" style="text-align:center">任何人免登入可看</p></div>`)
+      + b('S-05-19', `<div class="btnrow"><span class="btn qt">＋ 建立新行程</span><span class="btn qt">封存行程</span></div>`);
+  }
+  h += `<div id="s05toast"></div>`;
+  $('#scr-s05').innerHTML = h;
+  document.querySelectorAll('#s05rig button').forEach(x => x.classList.toggle('on', x.dataset.p === store.s05));
+}
+function nm2(t, id) { const m = t.members.find(x => x.id === id) || {}; return (m.emoji || firstGrapheme(m.name||'')) + ' ' + esc(m.name||''); }
+</script>
+
+<script>
+/* ═══ 批二的編號清單 ═══ */
+Object.assign(INDEX, {
+  s03: [
+    ['S-03-1','Hero','st','目的地色調＋壓暗遮罩'],
+    ['S-03-2','‹ 返回','st','回首頁'],
+    ['S-03-3','✎ 編輯行程','st','開 S-02b。封存時隱藏'],
+    ['S-03-4','⧉ 複製行程','st','以這趟為範本開新行程'],
+    ['S-03-5','↑ 分享','st','開分享選單（S-03b，批三）'],
+    ['S-03-6','⚙ 設定','st','全站唯一設定入口'],
+    ['S-03-7','行程名稱','st',''],
+    ['S-03-8','日期＋成員','st','成員 emoji 在這裡顯示（首頁卡不顯示）'],
+    ['S-03-9','總花費','op','排除贊助；待填的筆不計入'],
+    ['S-03-10','待填警語','del','已移除：「N 筆待填，數字僅供參考」整條刪除，功能由 S-03-29 取代'],
+    ['S-03-11','我的花費','del','已併入 S-03-27 的每人分擔列'],
+    ['S-03-12','幣別切換','st','預設台幣；結算恆為台幣'],
+    ['S-03-13','G-05 分享橫幅','del','已移除，由 S-05-29 取代'],
+    ['S-03-14','空狀態','st','還沒記帳時顯示'],
+    ['S-03-15','日期分組標頭','st','出發前／第 N 天'],
+    ['S-03-16','消費列','op','整列可點進 S-04 編輯'],
+    ['S-03-17','整筆未定的列','op','橘紅左邊框＋金額顯示「還沒填」。<b>「待補填」badge 已移除</b>（金額欄已經說了）'],
+    ['S-03-18','「各付各的」badge','st',''],
+    ['S-03-19','「只算一個人」badge','st','顯示算的是誰'],
+    ['S-03-20','「當場各付」badge','st','記錄但不進結算'],
+    ['S-03-21','贊助列','st','負額共同項'],
+    ['S-03-22','底部列 · 旅途中','op','結算行程／＋ 記一筆'],
+    ['S-03-23','底部列 · 已結算','st','查看結算／封存行程'],
+    ['S-03-24','底部列 · 已封存','st','重新開啟'],
+    ['S-03-25','刪除這趟行程','st','弱化文字連結，點了才開對話框（批三）'],
+    ['S-03-26','Toast','inv','存檔後的提示，四種文案見 S-04-36'],
+    ['S-03-27','每人分擔列','op','<b>新</b>：每位成員一列。算不清楚的加「約」＋虛線底線，<b>整列可點</b>進 S-03d'],
+    ['S-03-28','統計卡註腳','st','<b>新</b>：「標『約』的金額還沒算清楚，點名字看是哪幾筆」。沒人被標「約」就整行不顯示'],
+    ['S-03-29','未定案入口','op','<b>新</b>：「有 N 筆還沒算清楚 ›」。N＝0 整條不顯示；同筆同時符合兩種條件只算一次'],
+    ['S-03-30','已結算／已封存不提醒','inv','<b>新</b>：不顯示「約」、不顯示入口、不做結算前檢查（規格 §5.6）'],
+  ],
+  s03d: [
+    ['S-03d-1','標題','op','<b>新</b>：從入口進＝「還沒算清楚 · N 筆」；從成員進＝「影響 {名字} 的 · N 筆」'],
+    ['S-03d-2','返回鍵','op','<b>新</b>：回行程頁頂部，不是瀏覽器上一頁'],
+    ['S-03d-3','清單列','op','<b>新</b>：每筆可點，進該筆編輯'],
+    ['S-03d-4','空狀態','st','<b>新</b>：都算清楚時'],
+  ],
+  s04: [
+    ['S-04-1','標題','st','新增＝記一筆／編輯＝編輯消費'],
+    ['S-04-2','什麼花費？','op','必填'],
+    ['S-04-3','類別 emoji','st','由標題自動推斷'],
+    ['S-04-4','金額區塊','op','外幣與台幣兩欄，都可留空'],
+    ['S-04-5','外幣總額','op','欄位上標明幣別（P1-0 的根因就是沒標）'],
+    ['S-04-6','台幣總額','op','空白＝整筆待填，結算跳過；現金會用行程匯率換算後填進 placeholder'],
+    ['S-04-7','匯率顯示','del','已移除：唯讀倒推值沒有用，改由 S-02b-12 設定行程匯率'],
+    ['S-04-8','送出規則','inv','<b>一律允許存檔</b>，不擋、不跳確認框、不 disable'],
+    ['S-04-9','怎麼付的？','op','現金／信用卡／儲值卡。<b>刷卡不套用現金匯率</b>'],
+    ['S-04-10','日期','op','預設行程出發日'],
+    ['S-04-11','分帳方式','op','一起分／各付各的／只算一個人'],
+    ['S-04-12','分給誰？','op','「一起分」子區塊，預設全員'],
+    ['S-04-13','每人多少','st','即時均分'],
+    ['S-04-14','參與者驗證','inv','至少一位'],
+    ['S-04-15','各自多少？','op','「各付各的」子區塊'],
+    ['S-04-16','比對列','st','以該筆幣別顯示，下方小字換算台幣'],
+    ['S-04-17','只算一個人','op','＋選人，預設帶付款人'],
+    ['S-04-18','當場各付各的','op','記錄但不進結算'],
+    ['S-04-19','贊助／回饋','op','負額共同項'],
+    ['S-04-20','贊助說明','st','人數改為動態'],
+    ['S-04-21','付款人','op','沒有預設，一定要選'],
+    ['S-04-22','取消／記下來','op','存檔一律成功'],
+    ['S-04-23','刪除這筆','st','編輯模式才有'],
+    ['S-04-24','刪除確認框','inv','批三做'],
+    ['S-04-25','splits 寫入','inv','只算一個人＝不寫 split'],
+    ['S-04-26','編輯載入','inv','由 splits 反推勾選與逐人金額'],
+    ['S-04-27','portal 掛載','inv','避開 transform 祖先'],
+    ['S-04-28','emoji 自動跟隨','inv','改標題時跟著換'],
+    ['S-04-29','引擎遇 pending 的行為','inv','已查證：待填筆本來就跳過，不會 422'],
+    ['S-04-30','外幣總額自動補入','op','<b>全員都填了</b>才自動補 Σ，並明示可覆寫'],
+    ['S-04-31','各自金額幣別','op','由該筆決定、不混填；欄位標題寫著現在填什麼幣別'],
+    ['S-04-32','自動均分值','op','空白欄以 <b>placeholder</b> 顯示，不寫進 value、不重建節點'],
+    ['S-04-33','空白 ≠ 0','st','空白＝自動均分；0＝確實不分攤'],
+    ['S-04-34','差額分級提示','st','≤1% 淡色、>1% 橘色，都可存檔'],
+    ['S-04-35','外幣總額空白且有人沒填','op','<b>新</b>：不顯示自動均分值（猜不出來），提示補總額。<b>仍可存檔</b>'],
+    ['S-04-36','存檔提示（四種）','op','<b>新</b>：整筆未填／1 人／2 人／3 人以上，文案各不同'],
+    ['S-04-37','均分說明灰字','st','<b>新</b>：「沒填的先照均分算，之後可以再改」'],
+    ['S-04-38','設定這趟的匯率（捷徑）','op','<b>新</b>：現金但還沒設匯率時就地設定，不跳出去'],
+    ['S-04-39','支付方式決定換算','inv','<b>新</b>：現金／儲值卡套行程匯率；刷卡直接用填的台幣'],
+  ],
+  s05: [
+    ['S-05-1','未結算引導','st','🧮＋一句說明'],
+    ['S-05-2','待填警示','del','已移除：由 S-05-4 的檢查層取代'],
+    ['S-05-3','結算行程','op','按下的<b>當下</b>先檢查，不是進頁面才檢查'],
+    ['S-05-4','結算前檢查層','op','<b>改</b>：標題「有 N 筆還沒算清楚」＋內文＋逐筆清單'],
+    ['S-05-5','兩個按鈕','op','<b>改</b>：先去看一下／<b>就這樣結算</b>（一定要能真的結算）'],
+    ['S-05-6','進度條','st','N / M 筆已確認'],
+    ['S-05-7','轉帳明細','st','最小轉帳筆數'],
+    ['S-05-8','標記付清','op',''],
+    ['S-05-9','已付清標記','st',''],
+    ['S-05-10','查看計算依據','st','折疊，批三補'],
+    ['S-05-11','人話淨額','st','可以拿回／要給出／剛好打平'],
+    ['S-05-12','Excel 正負號提醒','st','Excel 負＝應收，Tripay 相反'],
+    ['S-05-13','四欄明細表','st','實際付出／應分攤／差額'],
+    ['S-05-14','空表說明','st',''],
+    ['S-05-15','重新計算／封存','st',''],
+    ['S-05-16','慶祝畫面','st','收據摺紙，全站唯一 signature'],
+    ['S-05-17','G-08 回顧卡','st','天數／筆數／最大手筆'],
+    ['S-05-18','誰付給誰','st',''],
+    ['S-05-19','建立新行程／封存','st',''],
+    ['S-05-20','狀態判定','inv','四態由 trip status 與 items 推導'],
+    ['S-05-21','錯誤處理','inv','四種 toast'],
+    ['S-05-22','導覽列','inv',''],
+    ['S-05-23','當場各付不進結算','inv',''],
+    ['S-05-24','贊助進結算','inv','負額共同項'],
+    ['S-05-25','軟刪不進結算','inv','Σnet=0'],
+    ['S-05-26','hub 式結算','inv','Phase 1.5，預設關'],
+    ['S-05-27','摺紙 signature','inv','品質門檻：不達標退回乾淨 loading'],
+    ['S-05-28','「暫時算一下」預覽','op','未結算態的唯讀淨額預覽'],
+    ['S-05-29','結算完成分享 CTA','st','「把結果傳給大家／任何人免登入可看」'],
+    ['S-05-30','檢查層清單','op','<b>新</b>：逐筆列出原因（金額還沒填／N 人還沒填），每列可點進編輯'],
+  ],
+});
+</script>
+
+<script>
+/* ═══ 批二互動 ═══ */
+function renderBatch2() { renderS03(); renderS03d(); renderS04(); renderS05(); }
+/* 批一用的是 renderAll()，沒有 render()。這裡補一個涵蓋全部的入口。*/
+function render() { renderAll(); renderBatch2(); renderIndex(); }
+
+document.addEventListener('click', ev => {
+  const t = ev.target, hit = a => t.closest('[' + a + ']');
+
+  // 原型控制
+  const rg = t.closest('#s03rig button');
+  if (rg) {
+    const v = rg.dataset.st, tr = tripOf(store.s03Trip);
+    if (v === 'reset') { store.expenses.t1 = demoExpenses(); tr.status = 'planned'; }
+    else if (v === 'empty') store.expenses[store.s03Trip] = [];
+    else if (v === 'settled') tr.status = 'settled';
+    else tr.status = 'planned';
+    renderS03(); renderS03d(); renderS05(); return;
+  }
+  const rg4 = t.closest('#s04rig button');
+  if (rg4) {
+    const v = rg4.dataset.d, tr = tripOf(store.s03Trip), M = tr.members.map(m => m.id);
+    if (v === 'blank') g = blankExp();
+    else if (v === 'drug') g = exp({ title:'藥妝店', emoji:'🛍️', date:'2026-03-15', forAmt:'45000',
+      twdAmt:'1035', pay:'card', type:'individual', parts:M, indiv:{[M[0]]:'12000',[M[1]]:'18000'}, payer:M[1] });
+    else if (v === 'cash') { tr.rateTwd = undefined; tr.rateFor = undefined;
+      g = exp({ title:'城山日出峰門票', emoji:'🎡', date:'2026-03-15', forAmt:'20000', pay:'cash',
+                type:'shared', parts:M, payer:M[3] }); }
+    else if (v === 'clearrate') { tr.rateTwd = undefined; tr.rateFor = undefined; fb = null; renderS02b(); }
+    renderS04(); renderS03(); return;
+  }
+  const rg5 = t.closest('#s05rig button');
+  if (rg5) { store.s05 = rg5.dataset.p; renderS05(); return; }
+
+  // S-03
+  if (t.closest('#s03add')) { g = blankExp(); renderS04();
+    document.getElementById('s04').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  if (t.closest('#s03settle')) {
+    const S = tripSummary(store.s03Trip);
+    store.s05 = (S.readonly || !S.unsettledList.length) ? 'pending' : 'check';   // §6
+    renderS05(); document.getElementById('s05').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  const pm = hit('data-permember');
+  if (pm) { store.s03Filter = { kind:'member', memberId: pm.dataset.permember }; renderS03d();
+    document.getElementById('s03d').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  if (hit('data-openfilter')) { store.s03Filter = { kind:'all' }; renderS03d();
+    document.getElementById('s03d').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  if (t.closest('#s03dback')) { document.getElementById('s03').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  const ee = hit('data-editexp');
+  if (ee) { loadExp(ee.dataset.editexp); g._edit = true; renderS04();
+    document.getElementById('s04').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+
+  // S-04
+  const pa = hit('data-pay');      if (pa) { g.pay = pa.dataset.pay; renderS04(); return; }
+  const et = hit('data-etype');    if (et) { g.type = et.dataset.etype;
+    if (g.type === 'single' && (!g.parts || g.parts.length !== 1)) g.parts = [g.payer || tripOf(store.s03Trip).members[0].id];
+    if (g.type !== 'single' && (g.parts||[]).length < 2) g.parts = tripOf(store.s03Trip).members.map(m => m.id);
+    renderS04(); return; }
+  const ep = hit('data-epart');    if (ep) { const id = ep.dataset.epart;
+    g.parts = (g.parts||[]).includes(id) ? g.parts.filter(x => x !== id) : (g.parts||[]).concat(id);
+    paintS04(); return; }
+  const es = hit('data-esingle');  if (es) { g.parts = [es.dataset.esingle]; paintS04(); return; }
+  const ey = hit('data-epayer');   if (ey) { g.payer = ey.dataset.epayer;
+    if (g.type === 'single' && !(g.parts||[]).length) g.parts = [g.payer];
+    renderS04(); return; }
+  const ef = hit('data-eflag');    if (ef) { g[ef.dataset.eflag] = !g[ef.dataset.eflag]; renderS04(); return; }
+  if (t.closest('#e-setrate')) { g._rateOpen = true; paintS04(); return; }
+  if (t.closest('#e-ratecancel')) { g._rateOpen = false; paintS04(); return; }
+  if (t.closest('#e-ratesave')) { g._rateOpen = false; fb = null; renderS02b(); renderS04(); renderS03();
+    toast('#s04toast', '匯率設好了，這筆的台幣自動算出來了'); return; }
+  if (t.closest('#s04cancel') || t.closest('#s04x')) { g = blankExp(); renderS04(); return; }
+  if (t.closest('#s04save')) { saveExpense(); return; }
+
+  // S-05
+  if (t.closest('#s05look')) { store.s05 = 'pending'; store.s05open = false; renderS05();
+    document.getElementById('s03d').scrollIntoView({behavior:'smooth',block:'start'});
+    store.s03Filter = { kind:'all' }; renderS03d(); return; }
+  if (t.closest('#s05anyway')) { store.s05 = 'partial'; renderS05();
+    toast('#s05toast', '算好了。這是提醒不是禁止，所以照樣結算得出來。'); return; }
+  if (t.closest('#s05detail')) { store.s05open = !store.s05open; renderS05(); return; }
+  if (t.closest('#s05go')) {
+    const S = tripSummary(store.s03Trip);
+    store.s05 = S.unsettledList.length ? 'check' : 'partial'; renderS05(); return; }
+});
+
+/* §4 四種存檔提示 */
+function saveExpense() {
+  const t = tripOf(store.s03Trip);
+  if (!g.title.trim()) g.title = '（未命名）';
+  if (!g.payer) g.payer = t.members[0].id;
+  const c = calc(g, t);
+  const list = expsOf(store.s03Trip);
+  const idx = list.findIndex(x => x.id === g.id);
+  const rec = JSON.parse(JSON.stringify(g)); delete rec._edit; delete rec._rateOpen;
+  if (idx >= 0) list[idx] = rec; else list.push(rec);
+
+  let msg;
+  if (c.twdPending) msg = '已存。這筆金額還沒填，之後補上就會算進總花費。';
+  else {
+    const names = c.blanks.map(id => (t.members.find(m => m.id === id)||{}).name).filter(Boolean);
+    if (names.length === 1) msg = `已存。${names[0]} 的金額由總額推算。`;
+    else if (names.length === 2) msg = `已存。${names[0]} 和 ${names[1]} 的金額還沒填，先照均分算。`;
+    else if (names.length >= 3) msg = `已存。還有 ${names.length} 人的金額還沒填，先照均分算。`;
+    else msg = '已存。';
+  }
+  g = blankExp();
+  renderS04(); renderS03(); renderS03d(); renderS05();
+  toast('#s04toast', msg, 'S-04-36');   // §4 四種存檔提示
+}
+
+/* 輸入：只寫 state，不重建輸入框 */
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if (t.id === 'e-title') { g.title = t.value; return; }
+  if (t.id === 'e-date')  { g.date = t.value; return; }
+  if (t.id === 'e-for')   { g.forAmt = t.value; paintS04(); return; }
+  if (t.id === 'e-twd')   { g.twdAmt = t.value; paintS04(); return; }
+  const ei = t.dataset.eindiv;
+  if (ei) { g.indiv[ei] = t.value; paintIndiv(); return; }
+});
+/* 各自金額：只更新其他欄的自動值與提示，絕不碰正在打字的那一格 */
+function paintIndiv() {
+  const t = tripOf(store.s03Trip), c = calc(g, t);
+  (g.parts||[]).forEach(id => {
+    const slot = document.querySelector(`[data-eauto="${id}"]`);
+    const inp  = document.querySelector(`input[data-eindiv="${id}"]`);
+    const auto = c.valInCur[id] != null && !(id in c.manual);
+    if (slot) slot.innerHTML = auto ? '<span class="autotag">自動</span>' : '';
+    if (inp && document.activeElement !== inp) {
+      inp.classList.toggle('auto', auto);
+      inp.placeholder = auto ? String(c.valInCur[id]) : '0';
+    } else if (inp) inp.classList.toggle('auto', false);
+  });
+  const keep = document.activeElement;
+  const ec = document.getElementById('eachcmp'); if (ec) ec.innerHTML = cmpRow(c, t);
+  const tb = document.getElementById('eachnote');
+  if (tb) tb.innerHTML = paintS04Note(c, t);
+  if (keep && document.contains(keep)) keep.focus();
+}
+function paintS04Note(c, t) {
+  const sym = RULES_CUR_SYM(t.currency);
+  if (c.noAutoReason === 'noForeignTotal')
+    return b('S-04-35', `<div class="note warn">還沒填 ${sym} 總額，先補上才算得出各自要付多少。<b>還是可以存。</b></div>`);
+  if (c.forTotalAuto)
+    return b('S-04-30', `<div class="note calm">${sym} 總額空著，先用各自金額加總 <b>${c.forTotalEff}</b>，想改就填上面那格。</div>`);
+  if (c.blanks.length)
+    return b('S-04-33', `<div class="note good">剩下的平均分給還沒填的 ${c.blanks.length} 人。<b>空白不等於 0</b>——真的不分攤請填 0。</div>`);
+  if (!c.twdPending) {
+    const sum = (g.parts||[]).reduce((a,id) => a + (c.valInCur[id]||0), 0);
+    const base = c.fillsAreForeign||c.forTotalAuto ? c.forTotalEff : c.twdTotal;
+    const diff = base - sum;
+    return b('S-04-34', Math.abs(diff) < 1
+      ? `<div class="note good">加總剛好等於總額 ✓</div>`
+      : `<div class="note ${Math.abs(diff)/base > 0.01 ? 'warn':'calm'}">差 <b>${Math.abs(diff).toLocaleString()}</b>，由付款人承擔。<b>可以存檔。</b></div>`);
+  }
+  return '';
+}
+render();
 </script>
