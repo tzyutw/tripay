@@ -90,6 +90,9 @@ header p{margin:12px 0 0;max-width:74ch;color:var(--pgink2);font-size:14.5px}
 
 /* ══ 標註徽章 ══ */
 .b{position:relative}
+/* #25-7 b() 會在每個項目外包一層 div.b。按鈕列若逐顆編號，flex item 就變成 div.b，
+   而 .btn 的 width:100% 是相對 div.b 算的——不給 flex:1 會收縮成內容寬。 */
+.ui .flexrow > .b{flex:1;min-width:0}
 html.anno .b{outline:1px dashed rgba(78,163,232,.55);outline-offset:1px}
 .b>.bdg{display:none}
 html.anno .b>.bdg{display:block;position:absolute;top:0;left:0;z-index:40;
@@ -102,7 +105,7 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 
 /* ══ 產品 UI（日記精裝 tokens）══ */
 .ui{background:#EDEEE8;color:#151C21;font-size:13px;line-height:1.5;
-  --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#B03A22;
+  --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#9B1B14;   /* #25-8 destructive 比提醒深一階；白字對比 7.7:1 */
   --ln:#DFE1DA;--gr:#78878F;--md:#4C5B64;position:relative}
 /* 金額：不靠字體差異，改靠字重與 tabular-nums 對齊 */
 .ui .money{font-variant-numeric:tabular-nums;font-weight:600}
@@ -278,13 +281,40 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 @media(prefers-reduced-motion:no-preference){
   .ui .anim.empty-anim .p1{animation:drift 3.4s ease-in-out infinite}
   .ui .anim.empty-anim .p2{animation:drift 3.4s ease-in-out .4s infinite}
-  .ui .anim.fold .sheetline{animation:fadeline 2.6s ease-in-out infinite}
-  .ui .anim.fold .plane{animation:lift 2.6s ease-in-out infinite;transform-origin:50% 60%}
+  /* #25-2 三拍摺紙，總長 1.4s、只播一次。三組動畫同長度、用百分比錯開起訖，
+     這樣 fill-mode 用單純的 forwards 就夠——不必靠 delay ＋ both。 */
+  .ui .anim.fold .lines{animation:foldlines 1.4s 1 forwards}
+  .ui .anim.fold .sheetline{animation:foldsheet 1.4s 1 forwards}
+  .ui .anim.fold .plane{animation:planefly 1.4s 1 forwards}
+  .ui .anim.fold .trail{animation:trailtrace 1.4s 1 forwards}
   @keyframes drift{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-  @keyframes fadeline{0%,45%{opacity:1}60%,100%{opacity:0}}
-  @keyframes lift{0%,45%{transform:none}70%{transform:translate(10px,-12px) rotate(-8deg)}
-    100%{transform:translate(24px,-26px) rotate(-10deg);opacity:0}}
+  /* 第一拍 0→0.35s：帳單上的字線沿中央摺線收攏 */
+  @keyframes foldlines{0%{transform:scaleX(1);animation-timing-function:ease-in}
+    25%,100%{transform:scaleX(0)}}
+  /* 第二拍 0.30→0.80s：帳單本體沿同一條摺線對摺，摺完才淡出 */
+  @keyframes foldsheet{0%,21%{transform:scaleX(1);opacity:1;animation-timing-function:cubic-bezier(.55,0,.5,1)}
+    50%{transform:scaleX(.06)}
+    50.01%{opacity:1}
+    61%,100%{transform:scaleX(.06);opacity:0}}
+  /* 第三拍 0.70→1.40s：紙飛機描線飛出，加速離開 */
+  @keyframes planefly{0%,50%{transform:none;opacity:0;stroke-dashoffset:100;
+      animation-timing-function:cubic-bezier(.4,0,.9,.4)}
+    60%{opacity:1}
+    88%,100%{stroke-dashoffset:0;opacity:1}
+    100%{transform:translate(18px,-20px) rotate(-8deg)}}
+  /* 軌跡殘影：跟著飛機描出，最後 0.2s 淡到 .35 停住 */
+  @keyframes trailtrace{0%,50%{clip-path:inset(-12% 100% -12% 0);opacity:1;
+      animation-timing-function:cubic-bezier(.4,0,.9,.4)}
+    86%{clip-path:inset(-12% 0 -12% 0);opacity:1}
+    100%{clip-path:inset(-12% 0 -12% 0);opacity:.35}}
 }
+/* 最終畫面＝這四行的基準值。prefers-reduced-motion:reduce 時不套任何 animation，
+   直接看到「紙飛機停在右上、帳單已不在」，不是空白。 */
+.ui .anim.fold .lines{transform:scaleX(0);transform-box:view-box;transform-origin:50px 36px}
+.ui .anim.fold .sheetline{transform:scaleX(.06);opacity:0;transform-box:view-box;transform-origin:50px 38px}
+.ui .anim.fold .plane{transform:translate(18px,-20px) rotate(-8deg);opacity:1;
+  transform-box:view-box;transform-origin:50px 40px;stroke-dasharray:100;stroke-dashoffset:0}
+.ui .anim.fold .trail{clip-path:inset(-12% 0 -12% 0);opacity:.35}
 .ui .txrow{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--ln);
   border-radius:3px;padding:9px 10px;margin:0 14px 6px}
 .ui .txrow .who{font-size:12.5px;font-weight:600}
@@ -862,7 +892,7 @@ function renderS02() {
               <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:var(--md)">加一個人</p>
               <input type="text" id="s02newname" value="${esc(f.newName)}" placeholder="叫什麼名字？" maxlength="10">
               <div style="height:8px"></div>
-              <div style="display:flex;gap:7px"><button class="btn qt" id="s02addcancel">取消</button><button class="btn" id="s02adddo">加進來</button></div>
+              <div class="flexrow" style="display:flex;gap:7px"><button class="btn qt" id="s02addcancel">取消</button><button class="btn" id="s02adddo" ${f.newName.trim() ? '' : 'disabled'}>加進來</button></div>
             </div>`)
           : b('S-02-16', `<button id="s02add" style="margin-top:9px;width:100%;border:1px dashed #B9C1BB;border-radius:3px;padding:9px;font-size:12.5px;color:var(--md);font-weight:600">＋ 新增成員</button>`)}
       </div>`)}
@@ -870,9 +900,9 @@ function renderS02() {
       ${b('S-02-18', `<div class="btnrow"><button class="btn gh" id="s02cancel">取消</button><button class="btn" id="s02go">出發！</button></div>`)}
     </div>
     ${f.dlg ? b('S-02-20', `<div class="scrim"><div class="dlg">
-      <p style="margin:0 0 6px;font-size:14px;font-weight:700;text-align:center">〔文案佔位〕這是單日行程嗎？</p>
-      <p style="margin:0 0 12px;font-size:12px;color:var(--md);text-align:center;line-height:1.5">回程沒填。確認的話就以 ${md(f.start)} 當天來回建立。</p>
-      <div style="display:flex;gap:8px"><button class="btn qt" id="s02dlgno">回去填回程</button><button class="btn" id="s02dlgyes">是，單日</button></div>
+      <p style="margin:0 0 6px;font-size:14px;font-weight:700;text-align:center">只有 ${md(f.start)} 這一天？</p>
+      <p style="margin:0 0 12px;font-size:12px;color:var(--md);text-align:center;line-height:1.5">回程還沒填。之後可以再補。</p>
+      <div style="display:flex;gap:8px"><button class="btn qt" id="s02dlgno">回去填回程</button><button class="btn" id="s02dlgyes">就這一天</button></div>
     </div></div>`) : ''}
     <div id="s02toast"></div>`;
 }
@@ -919,7 +949,7 @@ function renderS02b() {
               目前：${fb.photo ? '自訂照片' : '目的地色調'}</div>
           </div>
         </div>
-        <div style="display:flex;gap:7px;margin-top:8px">
+        <div class="flexrow" style="display:flex;gap:7px;margin-top:8px">
           ${b('S-02b-3', `<button class="btn gh" id="s02bphoto" style="padding:8px 0">更換照片</button>`)}
           ${b('S-02b-4', `<button class="btn qt" id="s02btone" style="padding:8px 0">重選色調</button>`)}
         </div>
@@ -1040,12 +1070,12 @@ const INDEX = {
     ['S-02-17','說明文','del','已移除：在推銷功能好處。<b>功能本身未動</b>，存廢批二再談'],
     ['S-02-18','取消／出發！','op','<b>真的會建立</b>，S-01 立刻多一張卡'],
     ['S-02-19','封面說明句','del','已移除：建立行程不提供調色調，就不該顯示色調'],
-    ['S-02-20','單日行程確認','op','回程留空按「出發！」才出現'],
+    ['S-02-20','單日行程確認','op','回程留空按「出發！」才出現。#25-1 文案定稿：標題改用出發日「只有 8/31 這一天？」（「單日行程」是系統講法），說明只留「之後可以再補」（原本那句在解釋系統怎麼運作），右鈕「就這一天」是動作不是回答'],
   ],
   s02b: [
     ['S-02b-1','標題','st','「編輯行程」'],
     ['S-02b-2','封面照片欄','op','有照片顯示照片，無則顯示目的地色調'],
-    ['S-02b-3','更換照片','op','原型以示意色塊代替真實上傳'],
+    ['S-02b-3','更換照片','op','原型以示意色塊代替真實上傳。#25-7 這一列與 S-02b-4 原本各被壓到 58px，已加 <code>.flexrow</code> 修正'],
     ['S-02b-4','重選色調','op','展開 8 種預設盤'],
     ['S-02b-5','上傳說明','st','只留「誰看得到」；壓縮規格已砍'],
     ['S-02b-6','封面 emoji','del','已移除：封面只有照片與色調兩種'],
@@ -1158,7 +1188,8 @@ document.addEventListener('click', ev => {
   if (t.closest('#s02addcancel')) { f.adding = false; f.newName = ''; renderS02(); return; }
   if (t.closest('#s02adddo')) {
     const n = f.newName.trim();
-    if (n) { f.members.push(m('', n)); f.newName = ''; f.adding = false; f.errs.members = ''; }
+    if (!n) return;                       // #25-4 沒名字不給存；鈕本身已 disabled，這是第二道
+    f.members.push(m('', n)); f.newName = ''; f.adding = false; f.errs.members = '';
     renderS02(); return;
   }
   // S-02 送出
@@ -1230,7 +1261,10 @@ document.addEventListener('input', ev => {
   if (t.id === 's02name')    { f.name = t.value; return; }   // S-02-19 已移除：建立行程不顯示色調
   if (t.id === 's02start')   { f.start = t.value; const e = document.getElementById('s02end'); if (e) e.min = f.start; return; }
   if (t.id === 's02end')     { f.end = t.value; return; }
-  if (t.id === 's02newname') { f.newName = t.value; return; }
+  if (t.id === 's02newname') { f.newName = t.value;
+    const btn = document.getElementById('s02adddo');     // #25-4 只改 disabled，不重繪欄位（#13）
+    if (btn) btn.disabled = !t.value.trim();
+    return; }
   if (t.id === 's02bnewpay') { fb.newPay = t.value; return; }
   if (t.id === 'rate-twd' || t.id === 'rate-for') {
     // 兩欄都是自由輸入，它們本身就是匯率——不需要再算出第三個數字。
@@ -1268,7 +1302,8 @@ document.addEventListener('focusout', ev => {
 });
 document.addEventListener('keydown', ev => {
   if (ev.key === 'Enter' && ev.target.id === 's02newname') { ev.preventDefault();
-    const n = f.newName.trim(); if (n) { f.members.push(m('', n)); f.newName = ''; f.adding = false; } renderS02(); }
+    const n = f.newName.trim(); if (!n) return;   // #25-4 Enter 這條路徑一樣要擋
+    f.members.push(m('', n)); f.newName = ''; f.adding = false; renderS02(); }
   if (ev.key === 'Escape' && editing) { editing = null; renderS02(); renderS02b(); }
 });
 
@@ -1856,15 +1891,16 @@ function renderS05() {
       + b('S-05-15', `<div class="btnrow"><span class="btn qt">重新計算</span><span class="btn">封存行程</span></div>`);
   } else {
     h = nav + b('S-05-16', `<div class="empty" style="padding:30px 22px">
-      <svg class="anim fold" viewBox="0 0 100 76" style="width:84px;height:64px" aria-label="一疊帳摺起來寄出去">
+      <svg class="anim fold" viewBox="0 -6 102 82" style="width:86px;height:69px" aria-label="一疊帳摺起來寄出去">
         <g class="sheetline">
           <path d="M14 10 h54 l18 18 v40 h-72 z" fill="#fff" stroke="#0F5E9E" stroke-width="1.6" stroke-linejoin="round"/>
           <path d="M68 10 v18 h18" fill="none" stroke="#0F5E9E" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M26 26 h30 M26 36 h38 M26 46 h22" stroke="#9FB0BA" stroke-width="1.4" stroke-linecap="round"/>
+          <g class="lines"><path d="M26 26 h30 M26 36 h38 M26 46 h22" stroke="#9FB0BA" stroke-width="1.4" stroke-linecap="round"/></g>
         </g>
+        <!-- 軌跡在 .plane 之外：飛機飛走之後它要留在原地，那才叫殘影 -->
+        <path class="trail" d="M48 46 L84 22" fill="none" stroke="#9B1B14" stroke-width="1" stroke-dasharray="3 3"/>
         <g class="plane">
-          <path d="M18 44 L84 22 L56 60 L48 46 Z" fill="none" stroke="#0F5E9E" stroke-width="1.8" stroke-linejoin="round"/>
-          <path d="M48 46 L84 22" fill="none" stroke="#B03A22" stroke-width="1" stroke-dasharray="3 3"/>
+          <path pathLength="100" d="M18 44 L84 22 L56 60 L48 46 Z" fill="none" stroke="#0F5E9E" stroke-width="1.8" stroke-linejoin="round"/>
         </g></svg>
       <p style="font-size:20px;margin-top:10px">帳算清楚了</p><p>下次去哪？</p></div>`)
       + b('S-05-17', `<div class="fld"><div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:12px;display:flex">
@@ -2036,7 +2072,7 @@ Object.assign(INDEX, {
     ['S-05-13','四欄明細表','st','實際付出／應分攤／差額'],
     ['S-05-14','空表說明','st',''],
     ['S-05-15','重新計算／封存','st',''],
-    ['S-05-16','慶祝畫面','op','<b>改（#17-7）</b>：收據摺紙加上 CSS 動畫，全站唯一 orchestrated moment，遵守 prefers-reduced-motion'],
+    ['S-05-16','慶祝畫面','op','全站唯一 orchestrated moment。<b>改（#25-2）</b>：原本是兩個圖形交叉淡入淡出，看不到「摺」這個動作，而且無限迴圈——結算完成只會發生一次，重播會把它降格成裝飾。<br>改成三拍、總長 1.4s、<b>只播一次</b>：①字線沿中央摺線收攏 ②帳單本體沿同一條摺線對摺（用 scaleX，不是用 opacity 代替）③紙飛機描線飛出，緩動改 <code>cubic-bezier(.4,0,.9,.4)</code> 加速離開。原本沒有語意的紅虛線改成飛行軌跡殘影，留在原地淡到 .35。<br>結束停在「飛機停在右上、帳單已不在」，不是空白；<code>prefers-reduced-motion:reduce</code> 直接呈現該畫面'],
     ['S-05-17','G-08 回顧卡','st','天數／筆數／最大手筆'],
     ['S-05-18','誰付給誰','st',''],
     ['S-05-19','建立新行程／封存','st',''],
@@ -2226,9 +2262,8 @@ function renderS02c() {
   const demo = [
     ['🐵', 'Rozi',  'S-02c-10', '① 有 emoji → 直接顯示'],
     ['',   '小美',  null,       '② 沒有 emoji → 名字第一個字，填色圓底'],
-    ['',   '👨‍👩‍👧 一家', null, 'grapheme 取字，ZWJ 組合不會被切斷'],
-    ['',   '',      null,       '③ 名字也空 → 🙂'],
-  ];
+    ['',   '👨‍👩‍👧 一家', null, '👨‍👩‍👧 這種組合起來的字不會被切開'],
+  ];   // #25-4「名字也空 → 🙂」不再示範：產品端已擋住空名字，那一層是防禦不是流程
   let h = `<div class="sec">顯示：三層 fallback</div><div style="margin:0 14px" class="gap">`;
   h += demo.map(([em, nm, id, note], i) => {
     const av = em ? `<span class="avatar">${em}</span>`
@@ -2252,16 +2287,8 @@ function renderS02c() {
       <span style="flex:1;font-size:12.5px;font-weight:600">Rozi</span>
       <span style="font-size:9.5px;color:var(--gr)">③ 輸入後自動存檔收合</span></div></div>`;
 
-  h += b('S-02c-12', `<div style="margin:12px 14px 0;background:#fff;border:1px solid var(--ln);
-      border-left:2px solid var(--out);border-radius:3px;padding:10px">
-      <p style="margin:0;font-size:11.5px;font-weight:600">${ic('warn',14)} 網頁沒辦法主動叫出 emoji 鍵盤</p>
-      <p style="margin:4px 0 0;font-size:10.5px;color:var(--md);line-height:1.5">
-        聚焦後跳出的是一般鍵盤，要自己切到 emoji（iOS 地球鍵／Android 表情鍵）。
-        這是瀏覽器的限制——所以驗證放寬成<b>文字也可以</b>，不逼使用者一定要找到 emoji。</p></div>`);
-  h += b('S-02c-13', `<div style="margin:9px 14px 16px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:10px">
-      <p style="margin:0 0 4px;font-size:11.5px;font-weight:600">驗證規則</p>
-      <p style="margin:0;font-size:10.5px;color:var(--md);line-height:1.5">
-        限<b>一個 grapheme</b>，emoji 或文字皆可。超過只取第一個；清空就回到第二層。</p></div>`);
+  // #25-3 S-02c-12（emoji 鍵盤限制）與 S-02c-13（驗證規則）已移出手機框：
+  // 那兩張是給看稿的人的資訊，說明文字改放右側清單。驗證邏輯與編號都沒動。
   $('#scr-s02c').innerHTML = h;
 }
 
@@ -2273,24 +2300,23 @@ function renderS03b() {
     h = b('S-03b-1', `<div class="scrim" style="padding:22px 0 0">
         <div style="font-size:10px;color:rgba(255,255,255,.7);text-align:center;padding-bottom:12px">遮罩 · 點擊關閉</div></div>`)
       + `<div class="sheet"><div class="grab"></div><div style="padding:10px 14px 0">`
-      + b('S-03b-2', `<div class="shopt"><p class="t">複製結算摘要</p><p class="s">貼到 LINE 群組，讓大家知道誰付誰</p></div>`)
-      + b('S-03b-3', `<div class="shopt"><p class="t">複製分享連結</p><p class="s">任何人打開都能看消費明細，不用登入</p></div>`)
-      + b('S-03b-4', `<div class="shopt last"><p class="t">預覽分享頁面</p><p class="s">看看對方收到連結會看到什麼</p></div>`)
+      + b('S-03b-2', `<div class="shopt"><p class="t">複製文字摘要</p></div>`)
+      + b('S-03b-3', `<div class="shopt"><p class="t">複製分享連結</p><p class="s">不用登入就看得到消費明細</p></div>`)
+      + b('S-03b-4', `<div class="shopt last"><p class="t">預覽分享頁面</p></div>`)
       + `</div>` + b('S-03b-5', `<div style="padding:4px 14px 16px"><div class="btn qt">取消</div></div>`)
       + `</div><div id="s03btoast"></div>`;
   } else {
     h = `<div class="scrim" style="padding:26px 0">`
       + b('S-03c-1', `<div class="dlg">
           <p style="margin:0 0 8px;font-size:13.5px;font-weight:700;text-align:center">刪除「${esc(t.name)}」？</p>
-          ${b('S-03c-2', `<p style="margin:0 0 7px;font-size:11.5px;color:var(--md);line-height:1.5">這會一併刪掉這趟的<b>全部資料</b>，而且救不回來：</p>`)}
+          ${b('S-03c-2', `<p style="margin:0 0 7px;font-size:11.5px;color:var(--md);line-height:1.5">刪掉就<b>救不回來</b>：</p>`)}
           ${b('S-03c-3', `<ul style="margin:0 0 11px;padding-left:16px;font-size:11.5px;color:var(--md);line-height:1.7">
             <li>${n} 筆消費與分帳紀錄</li><li>${t.members.length} 位成員</li><li>結算結果與分享連結</li></ul>`)}
-          ${b('S-03c-4', `<p style="margin:0 0 6px;font-size:11px;color:var(--md)">確定的話，請輸入「刪除」二字：</p>`)}
+          ${b('S-03c-4', `<p style="margin:0 0 6px;font-size:11px;color:var(--md)">請輸入「刪除」兩個字</p>`)}
           ${b('S-03c-5', `<div class="fieldrow" style="margin-bottom:11px"><input type="text" id="delconfirm" value="${esc(store.delText||'')}" placeholder="刪除"></div>`)}
-          <div style="display:flex;gap:8px">
+          <div class="flexrow" style="display:flex;gap:8px">
             ${b('S-03c-6', `<button class="btn qt">算了，留著</button>`)}
             ${b('S-03c-7', `<button class="btn dg" ${store.delText==='刪除'?'':'disabled'}>刪除</button>`)}</div>
-          ${b('S-03c-8', `<p class="hint" style="text-align:center">沒打對「刪除」二字之前，刪除鈕維持不可按</p>`)}
         </div>`)
       + `</div>`;
   }
@@ -2365,11 +2391,11 @@ function renderS07() {
   h += b('S-07-4', `<div class="sec">我的資料</div>
     <div style="margin:0 14px" class="gap">
       <div class="rowb"><span style="font-size:15px">👥</span><span style="flex:1;font-size:12.5px;font-weight:600">通訊錄</span>
-        <span style="font-size:10px;color:var(--gr)">批四</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
+        <span style="font-size:10px;color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
       <div class="rowb"><span style="font-size:15px">💳</span><span style="flex:1;font-size:12.5px;font-weight:600">卡片管理</span>
-        <span style="font-size:10px;color:var(--gr)">批四</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
+        <span style="font-size:10px;color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
       <div class="rowb"><span style="font-size:15px">🧾</span><span style="flex:1;font-size:12.5px;font-weight:600">帳單週期</span>
-        <span style="font-size:10px;color:var(--gr)">批四</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
+        <span style="font-size:10px;color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
     </div>`);
 
   h += b('S-07-5', `<div class="sec">顯示</div>
@@ -2401,16 +2427,16 @@ Object.assign(INDEX, {
     ['S-02c-7','預覽列','del','已移除'],
     ['S-02c-8','就用這個','del','已移除：改為輸入後自動存檔'],
     ['S-02c-9','portal 掛載','del','已移除：就地編輯不是彈層，沒有這個問題'],
-    ['S-02c-10','三層 fallback','op','① 有 emoji → emoji ② 無 → 名字第一個 grapheme 放填色圓底 ③ 名字也空 → 🙂。<b>可在 S-02／S-02b 直接操作</b>'],
+    ['S-02c-10','三層 fallback','op','① 有 emoji → emoji ② 無 → 名字第一個 grapheme 放填色圓底。<b>可在 S-02／S-02b 直接操作</b>。<br>🙂 是防禦性 fallback，產品流程已擋住空名字（#25-4），稿上不再示範'],
     ['S-02c-11','就地編輯','op','點識別圓圈 → 單字元輸入框自動聚焦 → <b>輸入後自動存檔收合</b>，沒有確認鈕'],
-    ['S-02c-12','技術限制標註','st','<b>網頁無法主動喚起系統 emoji 面板</b>。稿上明寫，避免日後被當成 bug'],
-    ['S-02c-13','驗證規則','st','限一個 grapheme，emoji 或文字皆可。<code>firstGrapheme()</code> 留用'],
+    ['S-02c-12','emoji 鍵盤限制','del','<b>稿上不呈現</b>（Rozi 2026-09-05：不需要向使用者說明）。<br>事實仍成立：網頁沒辦法主動叫出 emoji 鍵盤，聚焦後跳出的是一般鍵盤，要自己切到 emoji（iOS 地球鍵／Android 表情鍵）。這是瀏覽器的限制——所以驗證放寬成文字也可以，不逼使用者一定要找到 emoji'],
+    ['S-02c-13','驗證規則','del','<b>稿上不呈現</b>（Rozi 2026-09-05：不需要向使用者說明）。<br>規則本身<b>完全沒動</b>：限一個 grapheme，emoji 或文字皆可，超過只取第一個，清空回到第二層。<code>firstGrapheme()</code> 留用'],
   ],
   s03b: [
     ['S-03b-1','分享 sheet','st','底部彈出，三個選項＋取消'],
-    ['S-03b-2','複製結算摘要','st','從已確認的結算組多行文字'],
-    ['S-03b-3','複製分享連結','st','實作時要記得補 BASE_URL（讀碼發現 #2 已 hotfix）'],
-    ['S-03b-4','預覽分享頁','st','開新分頁看 S-06'],
+    ['S-03b-2','複製文字摘要','st','從已確認的結算組多行文字。#25-5 灰字砍掉（在講好處），差別做進標題本身：「文字摘要」對「分享連結」，一個貼得出去、一個打得開'],
+    ['S-03b-3','複製分享連結','st','實作時要記得補 BASE_URL（讀碼發現 #2 已 hotfix）。#25-5 三條灰字裡<b>唯一留下的</b>——屬於隱私後果告知'],
+    ['S-03b-4','預覽分享頁','st','開新分頁看 S-06。#25-5 灰字砍掉：標題已經說了「預覽」是什麼意思'],
     ['S-03b-5','取消','st','關閉'],
     ['S-03b-6','Toast','inv','「已複製 ✓」／「連結已複製 ✓」'],
     ['S-03c-1','刪除對話框','op','置中對話框。<b>只有這裡出現實心橘紅填底</b>'],
@@ -2420,7 +2446,7 @@ Object.assign(INDEX, {
     ['S-03c-5','確認字輸入','op','打「刪除」才會 enable'],
     ['S-03c-6','算了，留著','st','關閉，不做任何事'],
     ['S-03c-7','刪除','op','實作時<b>必須斷言影響列數</b>，不是只看 HTTP 狀態'],
-    ['S-03c-8','不可按的說明','st','沒打對之前刪除鈕維持 disabled'],
+    ['S-03c-8','不可按的說明','del','<b>已移除</b>（#25-6）：在解釋系統怎麼運作，而且解釋的是眼睛已經看得到的事——鈕是灰的、輸入框有 placeholder。行為不變'],
   ],
   s06: [
     ['S-06-1','Hero','st','<b>改</b>：改用 destinationOf() 的目的地色調，與首頁卡一致（讀碼發現 #4）'],
@@ -2441,7 +2467,7 @@ Object.assign(INDEX, {
     ['S-07-1','導覽列','st','從 S-03 的 ⚙ 進來'],
     ['S-07-2','「登入帳號」標題','st',''],
     ['S-07-3','帳號卡','st','Google 頭像／名字首字＋姓名＋email'],
-    ['S-07-4','我的資料','op','通訊錄／卡片管理／帳單週期三個入口。<b>沒有這段，批四的畫面沒有地方進去</b>'],
+    ['S-07-4','我的資料','op','通訊錄／卡片管理／帳單週期三個入口，手機框裡標「即將推出」（#25-9：「批四」是內部批號，使用者看不懂）。<br>這三列屬於 <b>Phase 2 副卡記帳</b>。<b>Phase 1 上線時整段不渲染</b>——還沒做的功能不該在設定頁先站著位置。稿上保留是為了標示 Phase 2 的位置'],
     ['S-07-5','顯示設定','op','<b>改</b>：預設幣別已移除（S-03 就能切），只留深色模式'],
     ['S-07-6','登出','op','<b>改</b>：登出可復原（再登入即可）→ 用描邊不用實心填底，與刪除區隔'],
     ['S-07-7','版本 footer','st','Slogan 收尾'],

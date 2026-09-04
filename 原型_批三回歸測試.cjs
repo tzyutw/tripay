@@ -70,7 +70,9 @@ ok(d.contains(inp),'打字時輸入框不得被重建');
 inp.value='刪除'; inp.dispatchEvent(new w.Event('input',{bubbles:true}));
 console.log('   打對「刪除」後 disabled:',d.querySelector('#scr-s03b .btn.dg').disabled);
 ok(!d.querySelector('#scr-s03b .btn.dg').disabled,'打對「刪除」才可按');
-ok(H('s03b').includes('刪除」二字'),'提示應為輸入「刪除」二字，不是行程名');
+// #25-6 文案改為「請輸入「刪除」兩個字」（「二字」是書面語）。
+// 這條測試守的是「要打的是『刪除』兩個字，不是行程名」，那件事沒變。
+ok(H('s03b').includes('請輸入「刪除」兩個字'),'提示應為輸入「刪除」兩個字，不是行程名');
 
 console.log('\n=== S-06 分享頁與 S-03 資料連動 ===');
 E("store.s03bView='share'; store.expenses.t1=demoExpenses(); render()");
