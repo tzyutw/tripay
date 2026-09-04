@@ -164,7 +164,8 @@ ok(!d.querySelector('#scr-s03 .perlist'),'統計卡應預設收合');
 d.querySelector('#s03stat').click();
 ok(!!d.querySelector('#scr-s03 .perlist'),'點總花費應展開每人分擔列');
 console.log('   統計卡：預設收合 ✓，點開後每人列出現',!!d.querySelector('#scr-s03 .perlist'));
-ok(H03().includes('approxdot')||!E("tripSummary('t1').t.members.some(m=>tripSummary('t1').approx[m.id])"),
+// #22-2 後改為金額前置的「約」，不再是獨立的 chip
+ok(H03().includes('class="approx"')||!E("tripSummary('t1').t.members.some(m=>tripSummary('t1').approx[m.id])"),
    '收合時若有人被標「約」，收合列上要有提示');
 d.querySelector('#s03stat').click();
 
@@ -203,10 +204,11 @@ ok(rateInputs===2 && d.querySelectorAll('#scr-s02b .rateinput').length===2,'匯�
     g=exp({title:'測',twdAmt:'4000',type:'${ty}',parts:${JSON.stringify(1)}===1?M:M,payer:M[0]});
     if('${ty}'==='single') g.parts=[M[0]];
     renderS04();})()`);
-  const inPayer=[...d.querySelectorAll('#scr-s04 .chips')].some(c=>c.innerHTML.includes('大家各付各的'));
-  ok(inPayer,`${ty} 型也要能選「大家各付各的」`);
+  // #22-4 已改名為「當場就清了」
+  const inPayer=[...d.querySelectorAll('#scr-s04 .chips')].some(c=>c.innerHTML.includes('當場就清了'));
+  ok(inPayer,`${ty} 型也要能選「當場就清了」`);
 });
-console.log('   「大家各付各的」三型皆可選 ✓');
+console.log('   「當場就清了」三型皆可選 ✓');
 ok(!H04().includes('記錄但不算欠款'),'「記錄但不算欠款」灰字應已移除');
 
 // 11 被砍的句子不得再出現
@@ -376,6 +378,99 @@ ok(JSON.stringify(beforeCur)===JSON.stringify(afterCur),'結算恆為台幣，�
 ok(beforeTx===afterTx,'轉帳明細也不得因顯示幣別而變');
 E("store.s03Cur='TWD'; store.expenses.t1=demoExpenses(); render()");
 
+
+console.log('\n=== #22 補修二 ===');
+E("store.expenses.t1=demoExpenses(); tripOf('t1').settleMode='direct'; tripOf('t1').hubMember=null; render()");
+
+// 6：兩種模式淨額必須完全相同，只有轉帳路徑不同
+E(`(function(){var M=M0; store.expenses.t1=[
+  exp({title:'A',twdAmt:'8000',pay:'card',type:'shared',parts:M,payer:M[0]}),
+  exp({title:'B',twdAmt:'2000',pay:'card',type:'shared',parts:M,payer:M[1]})];})()`);
+const dR = E("settleTrip('t1')");
+E("tripOf('t1').settleMode='hub'; tripOf('t1').hubMember=M0[0]");
+const hR = E("settleTrip('t1')");
+console.log('   direct 轉帳', dR.tx.length, '筆｜hub 轉帳', hR.tx.length, '筆');
+ok(JSON.stringify(dR.net)===JSON.stringify(hR.net),'兩種模式的每人淨額必須完全相同');
+ok(JSON.stringify(dR.tx)!==JSON.stringify(hR.tx) || dR.tx.length===hR.tx.length,'轉帳明細可以不同');
+const sumN=n=>Object.values(n).reduce((a,b)=>a+b,0);
+ok(sumN(dR.net)===0 && sumN(hR.net)===0,'兩種模式下 Σ 淨額皆為 0');
+
+// hub：每個淨額為負的成員只出現在一筆轉帳
+const negs = Object.entries(hR.net).filter(([,v])=>v<0).map(([id])=>id);
+const counts = negs.map(id=>hR.tx.filter(x=>x.from===id).length);
+console.log('   hub 下負淨額成員各轉幾次:', counts.join(','));
+ok(counts.every(c=>c===1),'hub 模式下每個欠錢的人只轉一次，實際 '+counts.join(','));
+ok(!hR.tx.some(x=>x.from===x.to),'中心人不得轉給自己');
+
+// 中心人預設帶代墊最多的成員
+const ps = E("prepaidShare('t1')");
+console.log('   代墊最多:', E(`tripOf('t1').members.find(m=>m.id==='${ps.top}').name`), Math.round(ps.ratio*100)+'%');
+ok(ps.top===M0[0],'代墊最多的應為付 8000 的那位');
+
+// 6a：設定只在 S-02b，S-05 不得有設定入口
+E("fb=null; renderS02b(); store.s05='partial'; renderS05()");
+ok(d.querySelectorAll('[data-smode]').length===2,'S-02b 應有兩個模式選項');
+ok(d.querySelectorAll('#scr-s05 [data-smode]').length===0,'S-05 不得出現結算模式的設定入口');
+console.log('   S-02b 設定:',d.querySelectorAll('#scr-s02b [data-smode]').length,'個｜S-05 設定:',d.querySelectorAll('#scr-s05 [data-smode]').length,'個');
+
+// 6b：代墊 >70% 且 direct 時才出現引導
+E("tripOf('t1').settleMode='direct'; tripOf('t1').hubMember=null; store.s05='partial'; renderS05()");
+const hasHint = d.querySelector('#scr-s05').innerHTML.includes('每個人只要轉一次');
+E("tripOf('t1').settleMode='hub'; tripOf('t1').hubMember=M0[0]; renderS05()");
+const hintWhenHub = d.querySelector('#scr-s05').innerHTML.includes('每個人只要轉一次');
+console.log('   direct 時出現引導:',hasHint,'｜已是 hub 時:',hintWhenHub);
+ok(hasHint,'代墊比例 >70% 且為 direct 時應出現引導');
+ok(!hintWhenHub,'已經是 hub 時不該再引導');
+E("tripOf('t1').settleMode='direct'; tripOf('t1').hubMember=null; store.expenses.t1=demoExpenses(); render()");
+
+// 5：全站不得有打勾框樣式的選取
+const boxes = d.querySelectorAll('.ui .ck, .ui [class*="checkbox"]').length;
+console.log('   打勾框:',boxes,'個');
+ok(boxes===0,'全站不得再有打勾框樣式的選取');
+
+// 3：贊助金額為負數且用收款綠
+E("store.expenses.t1=demoExpenses(); renderS03()");
+const spRow = [...d.querySelectorAll('#scr-s03 .exprow')].find(x=>x.textContent.includes('贊助'));
+console.log('   贊助列:', spRow ? spRow.querySelector('.a').textContent.trim() : '（找不到）');
+ok(spRow && spRow.querySelector('.a').textContent.includes('−'),'贊助金額應顯示負數');
+ok(spRow && /276E45|var\(--in\)/.test(spRow.querySelector('.a').innerHTML),'贊助金額應使用收款綠');
+
+// 2：「約」在金額前面
+E("store.s03StatOpen=false; renderS03()");
+const tot = d.querySelector('#scr-s03 .totright');
+console.log('   統計卡收合列:', tot.textContent.replace(/\s+/g,' ').trim());
+ok(!tot || tot.textContent.trim().indexOf('約') < tot.textContent.trim().indexOf('$'),'「約」必須在金額前面');
+
+// 4：改名
+const s04html = () => d.querySelector('#scr-s04').innerHTML;
+E(`(function(){var M=M0; g=exp({twdAmt:'1600',type:'shared',parts:M,payer:M[0]}); renderS04();})()`);
+ok(s04html().includes('當場就清了'),'S-04-18 應改名為「當場就清了」');
+ok(!s04html().includes('大家各付各的'),'不得再有「大家各付各的」');
+ok(d.querySelector('#scr-s04 .chip.alt'),'應與成員 chip 用不同形狀區隔');
+console.log('   S-04-18 改名 ✓，形狀區隔 ✓');
+
+// 9：各自金額的人名與輸入框同列
+E(`(function(){var M=M0; g=exp({twdAmt:'4000',type:'individual',parts:M,indiv:{},payer:M[0]}); renderS04();})()`);
+const row = d.querySelector('#scr-s04 .amtrow');
+ok(!!row && !!row.querySelector('input'),'各自金額應為一列一人（.amtrow 內含輸入框）');
+console.log('   各自金額列數:',d.querySelectorAll('#scr-s04 .amtrow').length);
+
+// 10-1：全站無「標籤獨佔一行」的表單欄位（白名單需註明理由）
+const badLabels = new Set();
+["render()","f=blankForm();f.showCur=true;renderS02()","fb=null;renderS02b();fb.tonePick=true;renderS02b()",
+ `(function(){var M=M0;g=exp({type:'individual',parts:M,twdAmt:'100',indiv:{},payer:M[0]});renderS04();})()`,
+ "g.type='single';g.parts=[M0[0]];renderS04()","g.type='shared';renderS04()"].forEach(st=>{
+  E(st);
+  d.querySelectorAll('.ui .lbl').forEach(l=>{
+    if (l.closest('.fieldrow') || l.hasAttribute('data-group')) return;
+    badLabels.add(l.textContent.trim().slice(0,16));});});
+console.log('   標籤未同列且無白名單理由:', badLabels.size ? [...badLabels].join('/') : '（無）');
+ok(badLabels.size===0,'仍有標籤獨佔一行且未註明理由：'+[...badLabels].join('/'));
+
+// 1：G-09 殘留
+ok(!d.querySelector('#s02prefill'),'G-09 的原型控制應已移除');
+ok(!d.querySelector('#scr-s02').innerHTML.includes('已帶入上一趟的成員'),'G-09 的預填提示應已移除');
+
 console.log('\n=== 徽章 vs 編號清單（批二四頁）===');
 const IDX=E('INDEX'); const seen=new Set();
 const snap=()=>d.querySelectorAll('.bdg').forEach(x=>seen.add(x.dataset.copy));
@@ -388,6 +483,9 @@ E("store.expenses.t1=demoExpenses(); renderS03()"); snap();
 E("store.s03Filter={kind:'member',memberId:tripOf('t1').members[0].id}; renderS03d()"); snap();
 E("store.expenses.t1=[]; renderS03d()"); snap(); E("store.expenses.t1=demoExpenses()");
 ['pending','check','partial','done'].forEach(p=>{E(`store.s05='${p}'; renderS05()`); snap();});
+E("tripOf('t1').settleMode='direct'; tripOf('t1').hubMember=null; store.s05='partial'; store.expenses.t1=[exp({twdAmt:'8000',pay:'card',type:'shared',parts:M0,payer:M0[0]}),exp({twdAmt:'2000',pay:'card',type:'shared',parts:M0,payer:M0[1]})]; renderS05()"); snap();
+E("store.expenses.t1=demoExpenses(); renderS05()");
+E("fb=null; renderS02b(); fb.settleMode='hub'; fb.hubMember=M0[0]; renderS02b()"); snap();
 E("store.s05='partial'; store.s05open=true; renderS05()"); snap();
 E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
   g=exp({forAmt:'45000',twdAmt:'1035',pay:'card',type:'individual',parts:M,indiv:{[M[0]]:'1'},payer:M[0]});renderS04();})()`); snap();
