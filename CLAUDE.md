@@ -96,5 +96,6 @@
   已由 `.github/workflows/keepalive.yml`（方案 b′，含自我防停用）處理。
 - PostgREST embed 歧義：`trips` 與 `trip_members` 有兩條 FK，
   查詢一律寫 `trip_members!trip_members_trip_id_fkey(*)`。
+- 表單重繪不得重建使用者正在輸入的欄位：`<input type="number">` 不支援 selection API，`setSelectionRange` 拋錯後游標歸 0、字元倒序。回歸 `原型_輸入回歸測試.cjs`
 - Sheet／彈窗一律 `createPortal` 到 `document.body`——
   頁面根層的 `animate-slide-in` 帶 transform 會讓 `position:fixed` 定位錯亂。

@@ -493,9 +493,11 @@ function memberRow(id, on, act) {
     <span style="flex:1;font-weight:600">${m.name}</span></button>`;
 }
 
-/* 各自金額區（R4–R9）*/
+/* 各自金額區（R4–R9）
+   注意：輸入框只在 render() 建立一次。打字時走 refresh()，
+   只更新自動值／提示／比對列，絕不碰輸入框本身——這是倒序 bug 的治本修法。 */
 function eachBlock(c) {
-  const cur = st.splitCur, s = sym(cur);
+  const cur = st.splitCur;
   let h = `<div style="margin-top:10px">
     <div class="seg" style="margin-bottom:8px">
       <button data-act="splitcur" data-v="TWD" class="${cur==='TWD'?'on':''}">$ 台幣填</button>
@@ -503,44 +505,60 @@ function eachBlock(c) {
     </div>
     <p class="hint" style="margin:0 0 8px">同一筆<b>只能用一種幣別</b>填，不混填（R4）</p>
     <div class="gap">`;
-
   h += c.parts.map(id => {
-    const m = M(id), isAuto = c.auto[id] && c.autoVal !== null;
-    const raw = st.indiv[id] ?? '';
-    return `<div class="amtrow"><span style="font-size:15px">${m.emoji}</span>
+    const m = M(id);
+    return `<div class="amtrow" data-row="${id}"><span style="font-size:15px">${m.emoji}</span>
       <span style="flex:1">${m.name}</span>
-      ${isAuto ? '<span class="autotag">自動</span>' : ''}
-      <input type="number" data-act="indiv" data-id="${id}" value="${esc(raw)}"
-        class="${isAuto?'auto':''}" placeholder="${isAuto ? c.autoVal : '0'}"></div>`;
+      <span data-autoslot="${id}"></span>
+      <input type="number" data-act="indiv" data-id="${id}" value="${esc(st.indiv[id] ?? '')}"></div>`;
   }).join('');
-  h += `</div>`;
+  h += `</div><div id="eachnotes"></div><div id="eachcalc"></div></div>`;
+  return h;
+}
 
-  if (c.totalInCur !== null) {
-    if (c.overflow) {
-      h += `<div class="note warn">已超出 <b>${fmt(Math.abs(c.diffInCur), cur)}</b>，
-        超出部分由 ${nm(st.payer)} 吸收。未填的人自動值顯示 0。<b>仍然可以存檔。</b></div>`;
-    } else if (Math.abs(c.diffInCur) >= 1) {
-      const ratio = Math.abs(c.diffInCur) / c.totalInCur;
-      const big = ratio > RULES.diffWarnRatio;
-      h += `<div class="note ${big?'warn':'calm'}">差 <b>${fmt(Math.abs(c.diffInCur), cur)}</b>，
-        由 ${nm(st.payer)} 承擔${big ? '。差額超過總額 1%，確認一下是不是填錯' : ''}。<b>可以存檔。</b></div>`;
-    } else if (c.autoVal !== null) {
-      h += `<div class="note good">剩下的 <b>${fmt(c.totalInCur - c.parts.filter(p=>!c.auto[p]).reduce((a,p)=>a+c.valInCur[p],0), cur)}</b>
-        平均分給還沒填的 ${c.parts.filter(p=>c.auto[p]).length} 人，每人 <b>${fmt(c.autoVal, cur)}</b>。
-        <b>空白不等於 0</b>——真的不分攤請填 0（R8）</div>`;
-    } else {
-      h += `<div class="note good">加總剛好等於總額 ✓</div>`;
+/* 只更新衍生內容，不動輸入框（供 input 事件使用）*/
+function paintEach() {
+  const c = compute(); if (c.mode !== 'each') return;
+  const cur = st.splitCur;
+  c.parts.forEach(id => {
+    const slot = document.querySelector(`[data-autoslot="${id}"]`);
+    const inp  = document.querySelector(`input[data-act="indiv"][data-id="${id}"]`);
+    const isAuto = c.auto[id] && c.autoVal !== null;
+    if (slot) slot.innerHTML = isAuto ? '<span class="autotag">自動</span>' : '';
+    if (inp) {                       // 只改樣式與 placeholder，不改 value、不換節點
+      inp.classList.toggle('auto', isAuto);
+      inp.placeholder = isAuto ? String(c.valInCur[id] ?? c.autoVal) : '0';
     }
-    // 比對列（D）：同幣別顯示，下方小字換算台幣
-    const sumAll = c.parts.reduce((a,p) => a + (c.valInCur[p] ?? 0), 0);
-    h += `<div class="calc" style="margin-top:8px">已填＋自動 ${fmt(sumAll, cur)} ／ 總額 ${fmt(c.totalInCur, cur)}
-      <div class="sub2">${c.twdPending ? '台幣總額還沒填，結算會跳過這筆' :
-        (cur === 'TWD' ? '結算就用這個台幣數字'
-          : `換算後台幣 $ ${c.parts.reduce((a,p)=>a+(c.shares[p]??0),0).toLocaleString()}（台幣總額 × 各人外幣 ÷ 外幣總額）`)}</div></div>`;
-  } else {
-    h += `<div class="note calm">還沒有總額可以分。填上台幣或 ${RULES.tripCurrency} 總額，空白欄位就會出現自動值。</div>`;
+  });
+  const notes = document.getElementById('eachnotes');
+  const calc  = document.getElementById('eachcalc');
+  if (!notes || !calc) return;
+
+  if (c.totalInCur === null) {
+    notes.innerHTML = `<div class="note calm">還沒有總額可以分。填上台幣或 ${RULES.tripCurrency} 總額，空白欄位就會出現自動值。</div>`;
+    calc.innerHTML = '';
+    return;
   }
-  return h + `</div>`;
+  const manualSum = c.parts.filter(p => !c.auto[p]).reduce((a,p) => a + (c.valInCur[p]||0), 0);
+  const blanks = c.parts.filter(p => c.auto[p]).length;
+  if (c.overflow) {
+    notes.innerHTML = `<div class="note warn">已超出 <b>${fmt(Math.abs(c.diffInCur), cur)}</b>，
+      超出部分由 ${nm(st.payer)} 吸收。未填的人自動值顯示 0。<b>仍然可以存檔。</b></div>`;
+  } else if (Math.abs(c.diffInCur) >= 1) {
+    const big = Math.abs(c.diffInCur) / c.totalInCur > RULES.diffWarnRatio;
+    notes.innerHTML = `<div class="note ${big?'warn':'calm'}">差 <b>${fmt(Math.abs(c.diffInCur), cur)}</b>，
+      由 ${nm(st.payer)} 承擔${big ? '。差額超過總額 1%，確認一下是不是填錯' : ''}。<b>可以存檔。</b></div>`;
+  } else if (blanks) {
+    notes.innerHTML = `<div class="note good">剩下的 <b>${fmt(c.totalInCur - manualSum, cur)}</b>
+      平均分給還沒填的 ${blanks} 人。<b>空白不等於 0</b>——真的不分攤請填 0（R8）</div>`;
+  } else {
+    notes.innerHTML = `<div class="note good">加總剛好等於總額 ✓</div>`;
+  }
+  const sumAll = c.parts.reduce((a,p) => a + (c.valInCur[p] ?? 0), 0);
+  calc.innerHTML = `<div class="calc" style="margin-top:8px">已填＋自動 ${fmt(sumAll, cur)} ／ 總額 ${fmt(c.totalInCur, cur)}
+    <div class="sub2">${c.twdPending ? '台幣總額還沒填，結算會跳過這筆'
+      : (cur === 'TWD' ? '結算就用這個台幣數字'
+        : `換算後台幣 $ ${c.parts.reduce((a,p)=>a+(c.shares[p]??0),0).toLocaleString()}（台幣總額 × 各人外幣 ÷ 外幣總額）`)}</div></div>`;
 }
 
 function renderForm() {
@@ -557,8 +575,7 @@ function renderForm() {
       <div><span class="hint" style="display:block;margin:0 0 4px">台幣總額 $</span>
         <input type="number" id="f-twd" class="money" value="${esc(st.twdTotal)}" placeholder="可留空"></div>
     </div>
-    ${c.forTotalAuto && c.forTotalEff ? `<p class="hint">外幣總額空著 → <b>自動用各自金額加總 ${fmt(c.forTotalEff, 'FOR')}</b>，想改就直接填（R6）</p>` : ''}
-    ${c.twdPending ? `<p class="hint" style="color:var(--out)">台幣總額空著 → 這筆<b>待填</b>，結算會跳過。補上後自動換算（R7）</p>` : ''}
+    <div id="hint-for"></div><div id="hint-twd"></div>
   </div>`;
 
   if (version === 'v1') {
@@ -659,7 +676,11 @@ function renderRules() {
   $('#rulesview').innerHTML = `<table><tbody>${RULE_LIST.map(([id,t]) =>
     `<tr><td class="m" style="color:var(--mark);width:38px">${id}</td><td>${t}</td></tr>`).join('')}</tbody></table>`;
 }
-function render() { renderForm(); renderLive(); renderLedger(); renderScen(); renderRules(); }
+function render() {
+  renderForm();                 // 建立結構（只在點選造成結構變化時才跑）
+  refresh();                    // 填入所有衍生內容：自動值、提示、比對列、即時結果
+  renderLedger(); renderScen(); renderRules();
+}
 
 /* ═══ 互動 ═══ */
 document.addEventListener('click', ev => {
@@ -682,18 +703,40 @@ document.addEventListener('click', ev => {
 });
 
 document.addEventListener('input', ev => {
-  const t = ev.target, keep = t.id || (t.dataset.act==='indiv' ? 'indiv-'+t.dataset.id : null);
-  if (t.id === 'f-title') { st.title = t.value; renderLive(); return; }
-  if (t.id === 'f-twd')  st.twdTotal = t.value;
-  else if (t.id === 'f-for') st.forTotal = t.value;
+  const t = ev.target;
+  if (t.id === 'f-title')       st.title = t.value;
+  else if (t.id === 'f-twd')    st.twdTotal = t.value;
+  else if (t.id === 'f-for')    st.forTotal = t.value;
   else if (t.dataset.act === 'indiv') st.indiv[t.dataset.id] = t.value;
   else return;
-  const pos = t.selectionStart;
-  render();
-  // 重繪後把焦點放回原欄位（自動值要即時更新，但不能吃掉輸入）
-  const back = t.id ? $('#'+t.id) : document.querySelector(`[data-act="indiv"][data-id="${t.dataset.id}"]`);
-  if (back) { back.focus(); try { back.setSelectionRange(pos, pos); } catch(e) {} }
+  refresh();   // ← 只更新衍生內容，不重建任何 input（倒序 bug 的治本修法）
 });
+
+/* 打字時唯一會跑的更新路徑：不碰輸入框的 value，也不換節點。
+   （舊版在這裡呼叫 render() 重建整塊 DOM，再用 setSelectionRange 還原游標；
+     但 <input type="number"> 不支援 selection API，會拋 InvalidStateError，
+     被 try/catch 吞掉後游標留在 0，於是「2389」被打成「9832」。）*/
+function refresh() {
+  const c = compute();
+  const ph = document.getElementById('perhead');
+  if (ph) ph.textContent = (c.twdPending || !c.parts.length)
+    ? '每人 —' : '每人 $ ' + Math.round(c.twdTotal / c.parts.length).toLocaleString();
+
+  const hf = document.getElementById('hint-for');
+  if (hf) hf.innerHTML = (c.forTotalAuto && c.forTotalEff)
+    ? `<p class="hint">外幣總額空著 → <b>自動用各自金額加總 ${fmt(c.forTotalEff, 'FOR')}</b>，想改就直接填（R6）</p>` : '';
+  const ht = document.getElementById('hint-twd');
+  if (ht) ht.innerHTML = c.twdPending
+    ? `<p class="hint" style="color:var(--out)">台幣總額空著 → 這筆<b>待填</b>，結算會跳過。補上後自動換算（R7）</p>` : '';
+
+  const fo = document.getElementById('f-for');
+  if (fo && document.activeElement !== fo)
+    fo.placeholder = (c.forTotalAuto && c.forTotalEff) ? String(c.forTotalEff) : '可留空';
+
+  paintEach();
+  renderLive();
+  $('#save').disabled = !c.ok;
+}
 
 $('#save').addEventListener('click', () => {
   const c = compute(); if (!c.ok) return;
