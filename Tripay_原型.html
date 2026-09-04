@@ -179,6 +179,17 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
   font-size:15px;background:#fff;border:1px solid var(--ln);flex:none;overflow:hidden}
 .ui .avatar.letter{color:#fff;font-size:13px;font-weight:700;border-color:transparent}
 .ui .avatar input{width:100%;height:100%;text-align:center;padding:0;border:0;background:#fff;font-size:15px}
+.ui .ratebox{background:#fff;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
+.ui .raterow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #F1F2EE}
+.ui .raterow:last-child{border-bottom:0}
+.ui .raterow .flag{font-size:19px;flex:none;line-height:1}
+.ui .raterow .code{font-size:11.5px;font-weight:600;color:var(--gr);flex:none;width:34px;text-align:right}
+.ui .rateinput{flex:1;min-width:0;border:0;background:transparent;padding:4px 0;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:20px;font-weight:600;
+  color:#151C21;letter-spacing:-.02em}
+.ui .rateinput:focus{border:0;outline:none}
+.ui .ratebox.editing .rateinput{color:#A9B2B7}
+.ui .ratebox.editing .rateinput:focus{color:#151C21}
 .ui .tone{width:32px;height:32px;border-radius:3px;flex:none}
 .ui .tone.auto{width:auto;padding:0 10px;height:32px;font-size:11px;font-weight:600;color:var(--md);
   background:#fff;border:1px dashed #B9C1BB}
@@ -308,6 +319,15 @@ const CURRENCIES = [
   ['GBP','英鎊','£'],['MYR','馬來幣','RM'],['VND','越南盾','₫'],['PHP','菲律賓披索','₱'],
   ['IDR','印尼盾','Rp'],['INR','印度盧比','₹'],['CAD','加拿大幣','C$'],['CHF','瑞士法郎','Fr'],
 ];
+/* 1 單位外幣約值多少台幣。只用來決定「1」擺哪一欄與小數位數，不參與分帳計算 */
+const TWD_PER_UNIT = { JPY:0.22, TWD:1, KRW:0.023, USD:32, EUR:35, HKD:4.1, SGD:24, THB:0.9,
+  CNY:4.5, AUD:21, GBP:41, MYR:7.2, VND:0.0013, PHP:0.57, IDR:0.002, INR:0.38, CAD:23, CHF:36 };
+const FLAG = { JPY:'🇯🇵', TWD:'🇹🇼', KRW:'🇰🇷', USD:'🇺🇸', EUR:'🇪🇺', HKD:'🇭🇰', SGD:'🇸🇬', THB:'🇹🇭',
+  CNY:'🇨🇳', AUD:'🇦🇺', GBP:'🇬🇧', MYR:'🇲🇾', VND:'🇻🇳', PHP:'🇵🇭', IDR:'🇮🇩', INR:'🇮🇳', CAD:'🇨🇦', CHF:'🇨🇭' };
+/* 台灣人講匯率會選數字好記的方向：1 單位外幣不到 0.1 台幣時，改成「1 台幣 = N 外幣」 */
+function oneSideOf(code) { return (TWD_PER_UNIT[code] ?? 1) < 0.1 ? 'twd' : 'for'; }
+/* 無輔幣單位的幣別不給小數 */
+function decimalsFor(code) { return ['JPY','KRW','VND','IDR'].includes(code) ? 0 : 2; }
 const LETTER_COLORS = ['#2D6A8A','#A8663F','#4A9A6B','#6B4E2E','#9A4A4A','#3A6E8C'];
 
 /* 取第一個 grapheme（ZWJ 組合、膚色修飾、國旗都不切斷） */
@@ -443,15 +463,19 @@ function blankForm(prefill) {
   return { name:'', currency:'JPY', start:today(), end:'', members: prefill ? prefill.map(x => m(x.emoji, x.name)) : [],
            owner:null, showCur:false, curQ:'', adding:false, newName:'', errs:{}, dlg:false, prefilled:!!prefill };
 }
-/* 1 外幣 ≈ ? 台幣。台幣 X 換到 Y 外幣 → X / Y */
+/* 內部匯率 ＝ 外幣 ÷ 台幣（1 台幣換得到幾單位外幣）。
+   使用者填的兩個數字本身就是匯率，不需要再算出第三個值給他看。 */
 function rateOf(form) {
-  const a = parseFloat(form.rateTwd), b2 = parseFloat(form.rateFor);
-  if (!Number.isFinite(a) || !Number.isFinite(b2) || b2 <= 0) return null;
-  return Math.round(a / b2 * 10000) / 10000;
+  const twd = parseFloat(form.rateTwd), fr = parseFloat(form.rateFor);
+  if (!Number.isFinite(twd) || !Number.isFinite(fr) || twd <= 0) return null;
+  return fr / twd;
 }
+/* 反向表達：1 單位外幣值多少台幣。測試與日後 S-04 換算用得到 */
+function twdPerForeign(form) { const r = rateOf(form); return r ? 1 / r : null; }
 function tripToForm(t) {
   return { name:t.name, currency:t.currency, start:t.start, end:t.end,
-           rateTwd:t.rateTwd ?? '', rateFor:t.rateFor ?? '',
+           rateTwd: t.rateTwd ?? (oneSideOf(t.currency) === 'twd' ? '1' : ''),
+           rateFor: t.rateFor ?? (oneSideOf(t.currency) === 'for' ? '1' : ''),
            members:t.members.map(x => ({...x})), owner:t.owner, showCur:false, curQ:'',
            adding:false, newName:'', errs:{}, tone:t.tone, pays:[...t.pays], usedPays:t.usedPays,
            newPay:'', photo:t.photo || null, tonePick:false };
@@ -545,6 +569,26 @@ function renderS02() {
 
 <script>
 /* ═══ S-02b 編輯行程 ═══ */
+/* 兩列的上下順序依幣別改變——「1」的那一欄永遠在上面，讀起來就是「1 X = N Y」。
+   這是刻意的，不是 bug。 */
+function rateRows(form) {
+  const cur = form.currency, dec = decimalsFor(cur);
+  const row = (side) => {
+    const isTwd = side === 'twd';
+    const code = isTwd ? 'TWD' : cur;
+    const val  = isTwd ? form.rateTwd : form.rateFor;
+    const ph   = isTwd ? '1' : (dec ? '0.00' : '0');
+    return `<div class="raterow" data-side="${side}">
+      <span class="flag">${FLAG[code] || '🏳️'}</span>
+      <input type="text" inputmode="decimal" class="rateinput" id="rate-${side}"
+        value="${esc(val)}" placeholder="${ph}" autocomplete="off">
+      <span class="code">${code}</span></div>`;
+  };
+  const first = oneSideOf(cur) === 'twd' ? 'twd' : 'for';
+  const second = first === 'twd' ? 'for' : 'twd';
+  return `<div class="ratebox">${row(first)}${row(second)}</div>`;
+}
+
 function renderS02b() {
   const t = store.trips.find(x => x.id === editTripId);
   if (!fb || fb._id !== editTripId) { fb = tripToForm(t); fb._id = editTripId; }
@@ -578,21 +622,9 @@ function renderS02b() {
       </div>`)}
 
       ${b('S-02b-12', `<div class="fld"><span class="lbl">這趟的現金匯率</span>
-        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-          <span style="font-size:12px;color:var(--md)">台幣</span>
-          <input type="number" id="rateTwd" value="${fb.rateTwd ?? ''}" placeholder="10000" style="width:80px;min-width:0">
-          <span style="font-size:12px;color:var(--md)">換到</span>
-          <input type="number" id="rateFor" value="${fb.rateFor ?? ''}" placeholder="45000" style="width:80px;min-width:0">
-          <span style="font-size:12px;color:var(--md)">${fb.currency}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:7px;margin-top:8px;flex-wrap:wrap">
-          <span style="font-size:12px;color:var(--md)">1 ${fb.currency} ≈</span>
-          <input type="number" id="rateDirect" value="${rateOf(fb) ?? ''}" placeholder="—" style="width:80px;min-width:0">
-          <span style="font-size:12px;color:var(--md)">台幣</span>
-          <span id="rateNote" style="font-size:11px;color:var(--gr)">${
-            rateOf(fb) == null ? '還沒設定' : '兩邊連動'}</span>
-        </div>
-        <p class="hint">現金與儲值卡用它換算台幣；<b>刷卡直接填台幣，不套用</b></p>
+        <p class="hint" style="margin:-2px 0 9px">在當地換錢後填一次就好</p>
+        ${rateRows(fb)}
+        <p class="hint">刷卡不用這個匯率，直接填台幣</p>
       </div>`)}
 
       ${b('S-02b-11', `<div class="fld"><span class="lbl">這趟的支付方式</span>
@@ -696,7 +728,7 @@ const INDEX = {
     ['S-02b-9','儲存','op','寫回 store，S-01 的卡片跟著變'],
     ['S-02b-10','色調預設盤','op','8 種色票＋一個標著「自動」的選項，不用灰字解釋'],
     ['S-02b-11','這趟的支付方式','op','可新增；已被使用的不可刪'],
-    ['S-02b-12','這趟的現金匯率','op','「台幣 X 換到 Y 外幣」與直接填匯率<b>雙向連動</b>；現金／儲值卡用它換算，<b>刷卡不套用</b>'],
+    ['S-02b-12','這趟的現金匯率','op','<b>只有兩個輸入框</b>。「1」擺哪一欄依幣別決定（KRW 在台幣欄、JPY／THB／USD 在外幣欄），<b>「1」的那欄排在上面</b>，讀起來就是「1 X = N Y」'],
   ],
 };
 const KIND = { op:['可操作','op'], st:['靜態','st'], inv:['隱形','inv'], del:['已移除','del'] };
@@ -874,20 +906,10 @@ document.addEventListener('input', ev => {
   if (t.id === 's02end')     { f.end = t.value; return; }
   if (t.id === 's02newname') { f.newName = t.value; return; }
   if (t.id === 's02bnewpay') { fb.newPay = t.value; return; }
-  if (t.id === 'rateTwd' || t.id === 'rateFor') {         // 換錢金額 → 反推匯率
-    fb[t.id] = t.value;
-    const r = rateOf(fb), d = document.getElementById('rateDirect');
-    if (d && document.activeElement !== d) d.value = r ?? '';
-    const n = document.getElementById('rateNote'); if (n) n.textContent = r == null ? '還沒設定' : '兩邊連動';
-    return; }
-  if (t.id === 'rateDirect') {                            // 直接填匯率 → 反推換到多少外幣
-    const r = parseFloat(t.value), a = parseFloat(fb.rateTwd);
-    if (Number.isFinite(r) && r > 0) {
-      if (!Number.isFinite(a)) { fb.rateTwd = '10000'; const e = document.getElementById('rateTwd'); if (e) e.value = '10000'; }
-      fb.rateFor = String(Math.round(parseFloat(fb.rateTwd) / r));
-      const e2 = document.getElementById('rateFor'); if (e2 && document.activeElement !== e2) e2.value = fb.rateFor;
-    }
-    const n = document.getElementById('rateNote'); if (n) n.textContent = Number.isFinite(r) ? '兩邊連動' : '還沒設定';
+  if (t.id === 'rate-twd' || t.id === 'rate-for') {
+    // 兩欄都是自由輸入，它們本身就是匯率——不需要再算出第三個數字。
+    // 只寫 state，不重繪輸入框（#13 的教訓）。
+    fb[t.id === 'rate-twd' ? 'rateTwd' : 'rateFor'] = t.value;
     return; }
   const cq = t.dataset.curq;
   if (cq) { const form = cq === 'f' ? f : fb; form.curQ = t.value;
@@ -910,6 +932,13 @@ document.addEventListener('input', ev => {
     editing = null;
     ctx === 'f' ? renderS02() : renderS02b();
   }
+});
+document.addEventListener('focusin', ev => {
+  const box = ev.target.closest('.ratebox'); if (box) box.classList.add('editing');
+});
+document.addEventListener('focusout', ev => {
+  const box = ev.target.closest('.ratebox');
+  if (box) setTimeout(() => { if (!box.contains(document.activeElement)) box.classList.remove('editing'); }, 0);
 });
 document.addEventListener('keydown', ev => {
   if (ev.key === 'Enter' && ev.target.id === 's02newname') { ev.preventDefault();

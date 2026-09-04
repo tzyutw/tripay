@@ -129,19 +129,64 @@ const opts=[...d.querySelectorAll('[data-cur]')].map(x=>x.dataset.cur);
 console.log('   搜「泰」→',opts.join(','));
 ok(opts.length===1&&opts[0]==='f:THB','泰銖沒被搜到，結果='+opts.join(','));
 
-console.log('\n=== S-02b-12 現金匯率雙向連動 ===');
-E("fb=null; renderS02b()");
-const rt=d.querySelector('#rateTwd'), rf=d.querySelector('#rateFor');
-rt.value='10000'; rt.dispatchEvent(new w.Event('input',{bubbles:true}));
-rf.value='45000'; rf.dispatchEvent(new w.Event('input',{bubbles:true}));
-const shown=d.querySelector('#rateDirect').value;
-console.log('   台幣 10000 換到 45000 → 1 外幣 ≈',shown,'台幣');
-ok(Math.abs(parseFloat(shown)-0.2222)<0.001,'換錢金額沒有反推出匯率，得到 '+shown);
-ok(d.contains(rt)&&d.contains(rf),'匯率欄位在輸入時被重建');
-const rd=d.querySelector('#rateDirect');
-rd.value='0.25'; rd.dispatchEvent(new w.Event('input',{bubbles:true}));
-console.log('   直接填 0.25 → 換到',d.querySelector('#rateFor').value,'外幣');
-ok(d.querySelector('#rateFor').value==='40000','直接填匯率沒有反推出外幣金額');
+console.log('\n=== S-02b-12 現金匯率（#16 收斂後）===');
+const rateRows = () => [...d.querySelectorAll('#scr-s02b .raterow')]
+  .map(r => ({ side:r.dataset.side, code:r.querySelector('.code').textContent, val:r.querySelector('input').value }));
+const setCur = (tripId, code) => E(`editTripId='${tripId}'; store.trips.find(x=>x.id==='${tripId}').currency='${code}';
+  store.trips.find(x=>x.id==='${tripId}').rateTwd=undefined; store.trips.find(x=>x.id==='${tripId}').rateFor=undefined;
+  fb=null; renderS02b()`);
+const typeRate = (side, v) => { const el = d.querySelector('#rate-' + side);
+  el.value = v; el.dispatchEvent(new w.Event('input',{bubbles:true})); return el; };
+
+setCur('t1','KRW');
+let rows = rateRows();
+console.log('   KRW 兩列：', rows.map(r => `${r.code}=${r.val||'(空)'}`).join(' / '));
+ok(d.querySelectorAll('#scr-s02b .rateinput').length === 2, '該區塊的輸入框應為 2 個，實際 ' + d.querySelectorAll('#scr-s02b .rateinput').length);
+ok(!d.querySelector('#rateDirect') && !d.querySelector('#rateNote'), '不該再有唯讀的匯率顯示列');
+ok(!/≈/.test(d.querySelector('#scr-s02b').innerHTML), '不該再出現「≈」的唯讀算式');
+ok(rows[0].side === 'twd' && rows[0].val === '1', 'KRW：「1」應在台幣欄且排在上面');
+const keptEl = typeRate('for','45');
+ok(d.contains(keptEl), '匯率欄在輸入時被重建');
+console.log('   KRW 填 45 → 內部匯率', E('rateOf(fb)'), '（1 台幣換得到幾韓元）');
+ok(Math.abs(E('rateOf(fb)') - 45) < 1e-9, 'KRW 匯率應為 45，實際 ' + E('rateOf(fb)'));
+
+setCur('t2','JPY');
+rows = rateRows();
+console.log('   JPY 兩列：', rows.map(r => `${r.code}=${r.val||'(空)'}`).join(' / '));
+ok(rows[0].side === 'for' && rows[0].val === '1', 'JPY：「1」應在外幣欄且排在上面');
+typeRate('twd','0.22');
+const twdPer = E('twdPerForeign(fb)');
+console.log('   JPY 台幣欄填 0.22 → 1 JPY =', twdPer, '台幣');
+ok(Math.abs(twdPer - 0.22) < 1e-9, 'JPY 應等價於 1 JPY = 0.22 台幣，實際 ' + twdPer);
+ok(d.querySelector('#rate-twd').value === '0.22', '台幣欄應接受小數');
+
+setCur('t3','THB');
+rows = rateRows();
+console.log('   THB 兩列：', rows.map(r => `${r.code}=${r.val||'(空)'}`).join(' / '));
+ok(rows[0].side === 'for' && rows[0].val === '1', 'THB：「1」應在外幣欄');
+
+console.log('\n=== 換錢金額寫法與「1 / 45」等價 ===');
+setCur('t1','KRW');
+typeRate('for','45');
+const rA = E('rateOf(fb)');
+typeRate('twd','10000'); typeRate('for','450000');
+const rB = E('rateOf(fb)');
+console.log('   1 / 45 →', rA, '｜ 10000 / 450000 →', rB);
+ok(Math.abs(rA - rB) < 1e-9, '兩種填法應算出同一個匯率');
+
+console.log('\n=== 兩欄都接受小數 ===');
+typeRate('twd','1.5'); typeRate('for','67.5');
+console.log('   1.5 / 67.5 →', E('rateOf(fb)'));
+ok(d.querySelector('#rate-twd').value === '1.5' && d.querySelector('#rate-for').value === '67.5', '小數被吃掉了');
+ok(Math.abs(E('rateOf(fb)') - 45) < 1e-9, '小數輸入算出的匯率不對');
+
+console.log('\n=== 匯率區塊的灰字只留兩句 ===');
+setCur('t1','KRW');
+const rateHtml = d.querySelector('#scr-s02b').innerHTML;
+ok(rateHtml.includes('在當地換錢後填一次就好'), '缺少區塊副標');
+ok(rateHtml.includes('刷卡不用這個匯率，直接填台幣'), '缺少底部說明');
+ok(!rateHtml.includes('現金與儲值卡用它換算'), '舊的重複灰字沒清掉');
+console.log('   副標與底部說明都在，舊句已清');
 
 console.log('\n=== 「這是我」標記常駐（不靠灰字說明）===');
 E("f=blankForm(store.trips[0].members); renderS02()");
