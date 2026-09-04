@@ -91,6 +91,86 @@ ok(!!d.querySelector('#scr-s07 .dlg'),'點登出應跳確認框');
 console.log('   登出確認框:',!!d.querySelector('#scr-s07 .dlg'));
 ok(!H('s07').includes('btn dg" id="s07logout2"'),'登出可復原，不該用實心填底');
 
+
+console.log('\n=== #24 S-05 結算頁重新對齊 ===');
+E("window.M=tripOf('t1').members.map(m=>m.id)");
+const setMode=(m)=>E(`tripOf('t1').settleMode='${m}'; tripOf('t1').hubMember=${m==='hub'?"M[0]":'null'}`);
+const base=()=>E("store.expenses.t1=[exp({twdAmt:'8000',pay:'card',type:'shared',parts:M,payer:M[0]}),exp({twdAmt:'2000',pay:'card',type:'shared',parts:M,payer:M[1]})]");
+
+// 5：空引導與 Excel 提醒都不在了
+base(); setMode('direct'); E("store.s05='pending'; renderS05()");
+const h1=()=>d.querySelector('#scr-s05').innerHTML;
+ok(!h1().includes('準備好了嗎'),'S-05-1 空引導應已移除');
+E("store.s05='partial'; store.s05open=true; renderS05()");
+ok(!d.querySelector('#scr-s05').innerHTML.includes('Excel'),'S-05-12 Excel 提醒應已移除');
+console.log('   空引導與 Excel 提醒都不在了 ✓');
+
+// 2：未結算態顯示完整轉帳明細
+E("store.s05='pending'; renderS05()");
+ok(h1().includes('現在的狀況'),'標題應為「現在的狀況」');
+ok(h1().includes('還會變 —— 之後記帳會影響這裡'),'說明文案應已更新');
+ok(h1().includes('結算後金額固定，可以逐筆標記付清'),'按鈕下方應說明結算會做什麼');
+ok(d.querySelectorAll('#scr-s05 .txrow').length>0,'未結算態應顯示轉帳明細');
+console.log('   未結算轉帳列數:',d.querySelectorAll('#scr-s05 .txrow').length);
+
+// 3：切換模式時明細變、淨額不變
+const netD=E("settleTrip('t1').net"); const txD=d.querySelectorAll('#scr-s05 .txrow').length;
+const flatD=h1().includes('txhead');
+setMode('hub'); E("renderS05()");
+const netH=E("settleTrip('t1').net");
+console.log('   direct 淨額', JSON.stringify(netD), '\n   hub    淨額', JSON.stringify(netH));
+ok(JSON.stringify(netD)===JSON.stringify(netH),'切換模式時每人淨額必須完全相同');
+ok(!flatD && h1().includes('txhead'),'hub 才有「都跟 X 結算」的標頭，direct 沒有');
+
+// 3b：hub 分兩段、direct 平鋪
+E("store.expenses.t1=[exp({twdAmt:'8000',pay:'card',type:'shared',parts:M,payer:M[0]}),exp({twdAmt:'2000',pay:'card',type:'shared',parts:M,payer:M[1]}),exp({twdAmt:'1200',pay:'card',type:'shared',parts:M,payer:M[2]})]");
+setMode('hub'); E("renderS05()");
+const secs=[...d.querySelectorAll('#scr-s05 .txsec')].map(x=>x.textContent.trim());
+console.log('   hub 分段:', secs.join(' / '));
+ok(h1().includes('都跟'),'hub 應有「都跟 X 結算」標頭');
+setMode('direct'); E("renderS05()");
+ok(!h1().includes('都跟') && d.querySelectorAll('#scr-s05 .txsec').length===0,'direct 應為平鋪，無分段標題');
+console.log('   direct 分段數:',d.querySelectorAll('#scr-s05 .txsec').length);
+
+// 3c：邊界
+setMode('hub'); base(); E("renderS05()");
+const s1=[...d.querySelectorAll('#scr-s05 .txsec')].map(x=>x.textContent.trim());
+console.log('   中心人只收不撥 → 分段:',s1.join(' / ')||'（只有一段或無）');
+ok(s1.length<=1,'中心人只收不撥時不得留空標題');
+const hubName=E("tripOf('t1').members[0].name");
+ok(![...d.querySelectorAll('#scr-s05 .txrow')].some(r=>{
+  const w=[...r.querySelectorAll('.who')].map(x=>x.textContent);
+  return w.length===2 && w[0]===w[1];}),'中心人不得出現在自己給自己的列');
+E("store.expenses.t1=[]; renderS05()");
+console.log('   全員打平:',d.querySelector('#scr-s05 .txempty')?d.querySelector('#scr-s05 .txempty').textContent.trim():'（無）');
+ok(!!d.querySelector('#scr-s05 .txempty'),'全員打平時應顯示「大家剛好打平」');
+
+// 3d：已結算與未結算用同一套呈現
+base(); setMode('hub'); E("store.s05='pending'; renderS05()");
+const previewHead=d.querySelector('#scr-s05 .txhead').textContent.trim();
+E("store.s05='partial'; renderS05()");
+const settledHead=d.querySelector('#scr-s05 .txhead').textContent.trim();
+console.log('   預覽標頭 =',previewHead,'｜已結算標頭 =',settledHead);
+ok(previewHead===settledHead,'已結算的明細與預覽必須用同一套呈現');
+ok(d.querySelectorAll('#scr-s05 .clearbtn, #scr-s05 .cleared').length>0,'已結算態才有標記付清');
+E("store.s05='pending'; renderS05()");
+ok(d.querySelectorAll('#scr-s05 .clearbtn').length===0,'未結算的預覽不該有標記付清');
+
+// 4：有未定案的帳時金額前有「約」
+E("store.expenses.t1=demoExpenses(); store.s05='pending'; renderS05()");
+const hasUn=E("tripSummary('t1').unsettledList.length")>0;
+console.log('   有未定案:',hasUn,'｜預覽出現「約」:',d.querySelector('#scr-s05 .approx')!==null);
+ok(hasUn && d.querySelector('#scr-s05 .approx'),'有未定案時預覽金額前應有「約」');
+base(); E("renderS05()");
+ok(!d.querySelector('#scr-s05 .approx'),'沒有未定案時不該出現「約」');
+
+// #24-4：人話淨額補對象
+setMode('direct'); E("store.s05='partial'; store.s05open=true; renderS05()");
+const h11=d.querySelector('#scr-s05').innerHTML;
+ok(/給 <span|給你/.test(h11),'人話淨額應列出對象');
+console.log('   淨額列有對象 ✓');
+E("store.expenses.t1=demoExpenses(); tripOf('t1').settleMode='direct'; tripOf('t1').hubMember=null; store.s05='pending'; store.s05open=false; render()");
+
 console.log('\n=== 徽章 vs 編號清單（批三四頁）===');
 const IDX=E('INDEX'); const seen=new Set();
 const snap=()=>d.querySelectorAll('.bdg').forEach(x=>seen.add(x.dataset.copy));

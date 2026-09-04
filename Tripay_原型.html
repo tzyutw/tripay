@@ -285,6 +285,20 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
   @keyframes lift{0%,45%{transform:none}70%{transform:translate(10px,-12px) rotate(-8deg)}
     100%{transform:translate(24px,-26px) rotate(-10deg);opacity:0}}
 }
+.ui .txrow{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--ln);
+  border-radius:3px;padding:9px 10px;margin:0 14px 6px}
+.ui .txrow .who{font-size:12.5px;font-weight:600}
+.ui .txrow .gv{font-size:11px;color:var(--gr)}
+.ui .txrow .amt{margin-left:auto;font-size:13px;display:inline-flex;align-items:baseline}
+.ui .txhead{padding:12px 14px 4px;font-size:12.5px;font-weight:600}
+.ui .txtitle{padding:0 14px 2px;font-size:15px;font-weight:700}
+.ui .txsub{padding:0 14px 10px;font-size:10.5px;color:var(--gr)}
+.ui .txsec{padding:10px 14px 5px;font-size:10.5px;font-weight:600;color:var(--gr)}
+.ui .txempty{margin:0 14px;padding:14px;text-align:center;font-size:12.5px;color:var(--gr);
+  background:#fff;border:1px solid var(--ln);border-radius:3px}
+.ui .clearbtn{border:1px solid var(--w);color:var(--wi);font-size:10px;font-weight:600;
+  padding:3px 8px;border-radius:3px;flex:none}
+.ui .cleared{font-size:10px;font-weight:600;color:var(--in);display:inline-flex;align-items:center;gap:3px;flex:none}
 .ui .detailtoggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 28px);
   margin:0 14px;padding:11px 0;border-top:1px solid var(--ln);font-size:12px;font-weight:600;color:var(--md)}
 .ui .detailhd,.ui .detailrow{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:4px;padding:6px 9px;font-size:10.5px}
@@ -1785,20 +1799,22 @@ function renderS05() {
     </div>`) + b('S-05-5', `<div class="btnrow"><button class="btn qt" id="s05anyway">就這樣結算</button>
       <button class="btn" id="s05look">先去看一下</button></div>`);
   } else if (store.s05 === 'pending') {
-    h = nav + b('S-05-1', `<div class="empty" style="padding:40px 24px">
-      <p style="font-size:26px">🧮</p>
-      <p style="font-weight:400;color:var(--md);font-size:12.5px">準備好了嗎？結算後可以標記付清，也可以隨時回來修改。</p></div>`)
-      + b('S-05-28', `<div class="fld"><div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
-        <div style="font-size:12.5px;font-weight:700">暫時算一下</div>
-        <div style="font-size:10.5px;color:var(--gr);margin-bottom:8px">記帳還在變，按「結算行程」才算數</div>
-        <div class="gap">${t.members.map(m => {
-          const v = net[m.id];
-          return `<div class="rowb" style="padding:6px 9px"><span style="font-size:14px">${m.emoji||firstGrapheme(m.name)}</span>
-            <span style="flex:1;font-size:12px;font-weight:600">${esc(m.name)}</span>
-            <span class="money" style="font-size:12px;font-weight:600;color:${v>0?'var(--in)':v<0?'var(--out)':'var(--gr)'}">${
-              v>0?`可以拿回 ${money(v)}`:v<0?`要給出 ${money(-v)}`:'剛好打平'}</span></div>`; }).join('')}</div>
-      </div></div>`)
-      + b('S-05-3', `<div class="btnrow"><button class="btn" id="s05go">結算行程</button></div>`);
+    // #24-2：預覽直接給轉帳明細。統計卡展開看的是「分攤多少」，這裡是「該收該付多少」，
+    // 兩者是不同的數字，所以這個預覽不能因為統計卡能展開就拿掉。
+    const anyApprox = S.unsettledList.length > 0;
+    h = nav
+      + b('S-05-28', `<div style="padding-top:14px">
+          <div class="txtitle">現在的狀況</div>
+          <div class="txsub">還會變 —— 之後記帳會影響這裡</div>
+          ${transferView(t, tx, { approx: anyApprox })}
+        </div>`)
+      + (suggestHub(t, S) ? b('S-05-31', `<div class="fld" style="padding-top:10px"><div class="note calm">
+          ${ic('warn',14)} 這趟有 ${Math.round(prepaidShare(store.s03Trip).ratio*100)}% 是
+          ${nm2(t, prepaidShare(store.s03Trip).top)} 先付的。改成「都轉給同一個人」的話，每個人只要轉一次。
+          <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div></div>`) : '')
+      + b('S-05-3', `<div class="btnrow" style="flex-direction:column;gap:6px">
+          <button class="btn" id="s05go">結算行程</button>
+          <p class="hint" style="text-align:center;margin:0">結算後金額固定，可以逐筆標記付清</p></div>`);
   } else if (store.s05 === 'partial') {
     // #22-6b：只引導，不在這裡提供設定。代墊比例 > 70% 且目前是 direct 才出現。
     const ps = prepaidShare(store.s03Trip);
@@ -1811,20 +1827,22 @@ function renderS05() {
       <div style="font-size:11.5px;font-weight:600;color:var(--md);margin-bottom:6px">1 / ${Math.max(1,tx.length)} 筆已確認</div>
       <div style="height:4px;background:#E4E7E0;border-radius:2px;overflow:hidden"><div style="width:${tx.length?100/tx.length:0}%;height:100%;background:var(--in)"></div></div>
     </div></div>`)
-      + b('S-05-7', `<div class="fld">${tx.map((x,i) => `<div class="rowb" style="margin-bottom:6px">
-        <span style="flex:1;font-size:12px">${nm2(t,x.from)} <span style="color:var(--gr)">→</span> ${nm2(t,x.to)}</span>
-        <span class="money" style="font-weight:600">${money(x.amount)}</span>
-        ${i===0 ? b('S-05-9','<span style="font-size:10px;color:var(--in);font-weight:600;margin-left:8px">✓ 已付清</span>','inl')
-                : b('S-05-8','<span style="border:1px solid var(--w);color:var(--wi);font-size:10px;font-weight:600;padding:3px 8px;border-radius:3px;margin-left:8px">標記付清</span>','inl')}
-      </div>`).join('') || '<div class="empty"><p>沒有人欠誰。</p></div>'}</div>`)
+      + b('S-05-7', `<div>${transferView(t, tx, { withClear: true })}</div>`)
       + b('S-05-10', `<button class="detailtoggle" id="s05detail">查看計算依據 ${ic(store.s05open ? 'up' : 'down', 16)}</button>`)
       + (store.s05open ? `<div class="fld">
           ${b('S-05-11', `<div class="gap">${t.members.map(m => { const v = net[m.id];
-            return `<div class="rowb" style="padding:6px 9px"><span style="font-size:14px">${m.emoji||firstGrapheme(m.name)}</span>
-              <span style="flex:1;font-size:12px;font-weight:600">${esc(m.name)}</span>
-              <span class="money" style="font-size:12px;font-weight:600;color:${v>0?'var(--in)':v<0?'var(--out)':'var(--gr)'}">${
-                v>0?`可以拿回 ${money(v)}`:v<0?`要給出 ${money(-v)}`:'剛好打平'}</span></div>`; }).join('')}</div>`)}
-          ${b('S-05-12', `<p class="hint">對照 Excel 時注意：Excel 習慣用負數表示應收，Tripay 這裡相反，請看文字不要只看正負號</p>`)}
+            const mine = tx.filter(x => x.from === m.id || x.to === m.id);
+            return `<div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:9px 10px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:14px">${m.emoji||firstGrapheme(m.name)}</span>
+                <span style="flex:1;font-size:12px;font-weight:600">${esc(m.name)}</span>
+                <span class="money" style="font-size:12px;font-weight:600;color:${v>0?'var(--in)':v<0?'var(--out)':'var(--gr)'}">${
+                  v>0?`可以拿回 ${money(v)}`:v<0?`要給出 ${money(-v)}`:'剛好打平'}</span></div>
+              ${mine.length ? `<div style="margin-top:5px;font-size:10.5px;color:var(--gr);line-height:1.7">${
+                mine.map(x => x.from === m.id
+                  ? `給 ${nm2(t, x.to)} <span class="money">${money(x.amount)}</span>`
+                  : `${nm2(t, x.from)} 給你 <span class="money">${money(x.amount)}</span>`).join('<br>')}</div>` : ''}
+            </div>`; }).join('')}</div>`)}
           ${b('S-05-13', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:3px;overflow:hidden">
             <div class="detailhd"><span>成員</span><span>實際付出</span><span>應分攤</span><span>差額</span></div>
             ${t.members.map(m => { const v = net[m.id];
@@ -1877,6 +1895,45 @@ function prepaidShare(tid) {
   let top = null, ratio = 0;
   Object.entries(by).forEach(([id,v]) => { if (total > 0 && v / total > ratio) { ratio = v / total; top = id; } });
   return { by, total, top, ratio };
+}
+
+/* ═══ #24-2b：轉帳明細的共用呈現 ═══
+   direct 平鋪；hub 分兩段反映真實金流順序（先收進來、再撥出去）。
+   未結算的預覽（狀態 1）與已結算的明細（S-05-7）用的是同一套，不會走鐘。 */
+function transferView(t, tx, opts) {
+  opts = opts || {};
+  const approx = opts.approx ? '<i class="approx">約</i>' : '';
+  const row = (x, showFrom, showTo, i) => `<div class="txrow">
+      ${showFrom ? `<span class="who">${nm2(t, x.from)}</span>` : ''}
+      ${showFrom && showTo ? '<span class="gv">給</span>' : ''}
+      ${showTo ? `<span class="who">${nm2(t, x.to)}</span>` : ''}
+      <span class="amt">${approx}<span class="money">${money(x.amount)}</span></span>
+      ${opts.withClear ? (i === 0
+        ? b('S-05-9', '<span class="cleared">' + ic('check',13) + ' 已付清</span>', 'inl')
+        : (i === 1 ? b('S-05-8', '<button class="clearbtn">標記付清</button>', 'inl')
+                   : '<button class="clearbtn">標記付清</button>')) : ''}
+    </div>`;
+
+  if (!tx.length) return `<div class="txempty">大家剛好打平</div>`;
+
+  if (t.settleMode === 'hub' && t.hubMember) {
+    const hub = t.hubMember;
+    const inbound  = tx.filter(x => x.to === hub);
+    const outbound = tx.filter(x => x.from === hub);
+    let h = `<div class="txhead">都跟 ${nm2(t, hub)} 結算</div>`;
+    if (inbound.length)  h += `<div class="txsec">大家給 ${esc((t.members.find(m=>m.id===hub)||{}).name||'')}</div>`
+      + inbound.map((x,i) => row(x, true, false, i)).join('');
+    if (outbound.length) h += `<div class="txsec">${esc((t.members.find(m=>m.id===hub)||{}).name||'')} 再給</div>`
+      + outbound.map((x,i) => row(x, false, true, i)).join('');
+    return h;
+  }
+  return tx.map((x,i) => row(x, true, true, i)).join('');
+}
+
+/* 代墊 >70% 且目前是 direct 才引導（#22-6b） */
+function suggestHub(t, S) {
+  const ps = prepaidShare(store.s03Trip);
+  return t.settleMode !== 'hub' && ps.top && ps.ratio > 0.7;
 }
 function nm2(t, id) { const m = t.members.find(x => x.id === id) || {}; return (m.emoji || firstGrapheme(m.name||'')) + ' ' + esc(m.name||''); }
 </script>
@@ -1964,18 +2021,18 @@ Object.assign(INDEX, {
     ['S-04-39','換算規則','inv','<b>改（#17-4）</b>：<b>與支付方式無關</b>。有台幣就用台幣；只有外幣用行程匯率；都有則用台幣。單筆覆寫匯率已移除'],
   ],
   s05: [
-    ['S-05-1','未結算引導','st','🧮＋一句說明'],
+    ['S-05-1','未結算引導','del','已移除（#24-3）：未結算態改為顯示完整轉帳預覽後，這個空引導失去作用。<b>S-05-16 的摺紙 signature 不受影響</b>'],
     ['S-05-2','待填警示','del','已移除：由 S-05-4 的檢查層取代'],
     ['S-05-3','結算行程','op','按下的<b>當下</b>先檢查，不是進頁面才檢查'],
     ['S-05-4','結算前檢查層','op','<b>改</b>：標題「有 N 筆還沒算清楚」＋內文＋逐筆清單'],
     ['S-05-5','兩個按鈕','op','<b>改</b>：先去看一下／<b>就這樣結算</b>（一定要能真的結算）'],
     ['S-05-6','進度條','st','N / M 筆已確認'],
-    ['S-05-7','轉帳明細','st','最小轉帳筆數'],
+    ['S-05-7','轉帳明細','op','<b>改（#24-2b）</b>：與未結算預覽<b>共用同一套呈現</b>——direct 平鋪、hub 分兩段'],
     ['S-05-8','標記付清','op',''],
     ['S-05-9','已付清標記','st',''],
     ['S-05-10','查看計算依據','st','折疊，批三補'],
-    ['S-05-11','人話淨額','st','可以拿回／要給出／剛好打平'],
-    ['S-05-12','Excel 正負號提醒','st','Excel 負＝應收，Tripay 相反'],
+    ['S-05-11','人話淨額','st','<b>改（#24-4）</b>：補上<b>對象</b>——由多筆轉帳組成時全部列出'],
+    ['S-05-12','Excel 正負號提醒','del','已移除（#24-5）：那是四趟重謄期間為 Rozi 對帳加的，一般使用者不知道在講什麼。重謄已完成，`驗收基準表.md` 裡有寫'],
     ['S-05-13','四欄明細表','st','實際付出／應分攤／差額'],
     ['S-05-14','空表說明','st',''],
     ['S-05-15','重新計算／封存','st',''],
@@ -1991,7 +2048,7 @@ Object.assign(INDEX, {
     ['S-05-25','軟刪不進結算','inv','Σnet=0'],
     ['S-05-26','hub 式結算','inv','Phase 1.5，預設關'],
     ['S-05-27','摺紙 signature','inv','品質門檻：不達標退回乾淨 loading'],
-    ['S-05-28','「暫時算一下」預覽','op','未結算態的唯讀淨額預覽'],
+    ['S-05-28','轉帳預覽','op','<b>改（#24-2）</b>：從只給淨額改為<b>完整轉帳明細</b>，跟著結算模式變。標題「現在的狀況」、說明「還會變 —— 之後記帳會影響這裡」。<b>統計卡看的是分攤多少，這裡是該收該付多少，兩者不同</b>'],
     ['S-05-29','結算完成分享 CTA','st','「把結果傳給大家／任何人免登入可看」'],
     ['S-05-31','結算模式引導','op','<b>新（#22-6b）</b>：代墊比例 >70% 且目前是「誰欠誰」時出現，<b>只給連結不給設定</b>——設定只在 S-02b'],
     ['S-05-30','檢查層清單','op','<b>新</b>：逐筆列出原因（金額還沒填／N 人還沒填），每列可點進編輯'],

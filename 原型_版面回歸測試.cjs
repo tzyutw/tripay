@@ -62,6 +62,8 @@ const WIDTHS = [320, 375, 414];
       store.s03bView = 'del'; renderS03b(); store.s07dlg = true; renderS07();
       store.s03Filter = { kind: 'member', memberId: tripOf('t1').members[0].id }; renderS03d();
       store.s05 = 'check'; renderS05();
+      tripOf('t1').settleMode = 'hub'; tripOf('t1').hubMember = tripOf('t1').members[0].id;
+      store.s05 = 'partial'; store.s05open = true; renderS05();
       const M = tripOf('t1').members.map(m => m.id);
       g = exp({ title:'藥妝店', forAmt:'45000', twdAmt:'1035', pay:'cash', type:'individual',
                 parts:M, indiv:{ [M[0]]:'12000' }, payer:M[0], sponsor:true });
