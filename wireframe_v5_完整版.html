@@ -261,7 +261,15 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
     畫面上只要看到橘紅色的<b>底</b>，就是刪除等級的動作。
   </div>
   <div class="callout">
-    <b>2026-09-04 第三批（最新）：</b>
+    <b>2026-09-04 分帳模型定案（最新）：</b>
+    經<b>可點原型</b>試用後裁定<b>維持三型</b>（版本一）。第三型改名<b>「只算一個人」＋選人</b>。
+    各自金額本輪大改：<b>幣別統一切換不混填</b>、<b>空白欄位自動均分剩餘</b>（無按鈕，空白 ≠ 0）、
+    <b>不強制加總相等</b>（差額歸付款人，1% 分級提示但都可存檔）。
+    金額改為<b>外幣總額＋台幣總額雙欄</b>，外幣總額可自動補、台幣總額空著整筆待填。
+    <b>可實際操作的版本在原型</b>：a5dc1321-bcaf-4a34-8108-407a1b1afa3c
+  </div>
+  <div class="callout">
+    <b>2026-09-04 第三批：</b>
     刪除二次確認改打<b>「刪除」二字</b>（S-03c、S-09 一致）。
     S-04 <b>移除「之後再填」toggle</b>——空欄位即待填，旗標由系統自動寫入。
     支付方式改為<b>行程層級清單</b>（S-02b-11 新增，S-04-9 改快選）。
@@ -327,7 +335,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
     <a href="#s02c"><span class="k">S-02c</span><span class="t">成員識別（新）</span><span class="n">13 項</span></a>
     <a href="#s03"><span class="k">S-03</span><span class="t">消費瀏覽</span><span class="n">26 項</span></a>
     <a href="#s03b"><span class="k">S-03b·c</span><span class="t">分享選單／刪除</span><span class="n">14 項</span></a>
-    <a href="#s04"><span class="k">S-04</span><span class="t">記一筆</span><span class="n">28 項</span></a>
+    <a href="#s04"><span class="k">S-04</span><span class="t">記一筆</span><span class="n">34 項</span></a>
     <a href="#split" class="new"><span class="k">決策點</span><span class="t">分帳模型兩版</span><span class="n">待裁示</span></a>
     <a href="#data" class="new"><span class="k">提案</span><span class="t">資料層提案</span><span class="n">4 項</span></a>
     <a href="#s05"><span class="k">S-05</span><span class="t">結算 · 四態</span><span class="n">29 項</span></a>
@@ -1074,16 +1082,19 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
 
         <div class="b fld" data-n="S-04-4">
           <div style="background:#E4E7E0;border-radius:3px;padding:11px">
-            <div class="b" data-n="S-04-5">
-              <span style="font-size:10.5px;font-weight:600;color:var(--md);display:block;margin-bottom:4px">外幣金額</span>
-              <div class="inp mono" style="font-size:15px;font-weight:600">104,500</div></div>
-            <div class="b" data-n="S-04-6" style="margin-top:9px">
-              <span style="font-size:10.5px;font-weight:600;color:var(--md);display:block;margin-bottom:4px">台幣金額</span>
-              <div class="inp mono ph2" style="font-size:15px">空著就是待填</div></div>
-            <p class="b hint" data-n="S-04-7" style="text-align:right;margin-top:5px;font-size:10px;color:var(--gr)">兩欄都有值時才顯示匯率 ≈ 0.02</p>
-            <p class="b" data-n="S-04-8" style="margin:6px 0 0;font-size:10px;color:var(--md);line-height:1.5">
-              <b>空欄位＝待填。</b>兩欄都空也可以送出，之後回來補。<br>
-              待填的筆會標「待補填」，統計顯示 —，<b>結算時自動跳過</b>。</p>
+            <div style="display:flex;gap:9px">
+              <div class="b" data-n="S-04-5" style="flex:1">
+                <span style="font-size:10.5px;font-weight:600;color:var(--md);display:block;margin-bottom:4px">外幣總額 ₩</span>
+                <div class="inp mono">45,000</div></div>
+              <div class="b" data-n="S-04-6" style="flex:1">
+                <span style="font-size:10.5px;font-weight:600;color:var(--md);display:block;margin-bottom:4px">台幣總額 $</span>
+                <div class="inp mono">1,035</div></div>
+            </div>
+            <p class="b hint" data-n="S-04-30" style="margin-top:6px">
+              外幣總額空著 → <b>自動用各自金額加總補入</b>，UI 明示、可覆寫</p>
+            <p class="b" data-n="S-04-8" style="margin:5px 0 0;font-size:10px;color:var(--md);line-height:1.5">
+              <b>空欄位＝待填。</b>台幣總額空著 → 整筆 <code style="color:var(--md)">twd_pending</code>，
+              結算跳過；補上後自動換算。</p>
           </div>
         </div>
 
@@ -1094,7 +1105,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
         <div class="b fld" data-n="S-04-10"><span class="lbl">日期</span><div class="inp mono">2026-03-14</div></div>
 
         <div class="b fld" data-n="S-04-11"><span class="lbl">分帳方式</span>
-          <div class="seg"><i class="on">一起分</i><i>各付各的</i><i>只算我</i></div>
+          <div class="seg"><i class="on">一起分</i><i>各付各的</i><i>只算一個人</i></div>
 
           <div class="b" data-n="S-04-12" style="margin-top:10px">
             <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:var(--md)">分給誰？　<span class="g" style="font-weight:400">← 「一起分」子區塊</span></p>
@@ -1110,19 +1121,36 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
 
           <div class="b" data-n="S-04-15" style="margin-top:12px;border-top:1px dashed var(--ln);padding-top:10px">
             <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:var(--md)">各自多少？　<span class="g" style="font-weight:400">← 「各付各的」子區塊</span></p>
+            <div class="b" data-n="S-04-31" style="margin-bottom:7px"><div class="seg"><i>$ 台幣填</i><i class="on">₩ KRW 填</i></div>
+              <p class="hint">同一筆<b>只能用一種幣別</b>填，不混填</p></div>
             <div class="gap">
-              <div class="rowb"><span style="font-size:14px">🐵</span><span style="flex:1;font-size:12px">Rozi</span><span class="inp mono" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1">1,200</span></div>
-              <div class="rowb"><span style="font-size:14px">🐱</span><span style="flex:1;font-size:12px">小美</span><span class="inp mono" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1">1,280</span></div>
-              <div class="rowb"><span style="font-size:14px">🍋</span><span style="flex:1;font-size:12px">阿明</span><span class="inp ph2" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1;font-size:10px">輸入金額</span></div>
+              <div class="rowb"><span style="font-size:14px">🍋</span><span style="flex:1;font-size:12px">Ning</span><span class="inp mono" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1">12,000</span></div>
+              <div class="rowb"><span style="font-size:14px">🐟</span><span style="flex:1;font-size:12px">Ziyu</span><span class="inp mono" style="width:84px;text-align:right;padding:5px 8px;background:#F4F5F1">18,000</span></div>
+              <div class="b rowb" data-n="S-04-32"><span style="font-size:14px">🐵</span><span style="flex:1;font-size:12px">Xiu</span>
+                <span class="mono" style="font-size:8.5px;color:var(--gr);border:1px solid var(--ln);border-radius:2px;padding:1px 4px">自動</span>
+                <span class="inp mono" style="width:72px;text-align:right;padding:5px 8px;background:#F8F9F6;color:#9AA5AB">7,500</span></div>
+              <div class="rowb"><span style="font-size:14px">🐱</span><span style="flex:1;font-size:12px">Mei</span>
+                <span class="mono" style="font-size:8.5px;color:var(--gr);border:1px solid var(--ln);border-radius:2px;padding:1px 4px">自動</span>
+                <span class="inp mono" style="width:72px;text-align:right;padding:5px 8px;background:#F8F9F6;color:#9AA5AB">7,500</span></div>
             </div>
-            <p class="b" data-n="S-04-16" style="margin:6px 0 0;text-align:right;font-size:10.5px;font-weight:600;color:var(--out);font-family:var(--mono)">已填 $2,480 ／ 總額 $2,480，差 $0</p>
+            <div class="b" data-n="S-04-33" style="margin-top:8px;background:#EAF3E9;border:1px solid #C9DFC8;border-radius:3px;padding:8px 10px;font-size:11px;color:var(--in);line-height:1.5">
+              剩下的 <b class="mono">₩ 15,000</b> 平均分給還沒填的 2 人，每人 <b class="mono">₩ 7,500</b>。
+              <b>空白不等於 0</b>——真的不分攤請填 0</div>
+            <div class="b" data-n="S-04-16" style="margin-top:7px;text-align:center;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:7px">
+              <div class="mono" style="font-size:11.5px;font-weight:600">已填＋自動 ₩ 45,000 ／ 總額 ₩ 45,000</div>
+              <div class="mono" style="font-size:9.5px;color:var(--gr);margin-top:2px">換算後台幣 $ 1,035（台幣總額 × 各人外幣 ÷ 外幣總額）</div></div>
+            <div class="b" data-n="S-04-34" style="margin-top:7px;background:#F4F5F1;border:1px solid var(--ln);border-radius:3px;padding:8px 10px;font-size:11px;color:var(--md);line-height:1.5">
+              差 <b class="mono">₩ 30</b>，由 🍋 Ning 承擔。<b>可以存檔</b>——不強制加總相等。<br>
+              <span style="color:var(--out)">差額超過總額 1% 時改用橘色警示</span>，但一樣不擋存檔</div>
           </div>
 
           <div class="b" data-n="S-04-17" style="margin-top:12px;border-top:1px dashed var(--ln);padding-top:10px">
-            <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:var(--md)">「只算我」子區塊</p>
+            <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:var(--md)">「只算一個人」子區塊</p>
             <div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
-              <p style="margin:0 0 3px;font-size:12.5px;font-weight:700">這筆不分帳</p>
-              <p style="margin:0;font-size:11px;color:var(--md);line-height:1.5">這筆費用只記給自己，不進入任何分帳計算。<br>適合紀念品、個人藥品，或不想跟大家一起分的花費。</p>
+              <span class="lbl">算誰的？</span>
+              <div class="chiprow"><span class="chip">🍋 Ning</span><span class="chip">🐟 Ziyu</span><span class="chip">🐵 Xiu</span><span class="chip on">🐱 Mei</span></div>
+              <p class="hint">預設帶付款人，但可以改——<b>記帳者未必是花錢的人</b>。<br>
+                你是幫全家登記整趟的帳，Mei 買的東西不該記到你身上</p>
             </div>
           </div>
         </div>
@@ -1150,7 +1178,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
   </div>
 
   <div>
-    <p class="cnt">功能盤點 · 29 項　—　現況 26 項全在，2 項待裁示</p>
+    <p class="cnt">功能盤點 · 34 項　—　現況 26 項全在，2 項待裁示</p>
     <div class="tblwrap"><table>
       <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
       <tbody>
@@ -1158,19 +1186,19 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <tr><td class="n">S-04-2</td><td class="el">什麼花費？</td><td>必填</td><td>照舊</td><td class="src">ExpenseFormSheet:313</td></tr>
       <tr><td class="n">S-04-3</td><td class="el">類別 emoji</td><td><b>只會自動推斷</b>：餐→🍜 交通→🚌 住→🏨 票→🎡 買→🛍️ 其他→➕。<b>使用者不能手動挑</b>，但這個 emoji 會顯示在 S-03 列表上</td><td><span class="tag bug">議</span> 見發現 #9</td><td class="src">ExpenseFormSheet:9</td></tr>
       <tr><td class="n">S-04-4</td><td class="el">金額區塊</td><td>灰底容器，含外幣＋台幣兩列，<b>各帶一個「之後再填」toggle</b></td><td><span class="tag del">移除</span> 兩個 toggle 都拿掉（Rozi 2026-09-04 B）；<span class="tag chg">改</span> 圓角 16→3</td><td class="src">ExpenseFormSheet:328</td></tr>
-      <tr><td class="n">S-04-5</td><td class="el">外幣金額</td><td>可留空。開「之後再填」toggle → 欄位 disabled、值存 null、<code>foreign_pending=true</code></td><td><span class="tag chg">改</span> <b>toggle 移除</b>：空欄位即待填，系統自動寫 <code>foreign_pending=true</code></td><td class="src">ExpenseFormSheet:330</td></tr>
-      <tr><td class="n">S-04-6</td><td class="el">台幣金額</td><td>同上。<b>結算只吃台幣</b></td><td><span class="tag chg">改</span> 同上，自動寫 <code>twd_pending=true</code></td><td class="src">ExpenseFormSheet:339</td></tr>
+      <tr><td class="n">S-04-5</td><td class="el">外幣總額</td><td>可留空。開「之後再填」toggle → 欄位 disabled、值存 null、<code>foreign_pending=true</code></td><td><span class="tag chg">改</span> <b>toggle 移除</b>：空欄位即待填，系統自動寫 <code>foreign_pending=true</code></td><td class="src">ExpenseFormSheet:330</td></tr>
+      <tr><td class="n">S-04-6</td><td class="el">台幣總額</td><td>同上。<b>結算只吃台幣</b></td><td><span class="tag chg">改</span> 同上，自動寫 <code>twd_pending=true</code></td><td class="src">ExpenseFormSheet:339</td></tr>
       <tr><td class="n">S-04-7</td><td class="el">匯率顯示</td><td>兩欄都有值時顯示 <code>台幣÷外幣</code>，<b>唯讀衍生值、不能自己填</b>，存進 <code>exchange_rate</code></td><td>照舊</td><td class="src">ExpenseFormSheet:350</td></tr>
       <tr><td class="n">S-04-8</td><td class="el">送出規則</td><td>「台幣空白且未開待填」<b>擋下送出</b>（Bug #5 防呆）</td><td><span class="tag chg">改</span> <b>防呆取消</b>，改為「空欄一律自動標 pending」。<b>⚠️ 旗標是欄位不是 UI</b>：toggle 沒了，旗標照常寫入 DB——沒寫就會產生 <code>twd_amount=null</code> 且 <code>twd_pending=false</code> 的孤兒列，那正是引擎 422 的觸發條件</td><td class="src">ExpenseFormSheet:257</td></tr>
       <tr><td class="n">S-04-9</td><td class="el">怎麼付的？</td><td><b>寫死三選一</b>：現金／信用卡／儲值卡，必填（決策 8）</td><td><span class="tag chg">改</span> Rozi 2026-09-04：改為從<b>行程層級清單</b>（S-02b-11）快選。<b>仍必填</b>。資料層提案見「支付方式 · 資料層」一節</td><td class="src">ExpenseFormSheet:20</td></tr>
       <tr><td class="n">S-04-10</td><td class="el">日期</td><td>預設今天。<b>沒有限制在行程區間內</b>，早於出發日會歸「出發前」組</td><td>照舊</td><td class="src">ExpenseFormSheet:373</td></tr>
-      <tr><td class="n">S-04-11</td><td class="el">分帳方式</td><td>一起分／各付各的／只算我，三選一</td><td>照舊</td><td class="src">ExpenseFormSheet:383</td></tr>
+      <tr><td class="n">S-04-11</td><td class="el">分帳方式</td><td>一起分／各付各的／只算我，三選一</td><td><span class="tag new">新</span> <b>模型定案：維持三型</b>（Rozi 2026-09-04，經可點原型試用後裁定）。第三型改名「只算一個人」<td class="src">ExpenseFormSheet:383</td></tr>
       <tr><td class="n">S-04-12</td><td class="el">分給誰？</td><td>「一起分」子區塊。預設<b>全員勾選</b>，可個別取消</td><td>照舊</td><td class="src">ExpenseFormSheet:403</td></tr>
       <tr><td class="n">S-04-13</td><td class="el">每人多少</td><td>即時 <code>總額÷參與人數</code> 四捨五入。差額歸付款人（決策 9）</td><td><span class="tag chg">改</span> 用「收」綠，與金錢語意一致</td><td class="src">ExpenseFormSheet:428</td></tr>
       <tr><td class="n">S-04-14</td><td class="el">參與者驗證</td><td>「至少選一位參與成員」</td><td>照舊</td><td class="src">ExpenseFormSheet:425</td></tr>
-      <tr><td class="n">S-04-15</td><td class="el">各自多少？</td><td>「各付各的」子區塊。逐人輸入金額；<b>沒填的人存 <code>split_pending=true</code></b></td><td>照舊</td><td class="src">ExpenseFormSheet:437</td></tr>
-      <tr><td class="n">S-04-16</td><td class="el">差額提示</td><td>「已填 $X ／ 總額 $Y，差 $Z」；差 &lt;1 元時轉為綠色打勾</td><td>照舊</td><td class="src">ExpenseFormSheet:465</td></tr>
-      <tr><td class="n">S-04-17</td><td class="el">只算我說明</td><td>「這筆不分帳」＋兩行說明</td><td><span class="tag chg">改</span> 橘底→中性卡片（它不是警示）</td><td class="src">ExpenseFormSheet:477</td></tr>
+      <tr><td class="n">S-04-15</td><td class="el">各自多少？</td><td>「各付各的」子區塊。逐人輸入金額；沒填的人存 <code>split_pending=true</code>；<b>只能填台幣</b>（UI 未標示，填外幣會靜默算錯）</td><td><span class="tag chg">改</span> 加幣別切換（S-04-31）＋<b>自動均分</b>（S-04-32/33）；空白改為「自動均分」而非待填——只有整筆總額皆空時才標 <code>split_pending</code></td><td class="src">ExpenseFormSheet:437</td></tr>
+      <tr><td class="n">S-04-16</td><td class="el">比對列</td><td>「已填 $X ／ 總額 $Y，差 $Z」；差 &lt;1 元時轉綠</td><td><span class="tag chg">改</span> <b>同幣別顯示</b>，下方小字顯示換算後台幣</td><td class="src">ExpenseFormSheet:465</td></tr>
+      <tr><td class="n">S-04-17</td><td class="el">只算一個人</td><td>「這筆不分帳」＋兩行說明，<b>固定算記帳者</b></td><td><span class="tag chg">改</span> 改名「只算一個人」<b>＋選人</b>（預設帶付款人可改）；橘底→中性卡片</td><td class="src">ExpenseFormSheet:477</td></tr>
       <tr><td class="n">S-04-18</td><td class="el">當場各付各的</td><td><b>只在「一起分」且非贊助時出現</b>。記錄但不算欠款（不進結算）</td><td>照舊</td><td class="src">ExpenseFormSheet:489</td></tr>
       <tr><td class="n">S-04-19</td><td class="el">贊助／回饋</td><td>勾選後：金額自動轉負、<b>強制改為「一起分」</b>、關掉「當場各付」</td><td>照舊</td><td class="src">ExpenseFormSheet:501</td></tr>
       <tr><td class="n">S-04-20</td><td class="el">贊助說明</td><td>「金額會自動記為負數、<b>4 人</b>均分扣抵」——<b>「4 人」是寫死的字串</b>，5 人行程也顯示 4 人</td><td><span class="tag bug">議</span> 見發現 #10</td><td class="src">ExpenseFormSheet:508</td></tr>
@@ -1183,6 +1211,11 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
       <tr><td class="n">S-04-27 <span class="tag inv">不在稿上</span></td><td class="el">portal 掛載</td><td>同 S-02c-9，掛 <code>document.body</code></td><td>照舊</td><td class="src">ExpenseFormSheet:286</td></tr>
       <tr><td class="n">S-04-28 <span class="tag inv">不在稿上</span></td><td class="el">emoji 自動跟隨</td><td>改標題時，若目前 emoji 還是預設或仍是上一次推斷值，就跟著換</td><td>照舊</td><td class="src">ExpenseFormSheet:133</td></tr>
       <tr><td class="n">S-04-29</td><td class="el">P3 查證：引擎遇 pending 的行為</td><td>—</td><td><span class="tag new">新</span> <b>已讀碼確認：引擎現況正確，不需要修。</b><code>calculate-settlement/index.ts:76</code> 已有 <code>.eq("twd_pending", false)</code>，待填的筆<b>本來就跳過</b>，不會 422。<br><b>422 的真正觸發條件是</b> <code>twd_amount IS NULL</code> <b>且</b> <code>twd_pending = false</code>（第 90 行 <code>Number.isFinite(null)</code> 為假）——也就是 B 的 ⚠️ 講的孤兒狀態。個別金額同理：<code>split_pending=true</code> 時引擎讓該人 cost=0（<code>settlement-engine.ts:114-119</code>）</td><td class="src">讀碼查證</td></tr>
+      <tr><td class="n">S-04-30</td><td class="el">外幣總額自動補入</td><td>—</td><td><span class="tag new">新</span> 外幣總額空白 → 自動以 <b>Σ各自外幣</b> 補入並在 UI 明示，<b>可覆寫</b></td><td class="src">#12-B</td></tr>
+      <tr><td class="n">S-04-31</td><td class="el">各自金額幣別切換</td><td>—</td><td><span class="tag new">新</span> 各自金額以<b>該筆幣別統一填寫</b>，同一筆<b>不得混填</b>。換算：各人台幣 ＝ 台幣總額 ×（各人外幣 ÷ 外幣總額）</td><td class="src">#12-B</td></tr>
+      <tr><td class="n">S-04-32</td><td class="el">自動均分值</td><td>—</td><td><span class="tag new">新</span> <b>無按鈕</b>。空白欄位即時顯示「剩餘平均分給未填者」，淡一階＋「自動」小標；填任一欄即重算；手動填的轉一般樣式，清空回自動值</td><td class="src">#12-E</td></tr>
+      <tr><td class="n">S-04-33</td><td class="el">空白 ≠ 0</td><td>—</td><td><span class="tag new">新</span> <b>空白＝自動均分；輸入 0＝該成員此筆確實不分攤。</b>已填超過總額時未填者自動值顯示 0，提示「超出部分由付款人吸收」，<b>仍可存檔</b></td><td class="src">#12-E</td></tr>
+      <tr><td class="n">S-04-34</td><td class="el">差額分級提示</td><td>—</td><td><span class="tag new">新</span> <b>不強制加總相等</b>。差額歸付款人（引擎既有規則，Σ淨額恆為 0）。≤ 總額 1% 用淡色、&gt; 1% 用橘色警示，<b>兩者都不擋存檔</b>。付款人未參與該筆時規則相同</td><td class="src">#12-F</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1192,8 +1225,8 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
 <section class="scr" id="split" style="grid-template-columns:1fr">
   <div class="scrhd">
     <span class="k new">決策點</span>
-    <h2>分帳模型 · 兩版對照</h2>
-    <p class="rt"><b>對應</b> S-04-11～18　<b>狀態</b> 只畫不改邏輯，等你裁示</p>
+    <h2>分帳模型 · 兩版對照（已定案：版本一）</h2>
+    <p class="rt"><b>對應</b> S-04-11～18　<b>狀態</b> <b style="color:var(--ok)">已裁定：採版本一</b>。本節保留作為選版依據的紀錄</p>
     <p class="d">兩版都用同一組真實情境走過一遍。差別不在「能不能記」——兩版都記得出來——
       而在<b>使用者每次記帳要先回答什麼問題</b>。
       版本一問「這是哪一型」，版本二問「誰要分、怎麼分」。</p>
@@ -1530,7 +1563,7 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
   </div>
 
   <div>
-    <p class="cnt">功能盤點 · 29 項（新增 S-05-28、S-05-29）</p>
+    <p class="cnt">功能盤點 · 34 項（新增 S-05-28、S-05-29）</p>
     <div class="tblwrap"><table>
       <thead><tr><th>編號</th><th>元件</th><th>現況行為</th><th>本輪</th><th>出處</th></tr></thead>
       <tbody>
@@ -2169,9 +2202,9 @@ footer{padding:40px 0 80px;color:var(--pgink3);font-size:12.5px;font-family:var(
 </section>
 
 <footer>
-  <div>Tripay · Wireframe v5 · 2026-08-31（第三批：S-03c／S-04＋兩個決策節）</div>
+  <div>Tripay · Wireframe v5 · 2026-08-31（分帳模型定案：版本一）</div>
   <div style="margin-top:6px">16 個畫面段落 · 220 個編號項目 · 14 條讀碼發現 · 盤點自 src/pages 與 src/components 共 3,302 行</div>
-  <div style="margin-top:6px">下一步：等 Rozi 對「分帳模型兩版」與「資料層提案」的裁示 → 修完 → 才進實作</div>
+  <div style="margin-top:6px">下一步：等 Rozi 試用原型後的意見 → 再進第四批（S-05 起）</div>
 </footer>
 
 </div>
