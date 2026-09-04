@@ -106,6 +106,7 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
   --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#B03A22;
   --ln:#DFE1DA;--gr:#78878F;--md:#4C5B64;position:relative}
 .ui .money{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.ic{display:inline-block;vertical-align:-.15em;flex:none}
 .ui .tnum{font-variant-numeric:tabular-nums}
 .ui .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;
   background:#fff;border-bottom:1px solid var(--ln)}
@@ -135,9 +136,11 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .rowb{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
   border-radius:3px;padding:8px 10px;width:100%;text-align:left}
 .ui .rowb.on{border-color:var(--w);background:#F2F8FD}
-.ui .mechip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;flex:none;
-  border:1px solid var(--ln);color:#A9B2B7;background:#fff}
-.ui .mechip.on{border-color:var(--w);background:var(--w);color:#fff}
+/* 全站唯一的「選取／未選取」語彙：未選＝描邊、選了＝填實工作色。
+   S-02 的「這是我」、S-04 的分給誰／贊助／大家各付各的都用同一個。 */
+.ui .selchip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;flex:none;
+  border:1px solid var(--ln);color:#A9B2B7;background:#fff;display:inline-flex;align-items:center;gap:3px}
+.ui .selchip.on{border-color:var(--w);background:var(--w);color:#fff}
 .ui .pill{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:999px;border:1px solid;line-height:1.6}
 .ui .pill.ind{color:var(--wi);border-color:#BFD9EE;background:#EEF5FB}
 .ui .pill.gr{color:var(--md);border-color:var(--ln);background:#F4F5F1}
@@ -174,8 +177,12 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .hero .tt{position:relative;font-size:19px;font-weight:700;letter-spacing:-.01em}
 .ui .hero .dt{position:relative;font-size:11px;color:rgba(255,255,255,.86);margin-top:4px}
 .ui .statcard{background:#fff;border-bottom:1px solid var(--ln)}
-.ui .statcard .tot{display:flex;align-items:baseline;justify-content:space-between;padding:12px 14px 10px;
-  border-bottom:1px solid #F1F2EE}
+.ui .statcard .tot{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;
+  width:100%;text-align:left}
+.ui .statcard .totright{display:flex;align-items:center;gap:8px;color:var(--gr)}
+.ui .approxdot{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;
+  color:var(--wi);background:#EEF5FB;border:1px solid #BFD9EE;border-radius:999px;padding:2px 7px}
+.ui .perlist{border-top:1px solid #F1F2EE}
 .ui .statcard .tot span{font-size:11.5px;color:var(--gr)}
 .ui .statcard .tot b{font-size:20px;font-weight:600;letter-spacing:-.02em}
 .ui .perlist{display:flex;flex-direction:column}
@@ -204,7 +211,28 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .exprow .s{font-size:9.5px;color:var(--gr);margin-top:2px;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
 .ui .exprow .a{font-size:12.5px;font-weight:600;text-align:right;flex:none}
 .ui .delrow{padding:14px;text-align:center;font-size:11px;color:var(--dg)}
-.ui .delrow span{border-bottom:1px solid #D7BCB2}
+.ui .delrow span{border-bottom:1px solid #D7BCB2;display:inline-flex;align-items:center;gap:4px}
+.ui .sharedhead{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px}
+.ui .expandbtn{border:1px solid var(--w);color:var(--wi);font-size:11.5px;font-weight:600;
+  padding:6px 10px;border-radius:3px;flex:none}
+.ui .paysep{width:1px;align-self:stretch;background:var(--ln);margin:0 2px}
+.ui .ratelink{color:var(--wi);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:2px}
+.ui .seg button.dis{opacity:.4}
+.ui input.auto{color:#9AA5AB}
+.ui .unsettled span{display:inline-flex;align-items:center;gap:5px}
+/* #17-7 動態 icon：只做兩處，且遵守 prefers-reduced-motion */
+.ui .anim{display:block;margin:0 auto}
+@media(prefers-reduced-motion:no-preference){
+  .ui .anim.empty-anim .p1{animation:drift 3.4s ease-in-out infinite}
+  .ui .anim.empty-anim .p2{animation:drift 3.4s ease-in-out .4s infinite}
+  .ui .anim.fold .sheetline{animation:fadeline 2.6s ease-in-out infinite}
+  .ui .anim.fold .plane{animation:lift 2.6s ease-in-out infinite;transform-origin:50% 60%}
+  @keyframes drift{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @keyframes fadeline{0%,45%{opacity:1}60%,100%{opacity:0}}
+  @keyframes lift{0%,45%{transform:none}70%{transform:translate(10px,-12px) rotate(-8deg)}
+    100%{transform:translate(24px,-26px) rotate(-10deg);opacity:0}}
+}
 .ui .detailtoggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 28px);
   margin:0 14px;padding:11px 0;border-top:1px solid var(--ln);font-size:12px;font-weight:600;color:var(--md)}
 .ui .detailhd,.ui .detailrow{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:4px;padding:6px 9px;font-size:10.5px}
@@ -412,6 +440,38 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
 </footer>
 </div>
 
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Icon：Remix Icon（Apache License 2.0）
+   https://github.com/Remix-Design/RemixIcon
+   Copyright (c) Remix-Design — 依授權保留聲明。
+   原型是單檔、不依賴 build，所以把用到的 path 內嵌進來。
+   一律 fill 版本，統一用 currentColor 與 size token。
+   ═══════════════════════════════════════════════════════════ */
+const ICON = {
+  back:    'M8 12L14 6V18L8 12Z',
+  next:    'M16 12L10 18V6L16 12Z',
+  down:    'M12 16L6 10H18L12 16Z',
+  up:      'M12 8L18 14H6L12 8Z',
+  edit:    'M7.24264 17.9967H3V13.754L14.435 2.319C14.8256 1.92848 15.4587 1.92848 15.8492 2.319L18.6777 5.14743C19.0682 5.53795 19.0682 6.17112 18.6777 6.56164L7.24264 17.9967ZM3 19.9967H21V21.9967H3V19.9967Z',
+  copy:    'M6.9998 6V3C6.9998 2.44772 7.44752 2 7.9998 2H19.9998C20.5521 2 20.9998 2.44772 20.9998 3V17C20.9998 17.5523 20.5521 18 19.9998 18H16.9998V20.9991C16.9998 21.5519 16.5499 22 15.993 22H4.00666C3.45059 22 3 21.5554 3 20.9991L3.0026 7.00087C3.0027 6.44811 3.45264 6 4.00942 6H6.9998ZM8.9998 6H16.9998V16H18.9998V4H8.9998V6Z',
+  share:   'M13 14H11C7.54202 14 4.53953 15.9502 3.03239 18.8107C3.01093 18.5433 3 18.2729 3 18C3 12.4772 7.47715 8 13 8V3L23 11L13 19V14Z',
+  settings:'M9.95401 2.2106C11.2876 1.93144 12.6807 1.92263 14.0449 2.20785C14.2219 3.3674 14.9048 4.43892 15.9997 5.07103C17.0945 5.70313 18.364 5.75884 19.4566 5.3323C20.3858 6.37118 21.0747 7.58203 21.4997 8.87652C20.5852 9.60958 19.9997 10.736 19.9997 11.9992C19.9997 13.2632 20.5859 14.3902 21.5013 15.1232C21.29 15.7636 21.0104 16.3922 20.6599 16.9992C20.3094 17.6063 19.9049 18.1627 19.4559 18.6659C18.3634 18.2396 17.0943 18.2955 15.9997 18.9274C14.9057 19.559 14.223 20.6294 14.0453 21.7879C12.7118 22.067 11.3187 22.0758 9.95443 21.7906C9.77748 20.6311 9.09451 19.5595 7.99967 18.9274C6.90484 18.2953 5.63539 18.2396 4.54272 18.6662C3.61357 17.6273 2.92466 16.4164 2.49964 15.1219C3.41412 14.3889 3.99968 13.2624 3.99968 11.9992C3.99968 10.7353 3.41344 9.60827 2.49805 8.87524C2.70933 8.23482 2.98894 7.60629 3.33942 6.99923C3.68991 6.39217 4.09443 5.83576 4.54341 5.33257C5.63593 5.75881 6.90507 5.703 7.99967 5.07103C9.09364 4.43942 9.7764 3.3691 9.95401 2.2106ZM11.9997 14.9992C13.6565 14.9992 14.9997 13.6561 14.9997 11.9992C14.9997 10.3424 13.6565 8.99923 11.9997 8.99923C10.3428 8.99923 8.99967 10.3424 8.99967 11.9992C8.99967 13.6561 10.3428 14.9992 11.9997 14.9992Z',
+  add:     'M11 11V5H13V11H19V13H13V19H11V13H5V11H11Z',
+  del:     'M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM9 11V17H11V11H9ZM13 11V17H15V11H13ZM9 4V6H15V4H9Z',
+  check:   'M9.9997 15.1709L19.1921 5.97852L20.6063 7.39273L9.9997 17.9993L3.63574 11.6354L5.04996 10.2212L9.9997 15.1709Z',
+  warn:    'M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM11 15V17H13V15H11ZM11 7V13H13V7H11Z',
+  close:   'M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z',
+  filter:  'M10 18H14V16H10V18ZM3 6V8H21V6H3ZM6 13H18V11H6V13Z',
+  money:   'M12.0049 22.0027C6.48204 22.0027 2.00488 17.5256 2.00488 12.0027C2.00488 6.4799 6.48204 2.00275 12.0049 2.00275C17.5277 2.00275 22.0049 6.4799 22.0049 12.0027C22.0049 17.5256 17.5277 22.0027 12.0049 22.0027ZM8.50488 14.0027V16.0027H11.0049V18.0027H13.0049V16.0027H14.0049C15.3856 16.0027 16.5049 14.8835 16.5049 13.5027C16.5049 12.122 15.3856 11.0027 14.0049 11.0027H10.0049C9.72874 11.0027 9.50488 10.7789 9.50488 10.5027C9.50488 10.2266 9.72874 10.0027 10.0049 10.0027H15.5049V8.00275H13.0049V6.00275H11.0049V8.00275H10.0049C8.62417 8.00275 7.50488 9.12203 7.50488 10.5027C7.50488 11.8835 8.62417 13.0027 10.0049 13.0027H14.0049C14.281 13.0027 14.5049 13.2266 14.5049 13.5027C14.5049 13.7789 14.281 14.0027 14.0049 14.0027H8.50488Z',
+};
+function ic(name, size) {
+  return `<svg class="ic" viewBox="0 0 24 24" width="${size||18}" height="${size||18}" fill="currentColor"
+    aria-hidden="true"><path d="${ICON[name]}"/></svg>`;
+}
+</script>
+
 <script>
 /* ═══════════════════════════════════════════════════════════
    共用資料與工具
@@ -608,10 +668,10 @@ function memberRows(form, ctx) {
     const isMe = form.owner === i;
     const used = mem.used > 0;
     const avHtml = avatar(mem, i, true, ctx);
-    const rmHtml = `<button data-rm="${ctx}:${i}" style="font-size:12px;color:${used?'#CDD3D0':'var(--gr)'};width:20px">✕</button>`;
+    const rmHtml = `<button data-rm="${ctx}:${i}" style="font-size:12px;color:${used?'#CDD3D0':'var(--gr)'};width:20px">${ic('close',12)}</button>`;
     // 「這是我」標記常駐在每一列右側：未選是描邊、選了填實。
     // 讓可點性由元件自己表達，不再用「點成員，標記哪位是你」這種灰字補救。
-    const meChip = `<span class="mechip ${isMe?'on':''}">這是我</span>`;
+    const meChip = `<span class="selchip ${isMe?'on':''}">這是我</span>`;
     return `<div class="rowb ${isMe?'on':''}" data-me="${ctx}:${i}">
       ${i === 0 ? b(av, avHtml, 'inl') : avHtml}
       <span style="flex:1;font-size:13px;font-weight:600">${esc(mem.name)}</span>
@@ -628,7 +688,7 @@ function currencyBlock(form, ctx) {
   return b('S-02-7', `<div class="fld"><span class="lbl">當地幣別</span>
     <button data-curtoggle="${ctx}" style="width:100%;background:#fff;border:1px solid var(--ln);border-radius:3px;
       padding:9px 10px;font-size:13px;display:flex;justify-content:space-between;text-align:left">
-      <span>${cur[0]} · ${cur[1]}</span><span style="color:var(--gr)">▾</span></button>
+      <span>${cur[0]} · ${cur[1]}</span><span style="color:var(--gr)">${ic('down',14)}</span></button>
     ${form.showCur ? b('S-02-8', `<div class="drop">
       <div style="padding:8px;border-bottom:1px solid var(--ln)">
         <input type="text" data-curq="${ctx}" value="${esc(form.curQ)}" placeholder="搜尋幣別名稱或代碼" style="padding:6px 8px;font-size:12px">
@@ -646,7 +706,7 @@ function renderS02() {
     ${b('S-02-1', `<div class="scrim" style="padding:12px 0 0"><div style="font-size:10px;color:rgba(255,255,255,.7);text-align:center;padding-bottom:8px">遮罩 · 點擊關閉</div></div>`)}
     <div class="sheet">
       ${b('S-02-2', `<div class="grab"></div>`)}
-      ${b('S-02-3', `<div class="shd"><h3>這趟去哪？</h3>${b('S-02-4', `<button class="x" id="s02x">✕</button>`, 'rt')}</div>`)}
+      ${b('S-02-3', `<div class="shd"><h3>這趟去哪？</h3>${b('S-02-4', `<button class="x" id="s02x">${ic('close',13)}</button>`, 'rt')}</div>`)}
 
       ${b('S-02-6', `<div class="fld"><span class="lbl">去哪？</span>
         <input type="text" id="s02name" value="${esc(f.name)}" placeholder="例如：沖繩四人行">
@@ -715,7 +775,7 @@ function renderS02b() {
 
   $('#scr-s02b').innerHTML = `
     <div class="sheet" style="border-radius:0">
-      ${b('S-02b-1', `<div class="shd" style="padding-top:14px"><h3>編輯行程</h3><button class="x">✕</button></div>`)}
+      ${b('S-02b-1', `<div class="shd" style="padding-top:14px"><h3>編輯行程</h3><button class="x">${ic('close',13)}</button></div>`)}
 
       ${b('S-02b-2', `<div class="fld"><span class="lbl">封面</span>
         <div style="border:1px solid var(--ln);border-radius:3px;background:#fff;padding:4px">
@@ -753,7 +813,7 @@ function renderS02b() {
             <span style="color:var(--gr);font-size:12px">⠿</span>
             <span style="flex:1;font-size:12.5px;font-weight:600">${esc(p)}</span>
             <span style="font-size:10.5px;color:var(--gr)">${used ? used + ' 筆在用' : '還沒用到'}</span>
-            <button data-rmpay="${i}" style="font-size:12px;color:${used?'#CDD3D0':'var(--gr)'};width:20px">✕</button>
+            <button data-rmpay="${i}" style="font-size:12px;color:${used?'#CDD3D0':'var(--gr)'};width:20px">${ic('close',12)}</button>
           </div>`;
         }).join('')}</div>
         <div style="display:flex;gap:7px;margin-top:8px">
@@ -1110,6 +1170,8 @@ function demoExpenses() {
 store.expenses = { t1: demoExpenses(), t2: [], t3: [] };
 store.s03Trip = 't1';
 store.s03Filter = null;     // {kind:'all'|'member', memberId}
+store.s03StatOpen = false;  // #17-2 統計卡預設收合
+store.s03Cur = 'TWD';       // #17-3 幣別切換
 
 const tripOf = id => store.trips.find(x => x.id === id);
 const expsOf = id => store.expenses[id] || (store.expenses[id] = []);
@@ -1123,16 +1185,19 @@ function tripRate(t) {
 
 /* ── 單筆消費的判定（規格 §1 §2 §3）── */
 function calc(e, t) {
-  const rate = e.rateOverride != null ? e.rateOverride : tripRate(t);
+  const rate = tripRate(t);        // #17-4：移除單筆覆寫，匯率只有 S-02b 一個入口
   const parts = e.parts || [];
   const forT = parseFloat(e.forAmt), twdIn = parseFloat(e.twdAmt);
 
-  // 整筆台幣：刷卡直接用填的；現金／儲值卡在沒填台幣時用行程匯率換算（§2A.3 / §2b.2）
+  // #17-4 換算規則，與支付方式無關：
+  //   有台幣 → 直接用（實付最準）｜只有外幣 → 用行程匯率｜兩者都有 → 用台幣，外幣只當紀錄
+  //   只有外幣且還沒設匯率 → twd_pending，結算跳過，但照樣可以存檔
   let twdTotal = Number.isFinite(twdIn) ? twdIn : null;
   let twdFromRate = false;
-  if (twdTotal == null && e.pay !== 'card' && Number.isFinite(forT) && rate) {
+  if (twdTotal == null && Number.isFinite(forT) && rate) {
     twdTotal = Math.round(forT / rate); twdFromRate = true;
   }
+  const needRateLink = twdTotal == null && Number.isFinite(forT) && !rate;
   const twdPending = twdTotal == null;
 
   // 各自金額（§2.2 §2.3）
@@ -1192,7 +1257,7 @@ function calc(e, t) {
 
   const debts = parts.filter(id => id !== e.payer && shares[id])
                      .map(id => ({ from:id, to:e.payer, amount:shares[id] }));
-  return { rate, twdTotal, twdPending, twdFromRate, isEach, manual, blanks, sumManual,
+  return { rate, twdTotal, twdPending, twdFromRate, needRateLink, isEach, manual, blanks, sumManual,
            forTotalEff, forTotalAuto, noAutoReason, fillsAreForeign, valInCur, shares,
            estimated, unsettled, debts, cur };
 }
@@ -1222,7 +1287,12 @@ function tripSummary(tid) {
 /* ═══════════════════════════════════════════════════════════
    S-03 行程頁
    ═══════════════════════════════════════════════════════════ */
-const money = v => '$ ' + Math.round(v).toLocaleString();
+/* #17-3：整頁金額可切外幣顯示。結算恆為台幣，不受影響（既有決策）*/
+function money(v) {
+  const t = tripOf(store.s03Trip), r = tripRate(t);
+  if (store.s03Cur !== 'TWD' && r) return RULES_CUR_SYM(t.currency) + ' ' + Math.round(v * r).toLocaleString();
+  return '$ ' + Math.round(v).toLocaleString();
+}
 function dayLabel(t, d) {
   if (d < t.start) return '出發前';
   const n = Math.floor((new Date(d) - new Date(t.start)) / 86400000) + 1;
@@ -1259,35 +1329,49 @@ function renderS03() {
   let h = b('S-03-1', `<div class="hero" style="background:${toneFor(t.name, t.tone)}">
     <div class="sc"></div>
     <div class="navrow">
-      ${b('S-03-2', '<span class="nb">‹ 返回</span>')}
-      <span class="icons">${b('S-03-3','<span class="ic2">✎</span>')}${b('S-03-4','<span class="ic2">⧉</span>')}${b('S-03-5','<span class="ic2">↑</span>')}${b('S-03-6','<span class="ic2">⚙</span>')}</span>
+      ${b('S-03-2', `<span class="nb">${ic('back',16)} 返回</span>`)}
+      <span class="icons">${b('S-03-3',`<span class="ic2">${ic('edit',15)}</span>`)}${b('S-03-4',`<span class="ic2">${ic('copy',15)}</span>`)}${b('S-03-5',`<span class="ic2">${ic('share',15)}</span>`)}${b('S-03-6',`<span class="ic2">${ic('settings',15)}</span>`)}</span>
     </div>
     ${b('S-03-7', `<div class="tt">${esc(t.name)}</div>`)}
     ${b('S-03-8', `<div class="dt tnum">${dateRange(t.start, t.end)}　${t.members.map(m=>m.emoji||firstGrapheme(m.name)).join('')}</div>`)}
   </div>`);
 
-  // 統計卡：總花費 ＋ 每人一列（§5.1）
+  // 統計卡：預設只顯示總花費，每人分擔收合（#17-2）
+  const openStat = store.s03StatOpen;
   h += `<div class="statcard">
-    ${b('S-03-9', `<div class="tot"><span>總花費</span><b class="money">${money(S.total)}</b></div>`)}
-    ${b('S-03-27', `<div class="perlist">${t.members.map(m => {
+    ${b('S-03-9', `<button class="tot" id="s03stat"><span>總花費</span>
+      <span class="totright"><b class="money">${money(S.total)}</b>
+      ${anyApprox && !S.readonly ? `<span class="approxdot">${ic('warn',13)} 約</span>` : ''}
+      ${ic(openStat ? 'up' : 'down', 16)}</span></button>`)}
+    ${openStat ? b('S-03-27', `<div class="perlist">${t.members.map(m => {
       const ap = S.approx[m.id];
       return `<button class="perrow" data-permember="${m.id}">
         <span class="av">${m.emoji || firstGrapheme(m.name) || '🙂'}</span>
         <span class="nm">${esc(m.name)}</span>
         <span class="am ${ap ? 'ap' : ''}">${ap ? '<i>約</i>' : ''}<span class="money">${money(S.per[m.id])}</span></span>
-      </button>`; }).join('')}</div>`)}
-    ${anyApprox && !S.readonly ? b('S-03-28', `<div class="foot">標「約」的金額還沒算清楚，點名字看是哪幾筆</div>`) : ''}
+      </button>`; }).join('')}</div>`) : ''}
+    ${openStat && anyApprox && !S.readonly ? b('S-03-28', `<div class="foot">標「約」的金額還沒算清楚，點名字看是哪幾筆</div>`) : ''}
   </div>`;
 
+  const rateNow = tripRate(t), curMode = rateNow ? store.s03Cur : 'TWD';
   h += b('S-03-12', `<div class="curswitch"><div class="seg">
-    <button class="on">$ 台幣</button><button>${RULES_CUR_SYM(t.currency)} ${t.currency}</button></div></div>`);
+    <button class="${curMode==='TWD'?'on':''}" data-s03cur="TWD">$ 台幣</button>
+    <button class="${curMode!=='TWD'?'on':''} ${rateNow?'':'dis'}" data-s03cur="FOR">${RULES_CUR_SYM(t.currency)} ${t.currency}</button></div>
+    ${rateNow ? '' : `<p class="hint">這趟還沒設現金匯率，換算不了</p>`}</div>`);
 
   h += `<div class="listhd"><span>消費紀錄 · ${S.list.length} 筆</span></div>`;
   if (nUn > 0 && !S.readonly)
-    h += b('S-03-29', `<button class="unsettled" data-openfilter="all">有 ${nUn} 筆還沒算清楚 <span>›</span></button>`);
+    h += b('S-03-29', `<button class="unsettled" data-openfilter="all"><span>${ic('warn',16)} 有 ${nUn} 筆還沒算清楚</span>${ic('next',16)}</button>`);
 
   if (!S.list.length) {
-    h += b('S-03-14', `<div class="empty"><p>第一筆從哪裡開始？</p><p>早餐、計程車、門票，都可以記</p></div>`);
+    h += b('S-03-14', `<div class="empty">
+      <svg class="anim empty-anim" viewBox="0 0 64 48" width="72" height="54" aria-hidden="true">
+        <rect class="p1" x="8" y="10" width="30" height="22" rx="2" fill="none" stroke="#9FB0BA" stroke-width="1.6"/>
+        <path class="p1" d="M14 17h18M14 22h12" stroke="#C4CDD2" stroke-width="1.6" stroke-linecap="round"/>
+        <rect class="p2" x="26" y="18" width="30" height="22" rx="2" fill="#fff" stroke="#1276C4" stroke-width="1.6"/>
+        <path class="p2" d="M32 25h18M32 30h12" stroke="#7CBEEC" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <p style="margin-top:10px">第一筆從哪裡開始？</p><p>早餐、計程車、門票，都可以記</p></div>`);
   } else {
     const groups = {};
     [...S.list].sort((a,c2) => a.date.localeCompare(c2.date))
@@ -1308,8 +1392,8 @@ function renderS03() {
     ? b('S-03-24', `<div class="btnrow"><span class="btn gh">重新開啟</span></div>`)
     : st === 'settled'
       ? b('S-03-23', `<div class="btnrow"><span class="btn gh">查看結算</span><span class="btn qt">封存行程</span></div>`)
-      : b('S-03-22', `<div class="btnrow"><button class="btn gh" id="s03settle">結算行程</button><button class="btn" id="s03add">＋ 記一筆</button></div>`);
-  h += b('S-03-25', `<div class="delrow"><span>刪除這趟行程</span></div>`);
+      : b('S-03-22', `<div class="btnrow"><button class="btn gh" id="s03settle">結算行程</button><button class="btn" id="s03add">${ic('add',16)} 記一筆</button></div>`);
+  h += b('S-03-25', `<div class="delrow"><span>${ic('del',14)} 刪除這趟行程</span></div>`);
   h += `<div id="s03toast"></div>`;
   $('#scr-s03').innerHTML = h;
   document.querySelectorAll('#s03rig button').forEach(x => x.classList.toggle('on', x.dataset.st === st));
@@ -1327,7 +1411,7 @@ function renderS03d() {
     title = `影響 ${m ? m.name : ''} 的 · ${rows.length} 筆`;
   }
   $('#scr-s03d').innerHTML =
-    b('S-03d-2', `<div class="bar"><button class="bk" id="s03dback">‹ 回行程</button><span class="ttl">${esc(title.split(' · ')[0])}</span><span style="width:52px"></span></div>`) +
+    b('S-03d-2', `<div class="bar"><button class="bk" id="s03dback">${ic('back',15)} 回行程</button><span class="ttl">${esc(title.split(' · ')[0])}</span><span style="width:52px"></span></div>`) +
     b('S-03d-1', `<div class="sec">${esc(title)}</div>`) +
     (rows.length
       ? rows.map(({e,c}, i) => {
@@ -1356,10 +1440,8 @@ function renderS04() {
   const t = tripOf(store.s03Trip);
   if (!g) g = blankExp();
   const c = calc(g, t), cur = t.currency, sym = RULES_CUR_SYM(cur);
-  const rate = tripRate(t);
-  const needRate = g.pay !== 'card' && !rate;      // §2b.5 現金但還沒設匯率
 
-  let h = b('S-04-1', `<div class="shd" style="padding-top:14px"><h3>${g._edit ? '編輯消費' : '記一筆'}</h3><button class="x" id="s04x">✕</button></div>`);
+  let h = b('S-04-1', `<div class="shd" style="padding-top:14px"><h3>${g._edit ? '編輯消費' : '記一筆'}</h3><button class="x" id="s04x">${ic('close',13)}</button></div>`);
 
   h += b('S-04-2', `<div class="fld"><span class="lbl">什麼花費？</span>
     <div style="display:flex;gap:8px;align-items:center">
@@ -1369,19 +1451,21 @@ function renderS04() {
   // 金額（§2.3 §2.4 §2A.3）
   h += b('S-04-4', `<div class="fld"><span class="lbl">金額</span>
     <div class="two">
-      ${b('S-04-5', `<div><span class="hint" style="display:block;margin:0 0 4px">${sym} ${cur}</span>
-        <input type="text" inputmode="decimal" id="e-for" value="${esc(g.forAmt)}" placeholder="可留空"></div>`)}
-      ${b('S-04-6', `<div><span class="hint" style="display:block;margin:0 0 4px">$ 台幣</span>
+      ${b('S-04-5', `<div><span class="hint" style="display:block;margin:0 0 4px">${sym} ${cur}${
+        c.forTotalAuto ? ' ' + b('S-04-30', '<span class="autotag">自動</span>', 'inl') : ''}</span>
+        <input type="text" inputmode="decimal" id="e-for" value="${esc(g.forAmt)}"
+          class="${c.forTotalAuto ? 'auto' : ''}" placeholder="${c.forTotalAuto ? c.forTotalEff : '可留空'}"></div>`)}
+      ${b('S-04-6', `<div><span class="hint" style="display:block;margin:0 0 4px">$ 台幣${
+        c.twdFromRate ? ' <span class="autotag">自動</span>' : ''}</span>
         <input type="text" inputmode="decimal" id="e-twd" value="${esc(g.twdAmt)}"
-          placeholder="${c.twdFromRate ? c.twdTotal : '可留空'}"></div>`)}
+          class="${c.twdFromRate ? 'auto' : ''}" placeholder="${c.twdFromRate ? c.twdTotal : '可留空'}"></div>`)}
     </div>
     <div id="amtnote"></div></div>`);
 
   h += b('S-04-9', `<div class="fld"><span class="lbl">怎麼付的？</span>
     <div class="chips">${Object.entries(PAY).map(([k,v]) =>
       `<button class="chip${g.pay===k?' on':''}" data-pay="${k}">${v}</button>`).join('')}</div>
-    ${needRate ? b('S-04-38', `<button class="ratecta" id="e-setrate">設定這趟的匯率 ›</button>`) : ''}
-    <div id="rateinline"></div></div>`);
+    </div>`);
 
   h += b('S-04-10', `<div class="fld"><span class="lbl">日期</span>
     <input type="date" id="e-date" value="${g.date}"></div>`);
@@ -1391,15 +1475,16 @@ function renderS04() {
       `<button class="${g.type===k?'on':''}" data-etype="${k}">${v}</button>`).join('')}</div>
     <div id="typebody"></div></div>`);
 
+  // #17-10：「當場各付各的」本來就是在回答「誰付的」——答案是沒有人代墊
   h += b('S-04-21', `<div class="fld"><span class="lbl">誰付的？</span>
     <div class="chips">${t.members.map(m =>
-      `<button class="chip${g.payer===m.id?' on':''}" data-epayer="${m.id}">${m.emoji||firstGrapheme(m.name)} ${esc(m.name)}</button>`).join('')}</div></div>`);
+      `<button class="chip${!g.onSpot && g.payer===m.id?' on':''}" data-epayer="${m.id}">${m.emoji||firstGrapheme(m.name)} ${esc(m.name)}</button>`).join('')}
+      <span class="paysep"></span>
+      ${b('S-04-18', `<button class="chip${g.onSpot?' on':''}" data-eflag="onSpot">大家各付各的</button>`, 'inl')}
+    </div></div>`);
 
-  h += b('S-04-18', `<div class="fld"><button class="rowb${g.onSpot?' on':''}" data-eflag="onSpot">
-      <span class="mechip ${g.onSpot?'on':''}">✓</span>
-      <span style="flex:1;font-weight:600">大家當場各付各的，不用結算</span></button></div>`);
   h += b('S-04-19', `<div class="fld"><button class="rowb${g.sponsor?' on':''}" data-eflag="sponsor">
-      <span class="mechip ${g.sponsor?'on':''}">✓</span>
+      <span class="selchip ${g.sponsor?'on':''}">${ic('check',12)}</span>
       <span style="flex:1;font-weight:600">這是贊助／回饋</span></button>
       ${g.sponsor ? b('S-04-20', `<p class="hint">金額會記成負數，由 ${(g.parts||[]).length} 人均分扣抵。「誰付的」請選<b>實際代收這筆錢的人</b></p>`) : ''}</div>`);
 
@@ -1417,30 +1502,35 @@ function paintS04() {
   const c = calc(g, t), cur = t.currency, sym = RULES_CUR_SYM(cur);
   const note = document.getElementById('amtnote');
   if (note) {
-    note.innerHTML = c.twdPending
-      ? `<div class="note warn">台幣金額還沒填，這筆<b>不會算進總花費</b>，結算也會跳過。之後補上就好。</div>`
-      : c.twdFromRate
-        ? `<div class="note calm">用這趟的現金匯率換算成 <b>${money(c.twdTotal)}</b>。刷卡的話請直接填台幣。</div>`
+    // #17-11：只留「不做就不會知道、且會影響判斷」的兩句；換算結果改由欄位自己說話
+    note.innerHTML = c.needRateLink
+      ? b('S-04-38', `<div class="note warn">${ic('warn',14)} 還沒設這趟的匯率，算不出台幣。
+          <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div>`)
+      : c.twdPending
+        ? `<div class="note warn">${ic('warn',14)} 沒有台幣金額，結算會跳過這筆</div>`
         : '';
   }
-  const rin = document.getElementById('rateinline');
-  if (rin) rin.innerHTML = g._rateOpen
-    ? `<div class="note calm" style="padding:10px 11px">
-        <div style="font-weight:600;margin-bottom:6px">這趟的現金匯率</div>${rateRows(tripFormShim(t))}
-        <div style="display:flex;gap:7px;margin-top:8px">
-          <button class="btn qt" id="e-ratecancel" style="padding:7px 0">取消</button>
-          <button class="btn" id="e-ratesave" style="padding:7px 0">設好了</button></div></div>` : '';
 
   const tb = document.getElementById('typebody');
   if (!tb) return;
   const t2 = t;
   if (g.type === 'shared') {
-    tb.innerHTML = b('S-04-12', `<div style="margin-top:10px"><div class="gap">${t2.members.map(m => {
-      const on = (g.parts||[]).includes(m.id);
-      return `<button class="rowb${on?' on':''}" data-epart="${m.id}">
-        <span class="mechip ${on?'on':''}">✓</span><span style="font-size:15px">${m.emoji||firstGrapheme(m.name)}</span>
-        <span style="flex:1;font-weight:600">${esc(m.name)}</span></button>`; }).join('')}</div>
-      ${b('S-04-13', c.twdPending ? '' : `<div class="calc">${(g.parts||[]).length} 人均分 · 每人 ${money(Math.round(c.twdTotal/Math.max(1,(g.parts||[]).length)))}</div>`)}</div>`);
+    // R2（已定案）：預設全員均分、只顯示結果；要排除人才點開
+    const n = (g.parts||[]).length;
+    tb.innerHTML = b('S-04-12', `<div style="margin-top:10px">
+      <div class="sharedhead">
+        <div><div style="font-size:12.5px;font-weight:600">${n} 人均分</div>
+          ${b('S-04-13', `<div class="money" style="font-size:16px;font-weight:600;margin-top:2px">${
+            c.twdPending ? '每人 —' : '每人 ' + money(Math.round(c.twdTotal / Math.max(1,n)))}</div>`)}</div>
+        <button class="expandbtn" data-eexpand>${g._partsOpen ? '收起' : '要排除誰？'}</button>
+      </div>
+      ${g._partsOpen ? `<div class="gap" style="margin-top:9px">${t2.members.map(m => {
+        const on = (g.parts||[]).includes(m.id);
+        return `<button class="rowb${on?' on':''}" data-epart="${m.id}">
+          <span style="font-size:15px">${m.emoji||firstGrapheme(m.name)}</span>
+          <span style="flex:1;font-weight:600">${esc(m.name)}</span>
+          <span class="selchip ${on?'on':''}">分</span></button>`; }).join('')}</div>` : ''}
+    </div>`);
   } else if (g.type === 'single') {
     tb.innerHTML = b('S-04-17', `<div style="margin-top:10px"><span class="lbl">算誰的？</span>
       <div class="chips">${t2.members.map(m =>
@@ -1450,7 +1540,7 @@ function paintS04() {
     const fs = fillCur === 'TWD' ? '$' : sym;
     let inner = `<div style="margin-top:10px">` +
       b('S-04-15', `<span class="lbl" style="display:block">各自多少？</span>`) +
-      b('S-04-31', `<p class="hint" style="margin:0 0 7px">這一筆填 <b>${fs} ${fillCur}</b>，同一筆不混填</p>`);
+      b('S-04-31', `<p class="hint" style="margin:0 0 7px">${fs} ${fillCur}</p>`);
     inner += `<div class="gap">${(g.parts||[]).map((id, i) => {
       const m = t2.members.find(x => x.id === id) || {};
       const auto = c.valInCur[id] != null && !(id in c.manual);
@@ -1462,25 +1552,12 @@ function paintS04() {
           class="${auto ? 'auto' : ''}" placeholder="${auto ? c.valInCur[id] : '0'}"></div>`;
       return i === 0 ? b('S-04-32', cell) : cell; }).join('')}</div>`;
     inner += `<div id="eachcmp"></div><div id="eachnote"></div>`;
-    inner += b('S-04-37', `<p class="hint">沒填的先照均分算，之後可以再改</p>`) + `</div>`;
+    inner += `</div>`;
     tb.innerHTML = inner;
     const ec = document.getElementById('eachcmp'); if (ec) ec.innerHTML = cmpRow(c, t2);
     const en = document.getElementById('eachnote');
     if (en) {
-      if (c.noAutoReason === 'noForeignTotal') {
-        en.innerHTML = b('S-04-35', `<div class="note warn">還沒填 ${sym} 總額，先補上才算得出各自要付多少。<b>還是可以存。</b></div>`);
-      } else if (c.forTotalAuto) {
-        en.innerHTML = b('S-04-30', `<div class="note calm">${sym} 總額空著，先用各自金額加總 <b>${c.forTotalEff}</b>，想改就填上面那格。</div>`);
-      } else if (c.blanks.length) {
-        en.innerHTML = b('S-04-33', `<div class="note good">剩下的平均分給還沒填的 ${c.blanks.length} 人。<b>空白不等於 0</b>——真的不分攤請填 0。</div>`);
-      } else if (!c.twdPending) {
-        const sum = (g.parts||[]).reduce((a,id) => a + (c.valInCur[id]||0), 0);
-        const base = c.fillsAreForeign||c.forTotalAuto ? c.forTotalEff : c.twdTotal;
-        const diff = base - sum;
-        en.innerHTML = b('S-04-34', Math.abs(diff) < 1
-          ? `<div class="note good">加總剛好等於總額 ✓</div>`
-          : `<div class="note ${Math.abs(diff)/base > 0.01 ? 'warn':'calm'}">差 <b>${Math.abs(diff).toLocaleString()}</b>，由付款人承擔。<b>可以存檔。</b></div>`);
-      }
+      en.innerHTML = paintS04Note(c, t2);
     }
   }
 }
@@ -1530,7 +1607,7 @@ function settleTrip(tid) {
 function renderS05() {
   const { net, tx, S } = settleTrip(store.s03Trip), t = S.t;
   const nUn = S.unsettledList.length;
-  const nav = `<div class="bar"><span class="bk">‹ 返回</span><span class="ttl">結算</span><span style="width:52px"></span></div>`;
+  const nav = `<div class="bar"><span class="bk">${ic('back',15)} 返回</span><span class="ttl">結算</span><span style="width:52px"></span></div>`;
   let h = '';
 
   if (store.s05 === 'check') {
@@ -1571,7 +1648,7 @@ function renderS05() {
         ${i===0 ? b('S-05-9','<span style="font-size:10px;color:var(--in);font-weight:600;margin-left:8px">✓ 已付清</span>','inl')
                 : b('S-05-8','<span style="border:1px solid var(--w);color:var(--wi);font-size:10px;font-weight:600;padding:3px 8px;border-radius:3px;margin-left:8px">標記付清</span>','inl')}
       </div>`).join('') || '<div class="empty"><p>沒有人欠誰。</p></div>'}</div>`)
-      + b('S-05-10', `<button class="detailtoggle" id="s05detail">查看計算依據 <span>${store.s05open ? '▲' : '▼'}</span></button>`)
+      + b('S-05-10', `<button class="detailtoggle" id="s05detail">查看計算依據 ${ic(store.s05open ? 'up' : 'down', 16)}</button>`)
       + (store.s05open ? `<div class="fld">
           ${b('S-05-11', `<div class="gap">${t.members.map(m => { const v = net[m.id];
             return `<div class="rowb" style="padding:6px 9px"><span style="font-size:14px">${m.emoji||firstGrapheme(m.name)}</span>
@@ -1592,11 +1669,16 @@ function renderS05() {
       + b('S-05-15', `<div class="btnrow"><span class="btn qt">重新計算</span><span class="btn">封存行程</span></div>`);
   } else {
     h = nav + b('S-05-16', `<div class="empty" style="padding:30px 22px">
-      <svg viewBox="0 0 100 76" style="width:78px;height:60px" aria-label="收據摺成紙飛機">
-        <path d="M14 10 h54 l18 18 v40 h-72 z" fill="none" stroke="#0F5E9E" stroke-width="1.6" stroke-linejoin="round"/>
-        <path d="M68 10 v18 h18" fill="none" stroke="#0F5E9E" stroke-width="1.6" stroke-linejoin="round"/>
-        <path d="M14 68 l72 -32" fill="none" stroke="#B03A22" stroke-width="1" stroke-dasharray="3 3"/>
-        <path d="M26 26 h30 M26 36 h38 M26 46 h22" stroke="#9FB0BA" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <svg class="anim fold" viewBox="0 0 100 76" style="width:84px;height:64px" aria-label="一疊帳摺起來寄出去">
+        <g class="sheetline">
+          <path d="M14 10 h54 l18 18 v40 h-72 z" fill="#fff" stroke="#0F5E9E" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M68 10 v18 h18" fill="none" stroke="#0F5E9E" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M26 26 h30 M26 36 h38 M26 46 h22" stroke="#9FB0BA" stroke-width="1.4" stroke-linecap="round"/>
+        </g>
+        <g class="plane">
+          <path d="M18 44 L84 22 L56 60 L48 46 Z" fill="none" stroke="#0F5E9E" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M48 46 L84 22" fill="none" stroke="#B03A22" stroke-width="1" stroke-dasharray="3 3"/>
+        </g></svg>
       <p style="font-size:20px;margin-top:10px">帳算清楚了</p><p>下次去哪？</p></div>`)
       + b('S-05-17', `<div class="fld"><div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:12px;display:flex">
         ${[['5','天','出遊'],[String(S.list.length),'筆','共記了'],[money(Math.max(0,...S.list.map(e=>calc(e,t).twdTotal||0))).replace('$ ',''),'','最大手筆 $']]
@@ -1623,19 +1705,19 @@ function nm2(t, id) { const m = t.members.find(x => x.id === id) || {}; return (
 Object.assign(INDEX, {
   s03: [
     ['S-03-1','Hero','st','目的地色調＋壓暗遮罩'],
-    ['S-03-2','‹ 返回','st','回首頁'],
-    ['S-03-3','✎ 編輯行程','st','開 S-02b。封存時隱藏'],
-    ['S-03-4','⧉ 複製行程','st','以這趟為範本開新行程'],
+    ['S-03-2','返回','st','回首頁'],
+    ['S-03-3','編輯行程','st','開 S-02b。封存時隱藏'],
+    ['S-03-4','複製行程','st','以這趟為範本開新行程'],
     ['S-03-5','↑ 分享','st','開分享選單（S-03b，批三）'],
-    ['S-03-6','⚙ 設定','st','全站唯一設定入口'],
+    ['S-03-6','設定','st','全站唯一設定入口'],
     ['S-03-7','行程名稱','st',''],
     ['S-03-8','日期＋成員','st','成員 emoji 在這裡顯示（首頁卡不顯示）'],
-    ['S-03-9','總花費','op','排除贊助；待填的筆不計入'],
+    ['S-03-9','總花費（可展開）','op','<b>改（#17-2）</b>：預設只顯示總花費，每人分擔收合。有人被標「約」時收合列上有提示點'],
     ['S-03-10','待填警語','del','已移除：「N 筆待填，數字僅供參考」整條刪除，功能由 S-03-29 取代'],
     ['S-03-11','我的花費','del','已併入 S-03-27 的每人分擔列'],
-    ['S-03-12','幣別切換','st','預設台幣；結算恆為台幣'],
+    ['S-03-12','幣別切換','op','<b>改（#17-3）</b>：真的能切，整頁金額換算。<b>結算恆為台幣</b>。沒設匯率時不可用並說明原因'],
     ['S-03-13','G-05 分享橫幅','del','已移除，由 S-05-29 取代'],
-    ['S-03-14','空狀態','st','還沒記帳時顯示'],
+    ['S-03-14','空狀態','op','<b>改（#17-7）</b>：內嵌 SVG＋CSS 動畫，遵守 prefers-reduced-motion'],
     ['S-03-15','日期分組標頭','st','出發前／第 N 天'],
     ['S-03-16','消費列','op','整列可點進 S-04 編輯'],
     ['S-03-17','整筆未定的列','op','橘紅左邊框＋金額顯示「還沒填」。<b>「待補填」badge 已移除</b>（金額欄已經說了）'],
@@ -1671,13 +1753,13 @@ Object.assign(INDEX, {
     ['S-04-9','怎麼付的？','op','現金／信用卡／儲值卡。<b>刷卡不套用現金匯率</b>'],
     ['S-04-10','日期','op','預設行程出發日'],
     ['S-04-11','分帳方式','op','一起分／各付各的／只算一個人'],
-    ['S-04-12','分給誰？','op','「一起分」子區塊，預設全員'],
+    ['S-04-12','分給誰？','op','<b>改（#17-6）</b>：回到定案的 R2——預設<b>不展開名單</b>，只顯示「N 人均分」，點「要排除誰？」才展開'],
     ['S-04-13','每人多少','st','即時均分'],
     ['S-04-14','參與者驗證','inv','至少一位'],
     ['S-04-15','各自多少？','op','「各付各的」子區塊'],
     ['S-04-16','比對列','st','以該筆幣別顯示，下方小字換算台幣'],
     ['S-04-17','只算一個人','op','＋選人，預設帶付款人'],
-    ['S-04-18','當場各付各的','op','記錄但不進結算'],
+    ['S-04-18','大家各付各的','op','<b>改（#17-10）</b>：移進「誰付的？」的最後一個選項，<b>三型都能選</b>。不再獨立佔一列'],
     ['S-04-19','贊助／回饋','op','負額共同項'],
     ['S-04-20','贊助說明','st','人數改為動態'],
     ['S-04-21','付款人','op','沒有預設，一定要選'],
@@ -1689,16 +1771,16 @@ Object.assign(INDEX, {
     ['S-04-27','portal 掛載','inv','避開 transform 祖先'],
     ['S-04-28','emoji 自動跟隨','inv','改標題時跟著換'],
     ['S-04-29','引擎遇 pending 的行為','inv','已查證：待填筆本來就跳過，不會 422'],
-    ['S-04-30','外幣總額自動補入','op','<b>全員都填了</b>才自動補 Σ，並明示可覆寫'],
+    ['S-04-30','外幣總額自動補入','op','<b>改（#17-11）</b>：句子砍掉，改把加總值放進欄位 placeholder 並標「自動」，欄位自己說話'],
     ['S-04-31','各自金額幣別','op','由該筆決定、不混填；欄位標題寫著現在填什麼幣別'],
     ['S-04-32','自動均分值','op','空白欄以 <b>placeholder</b> 顯示，不寫進 value、不重建節點'],
-    ['S-04-33','空白 ≠ 0','st','空白＝自動均分；0＝確實不分攤'],
-    ['S-04-34','差額分級提示','st','≤1% 淡色、>1% 橘色，都可存檔'],
+    ['S-04-33','空白 ≠ 0','inv','<b>改（#17-11）</b>：句子砍掉，資訊做進 S-04-32 的 placeholder，沒有獨立區塊'],
+    ['S-04-34','差額狀態','inv','<b>改（#17-11）</b>：句子砍掉，改由 S-04-16 比對列的顏色與符號表達，沒有獨立區塊'],
     ['S-04-35','外幣總額空白且有人沒填','op','<b>新</b>：不顯示自動均分值（猜不出來），提示補總額。<b>仍可存檔</b>'],
     ['S-04-36','存檔提示（四種）','op','<b>新</b>：整筆未填／1 人／2 人／3 人以上，文案各不同'],
-    ['S-04-37','均分說明灰字','st','<b>新</b>：「沒填的先照均分算，之後可以再改」'],
-    ['S-04-38','設定這趟的匯率（捷徑）','op','<b>新</b>：現金但還沒設匯率時就地設定，不跳出去'],
-    ['S-04-39','支付方式決定換算','inv','<b>新</b>：現金／儲值卡套行程匯率；刷卡直接用填的台幣'],
+    ['S-04-37','均分說明灰字','del','已移除（#17-11）：placeholder 已經顯示均分值，句子是重複'],
+    ['S-04-38','沒設匯率的提示','op','<b>改（#17-4）</b>：記帳頁<b>不設定匯率</b>，只顯示連結跳到 S-02b。匯率全站只有一個入口'],
+    ['S-04-39','換算規則','inv','<b>改（#17-4）</b>：<b>與支付方式無關</b>。有台幣就用台幣；只有外幣用行程匯率；都有則用台幣。單筆覆寫匯率已移除'],
   ],
   s05: [
     ['S-05-1','未結算引導','st','🧮＋一句說明'],
@@ -1716,7 +1798,7 @@ Object.assign(INDEX, {
     ['S-05-13','四欄明細表','st','實際付出／應分攤／差額'],
     ['S-05-14','空表說明','st',''],
     ['S-05-15','重新計算／封存','st',''],
-    ['S-05-16','慶祝畫面','st','收據摺紙，全站唯一 signature'],
+    ['S-05-16','慶祝畫面','op','<b>改（#17-7）</b>：收據摺紙加上 CSS 動畫，全站唯一 orchestrated moment，遵守 prefers-reduced-motion'],
     ['S-05-17','G-08 回顧卡','st','天數／筆數／最大手筆'],
     ['S-05-18','誰付給誰','st',''],
     ['S-05-19','建立新行程／封存','st',''],
@@ -1770,6 +1852,11 @@ document.addEventListener('click', ev => {
   if (rg5) { store.s05 = rg5.dataset.p; renderS05(); return; }
 
   // S-03
+  if (t.closest('#s03stat')) { store.s03StatOpen = !store.s03StatOpen; renderS03(); return; }
+  const sc = hit('data-s03cur');
+  if (sc) { const tr = tripOf(store.s03Trip);
+    if (sc.dataset.s03cur === 'FOR' && !tripRate(tr)) return;   // 沒設匯率就不能切
+    store.s03Cur = sc.dataset.s03cur; renderS03(); renderS03d(); renderS05(); return; }
   if (t.closest('#s03add')) { g = blankExp(); renderS04();
     document.getElementById('s04').scrollIntoView({behavior:'smooth',block:'start'}); return; }
   if (t.closest('#s03settle')) {
@@ -1792,6 +1879,7 @@ document.addEventListener('click', ev => {
     if (g.type === 'single' && (!g.parts || g.parts.length !== 1)) g.parts = [g.payer || tripOf(store.s03Trip).members[0].id];
     if (g.type !== 'single' && (g.parts||[]).length < 2) g.parts = tripOf(store.s03Trip).members.map(m => m.id);
     renderS04(); return; }
+  if (hit('data-eexpand')) { g._partsOpen = !g._partsOpen; paintS04(); return; }
   const ep = hit('data-epart');    if (ep) { const id = ep.dataset.epart;
     g.parts = (g.parts||[]).includes(id) ? g.parts.filter(x => x !== id) : (g.parts||[]).concat(id);
     paintS04(); return; }
@@ -1799,11 +1887,10 @@ document.addEventListener('click', ev => {
   const ey = hit('data-epayer');   if (ey) { g.payer = ey.dataset.epayer;
     if (g.type === 'single' && !(g.parts||[]).length) g.parts = [g.payer];
     renderS04(); return; }
-  const ef = hit('data-eflag');    if (ef) { g[ef.dataset.eflag] = !g[ef.dataset.eflag]; renderS04(); return; }
-  if (t.closest('#e-setrate')) { g._rateOpen = true; paintS04(); return; }
-  if (t.closest('#e-ratecancel')) { g._rateOpen = false; paintS04(); return; }
-  if (t.closest('#e-ratesave')) { g._rateOpen = false; fb = null; renderS02b(); renderS04(); renderS03();
-    toast('#s04toast', '匯率設好了，這筆的台幣自動算出來了'); return; }
+  const ef = hit('data-eflag');    if (ef) { const k = ef.dataset.eflag;
+    g[k] = !g[k];
+    if (k === 'onSpot' && g.onSpot) g.payer = g.payer || tripOf(store.s03Trip).members[0].id;
+    renderS04(); return; }
   if (t.closest('#s04cancel') || t.closest('#s04x')) { g = blankExp(); renderS04(); return; }
   if (t.closest('#s04save')) { saveExpense(); return; }
 
@@ -1827,7 +1914,7 @@ function saveExpense() {
   const c = calc(g, t);
   const list = expsOf(store.s03Trip);
   const idx = list.findIndex(x => x.id === g.id);
-  const rec = JSON.parse(JSON.stringify(g)); delete rec._edit; delete rec._rateOpen;
+  const rec = JSON.parse(JSON.stringify(g)); delete rec._edit; delete rec._partsOpen;
   if (idx >= 0) list[idx] = rec; else list.push(rec);
 
   let msg;
@@ -1874,21 +1961,11 @@ function paintIndiv() {
   if (keep && document.contains(keep)) keep.focus();
 }
 function paintS04Note(c, t) {
+  // #17-11：9 句砍到 3 句。留下的都是「不講使用者就會卡住」的：
+  //   ① 還沒設匯率（真的算不出來）② 外幣總額沒填（真的算不出來）③ 贊助是反直覺行為
   const sym = RULES_CUR_SYM(t.currency);
   if (c.noAutoReason === 'noForeignTotal')
-    return b('S-04-35', `<div class="note warn">還沒填 ${sym} 總額，先補上才算得出各自要付多少。<b>還是可以存。</b></div>`);
-  if (c.forTotalAuto)
-    return b('S-04-30', `<div class="note calm">${sym} 總額空著，先用各自金額加總 <b>${c.forTotalEff}</b>，想改就填上面那格。</div>`);
-  if (c.blanks.length)
-    return b('S-04-33', `<div class="note good">剩下的平均分給還沒填的 ${c.blanks.length} 人。<b>空白不等於 0</b>——真的不分攤請填 0。</div>`);
-  if (!c.twdPending) {
-    const sum = (g.parts||[]).reduce((a,id) => a + (c.valInCur[id]||0), 0);
-    const base = c.fillsAreForeign||c.forTotalAuto ? c.forTotalEff : c.twdTotal;
-    const diff = base - sum;
-    return b('S-04-34', Math.abs(diff) < 1
-      ? `<div class="note good">加總剛好等於總額 ✓</div>`
-      : `<div class="note ${Math.abs(diff)/base > 0.01 ? 'warn':'calm'}">差 <b>${Math.abs(diff).toLocaleString()}</b>，由付款人承擔。<b>可以存檔。</b></div>`);
-  }
+    return b('S-04-35', `<div class="note warn">${ic('warn',14)} 補上 ${sym} 總額才算得出各自要付多少</div>`);
   return '';
 }
 render();

@@ -53,15 +53,33 @@ const r22=E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
 console.log('   各人台幣 =',JSON.stringify(r22.shares),'總和 =',r22.sum);
 ok(r22.sum===1035,'Σ各人台幣應恰等於台幣總額，實際 '+r22.sum);
 
-console.log('\n=== §2b 現金匯率：刷卡不套用 ===');
+console.log('\n=== #17-4 換算規則：與支付方式無關 ===');
 E("var t=tripOf('t1'); t.rateTwd='1'; t.rateFor='45';");
-const rc=E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
-  var cash=calc(exp({forAmt:'20000',pay:'cash',type:'shared',parts:M,payer:M[0]}),t);
-  var card=calc(exp({forAmt:'20000',pay:'card',type:'shared',parts:M,payer:M[0]}),t);
-  return {cash:cash.twdTotal, cashPend:cash.twdPending, card:card.twdTotal, cardPend:card.twdPending};})()`);
-console.log('   現金 ₩20000 →',rc.cash,'台幣｜刷卡 →',rc.card,'（pending',rc.cardPend,'）');
-ok(rc.cash===444,'現金應用行程匯率換算成 444，實際 '+rc.cash);
-ok(rc.cardPend===true && rc.card===null,'刷卡不得套用現金匯率');
+const conv=E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
+  var mk=function(o){return calc(exp(Object.assign({type:'shared',parts:M,payer:M[0]},o)),t);};
+  return {
+    cashOnlyFor: mk({forAmt:'20000',pay:'cash'}).twdTotal,
+    cardOnlyFor: mk({forAmt:'20000',pay:'card'}).twdTotal,
+    storedOnlyFor: mk({forAmt:'20000',pay:'stored'}).twdTotal,
+    bothCard: mk({forAmt:'20000',twdAmt:'500',pay:'card'}).twdTotal,
+    bothCash: mk({forAmt:'20000',twdAmt:'500',pay:'cash'}).twdTotal,
+    fromRate: mk({forAmt:'20000',pay:'card'}).twdFromRate,
+  };})()`);
+console.log('   只有外幣：現金',conv.cashOnlyFor,'／刷卡',conv.cardOnlyFor,'／儲值卡',conv.storedOnlyFor);
+console.log('   兩者都有：刷卡',conv.bothCard,'／現金',conv.bothCash);
+ok(conv.cashOnlyFor===444 && conv.cardOnlyFor===444 && conv.storedOnlyFor===444,
+   '只有外幣時三種支付方式都該用行程匯率換算（#17-4 已改為與支付方式無關）');
+ok(conv.bothCard===500 && conv.bothCash===500,'兩者都有時一律用台幣（實付最準）');
+ok(conv.fromRate===true,'應標示為由匯率換算而來');
+
+console.log('\n=== #17-4 只有外幣且還沒設匯率 ===');
+E("var t=tripOf('t1'); t.rateTwd=undefined; t.rateFor=undefined;");
+const nr=E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
+  var c=calc(exp({forAmt:'20000',pay:'cash',type:'shared',parts:M,payer:M[0]}),t);
+  return {pend:c.twdPending, link:c.needRateLink};})()`);
+console.log('   twd_pending =',nr.pend,'｜顯示去設定的連結 =',nr.link);
+ok(nr.pend && nr.link,'應標 twd_pending 並顯示連結');
+E("var t=tripOf('t1'); t.rateTwd='1'; t.rateFor='45';");
 
 console.log('\n=== §5.1 「約」只標受影響的人 ===');
 const ap=E(`(function(){store.expenses.t1=demoExpenses(); var S=tripSummary('t1');
@@ -126,20 +144,89 @@ ok(d.contains(first),'打字時輸入框被重建（#13 的教訓）');
 console.log('   打字後節點仍在:',d.contains(first),'｜其餘 placeholder =',
   JSON.stringify([...d.querySelectorAll('input[data-eindiv]')].slice(1).map(x=>x.placeholder)));
 
-console.log('\n=== §2b.5 現金但還沒設匯率 → 捷徑入口 ===');
+console.log('\n=== #17-4 沒設匯率時只給連結，不在記帳頁設定 ===');
 E("var t=tripOf('t1'); t.rateTwd=undefined; t.rateFor=undefined;");
 E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
   g=exp({title:'門票',forAmt:'20000',pay:'cash',type:'shared',parts:M,payer:M[0]}); renderS04();})()`);
-ok(!!d.querySelector('#e-setrate'),'現金且未設匯率時應出現「設定這趟的匯率」入口');
-console.log('   捷徑入口:',!!d.querySelector('#e-setrate'));
-d.querySelector('#e-setrate').click();
-ok(!!d.querySelector('#scr-s04 .rateinput'),'就地設定應直接展開，不跳出去');
-console.log('   就地展開匯率欄:',d.querySelectorAll('#scr-s04 .rateinput').length,'個');
+ok(!d.querySelector('#scr-s04 .rateinput'),'記帳頁不得出現匯率輸入框（#17-4）');
+ok(d.querySelector('#scr-s04').innerHTML.includes('ratelink'),'應顯示跳去 S-02b 設定的連結');
+console.log('   記帳頁匯率輸入框:',d.querySelectorAll('#scr-s04 .rateinput').length,
+            '｜去設定的連結:',d.querySelector('#scr-s04').innerHTML.includes('ratelink'));
+E("var t=tripOf('t1'); t.rateTwd='1'; t.rateFor='45';");
+
+console.log('\n=== #17 停止條件 ===');
+E("store.expenses.t1=demoExpenses(); store.s03StatOpen=false; store.s03Cur='TWD'; render()");
+const H03=()=>d.querySelector('#scr-s03').innerHTML, H04=()=>d.querySelector('#scr-s04').innerHTML;
+
+// 2 統計卡預設收合
+ok(!d.querySelector('#scr-s03 .perlist'),'統計卡應預設收合');
+d.querySelector('#s03stat').click();
+ok(!!d.querySelector('#scr-s03 .perlist'),'點總花費應展開每人分擔列');
+console.log('   統計卡：預設收合 ✓，點開後每人列出現',!!d.querySelector('#scr-s03 .perlist'));
+ok(H03().includes('approxdot')||!E("tripSummary('t1').t.members.some(m=>tripSummary('t1').approx[m.id])"),
+   '收合時若有人被標「約」，收合列上要有提示');
+d.querySelector('#s03stat').click();
+
+// 3 幣別切換可操作
+const before=H03().includes('$ ');
+d.querySelector('[data-s03cur="FOR"]').click();
+console.log('   幣別切到 KRW：',E("store.s03Cur"),'｜畫面出現 ₩ =',H03().includes('₩'));
+ok(E("store.s03Cur")==='FOR' && H03().includes('₩'),'幣別切換應真的換算整頁金額');
+d.querySelector('[data-s03cur="TWD"]').click();
+ok(E("store.s03Cur")==='TWD','應能切回台幣');
+
+// 6 一起分預設不展開名單
+E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
+  g=exp({title:'測',twdAmt:'4000',type:'shared',parts:M,payer:M[0]}); renderS04();})()`);
+ok(!d.querySelector('[data-epart]'),'「一起分」預設不得展開成員名單（定案的 R2）');
+ok(H04().includes('要排除誰？'),'應有「要排除誰？」的展開控制');
+d.querySelector('[data-eexpand]').click();
+ok(!!d.querySelector('[data-epart]'),'點「要排除誰？」才展開');
+console.log('   一起分：預設收合 ✓，點開後成員列出現',!!d.querySelector('[data-epart]'));
+
+// 5 選取樣式全站單一套
+const sel=d.querySelectorAll('.selchip').length, old2=d.querySelectorAll('.mechip, .ck').length;
+console.log('   選取樣式：selchip',sel,'個｜舊語彙',old2,'個');
+ok(old2===0,'不得同時存在兩套選取語彙');
+ok(sel>0,'選取語彙應統一為 selchip');
+
+// 4 記帳頁無匯率設定入口 ＋ 全站只有一個入口
+ok(!d.querySelector('#scr-s04 .rateinput'),'記帳頁不得有匯率輸入框');
+const rateInputs=d.querySelectorAll('.rateinput').length;
+console.log('   全站匯率輸入框：',rateInputs,'個（應為 2，都在 S-02b）');
+ok(rateInputs===2 && d.querySelectorAll('#scr-s02b .rateinput').length===2,'匯率只能有 S-02b 一個入口');
+
+// 10 大家各付各的在「誰付的？」且三型都可選
+['shared','individual','single'].forEach(ty=>{
+  E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
+    g=exp({title:'測',twdAmt:'4000',type:'${ty}',parts:${JSON.stringify(1)}===1?M:M,payer:M[0]});
+    if('${ty}'==='single') g.parts=[M[0]];
+    renderS04();})()`);
+  const inPayer=[...d.querySelectorAll('#scr-s04 .chips')].some(c=>c.innerHTML.includes('大家各付各的'));
+  ok(inPayer,`${ty} 型也要能選「大家各付各的」`);
+});
+console.log('   「大家各付各的」三型皆可選 ✓');
+ok(!H04().includes('記錄但不算欠款'),'「記錄但不算欠款」灰字應已移除');
+
+// 11 被砍的句子不得再出現
+const cut=['沒填的先照均分算','剩下的平均分給','加總剛好等於總額','先用各自金額加總','同一筆不混填','用這趟的現金匯率換算成'];
+E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
+  g=exp({forAmt:'45000',twdAmt:'1035',type:'individual',parts:M,indiv:{[M[0]]:'12000'},payer:M[0]}); renderS04();})()`);
+const all4=H04();
+cut.forEach(x=>ok(!all4.includes(x),'砍掉的提示句又出現了：'+x));
+console.log('   被砍的 6 句都不在了 ✓');
+
+// 2(stop) 全站不再有文字符號充當 icon
+const phones=[...d.querySelectorAll('.ui')].map(x=>x.innerHTML).join('');
+['‹','✎','⧉','⚙','▾','▲','▼'].forEach(ch=>ok(!phones.includes(ch),'手機框內仍有文字符號充當 icon：'+ch));
+console.log('   手機框內文字符號：無 ✓｜SVG icon 數：',d.querySelectorAll('.ui svg.ic').length);
+ok(d.querySelectorAll('.ui svg.ic').length>10,'icon 應已改為 SVG');
 
 console.log('\n=== 徽章 vs 編號清單（批二四頁）===');
 const IDX=E('INDEX'); const seen=new Set();
 const snap=()=>d.querySelectorAll('.bdg').forEach(x=>seen.add(x.dataset.copy));
-E("store.expenses.t1=demoExpenses(); store.s03Filter={kind:'all'}; render()"); snap();
+E("store.expenses.t1=demoExpenses(); store.s03Filter={kind:'all'}; store.s03StatOpen=true; render()"); snap();
+E("store.s03StatOpen=false; renderS03()"); snap();
 E("tripOf('t1').status='settled'; renderS03()"); snap();
 E("tripOf('t1').status='archived'; renderS03()"); snap();
 E("tripOf('t1').status='planned'; store.expenses.t1=[]; renderS03()"); snap();
@@ -155,6 +242,10 @@ E("g.type='single'; g.parts=[tripOf('t1').members[0].id]; renderS04()"); snap();
 E("g._edit=true; renderS04()"); snap();
 E("g.pay='cash'; tripOf('t1').rateTwd=undefined; tripOf('t1').rateFor=undefined; renderS04()"); snap();
 E("g.forAmt=''; g.twdAmt=''; g.type='individual'; g.indiv={}; renderS04()"); snap();
+E("tripOf('t1').rateTwd=undefined; tripOf('t1').rateFor=undefined");
+E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
+  g=exp({forAmt:'20000',pay:'cash',type:'shared',parts:M,payer:M[0]}); renderS04();})()`); snap();
+E("tripOf('t1').rateTwd='1'; tripOf('t1').rateFor='45'");
 E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
   g=exp({forAmt:'',twdAmt:'1000',pay:'card',type:'individual',parts:M,indiv:{[M[0]]:'100'},payer:M[0]}); renderS04();})()`); snap();
 E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);

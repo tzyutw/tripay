@@ -191,13 +191,13 @@ console.log('   副標與底部說明都在，舊句已清');
 
 console.log('\n=== 「這是我」標記常駐（不靠灰字說明）===');
 E("f=blankForm(store.trips[0].members); renderS02()");
-const chips=d.querySelectorAll('#scr-s02 .mechip');
-console.log('   成員',E('f.members.length'),'人，常駐標記',chips.length,'個；已選',d.querySelectorAll('#scr-s02 .mechip.on').length);
+const chips=d.querySelectorAll('#scr-s02 .selchip');
+console.log('   成員',E('f.members.length'),'人，常駐標記',chips.length,'個；已選',d.querySelectorAll('#scr-s02 .selchip.on').length);
 ok(chips.length===E('f.members.length'),'每一列都要有常駐的「這是我」標記');
 ok(!d.querySelector('#scr-s02').innerHTML.includes('點成員，標記哪位是你'),'說明性灰字沒有砍乾淨');
 d.querySelector('[data-me="f:1"]').click();
 ok(E('f.owner')===1,'點列沒有切換 owner');
-ok(d.querySelectorAll('#scr-s02 .mechip.on').length===1,'選取後應只有一個填實');
+ok(d.querySelectorAll('#scr-s02 .selchip.on').length===1,'選取後應只有一個填實');
 
 console.log('\n=== 砍掉的灰字不得再出現 ===');
 const html=d.querySelector('#scr-s02').innerHTML+d.querySelector('#scr-s02b').innerHTML;

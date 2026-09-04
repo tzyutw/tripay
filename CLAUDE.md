@@ -95,6 +95,26 @@ Rozi 無法判斷「S-05 以後要以哪一份為準」。
 以及每個 sheet 容器的 `scrollWidth <= clientWidth`。
 新增畫面時測試要一併涵蓋。
 
+## 視覺細節不准憑印象（2026-09-04 生效）
+
+起因：挑金額字體時，Cowork 端連續三輪憑印象標註「這個字體的 0 是空心的」，
+全部標錯（Spline Sans Mono、Source Code Pro、Anonymous Pro、Fragment Mono、
+Overpass Mono、Noto Sans Mono 都被誤標為空心，實際上都有點或斜線），
+浪費 Rozi 三輪來回。
+
+**規則：字體、字形、色值、間距這類可驗證的視覺事實，一律實測，不得憑記憶或訓練印象斷言。**
+
+字體的實測方法（已驗證可行，容器內可跑）：
+1. `fonts.googleapis.com` 被 egress 政策擋住，改用 npm：
+   `npm install @fontsource/<kebab-case-name>`，字體檔在 `files/*.woff2`
+2. `pip install fonttools pillow brotli --break-system-packages`
+3. 用 `fontTools` 開 woff2，取 `getBestCmap()[ord("0")]` 的 glyph，
+   以 `RecordingPen` 數 `closePath` 次數：**2 = 空心，3 = 有點或有斜線**
+4. `font.flavor=None; font.save(ttf)` 後用 PIL 渲染成圖，**親眼再確認一次**
+
+同理適用於：色票對比度（實算 WCAG 比值，不用「應該有過」）、
+字級與行高（實測，不用估）、元素是否溢出（真實瀏覽器量測，不用 jsdom）。
+
 ## 灰色提示小字的兩條規則（2026-09-04 生效）
 
 起因：Rozi 在批一原型看到大量灰字，指出「需要這麼多備註小字，就代表 UX 有問題」。
