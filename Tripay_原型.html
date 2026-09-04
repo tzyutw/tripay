@@ -18,6 +18,10 @@
   --pg:#E7E9E4;--pg2:#FFF;--pg3:#F2F3EF;--pgink:#151C21;
   --pgink2:#4C5B64;--pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--okd:#276E45;--nod:#B03A22}}
 *{box-sizing:border-box}
+/* 不得橫向捲動：任何元素都不許把頁面撐開 */
+img,table,input,pre{max-width:100%}
+.wrap,.top,.scr,.phwrap,.ph,.ui,.idx,.rig{max-width:100%}
+.ui *{max-width:100%}
 body{margin:0;background:var(--pg);color:var(--pgink);font-family:var(--sans);font-size:15px;
   line-height:1.6;-webkit-font-smoothing:antialiased}
 button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
@@ -47,15 +51,16 @@ header p{margin:12px 0 0;max-width:74ch;color:var(--pgink2);font-size:14.5px}
 
 /* ══ 畫面版面 ══ */
 .scr{padding:40px 0;border-top:1px solid var(--pgrule);display:grid;
-  grid-template-columns:400px minmax(0,1fr);gap:32px;align-items:start}
+  grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:32px;align-items:start}
 @media(max-width:980px){.scr{grid-template-columns:1fr}}
+.scr>*{min-width:0}   /* grid item 預設 min-width:auto 會被內容撐開 */
 .scrhd{grid-column:1/-1;margin-bottom:2px}
 .scrhd .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--mark)}
 .scrhd h2{font-size:23px;font-weight:700;letter-spacing:-.01em;margin-top:5px}
 .scrhd p{color:var(--pgink2);font-size:13.5px;margin:8px 0 0;max-width:80ch}
 .phwrap{position:sticky;top:64px}
 .phcap{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--pgink3);margin:0 0 8px}
-.ph{width:390px;border:1px solid var(--pgrule);border-radius:20px;overflow:hidden;
+.ph{width:min(390px,100%);border:1px solid var(--pgrule);border-radius:20px;overflow:hidden;
   box-shadow:0 18px 40px rgba(0,0,0,.34)}
 
 /* 原型控制（非產品的一部分） */
@@ -67,7 +72,7 @@ header p{margin:12px 0 0;max-width:74ch;color:var(--pgink2);font-size:14.5px}
 .rig button.on{background:var(--mark);border-color:var(--mark);color:#fff}
 
 /* 編號清單 */
-.idx{background:var(--pg2);border:1px solid var(--pgrule);border-radius:3px;overflow:hidden}
+.idx{background:var(--pg2);border:1px solid var(--pgrule);border-radius:3px;overflow-x:auto}
 .idx table{width:100%;border-collapse:collapse;font-size:12.5px}
 .idx th,.idx td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--pgrule);vertical-align:top}
 .idx tr:last-child td{border-bottom:0}
@@ -111,6 +116,7 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui input[type=text],.ui input[type=number],.ui input[type=date]{width:100%;background:#fff;
   border:1px solid var(--ln);border-radius:3px;padding:9px 10px;font-size:13px;color:#151C21;outline:none}
 .ui input:focus{border-color:var(--w)}
+.ui input[type=date]{min-width:0}   /* 原生 date 有內建最小寬，不設會撐爆窄螢幕 */
 .ui .btn{width:100%;background:var(--w);color:#fff;font-size:14px;font-weight:600;padding:11px 0;
   border-radius:3px;text-align:center}
 .ui .btn.gh{background:#fff;color:var(--wi);border:1px solid var(--w)}
@@ -129,9 +135,9 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .rowb{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
   border-radius:3px;padding:8px 10px;width:100%;text-align:left}
 .ui .rowb.on{border-color:var(--w);background:#F2F8FD}
-.ui .ck{width:18px;height:18px;border-radius:50%;border:1.5px solid #B9C1C5;flex:none;
-  display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
-.ui .rowb.on .ck{background:var(--w);border-color:var(--w)}
+.ui .mechip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;flex:none;
+  border:1px solid var(--ln);color:#A9B2B7;background:#fff}
+.ui .mechip.on{border-color:var(--w);background:var(--w);color:#fff}
 .ui .pill{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:999px;border:1px solid;line-height:1.6}
 .ui .pill.ind{color:var(--wi);border-color:#BFD9EE;background:#EEF5FB}
 .ui .pill.gr{color:var(--md);border-color:var(--ln);background:#F4F5F1}
@@ -174,6 +180,8 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .avatar.letter{color:#fff;font-size:13px;font-weight:700;border-color:transparent}
 .ui .avatar input{width:100%;height:100%;text-align:center;padding:0;border:0;background:#fff;font-size:15px}
 .ui .tone{width:32px;height:32px;border-radius:3px;flex:none}
+.ui .tone.auto{width:auto;padding:0 10px;height:32px;font-size:11px;font-weight:600;color:var(--md);
+  background:#fff;border:1px dashed #B9C1BB}
 .ui .tone.on{outline:2px solid var(--w);outline-offset:1px}
 .ui .drop{margin-top:6px;border:1px solid var(--ln);background:#fff;border-radius:3px;
   max-height:190px;overflow-y:auto}
@@ -187,7 +195,7 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
 
 <div class="top">
   <span class="nm">Tripay 原型</span>
-  <span class="bt">批一 · S-00 / S-01 / S-02 / S-02b</span>
+  <span class="bt">批一（含 #15 修正）· S-00 / S-01 / S-02 / S-02b</span>
   <span class="copied" id="copied">已複製 ✓</span>
   <div class="modesw" id="modesw">
     <button data-m="anno">標註模式</button>
@@ -251,7 +259,7 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
     <div class="rig"><div class="t">原型控制</div>
       <div class="row"><button id="s02reset">重來一張空表</button><button id="s02prefill">帶上一趟成員（G-09）</button></div></div>
   </div>
-  <div><p class="cnt">編號清單 · 20 項（1 項已移除）</p><div class="idx" id="idx-s02"></div></div>
+  <div><p class="cnt">編號清單 · 20 項（3 項已移除）</p><div class="idx" id="idx-s02"></div></div>
 </section>
 
 <!-- ══════════ S-02b ══════════ -->
@@ -265,7 +273,7 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
     <div class="rig"><div class="t">原型控制</div>
       <div class="row" id="s02bpick"></div></div>
   </div>
-  <div><p class="cnt">編號清單 · 11 項（1 項已移除）</p><div class="idx" id="idx-s02b"></div></div>
+  <div><p class="cnt">編號清單 · 12 項（1 項已移除、1 項新增）</p><div class="idx" id="idx-s02b"></div></div>
 </section>
 
 <footer>
@@ -374,7 +382,7 @@ function renderS00() {
       ${b('S-00-3', `<div style="color:rgba(255,255,255,.8);font-size:13px;letter-spacing:.32em;margin-top:12px">每一趟，都記得</div>`)}
       ${b('S-00-4', `<div style="color:rgba(255,255,255,.66);font-size:13.5px;text-align:center;max-width:200px;margin-top:28px">大家一起出發，帳交給 Tripay。</div>`)}
       <div style="height:34px"></div>
-      ${b('S-00-5', `<button id="s00login" style="width:250px;height:46px;background:#fff;border-radius:3px;
+      ${b('S-00-5', `<button id="s00login" style="width:min(250px,100%);height:46px;background:#fff;border-radius:3px;
         display:flex;align-items:center;justify-content:center;gap:9px;font-size:13.5px;font-weight:600;color:#151C21">
         <span style="font-size:15px">◉</span> 用 Google 帳號繼續</button>`)}
       <div style="flex:1;min-height:24px"></div>
@@ -435,8 +443,15 @@ function blankForm(prefill) {
   return { name:'', currency:'JPY', start:today(), end:'', members: prefill ? prefill.map(x => m(x.emoji, x.name)) : [],
            owner:null, showCur:false, curQ:'', adding:false, newName:'', errs:{}, dlg:false, prefilled:!!prefill };
 }
+/* 1 外幣 ≈ ? 台幣。台幣 X 換到 Y 外幣 → X / Y */
+function rateOf(form) {
+  const a = parseFloat(form.rateTwd), b2 = parseFloat(form.rateFor);
+  if (!Number.isFinite(a) || !Number.isFinite(b2) || b2 <= 0) return null;
+  return Math.round(a / b2 * 10000) / 10000;
+}
 function tripToForm(t) {
   return { name:t.name, currency:t.currency, start:t.start, end:t.end,
+           rateTwd:t.rateTwd ?? '', rateFor:t.rateFor ?? '',
            members:t.members.map(x => ({...x})), owner:t.owner, showCur:false, curQ:'',
            adding:false, newName:'', errs:{}, tone:t.tone, pays:[...t.pays], usedPays:t.usedPays,
            newPay:'', photo:t.photo || null, tonePick:false };
@@ -451,11 +466,13 @@ function memberRows(form, ctx) {
     const used = mem.used > 0;
     const avHtml = avatar(mem, i, true, ctx);
     const rmHtml = `<button data-rm="${ctx}:${i}" style="font-size:12px;color:${used?'#CDD3D0':'var(--gr)'};width:20px">✕</button>`;
+    // 「這是我」標記常駐在每一列右側：未選是描邊、選了填實。
+    // 讓可點性由元件自己表達，不再用「點成員，標記哪位是你」這種灰字補救。
+    const meChip = `<span class="mechip ${isMe?'on':''}">這是我</span>`;
     return `<div class="rowb ${isMe?'on':''}" data-me="${ctx}:${i}">
-      <span class="ck">${isMe?'✓':''}</span>
       ${i === 0 ? b(av, avHtml, 'inl') : avHtml}
       <span style="flex:1;font-size:13px;font-weight:600">${esc(mem.name)}</span>
-      ${isMe ? '<span class="pill ind">這是我</span>' : ''}
+      ${meChip}
       ${i === 0 && ctx === 'f' ? b(rmId, rmHtml, 'inl') : rmHtml}
     </div>`;
   }).join('');
@@ -482,7 +499,6 @@ function currencyBlock(form, ctx) {
 
 function renderS02() {
   if (!f) f = blankForm();
-  const tone = toneFor(f.name);
   $('#scr-s02').innerHTML = `
     ${b('S-02-1', `<div class="scrim" style="padding:12px 0 0"><div style="font-size:10px;color:rgba(255,255,255,.7);text-align:center;padding-bottom:8px">遮罩 · 點擊關閉</div></div>`)}
     <div class="sheet">
@@ -491,22 +507,18 @@ function renderS02() {
 
       ${b('S-02-6', `<div class="fld"><span class="lbl">去哪？</span>
         <input type="text" id="s02name" value="${esc(f.name)}" placeholder="例如：沖繩四人行">
-        ${b('S-02-19', `<p class="hint">封面會依行程名自動套目的地色調，建立後可在「編輯行程」換成照片</p>`)}
-        <div style="margin-top:7px;height:44px;border-radius:3px;background:${tone}"></div>
         ${f.errs.name ? `<p class="err">${f.errs.name}</p>` : ''}
       </div>`)}
 
       ${currencyBlock(f, 'f')}
 
       ${b('S-02-9', `<div class="fld"><div style="display:flex;gap:9px">
-        <div style="flex:1"><span class="lbl">出發</span><input type="date" id="s02start" value="${f.start}">
-          <p class="hint">預設今天</p></div>
-        <div style="flex:1"><span class="lbl">回程</span><input type="date" id="s02end" value="${f.end}" min="${f.start}">
+        <div style="flex:1;min-width:0"><span class="lbl">出發</span><input type="date" id="s02start" value="${f.start}"></div>
+        <div style="flex:1;min-width:0"><span class="lbl">回程</span><input type="date" id="s02end" value="${f.end}" min="${f.start}">
           <p class="hint">可留空＝當天來回</p></div>
       </div>${f.errs.start ? `<p class="err">${f.errs.start}</p>` : ''}</div>`)}
 
       ${b('S-02-10', `<div class="fld"><span class="lbl">誰一起去？</span>
-        <p class="hint" style="margin:0 0 8px">點成員，標記哪位是你</p>
         ${f.prefilled && f.members.length ? b('S-02-11', `<p style="font-size:11px;color:var(--wi);margin:0 0 8px">已帶入上一趟的成員，可以改</p>`) : ''}
         ${b('S-02-12', `<div class="gap">${memberRows(f, 'f')}</div>`)}
         ${f.errs.members ? `<p class="err">${f.errs.members}</p>` : ''}
@@ -514,13 +526,12 @@ function renderS02() {
           ? b('S-02-15', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
               <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:var(--md)">加一個人</p>
               <input type="text" id="s02newname" value="${esc(f.newName)}" placeholder="叫什麼名字？" maxlength="10">
-              <p class="hint" style="margin-bottom:8px">最多 10 個字。<b>不用挑 emoji</b>——沒填就用名字第一個字</p>
+              <div style="height:8px"></div>
               <div style="display:flex;gap:7px"><button class="btn qt" id="s02addcancel">取消</button><button class="btn" id="s02adddo">加進來</button></div>
             </div>`)
           : b('S-02-16', `<button id="s02add" style="margin-top:9px;width:100%;border:1px dashed #B9C1BB;border-radius:3px;padding:9px;font-size:12.5px;color:var(--md);font-weight:600">＋ 新增成員</button>`)}
       </div>`)}
 
-      ${b('S-02-17', `<div class="fld"><p class="hint" style="margin:0">標記哪位是你，統計卡的「我的花費」就會算你這一份。</p></div>`)}
       ${b('S-02-18', `<div class="btnrow"><button class="btn gh" id="s02cancel">取消</button><button class="btn" id="s02go">出發！</button></div>`)}
     </div>
     ${f.dlg ? b('S-02-20', `<div class="scrim"><div class="dlg">
@@ -558,13 +569,30 @@ function renderS02b() {
           ${b('S-02b-4', `<button class="btn qt" id="s02btone" style="padding:8px 0">重選色調</button>`)}
         </div>
         ${fb.tonePick ? b('S-02b-10', `<div style="margin-top:9px">
-          <p class="hint" style="margin:0 0 6px">色調＝目的地色系預設盤（<b>8 種</b>）。不做色票挑色器</p>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             ${TONES.map((x,i) => `<button class="tone ${fb.tone===i?'on':''}" data-tone="${i}" style="background:${x.g}" title="${x.k}"></button>`).join('')}
-            <button class="tone ${fb.tone===null?'on':''}" data-tone="auto" style="background:${FALLBACK_TONE}" title="自動（依行程名）"></button>
+            <button class="tone auto ${fb.tone===null?'on':''}" data-tone="auto" title="依行程名自動判定">自動</button>
           </div>
-          <p class="hint">最後一個是「自動依行程名判定」</p></div>`) : ''}
-        ${b('S-02b-5', `<p class="hint">上傳後會自動壓成 webp、長邊 1600px。只有你和拿到分享連結的人看得到。</p>`)}
+          </div>`) : ''}
+        ${b('S-02b-5', `<p class="hint">只有你和拿到分享連結的人看得到</p>`)}
+      </div>`)}
+
+      ${b('S-02b-12', `<div class="fld"><span class="lbl">這趟的現金匯率</span>
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--md)">台幣</span>
+          <input type="number" id="rateTwd" value="${fb.rateTwd ?? ''}" placeholder="10000" style="width:80px;min-width:0">
+          <span style="font-size:12px;color:var(--md)">換到</span>
+          <input type="number" id="rateFor" value="${fb.rateFor ?? ''}" placeholder="45000" style="width:80px;min-width:0">
+          <span style="font-size:12px;color:var(--md)">${fb.currency}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:8px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--md)">1 ${fb.currency} ≈</span>
+          <input type="number" id="rateDirect" value="${rateOf(fb) ?? ''}" placeholder="—" style="width:80px;min-width:0">
+          <span style="font-size:12px;color:var(--md)">台幣</span>
+          <span id="rateNote" style="font-size:11px;color:var(--gr)">${
+            rateOf(fb) == null ? '還沒設定' : '兩邊連動'}</span>
+        </div>
+        <p class="hint">現金與儲值卡用它換算台幣；<b>刷卡直接填台幣，不套用</b></p>
       </div>`)}
 
       ${b('S-02b-11', `<div class="fld"><span class="lbl">這趟的支付方式</span>
@@ -581,7 +609,7 @@ function renderS02b() {
           <input type="text" id="s02bnewpay" value="${esc(fb.newPay)}" placeholder="新增一種支付方式" style="flex:1">
           <button class="btn" id="s02baddpay" style="width:auto;padding:0 14px">加入</button>
         </div>
-        <p class="hint">預設<b>現金、信用卡</b>，可自訂新增與排序（⠿ 拖曳）。<b>已被使用的不可刪</b></p>
+        <p class="hint">已經有消費在用的不能刪</p>
       </div>`)}
 
       ${`<div class="fld"><span class="lbl">誰一起去？</span>
@@ -644,16 +672,16 @@ const INDEX = {
     ['S-02-7','幣別選擇','op','點開下拉'],
     ['S-02-8','幣別搜尋','op','可搜代碼或名稱，共 18 種'],
     ['S-02-9','出發／回程','op','出發預設今天；<b>回程可留空</b>'],
-    ['S-02-10','成員區標題','st','「誰一起去？／點成員，標記哪位是你」'],
+    ['S-02-10','成員區標題','st','「誰一起去？」。副標灰字已砍'],
     ['S-02-11','G-09 預填提示','op','用右側控制載入上一趟成員時才出現'],
-    ['S-02-12','成員列 · 這是我','op','整列可點切換，再點一次取消'],
+    ['S-02-12','成員列 · 這是我','op','每列右側常駐「這是我」標記，未選描邊、選了填實；整列可點'],
     ['S-02-13','成員識別圓圈','op','<b>就地編輯</b>：點圓圈變單字輸入，輸入即存、收合'],
     ['S-02-14','移除成員 ✕','op','建立模式一律可移除'],
-    ['S-02-15','新增成員展開表單','op','只要名字，<b>不必挑 emoji</b>'],
+    ['S-02-15','新增成員展開表單','op','只要名字。超過 10 字才提示，不預先說'],
     ['S-02-16','＋ 新增成員','op','展開上一項'],
-    ['S-02-17','說明文','st','只在建立模式顯示'],
+    ['S-02-17','說明文','del','已移除：在推銷功能好處。<b>功能本身未動</b>，存廢批二再談'],
     ['S-02-18','取消／出發！','op','<b>真的會建立</b>，S-01 立刻多一張卡'],
-    ['S-02-19','封面說明句','st','說明自動色調，不是控制項'],
+    ['S-02-19','封面說明句','del','已移除：建立行程不提供調色調，就不該顯示色調'],
     ['S-02-20','單日行程確認','op','回程留空按「出發！」才出現'],
   ],
   s02b: [
@@ -661,13 +689,14 @@ const INDEX = {
     ['S-02b-2','封面照片欄','op','有照片顯示照片，無則顯示目的地色調'],
     ['S-02b-3','更換照片','op','原型以示意色塊代替真實上傳'],
     ['S-02b-4','重選色調','op','展開 8 種預設盤'],
-    ['S-02b-5','上傳說明','st','壓縮規格與可見範圍'],
+    ['S-02b-5','上傳說明','st','只留「誰看得到」；壓縮規格已砍'],
     ['S-02b-6','封面 emoji','del','已移除：封面只有照片與色調兩種'],
     ['S-02b-7','成員列（唯讀態）','op','已有紀錄的成員 ✕ 呈 disabled'],
     ['S-02b-8','移除被擋的訊息','op','點 disabled 的 ✕ 才出現，用中性色不用橘紅'],
     ['S-02b-9','儲存','op','寫回 store，S-01 的卡片跟著變'],
-    ['S-02b-10','色調預設盤','op','8 種＋1 個「自動依行程名」'],
-    ['S-02b-11','這趟的支付方式','op','可新增；<b>已被使用的不可刪</b>'],
+    ['S-02b-10','色調預設盤','op','8 種色票＋一個標著「自動」的選項，不用灰字解釋'],
+    ['S-02b-11','這趟的支付方式','op','可新增；已被使用的不可刪'],
+    ['S-02b-12','這趟的現金匯率','op','「台幣 X 換到 Y 外幣」與直接填匯率<b>雙向連動</b>；現金／儲值卡用它換算，<b>刷卡不套用</b>'],
   ],
 };
 const KIND = { op:['可操作','op'], st:['靜態','st'], inv:['隱形','inv'], del:['已移除','del'] };
@@ -818,7 +847,8 @@ document.addEventListener('click', ev => {
   if (t.closest('#s02bsave')) {
     const tr = store.trips.find(x => x.id === editTripId);
     Object.assign(tr, { name:fb.name, currency:fb.currency, tone:fb.tone, photo:fb.photo,
-                        members:fb.members.map(x => ({...x})), owner:fb.owner, pays:[...fb.pays] });
+                        members:fb.members.map(x => ({...x})), owner:fb.owner, pays:[...fb.pays],
+                        rateTwd:fb.rateTwd, rateFor:fb.rateFor });
     toast('#s02btoast', '已儲存。回頭看 S-01 的卡片。');
     renderS01(); return;
   }
@@ -839,13 +869,26 @@ function createTrip() {
 /* 輸入：只寫 state，不重建正在輸入的欄位（避免游標錯亂／倒序） */
 document.addEventListener('input', ev => {
   const t = ev.target;
-  if (t.id === 's02name')    { f.name = t.value;
-    const prev = document.querySelector('#scr-s02 .fld div[style*="height:44px"]');
-    if (prev) prev.style.background = toneFor(f.name); return; }
+  if (t.id === 's02name')    { f.name = t.value; return; }   // S-02-19 已移除：建立行程不顯示色調
   if (t.id === 's02start')   { f.start = t.value; const e = document.getElementById('s02end'); if (e) e.min = f.start; return; }
   if (t.id === 's02end')     { f.end = t.value; return; }
   if (t.id === 's02newname') { f.newName = t.value; return; }
   if (t.id === 's02bnewpay') { fb.newPay = t.value; return; }
+  if (t.id === 'rateTwd' || t.id === 'rateFor') {         // 換錢金額 → 反推匯率
+    fb[t.id] = t.value;
+    const r = rateOf(fb), d = document.getElementById('rateDirect');
+    if (d && document.activeElement !== d) d.value = r ?? '';
+    const n = document.getElementById('rateNote'); if (n) n.textContent = r == null ? '還沒設定' : '兩邊連動';
+    return; }
+  if (t.id === 'rateDirect') {                            // 直接填匯率 → 反推換到多少外幣
+    const r = parseFloat(t.value), a = parseFloat(fb.rateTwd);
+    if (Number.isFinite(r) && r > 0) {
+      if (!Number.isFinite(a)) { fb.rateTwd = '10000'; const e = document.getElementById('rateTwd'); if (e) e.value = '10000'; }
+      fb.rateFor = String(Math.round(parseFloat(fb.rateTwd) / r));
+      const e2 = document.getElementById('rateFor'); if (e2 && document.activeElement !== e2) e2.value = fb.rateFor;
+    }
+    const n = document.getElementById('rateNote'); if (n) n.textContent = Number.isFinite(r) ? '兩邊連動' : '還沒設定';
+    return; }
   const cq = t.dataset.curq;
   if (cq) { const form = cq === 'f' ? f : fb; form.curQ = t.value;
     // 只重畫下拉清單，不動搜尋框本身
