@@ -213,7 +213,9 @@ const html=d.querySelector('#scr-s02').innerHTML+d.querySelector('#scr-s02b').in
 const gone=['封面會依行程名自動套','預設今天','最多 10 個字','色調＝目的地色系預設盤','最後一個是','統計卡的「我的花費」','長邊 1600px'];
 gone.forEach(g=>ok(!html.includes(g),'灰字未清除：'+g));
 console.log('   逐條確認已清除：',gone.length,'條');
-ok(d.querySelector('#scr-s02').innerHTML.includes('可留空'),'「可留空」應保留');
+// #29-2「可留空」是系統用語（講的是「你被允許不填」），改成「不填就是當天來回」。
+// 這條測試守的是「回程可以不填」這件事有講出來，那件事沒變。
+ok(d.querySelector('#scr-s02').innerHTML.includes('不填就是當天來回'),'回程可以不填這件事要講出來');
 ok(d.querySelector('#scr-s02b').innerHTML.includes('只有你和拿到分享連結的人看得到'),'隱私告知應保留');
 
 console.log('\n════════════════════════════');

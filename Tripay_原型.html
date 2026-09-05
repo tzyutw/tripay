@@ -1,4 +1,5 @@
 <title>Tripay 原型</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap">
@@ -23,11 +24,41 @@ img,table,input,pre{max-width:100%}
 .ui *{max-width:100%}
 body{margin:0;background:var(--pg);color:var(--pgink);font-family:var(--sans);font-size:15px;
   line-height:1.6;-webkit-font-smoothing:antialiased}
-button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
 input{font-family:inherit}
 h1,h2,h3{margin:0;text-wrap:balance}
 code{font-family:inherit;font-size:.9em;color:var(--mark)}
 .wrap{max-width:1240px;margin:0 auto;padding:0 22px 80px}
+
+/* ══ #29-9 真機模式 ══
+   Rozi 只能在電腦上看稿，量不準——桌機上 .ph 是 390px 顯示在大螢幕上，物理尺寸遠大於真機；
+   手機上打開又要扣掉 .wrap 的左右 22px 與外框圓角，實際只有約 349px，比真機的 393pt 又小一成。
+   兩種看法都量不準，而 #29-4 的字級調整正好需要在真機上才驗收得了。
+   手機開啟自動進入（max-width:600px 且 pointer:coarse），桌機另有開關可強制進出。 */
+html.dev, html.dev body{background:#EDEEE8}
+html.dev .wrap{max-width:none;padding:0}
+html.dev .top, html.dev header, html.dev footer,
+html.dev .scrhd, html.dev .rig, html.dev .idx, html.dev .cnt, html.dev .phcap{display:none!important}
+html.dev .b .bdg{display:none!important}
+html.dev .scr{display:none;padding:0;border-top:0;grid-template-columns:1fr;gap:0}
+html.dev .scr.devon{display:block}
+html.dev .phwrap{position:static}
+html.dev .ph{width:100%;border:0;border-radius:0;box-shadow:none}
+html.dev body{padding-bottom:54px}
+#devbar{display:none}
+html.dev #devbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:300;
+  background:rgba(255,255,255,.96);border-top:1px solid var(--ln);backdrop-filter:blur(8px)}
+#devbar .hd{display:flex;align-items:center;gap:8px;padding:8px 12px}
+#devbar .hd b{font-size:13px;font-weight:600;color:#151C21}
+#devbar .hd button{margin-left:auto;font-size:13px;color:#0F5E9E;font-weight:600;padding:6px 8px}
+#devbar .list{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 12px}
+#devbar .list button{font-size:13px;padding:6px 11px;border:1px solid var(--ln);
+  border-radius:999px;background:#fff;color:#4C5B64}
+#devbar .list button.on{background:#1276C4;border-color:#1276C4;color:#fff;font-weight:600}
+html.devmin #devbar .list{display:none}
+#devtoggle{display:none;margin-left:8px;font-size:12.5px;font-weight:600;padding:7px 12px;
+  border:1px solid var(--pgrule);border-radius:3px;color:var(--pgink2);background:var(--pg2)}
+@media(pointer:fine){#devtoggle{display:inline-flex}}
 
 /* ══ 頂列 ══ */
 .top{position:sticky;top:0;z-index:200;background:var(--pg);border-bottom:1px solid var(--pgrule);
@@ -99,8 +130,11 @@ header p{margin:12px 0 0;max-width:74ch;color:var(--pgink2);font-size:14.5px}
    修法：只在標註模式替 .b 撐開上緣的空間，徽章放進那段空間裡。
    操作模式一個 px 都不動——標註是輔助層，不能改變被標註的東西。 */
 html.anno .b{outline:1px dashed rgba(78,163,232,.55);outline-offset:1px;padding-top:12px}
-.b>.bdg{display:none}
-html.anno .b>.bdg{display:block;position:absolute;top:0;left:0;z-index:40;height:11px;
+/* #29-8a 原本寫成直接子選擇器 .b>.bdg，中間多包一層就蓋不到——S-06 統計卡的
+   S-06-4／S-06-6 兩個編號因此在**操作模式下**直接印在分享頁上，那是旅伴看得到的畫面。
+   改成後代選擇器，巢狀幾層都蓋得到。 */
+.b .bdg{display:none}
+html.anno .b .bdg{display:block;position:absolute;top:0;left:0;z-index:40;height:11px;
   font-size:8px;letter-spacing:.03em;line-height:11px;
   padding:0 4px;border-radius:2px;background:rgba(18,118,196,.94);color:#fff;cursor:pointer}
 /* .rt 只用在「內容靠右、徽章靠左會看起來脫節」的情況。
@@ -109,44 +143,73 @@ html.anno .b>.bdg{display:block;position:absolute;top:0;left:0;z-index:40;height
 html.anno .b.rt>.bdg{left:auto;right:0}
 .b.inl{display:inline-flex}
 html.anno .b.inl>.bdg{top:0;left:0}
-html.anno .b>.bdg:hover{background:#0F5E9E}
+html.anno .b .bdg:hover{background:#0F5E9E}
 
 /* ══ 產品 UI（日記精裝 tokens）══ */
-.ui{background:#EDEEE8;color:#151C21;font-size:13px;line-height:1.5;
+.ui{background:#EDEEE8;color:#151C21;font-size:var(--fs-body);line-height:1.5;
+  /* #29-4 字級階梯，向 iOS 原生對齊（HIG：iOS 內文 17pt、最小 11pt）。
+     改前全站 14px 以下有 10 個不同字級、沒有階梯，內文只有 12.5px——約原生的七成，
+     這才是 Rozi 一路覺得「字偏小」的來源，不是某幾處特別小。
+     --fs-input 的 16px 是硬性下限：iOS Safari 在點進字級 <16px 的輸入框時會自動放大整頁。 */
+  --fs-tag:12px;      /* 標記類（不成句）：狀態徽章、各付各的、單位、「自動」標 */
+  --fs-sub:13px;      /* 輔助資訊與提示句：付款人、日期、.hint、email */
+  --fs-body:15px;     /* 內文：消費名稱、chip／seg 選項、欄位標籤、按鈕 */
+  --fs-input:16px;    /* 所有輸入框——iOS Safari 的硬性下限，不得再小 */
+  --fs-strong:17px;   /* 區塊強調：成員名字、對話框標題、區塊主標 */
+  --fs-title:20px;    /* 頁面標題、行程名；純 emoji 圖示也用這一階 */
+  --fs-money:16px;    /* 消費列、轉帳列的金額 */
+  --fs-money-lg:26px; /* 統計卡主數字 */
+  --fs-logo:44px;     /* 登入頁字標。這是圖形識別，不屬於文字階梯——唯一的例外 */
   --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#9B1B14;   /* #25-8 destructive 比提醒深一階；白字對比 7.7:1 */
-  --ln:#DFE1DA;--gr:#78878F;--md:#4C5B64;position:relative}
+  --ln:#DFE1DA;--gr:#6A7980;--md:#4C5B64;position:relative}
+/* #29-3 placeholder 從來沒有被設定樣式，用的是瀏覽器預設的中性灰 #757575——
+   它比「分帳方式」的未選項目還深，層級整個顛倒；而且 #757575 是純中性灰，
+   與 Tripay 帶青藍調的 --gr 不同色系，等於脫離設計系統。
+   #29-7 --gr 由 #78878F 調深到 #6A7980：白底對比從 3.7:1 提高到 4.51:1，
+   過 WCAG AA。旅遊情境多半在戶外，灰字看不清楚是真的會發生的事。 */
+.ui ::placeholder{color:var(--gr);opacity:1}
+.ui ::-webkit-input-placeholder{color:var(--gr);opacity:1}
 /* 金額：不靠字體差異，改靠字重與 tabular-nums 對齊 */
-.ui .money{font-variant-numeric:tabular-nums;font-weight:600}
+.ui .money{font-variant-numeric:tabular-nums;font-weight:600;font-size:var(--fs-money)}
 .ic{display:inline-block;vertical-align:-.15em;flex:none}
 /* S-00-5 整頁唯一動作。白底深字、與任何「選取態」的語彙都不同 */
 .gbtn{width:min(250px,100%);height:48px;background:#fff;border-radius:4px;
   display:flex;align-items:center;justify-content:center;gap:10px;
-  font-size:14px;font-weight:600;color:#151C21;box-shadow:0 1px 3px rgba(0,0,0,.24)}
+  font-size:var(--fs-body);font-weight:600;color:#151C21;box-shadow:0 1px 3px rgba(0,0,0,.24)}
 .gmark{flex:none}
 .ui .tnum{font-variant-numeric:tabular-nums}
 .ui .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;
   background:#fff;border-bottom:1px solid var(--ln)}
-.ui .lbl{display:block;font-size:11.5px;font-weight:600;color:var(--md);margin-bottom:6px}
-.ui .hint{font-size:10.5px;color:var(--gr);margin:5px 0 0;line-height:1.45}
-.ui .err{font-size:10.5px;color:var(--out);margin:5px 0 0}
+.ui .lbl{display:block;font-size:var(--fs-body);font-weight:600;color:var(--md);margin-bottom:6px}
+.ui .hint{font-size:var(--fs-sub);color:var(--gr);margin:5px 0 0;line-height:1.45}
+.ui .err{font-size:var(--fs-sub);color:var(--out);margin:5px 0 0}
 .ui .fld{padding:0 14px 14px}
 .ui input[type=text],.ui input[type=number],.ui input[type=date]{width:100%;background:#fff;
-  border:1px solid var(--ln);border-radius:3px;padding:9px 10px;font-size:13px;color:#151C21;outline:none}
+  border:1px solid var(--ln);border-radius:3px;padding:9px 10px;font-size:var(--fs-input);color:#151C21;outline:none}
 .ui input:focus{border-color:var(--w)}
 .ui input[type=date]{min-width:0}   /* 原生 date 有內建最小寬，不設會撐爆窄螢幕 */
-.ui .btn{width:100%;background:var(--w);color:#fff;font-size:14px;font-weight:600;padding:11px 0;
+.ui .btn{width:100%;background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:11px 0;
   border-radius:3px;text-align:center}
 .ui .btn.gh{background:#fff;color:var(--wi);border:1px solid var(--w)}
 .ui .btn.qt{background:#fff;color:var(--md);border:1px solid var(--ln)}
 .ui .btn.dg{background:var(--dg);color:#fff}
 .ui .btn:disabled{opacity:.4;cursor:not-allowed}
 .ui .btnrow{display:flex;gap:8px;padding:12px 14px 16px;background:#EDEEE8;border-top:1px solid var(--ln)}
+/* #29-8b 分頁與「選一個值」是兩種層級，不能長一樣。
+   .tabs＝切換整頁看什麼（iOS 原生風格：淺灰底軌、選中是白色 pill）；
+   .seg＝欄位內的二選一（實心主色填滿）。兩個大藍塊上下相鄰時，
+   視覺重量會壓過它們之間的統計卡——那才是這一頁的主角。 */
+.ui .tabs{display:flex;gap:2px;background:#E2E4DD;border-radius:8px;padding:2px}
+.ui .tabs button{flex:1;padding:7px 0;font-size:var(--fs-body);font-weight:600;
+  color:var(--md);background:transparent;border-radius:6px}
+.ui .tabs button.on{background:#fff;border:1px solid var(--ln);color:#151C21;
+  box-shadow:0 1px 2px rgba(0,0,0,.06)}
 .ui .seg{display:flex;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
-.ui .seg button{flex:1;padding:8px 0;font-size:12px;background:#fff;color:var(--gr);border-right:1px solid var(--ln)}
+.ui .seg button{flex:1;padding:8px 0;font-size:var(--fs-body);background:#fff;color:var(--md);border-right:1px solid var(--ln)}
 .ui .seg button:last-child{border-right:0}
 .ui .seg button.on{background:var(--w);color:#fff;font-weight:600}
 .ui .chips{display:flex;gap:6px;flex-wrap:wrap}
-.ui .chip{font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--ln);background:#fff;color:var(--md)}
+.ui .chip{font-size:var(--fs-body);padding:5px 10px;border-radius:999px;border:1px solid var(--ln);background:#fff;color:var(--md)}
 .ui .chip.on{background:var(--w);border-color:var(--w);color:#fff;font-weight:600}
 /* #22-4：這不是「選一個人」，形狀與成員 chip 明確不同 */
 .ui .chip.alt{border-radius:3px;border-style:dashed}
@@ -160,7 +223,7 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 /* 全站唯一的「選取／未選取」語彙：未選＝描邊、選了＝填實工作色。
    S-04 的分給誰／贊助／大家各付各的都用同一個。 */
-.ui .selchip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;flex:none;
+.ui .selchip{font-size:var(--fs-tag);font-weight:600;padding:3px 9px;border-radius:999px;flex:none;
   border:1px solid var(--ln);color:#A9B2B7;background:#fff;display:inline-flex;align-items:center;gap:3px}
 .ui .selchip.on{border-color:var(--w);background:var(--w);color:#fff}
 /* #20-1 金額欄一行：幣別標籤固定寬靠左，輸入框吃剩餘寬度。
@@ -169,29 +232,29 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .amtline{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
   border-radius:3px;padding:7px 10px}
 .ui .amtline.needfill{border-color:var(--out);background:#FBF0EC}
-.ui .amtline .cur{width:58px;flex:none;font-size:11.5px;font-weight:600;color:var(--md)}
+.ui .amtline .cur{width:58px;flex:none;font-size:var(--fs-body);font-weight:600;color:var(--md)}
 .ui .amtline input{flex:1;min-width:0;border:0;background:transparent;padding:2px 0;
-  font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;text-align:right}
+  font-size:var(--fs-input);font-weight:500;font-variant-numeric:tabular-nums;text-align:right}
 .ui .amtline input:focus{border:0;outline:none}
 /* #22-9：各自金額一列一人——emoji 名字靠左、輸入框靠右。
    先前漏掉這條 CSS，div 退回 block，名字與輸入框才會堆成兩行。 */
 .ui .amtrow{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
   border-radius:3px;padding:7px 10px}
 .ui .amtrow input{width:96px;flex:none;text-align:right;background:#F4F5F1;padding:5px 8px;
-  border:1px solid transparent;font-size:13px;font-variant-numeric:tabular-nums}
+  border:1px solid transparent;font-size:var(--fs-input);font-variant-numeric:tabular-nums}
 .ui .amtrow input:focus{border-color:var(--w);background:#fff}
 .ui .amtrow input.auto{color:#9AA5AB}
 /* #22-10-1：表單欄位的標籤與輸入框同列 */
 .ui .fieldrow{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
   border-radius:3px;padding:7px 10px}
-.ui .fieldrow>.lbl{display:block;width:58px;flex:none;margin:0;font-size:11.5px}
-.ui .fieldrow>input{flex:1;min-width:0;border:0;background:transparent;padding:2px 0;font-size:13px}
+.ui .fieldrow>.lbl{display:block;width:58px;flex:none;margin:0;font-size:var(--fs-body)}
+.ui .fieldrow>input{flex:1;min-width:0;border:0;background:transparent;padding:2px 0;font-size:var(--fs-input)}
 .ui .fieldrow>input:focus{border:0;outline:none}
 .ui .fieldrow.wide>.lbl{width:auto}
-.ui .autotag{font-size:8.5px;letter-spacing:.06em;color:var(--gr);
+.ui .autotag{font-size:var(--fs-tag);letter-spacing:.06em;color:var(--gr);
   border:1px solid var(--ln);border-radius:2px;padding:1px 4px;flex:none}
 /* R9 差額三級：剛好／淡色／橘色警示，三種都可存檔 */
-.ui .cmp{margin-top:8px;border-radius:3px;padding:8px 10px;font-size:12px;font-weight:500;
+.ui .cmp{margin-top:8px;border-radius:3px;padding:8px 10px;font-size:var(--fs-sub);font-weight:500;
   display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
   font-variant-numeric:tabular-nums}
 .ui .cmp .d{font-weight:600;display:inline-flex;align-items:center}
@@ -199,36 +262,36 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .cmp.ok{background:#EAF3E9;border:1px solid #C9DFC8;color:var(--in)}
 .ui .cmp.soft{background:#F4F5F1;border:1px solid var(--ln);color:var(--md)}
 .ui .cmp.bad{background:#FBF0EC;border:1px solid #E8C4B8;color:var(--out)}
-.ui .pill{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:999px;border:1px solid;line-height:1.6}
+.ui .pill{font-size:var(--fs-tag);font-weight:600;padding:2px 7px;border-radius:999px;border:1px solid;line-height:1.6}
 .ui .pill.ind{color:var(--wi);border-color:#BFD9EE;background:#EEF5FB}
 .ui .pill.gr{color:var(--md);border-color:var(--ln);background:#F4F5F1}
 .ui .stamp{display:inline-block;border:1px solid rgba(255,255,255,.72);color:#fff;
-  font-size:9px;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:2px}
+  font-size:var(--fs-tag);font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:2px}
 .ui .sheet{background:#EDEEE8;border-radius:14px 14px 0 0;overflow:hidden}
 .ui .grab{width:30px;height:3px;border-radius:2px;background:#CBD1CC;margin:9px auto 2px}
 .ui .shd{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 10px}
-.ui .shd h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
-.ui .x{width:24px;height:24px;border-radius:50%;background:#E2E5DE;color:var(--md);font-size:11px;
+.ui .shd h3{font-size:var(--fs-strong);font-weight:700;letter-spacing:-.01em}
+.ui .x{width:24px;height:24px;border-radius:50%;background:#E2E5DE;color:var(--md);font-size:var(--fs-tag);
   display:flex;align-items:center;justify-content:center;flex:none}
 .ui .scrim{background:rgba(20,28,33,.45);padding:18px 0}
 .ui .dlg{background:#fff;border:1px solid var(--ln);border-radius:4px;margin:0 18px;padding:16px}
 .ui .empty{padding:38px 22px;text-align:center}
-.ui .empty p{margin:0;font-size:13.5px;font-weight:600}
-.ui .empty p+p{font-size:11.5px;color:var(--gr);font-weight:400;margin-top:5px}
+.ui .empty p{margin:0;font-size:var(--fs-strong);font-weight:600}
+.ui .empty p+p{font-size:var(--fs-sub);color:var(--gr);font-weight:400;margin-top:5px}
 .ui .spin{padding:34px 0;text-align:center}
 .ui .spin i{display:inline-block;width:20px;height:20px;border:2px solid var(--w);
   border-top-color:transparent;border-radius:50%;font-style:normal}
 @media(prefers-reduced-motion:no-preference){.ui .spin i{animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}}
 .ui .toast{position:absolute;left:14px;right:14px;bottom:14px;z-index:60;background:#151C21;color:#fff;
-  font-size:12.5px;padding:10px 13px;border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+  font-size:var(--fs-body);padding:10px 13px;border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
 
 
 /* ══ 批二：S-03 / S-03d / S-04 / S-05 ══ */
 .ui .hero{padding:30px 14px 13px;color:#fff;position:relative}
 .ui .hero .sc{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 34%,rgba(0,0,0,.5))}
 .ui .hero .navrow{position:relative;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.ui .hero .nb{font-size:12px;font-weight:600;color:rgba(255,255,255,.92)}
+.ui .hero .nb{font-size:var(--fs-body);font-weight:600;color:rgba(255,255,255,.92)}
 .ui .hero .icons{display:flex;gap:6px}
 /* #28-7 原本 26×26 沒有邊框、icon 只有 15px，可點區遠低於 44 的最小觸控標準。
    改成 40×40 正圓＋一圈線，icon 20px；可點區靠外距撐到 44，容器本身維持 40。
@@ -238,54 +301,62 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
   background:#fff;border:1px solid var(--ln);color:var(--md)}
 .ui .ic2::after{content:'';position:absolute;left:-2px;top:-2px;width:44px;height:44px}
 .ui .hero .ic2{background:rgba(0,0,0,.28);border-color:rgba(255,255,255,.35);color:#fff}
-.ui .hero .tt{position:relative;font-size:19px;font-weight:700;letter-spacing:-.01em}
-.ui .hero .dt{position:relative;font-size:11px;color:rgba(255,255,255,.86);margin-top:4px}
+.ui .hero .tt{position:relative;font-size:var(--fs-title);font-weight:700;letter-spacing:-.01em}
+.ui .hero .dt{position:relative;font-size:var(--fs-sub);color:rgba(255,255,255,.86);margin-top:4px}
 .ui .statcard{background:#fff;border-bottom:1px solid var(--ln)}
 .ui .statcard .tot{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;
   width:100%;text-align:left}
 .ui .statcard .totright{display:flex;align-items:center;gap:8px;color:var(--gr)}
-.ui .approx{font-style:normal;font-size:12px;font-weight:600;color:var(--wi);margin-right:3px}
+.ui .approx{font-style:normal;font-size:var(--fs-tag);font-weight:600;color:var(--wi);margin-right:3px}
 .ui .statcard .tot .money{border-bottom:0}
 .ui .totright:has(.approx) .money{border-bottom:1px dashed var(--w)}
 .ui .perlist{border-top:1px solid #F1F2EE}
-.ui .statcard .tot span{font-size:11.5px;color:var(--gr)}
-.ui .statcard .tot b{font-size:20px;font-weight:600;letter-spacing:-.02em}
+.ui .statcard .tot span{font-size:var(--fs-body);color:var(--gr)}
+.ui .statcard .tot b{font-size:var(--fs-money-lg);font-weight:600;letter-spacing:-.02em}
 .ui .perlist{display:flex;flex-direction:column}
+/* 句子裡的金額跟著那一行的字級走——放大會把句子拆散 */
+.ui .money.inline{font-size:inherit}
+.ui .perrow.ro{cursor:default}
 .ui .perrow{display:flex;align-items:center;gap:9px;padding:8px 14px;width:100%;text-align:left;
   border-bottom:1px solid #F5F6F3}
 .ui .perrow:last-child{border-bottom:0}
-.ui .perrow .av{font-size:15px;width:20px;text-align:center;flex:none}
-.ui .perrow .nm{flex:1;font-size:12.5px;font-weight:600}
-.ui .perrow .am{font-size:13px;font-weight:600;display:flex;align-items:baseline;gap:3px}
+.ui .perrow .av{font-size:var(--fs-title);width:20px;text-align:center;flex:none}
+.ui .perrow .nm{flex:1;font-size:var(--fs-body);font-weight:600}
+.ui .perrow .am{font-size:var(--fs-money);font-weight:600;display:flex;align-items:baseline;gap:3px}
 .ui .perrow .am.ap{color:var(--wi)}
 .ui .perrow .am.ap .money{border-bottom:1px dashed var(--w)}
-.ui .perrow .am i{font-style:normal;font-size:11px;color:var(--gr)}
-.ui .statcard .foot{padding:8px 14px 11px;font-size:10.5px;color:var(--gr)}
+.ui .perrow .am i{font-style:normal;font-size:var(--fs-tag);color:var(--gr)}
+.ui .statcard .foot{padding:8px 14px 11px;font-size:var(--fs-sub);color:var(--gr)}
 .ui .curswitch{padding:10px 14px;background:#fff;border-bottom:1px solid var(--ln)}
-.ui .listhd{padding:14px 14px 4px;font-size:11px;font-weight:600;color:var(--gr)}
+.ui .listhd{padding:14px 14px 4px;font-size:var(--fs-sub);font-weight:600;color:var(--gr)}
 .ui .unsettled{display:flex;align-items:center;justify-content:space-between;width:100%;
   margin:0 0 4px;padding:10px 14px;background:#FBF0EC;border-top:1px solid #E8C4B8;
-  border-bottom:1px solid #E8C4B8;font-size:12.5px;font-weight:600;color:var(--out);text-align:left}
+  border-bottom:1px solid #E8C4B8;font-size:var(--fs-body);font-weight:600;color:var(--out);text-align:left}
 .ui .exprow{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
   margin:0 14px 5px;width:calc(100% - 28px);background:#fff;border:1px solid var(--ln);
   border-radius:3px;padding:8px 10px}
 .ui .exprow.pend{border-left:2px solid var(--out)}
-.ui .exprow .ic{font-size:17px;width:24px;text-align:center;flex:none}
+.ui .exprow .ic{font-size:var(--fs-title);width:24px;text-align:center;flex:none}
 .ui .exprow .mid{flex:1;min-width:0;display:flex;flex-direction:column}
-.ui .exprow .t{font-size:12.5px;font-weight:600}
-.ui .exprow .s{font-size:9.5px;color:var(--gr);margin-top:2px;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
-.ui .exprow .a{font-size:12.5px;font-weight:600;text-align:right;flex:none}
-.ui .delrow{padding:14px;text-align:center;font-size:11px;color:var(--dg)}
+.ui .exprow .t{font-size:var(--fs-body);font-weight:600}
+.ui .exprow .s{font-size:var(--fs-sub);color:var(--gr);margin-top:2px;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.ui .exprow .a{font-size:var(--fs-money);font-weight:600;text-align:right;flex:none}
+.ui .delrow{padding:14px;text-align:center;font-size:var(--fs-body);color:var(--dg)}
 .ui .delrow span{border-bottom:1px solid #D7BCB2;display:inline-flex;align-items:center;gap:4px}
 .ui .mrule{height:1px;background:var(--ln);margin:0 -14px}
-.ui .shopt.del .t{color:var(--dg)}
+.ui .shopt{display:flex;align-items:center;gap:10px}
+.ui .shopt svg{color:var(--md);flex:none}
+/* ⋯ 選單的項目是「可點的選項」＝二階（--md），與 chip／seg 未選同一階。
+   S-03b 分享選單的 .shopt 不受影響——那裡的標題是內容本身。 */
+.ui .shopt.mi .t{color:var(--md)}
+.ui .shopt.del svg,.ui .shopt.del .t{color:var(--dg)}
 .ui .shopt{padding:11px 0;border-bottom:1px solid var(--ln)}
 .ui .shopt.last{border-bottom:0}
-.ui .shopt .t{margin:0;font-size:12.5px;font-weight:600}
-.ui .shopt .s{margin:2px 0 0;font-size:10.5px;color:var(--gr)}
+.ui .shopt .t{margin:0;font-size:var(--fs-body);font-weight:600}
+.ui .shopt .s{margin:2px 0 0;font-size:var(--fs-sub);color:var(--gr)}
 .ui .sharedhead{display:flex;align-items:center;justify-content:space-between;gap:10px;
   background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px}
-.ui .expandbtn{border:1px solid var(--w);color:var(--wi);font-size:11.5px;font-weight:600;
+.ui .expandbtn{border:1px solid var(--w);color:var(--wi);font-size:var(--fs-body);font-weight:600;
   padding:6px 10px;border-radius:3px;flex:none}
 .ui .paysep{width:1px;align-self:stretch;background:var(--ln);margin:0 2px}
 .ui .ratelink{color:var(--wi);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:2px}
@@ -333,16 +404,25 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .anim.fold .trail{clip-path:inset(-12% 0 -12% 0);opacity:.35}
 .ui .txrow{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--ln);
   border-radius:3px;padding:9px 10px;margin:0 14px 6px}
-.ui .txrow .who{font-size:12.5px;font-weight:600}
-.ui .txrow .gv{font-size:11px;color:var(--gr)}
-.ui .txrow .amt{margin-left:auto;font-size:13px;display:inline-flex;align-items:baseline}
-.ui .txhead{padding:12px 14px 4px;font-size:12.5px;font-weight:600}
-.ui .txtitle{padding:0 14px 2px;font-size:15px;font-weight:700}
-.ui .txsub{padding:0 14px 10px;font-size:10.5px;color:var(--gr)}
+.ui .txrow .who{font-size:var(--fs-body);font-weight:600}
+.ui .txrow .gv{font-size:var(--fs-sub);color:var(--gr)}
+.ui .txrow .amt{margin-left:auto;font-size:var(--fs-money);display:inline-flex;align-items:baseline}
+.ui .txhead{padding:12px 14px 4px;font-size:var(--fs-body);font-weight:600}
+.ui .txtitle{padding:0 14px 2px;font-size:var(--fs-strong);font-weight:700}
+.ui .txsub{padding:0 14px 10px;font-size:var(--fs-sub);color:var(--gr)}
 /* #28-2 .sec 一直沒有樣式定義，凡是用它的地方都是裸 div——文字頂到 x=0、字級偏大、
    顏色不是灰的，三件事同一個根因。與 .txsec 對齊同一套語彙，左內距 14px，
    和卡片、統計卡、.fld 同一條 x 軸。 */
-.ui .sec{padding:10px 14px 5px;font-size:10.5px;font-weight:600;color:var(--gr)}
+/* #29-1 日期列：不是輸入欄，是狀態列——高度明顯低於一個欄位列，整條可點。
+   原生 date input 疊在上面透明化，點哪裡都能開，不新造第三種日期選擇方式。 */
+.ui .daterow{position:relative;display:flex;align-items:center;gap:6px;width:100%;
+  padding:7px 14px;background:#E6E8E1;border-bottom:1px solid var(--ln);color:var(--gr);text-align:left}
+.ui .daterow .k{font-size:var(--fs-sub);color:var(--gr)}
+.ui .daterow .v{font-size:var(--fs-sub);font-weight:600;color:#151C21}
+.ui .daterow svg{margin-left:auto;color:var(--gr)}
+.ui .daterow input[type=date]{position:absolute;inset:0;width:100%;height:100%;
+  opacity:0;border:0;padding:0;font-size:var(--fs-input)}
+.ui .sec{padding:10px 14px 5px;font-size:var(--fs-sub);font-weight:600;color:var(--gr)}
 /* 結算分頁是把 S-05 的輸出整段借過來的。S-05 自己帶著導覽列（‹ 結算），
    放進分頁裡就變成兩顆返回鍵疊在一起。用 CSS 收起來，**不動 S-05 的輸出**。 */
 .ui #s03settlepane > .b:has(> .bar), .ui #s03settlepane > .bar{display:none}
@@ -352,23 +432,23 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .stats > .b{flex:1;min-width:0}
 .ui .stats > .b + .b{border-left:1px solid #F1F2EE}
 .ui .stats > .b > div{padding:11px 14px;text-align:center}
-.ui .stats b{display:block;font-size:16px;font-weight:600}
-.ui .stats span{display:block;font-size:9.5px;color:var(--gr);margin-top:3px}
-.ui .txsec{padding:10px 14px 5px;font-size:10.5px;font-weight:600;color:var(--gr)}
-.ui .txempty{margin:0 14px;padding:14px;text-align:center;font-size:12.5px;color:var(--gr);
+.ui .stats b{display:block;font-size:var(--fs-money);font-weight:600}
+.ui .stats span{display:block;font-size:var(--fs-sub);color:var(--gr);margin-top:3px}
+.ui .txsec{padding:10px 14px 5px;font-size:var(--fs-sub);font-weight:600;color:var(--gr)}
+.ui .txempty{margin:0 14px;padding:14px;text-align:center;font-size:var(--fs-body);color:var(--gr);
   background:#fff;border:1px solid var(--ln);border-radius:3px}
-.ui .clearbtn{border:1px solid var(--w);color:var(--wi);font-size:10px;font-weight:600;
+.ui .clearbtn{border:1px solid var(--w);color:var(--wi);font-size:var(--fs-body);font-weight:600;
   padding:3px 8px;border-radius:3px;flex:none}
-.ui .cleared{font-size:10px;font-weight:600;color:var(--in);display:inline-flex;align-items:center;gap:3px;flex:none}
+.ui .cleared{font-size:var(--fs-tag);font-weight:600;color:var(--in);display:inline-flex;align-items:center;gap:3px;flex:none}
 .ui .detailtoggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 28px);
-  margin:0 14px;padding:11px 0;border-top:1px solid var(--ln);font-size:12px;font-weight:600;color:var(--md)}
-.ui .detailhd,.ui .detailrow{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:4px;padding:6px 9px;font-size:10.5px}
+  margin:0 14px;padding:11px 0;border-top:1px solid var(--ln);font-size:var(--fs-body);font-weight:600;color:var(--md)}
+.ui .detailhd,.ui .detailrow{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:4px;padding:6px 9px;font-size:var(--fs-sub)}
 .ui .detailhd{color:var(--gr);border-bottom:1px solid var(--ln);font-weight:600}
 .ui .detailhd span:not(:first-child),.ui .detailrow span:not(:first-child){text-align:right}
 .ui .detailrow{border-bottom:1px solid #F5F6F3}
 .ui .detailrow:last-child{border-bottom:0}
-.ui .bar .bk{font-size:12px;font-weight:600;color:var(--wi)}
-.ui .bar .ttl{font-size:13px;font-weight:600;color:var(--md)}
+.ui .bar .bk{font-size:var(--fs-body);font-weight:600;color:var(--wi)}
+.ui .bar .ttl{font-size:var(--fs-body);font-weight:600;color:var(--md)}
 
 /* 行程卡 */
 .ui .tcard{margin:11px 14px 0;background:#fff;padding:4px;border:1px solid var(--ln);border-radius:3px;
@@ -376,35 +456,35 @@ html.anno .b>.bdg:hover{background:#0F5E9E}
 .ui .tcard .img{height:150px;position:relative;padding:10px;display:flex;flex-direction:column;
   justify-content:flex-end;border-radius:2px;overflow:hidden}
 .ui .tcard .sc{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 38%,rgba(0,0,0,.46))}
-.ui .tcard .nm{position:relative;color:#fff;font-size:17px;font-weight:700;letter-spacing:-.01em;margin-top:6px}
-.ui .tcard .dt{position:relative;font-size:10.5px;color:rgba(255,255,255,.9);margin-top:3px;
+.ui .tcard .nm{position:relative;color:#fff;font-size:var(--fs-strong);font-weight:700;letter-spacing:-.01em;margin-top:6px}
+.ui .tcard .dt{position:relative;font-size:var(--fs-sub);color:rgba(255,255,255,.9);margin-top:3px;
   font-variant-numeric:tabular-nums}
 .ui .ghost{margin:11px 14px 0;border:1px solid var(--ln);border-radius:3px;overflow:hidden;opacity:.78;
   display:block;width:calc(100% - 28px)}
 .ui .ghost div{height:60px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#DCDED6,#C9CDC3);font-size:13.5px;color:#5C6660}
+  background:linear-gradient(135deg,#DCDED6,#C9CDC3);font-size:var(--fs-body);color:#5C6660}
 .ui .avatar{width:28px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;
-  font-size:15px;background:#fff;border:1px solid var(--ln);flex:none;overflow:hidden}
-.ui .avatar.letter{color:#fff;font-size:13px;font-weight:700;border-color:transparent}
-.ui .avatar input{width:100%;height:100%;text-align:center;padding:0;border:0;background:#fff;font-size:15px}
+  font-size:var(--fs-title);background:#fff;border:1px solid var(--ln);flex:none;overflow:hidden}
+.ui .avatar.letter{color:#fff;font-size:var(--fs-body);font-weight:700;border-color:transparent}
+.ui .avatar input{width:100%;height:100%;text-align:center;padding:0;border:0;background:#fff;font-size:var(--fs-input)}
 .ui .ratebox{background:#fff;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
 .ui .raterow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #F1F2EE}
 .ui .raterow:last-child{border-bottom:0}
-.ui .raterow .flag{font-size:19px;flex:none;line-height:1}
-.ui .raterow .code{font-size:11.5px;font-weight:600;color:var(--gr);flex:none;width:34px;text-align:right}
+.ui .raterow .flag{font-size:var(--fs-title);flex:none;line-height:1}
+.ui .raterow .code{font-size:var(--fs-body);font-weight:600;color:var(--gr);flex:none;width:34px;text-align:right}
 .ui .rateinput{flex:1;min-width:0;border:0;background:transparent;padding:4px 0;
-  font-variant-numeric:tabular-nums;font-size:20px;font-weight:600;
+  font-variant-numeric:tabular-nums;font-size:var(--fs-title);font-weight:600;
   color:#151C21;letter-spacing:-.02em}
 .ui .rateinput:focus{border:0;outline:none}
 .ui .ratebox.editing .rateinput{color:#A9B2B7}
 .ui .ratebox.editing .rateinput:focus{color:#151C21}
 .ui .tone{width:32px;height:32px;border-radius:3px;flex:none}
-.ui .tone.auto{width:auto;padding:0 10px;height:32px;font-size:11px;font-weight:600;color:var(--md);
+.ui .tone.auto{width:auto;padding:0 10px;height:32px;font-size:var(--fs-body);font-weight:600;color:var(--md);
   background:#fff;border:1px dashed #B9C1BB}
 .ui .tone.on{outline:2px solid var(--w);outline-offset:1px}
 .ui .drop{margin-top:6px;border:1px solid var(--ln);background:#fff;border-radius:3px;
   max-height:190px;overflow-y:auto}
-.ui .drop button{width:100%;padding:8px 10px;font-size:12px;display:flex;justify-content:space-between;
+.ui .drop button{width:100%;padding:8px 10px;font-size:var(--fs-body);display:flex;justify-content:space-between;
   border-bottom:1px solid #F1F2EE;text-align:left}
 .ui .drop button:last-child{border-bottom:0}
 .ui .drop button.on{color:var(--wi);font-weight:600}
@@ -420,6 +500,7 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
     <button data-m="anno">標註模式</button>
     <button data-m="op">操作模式</button>
   </div>
+  <button id="devtoggle">真機模式</button>
 </div>
 
 <div class="wrap">
@@ -597,7 +678,7 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
     <p class="phcap">/share/:token</p>
     <div class="ph"><div class="ui" id="scr-s06"></div></div>
   </div>
-  <div><p class="cnt">編號清單 · 13 項</p><div class="idx" id="idx-s06"></div></div>
+  <div><p class="cnt">編號清單 · 15 項</p><div class="idx" id="idx-s06"></div></div>
 </section>
 
 <!-- ══════════ S-07 ══════════ -->
@@ -613,6 +694,8 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
   </div>
   <div><p class="cnt">編號清單 · 8 項</p><div class="idx" id="idx-s07"></div></div>
 </section>
+
+<div id="devbar"></div>
 
 <footer>
   Tripay · 唯一原型 · 批一（S-00／S-01／S-02／S-02b）· 2026-09-04<br>
@@ -679,6 +762,7 @@ const ICON = {
   warn:    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
   close:   '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
   more:    '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+  archive: '<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>',
 };
 const ICON_STROKE = 1.7;   /* 全站唯一線寬，在 24 格上量 */
 function ic(name, size) {
@@ -825,17 +909,17 @@ function renderS00() {
   $('#scr-s00').innerHTML = `
     <div style="background:linear-gradient(158deg,#0B2233 0%,#0F5E9E 48%,#1276C4 100%);
       padding:64px 26px 30px;display:flex;flex-direction:column;align-items:center;min-height:520px">
-      ${b('S-00-2', `<div style="color:#fff;font-size:42px;font-weight:700;letter-spacing:-.03em;line-height:1">Tripay</div>`)}
-      ${b('S-00-3', `<div style="color:rgba(255,255,255,.8);font-size:13px;letter-spacing:.32em;margin-top:12px">每一趟，都記得</div>`)}
+      ${b('S-00-2', `<div style="color:#fff;font-size:var(--fs-logo);font-weight:700;letter-spacing:-.03em;line-height:1">Tripay</div>`)}
+      ${b('S-00-3', `<div style="color:rgba(255,255,255,.8);font-size:var(--fs-body);letter-spacing:.32em;margin-top:12px">每一趟，都記得</div>`)}
       <!-- #28-3 標語與登入鈕共用一個 200px 的欄，兩者都填滿它。
            只把按鈕設成 200px 不夠——標語會停在它自己的 189px，還是不齊。 -->
       <div style="width:200px;display:flex;flex-direction:column;align-items:stretch">
-        ${b('S-00-4', `<div style="color:rgba(255,255,255,.66);font-size:13.5px;text-align:center;margin-top:28px">大家一起出發，帳交給 Tripay。</div>`)}
+        ${b('S-00-4', `<div style="color:rgba(255,255,255,.66);font-size:var(--fs-body);text-align:center;margin-top:28px">大家一起出發，帳交給 Tripay。</div>`)}
         <div style="height:34px"></div>
         ${b('S-00-5', `<button id="s00login" class="gbtn" style="width:100%">${GOOGLE_G} 用 Google 繼續</button>`)}
       </div>
       <div style="flex:1;min-height:24px"></div>
-      <div style="color:rgba(255,255,255,.4);font-size:10px;text-align:center;line-height:1.5">
+      <div style="color:rgba(255,255,255,.4);font-size:var(--fs-sub);text-align:center;line-height:1.5">
         移除了 App icon 與幽靈卡<br>識別由字標與 slogan 承擔</div>
     </div>`;
 }
@@ -845,16 +929,16 @@ function renderS00() {
    ═══════════════════════════════════════════════════════════ */
 function renderS01() {
   const head = `${b('S-01-1', `<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 11px;border-bottom:1px solid var(--ln)">
-      <span style="font-size:21px;font-weight:700;letter-spacing:-.02em;color:var(--wi)">Tripay</span>
+      <span style="font-size:var(--fs-title);font-weight:700;letter-spacing:-.02em;color:var(--wi)">Tripay</span>
       <span style="display:flex;align-items:center;gap:8px">
-        ${b('S-01-2', `<button id="s01new" style="background:var(--w);color:#fff;font-size:12px;font-weight:600;padding:7px 12px;border-radius:3px">＋ 新增行程</button>`)}
+        ${b('S-01-2', `<button id="s01new" style="background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:7px 12px;border-radius:3px">＋ 新增行程</button>`)}
         ${b('S-01-15', `<button class="ic2" aria-label="設定">${ic('settings',20)}</button>`)}
       </span>
     </div>`)}`;
 
   let body = '';
   if (store.s01 === 'loading') {
-    body = b('S-01-3', `<div class="spin"><i></i><div style="font-size:11px;color:var(--gr);margin-top:8px">載入中</div></div>`);
+    body = b('S-01-3', `<div class="spin"><i></i><div style="font-size:var(--fs-sub);color:var(--gr);margin-top:8px">載入中</div></div>`);
   } else if (store.s01 === 'empty') {
     body = b('S-01-4', `<div class="empty"><p>還沒有行程。</p><p>第一趟要去哪？</p>
       <button id="s01empty" class="btn" style="width:auto;padding:9px 18px;margin-top:14px;display:inline-block">＋ 建立第一趟</button></div>`);
@@ -875,7 +959,7 @@ function renderS01() {
     }).join('');
     body += b('S-01-8', `<button class="ghost" id="s01ghost"><div>你的下一趟在哪？</div></button>`);
     body += `<div style="height:18px"></div>
-      <div style="font-size:10px;color:var(--gr);text-align:center;padding-bottom:12px">
+      <div style="font-size:var(--fs-sub);color:var(--gr);text-align:center;padding-bottom:12px">
         列表到此結束。首頁沒有固定底部操作列</div>`;
   }
   $('#scr-s01').innerHTML = head + body + `<div id="s01sheet"></div>`;
@@ -922,12 +1006,12 @@ function memberRows(form, ctx) {
   return form.members.map((mem, i) => {
     const used = mem.used > 0;
     const avHtml = avatar(mem, i, true, ctx);
-    const rmHtml = `<button data-rm="${ctx}:${i}" style="font-size:12px;color:${used?'#CDD3D0':'var(--gr)'};width:20px">${ic('close',12)}</button>`;
+    const rmHtml = `<button data-rm="${ctx}:${i}" style="font-size:var(--fs-body);color:${used?'#CDD3D0':'var(--gr)'};width:20px">${ic('close',12)}</button>`;
     // #19：「這是我」整組移除。owner_member_id 只被用來算「我的花費」，
     // 統計卡改成收合／展開後那個數字不再需要，欄位失去用途。
     return `<div class="rowb">
       ${i === 0 ? b(av, avHtml, 'inl') : avHtml}
-      <span style="flex:1;font-size:13px;font-weight:600">${esc(mem.name)}</span>
+      <span style="flex:1;font-size:var(--fs-strong);font-weight:600">${esc(mem.name)}</span>
       ${i === 0 && ctx === 'f' ? b(rmId, rmHtml, 'inl') : rmHtml}
     </div>`;
   }).join('');
@@ -943,11 +1027,11 @@ function currencyBlock(form, ctx) {
       <span style="flex:1">${cur[0]} · ${cur[1]}</span><span style="color:var(--gr)">${ic('down',14)}</span></button>
     ${form.showCur ? b('S-02-8', `<div class="drop">
       <div style="padding:8px;border-bottom:1px solid var(--ln)">
-        <input type="text" data-curq="${ctx}" value="${esc(form.curQ)}" placeholder="搜尋幣別名稱或代碼" style="padding:6px 8px;font-size:12px">
+        <input type="text" data-curq="${ctx}" value="${esc(form.curQ)}" placeholder="搜尋幣別名稱或代碼" style="padding:6px 8px;font-size:var(--fs-input)">
       </div>
       ${list.map(c => `<button data-cur="${ctx}:${c[0]}" class="${c[0]===form.currency?'on':''}"><span>${c[0]} · ${c[1]}</span><span style="color:var(--gr)">${c[2]}</span></button>`).join('')
-        || '<div style="padding:10px;font-size:12px;color:var(--gr)">找不到</div>'}
-      <div style="padding:6px 10px;font-size:9.5px;color:var(--gr);border-top:1px solid #F1F2EE">共 18 種可搜尋</div>
+        || '<div style="padding:10px;font-size:var(--fs-body);color:var(--gr)">找不到</div>'}
+      <div style="padding:6px 10px;font-size:var(--fs-sub);color:var(--gr);border-top:1px solid #F1F2EE">共 18 種可搜尋</div>
     </div>`) : ''}
   </div>`);
 }
@@ -955,7 +1039,7 @@ function currencyBlock(form, ctx) {
 function renderS02() {
   if (!f) f = blankForm();
   $('#scr-s02').innerHTML = `
-    ${b('S-02-1', `<div class="scrim" style="padding:12px 0 0"><div style="font-size:10px;color:rgba(255,255,255,.7);text-align:center;padding-bottom:8px">遮罩 · 點擊關閉</div></div>`)}
+    ${b('S-02-1', `<div class="scrim" style="padding:12px 0 0"><div style="font-size:var(--fs-tag);color:rgba(255,255,255,.7);text-align:center;padding-bottom:8px">遮罩 · 點擊關閉</div></div>`)}
     <div class="sheet">
       ${b('S-02-2', `<div class="grab"></div>`)}
       ${b('S-02-3', `<div class="shd"><h3>這趟去哪？</h3>${b('S-02-4', `<button class="x" id="s02x">${ic('close',13)}</button>`, 'rt')}</div>`)}
@@ -970,7 +1054,7 @@ function renderS02() {
       ${b('S-02-9', `<div class="fld"><div style="display:flex;gap:9px">
         <div style="flex:1;min-width:0"><span class="lbl" data-group="兩欄並排，320px 下標籤同列會過窄">出發</span><input type="date" id="s02start" value="${f.start}"></div>
         <div style="flex:1;min-width:0"><span class="lbl" data-group="兩欄並排，320px 下標籤同列會過窄">回程</span><input type="date" id="s02end" value="${f.end}" min="${f.start}">
-          <p class="hint">可留空＝當天來回</p></div>
+          <p class="hint">不填就是當天來回</p></div>
       </div>${f.errs.start ? `<p class="err">${f.errs.start}</p>` : ''}</div>`)}
 
       ${b('S-02-10', `<div class="fld"><span class="lbl" data-group="成員清單，非單一輸入欄">誰一起去？</span>
@@ -978,19 +1062,19 @@ function renderS02() {
         ${f.errs.members ? `<p class="err">${f.errs.members}</p>` : ''}
         ${f.adding
           ? b('S-02-15', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
-              <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:var(--md)">加一個人</p>
+              <p style="margin:0 0 8px;font-size:var(--fs-body);font-weight:600;color:var(--md)">加一個人</p>
               <input type="text" id="s02newname" value="${esc(f.newName)}" placeholder="叫什麼名字？" maxlength="10">
               <div style="height:8px"></div>
               <div class="flexrow" style="display:flex;gap:7px"><button class="btn qt" id="s02addcancel">取消</button><button class="btn" id="s02adddo" ${f.newName.trim() ? '' : 'disabled'}>加進來</button></div>
             </div>`)
-          : b('S-02-16', `<button id="s02add" style="margin-top:9px;width:100%;border:1px dashed #B9C1BB;border-radius:3px;padding:9px;font-size:12.5px;color:var(--md);font-weight:600">＋ 新增成員</button>`)}
+          : b('S-02-16', `<button id="s02add" style="margin-top:9px;width:100%;border:1px dashed #B9C1BB;border-radius:3px;padding:9px;font-size:var(--fs-body);color:var(--md);font-weight:600">＋ 新增成員</button>`)}
       </div>`)}
 
       ${b('S-02-18', `<div class="btnrow"><button class="btn gh" id="s02cancel">取消</button><button class="btn" id="s02go">出發！</button></div>`)}
     </div>
     ${f.dlg ? b('S-02-20', `<div class="scrim"><div class="dlg">
-      <p style="margin:0 0 6px;font-size:14px;font-weight:700;text-align:center">只有 ${md(f.start)} 這一天？</p>
-      <p style="margin:0 0 12px;font-size:12px;color:var(--md);text-align:center;line-height:1.5">回程還沒填。之後可以再補。</p>
+      <p style="margin:0 0 6px;font-size:var(--fs-strong);font-weight:700;text-align:center">只有 ${md(f.start)} 這一天？</p>
+      <p style="margin:0 0 12px;font-size:var(--fs-body);color:var(--md);text-align:center;line-height:1.5">回程還沒填。之後可以再補。</p>
       <div style="display:flex;gap:8px"><button class="btn qt" id="s02dlgno">回去填回程</button><button class="btn" id="s02dlgyes">就這一天</button></div>
     </div></div>`) : ''}
     <div id="s02toast"></div>`;
@@ -1033,8 +1117,8 @@ function renderS02b() {
           <div style="height:104px;border-radius:2px;position:relative;overflow:hidden;
             background:${fb.photo ? '#3A4750' : tone}">
             ${fb.photo ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-              color:rgba(255,255,255,.7);font-size:12px">（示意）已上傳的照片</div>` : ''}
-            <div style="position:absolute;left:9px;bottom:8px;font-size:10px;color:rgba(255,255,255,.94)">
+              color:rgba(255,255,255,.7);font-size:var(--fs-tag)">（示意）已上傳的照片</div>` : ''}
+            <div style="position:absolute;left:9px;bottom:8px;font-size:var(--fs-tag);color:rgba(255,255,255,.94)">
               目前：${fb.photo ? '自訂照片' : '目的地色調'}</div>
           </div>
         </div>
@@ -1074,10 +1158,10 @@ function renderS02b() {
         <div class="gap">${fb.pays.map((p,i) => {
           const used = fb.usedPays[p] || 0;
           return `<div class="rowb" style="padding:7px 10px">
-            <span style="color:var(--gr);font-size:12px">⠿</span>
-            <span style="flex:1;font-size:12.5px;font-weight:600">${esc(p)}</span>
-            <span style="font-size:10.5px;color:var(--gr)">${used ? used + ' 筆在用' : '還沒用到'}</span>
-            <button data-rmpay="${i}" style="font-size:12px;color:${used?'#CDD3D0':'var(--gr)'};width:20px">${ic('close',12)}</button>
+            <span style="color:var(--gr);font-size:var(--fs-body)">⠿</span>
+            <span style="flex:1;font-size:var(--fs-body);font-weight:600">${esc(p)}</span>
+            <span style="font-size:var(--fs-sub);color:var(--gr)">${used ? used + ' 筆在用' : '還沒用到'}</span>
+            <button data-rmpay="${i}" style="font-size:var(--fs-body);color:${used?'#CDD3D0':'var(--gr)'};width:20px">${ic('close',12)}</button>
           </div>`;
         }).join('')}</div>
         <div style="display:flex;gap:7px;margin-top:8px">
@@ -1149,7 +1233,7 @@ const INDEX = {
     ['S-02-6','行程名稱','op','必填。<b>打字即時換下方色調預覽</b>（試「沖繩」「京都」）'],
     ['S-02-7','幣別選擇','op','點開下拉'],
     ['S-02-8','幣別搜尋','op','可搜代碼或名稱，共 18 種'],
-    ['S-02-9','出發／回程','op','出發預設今天；<b>回程可留空</b>'],
+    ['S-02-9','出發／回程','op','出發預設今天；<b>回程不填就是當天來回</b>。<b>改（#29-2）</b>：灰字改成「不填就是當天來回」——原本那句用的是系統講法，Tripay 的語氣不用它'],
     ['S-02-10','成員區標題','st','「誰一起去？」。副標灰字已砍'],
     ['S-02-11','G-09 預填提示','del','已移除（#22-1）：只是複製上一趟的 name/emoji 硬湊，而<b>複製行程（S-03-4）已經會帶成員</b>，功能重疊'],
     ['S-02-12','成員列 · 這是我','del','已移除（#19）：owner_member_id 只被用來算「我的花費」，統計卡改版後那個數字不再需要，欄位失去用途。<b>欄位保留不刪</b>，前端不再讀寫'],
@@ -1196,6 +1280,39 @@ function renderIndex() {
    模式切換與徽章複製
    ═══════════════════════════════════════════════════════════ */
 let mode = 'anno';
+/* #29-9 真機模式：一次只顯示一個畫面，底部一條可收起的切換器。
+   互動照常，只是把稿件元素（徽章、右側清單、稿頭、章節標題）全部藏起來。 */
+const DEV_SCREENS = [['s00','登入'],['s01','首頁'],['s02','建立行程'],['s02b','編輯行程'],
+  ['s02c','成員識別'],['s03','行程頁'],['s03b','分享／刪除'],['s03d','篩選'],
+  ['s04','記一筆'],['s05','結算'],['s06','分享頁'],['s07','設定']];
+let devScreen = 's03';
+function renderDevBar() {
+  $('#devbar').innerHTML =
+    `<div class="hd"><b>真機模式</b>
+      <button id="devmin">${document.documentElement.classList.contains('devmin') ? '展開清單' : '收起清單'}</button>
+     </div>
+     <div class="list">${DEV_SCREENS.map(([id,nm]) =>
+       `<button data-dev="${id}" class="${id===devScreen?'on':''}">${nm}</button>`).join('')}</div>`;
+  document.querySelectorAll('.scr').forEach(el => el.classList.toggle('devon', el.id === devScreen));
+}
+function setDev(on) {
+  document.documentElement.classList.toggle('dev', on);
+  if (on) { setMode('op'); renderDevBar(); }
+  const t = $('#devtoggle'); if (t) t.textContent = on ? '離開真機模式' : '真機模式';
+}
+/* jsdom 沒有 matchMedia——回歸測試在那裡跑，不能因為它而整份稿掛掉 */
+const DEV_MQ = window.matchMedia
+  ? window.matchMedia('(max-width:600px) and (pointer:coarse)')
+  : { matches: false, addEventListener() {} };
+DEV_MQ.addEventListener('change', e => setDev(e.matches));
+document.addEventListener('click', ev => {
+  if (ev.target.closest('#devtoggle')) { setDev(!document.documentElement.classList.contains('dev')); return; }
+  if (ev.target.closest('#devmin')) {
+    document.documentElement.classList.toggle('devmin'); renderDevBar(); return; }
+  const d = ev.target.closest('[data-dev]');
+  if (d) { devScreen = d.dataset.dev; renderDevBar();
+    window.scrollTo({ top: 0 }); return; }
+});
 function setMode(mNew) {
   mode = mNew;
   document.documentElement.classList.toggle('anno', mode === 'anno');
@@ -1392,6 +1509,7 @@ document.addEventListener('keydown', ev => {
 
 /* 啟動 */
 setMode('anno');
+if (DEV_MQ.matches) setDev(true);
 renderAll();
 renderIndex();
 </script>
@@ -1437,6 +1555,7 @@ store.s03Filter = null;     // {kind:'all'|'member', memberId}
 store.s03StatOpen = false;  // #17-2 統計卡預設收合
 store.s03Tab = 'exp';       // #28-6a 消費／結算兩個分頁
 store.s03Menu = false;      // #28-6b ⋯ 選單
+store.s06StatOpen = false;  // #29-10 分享頁的統計卡，與 S-03 同一套
 store.s03Cur = 'TWD';       // #17-3 幣別切換
 
 const tripOf = id => store.trips.find(x => x.id === id);
@@ -1584,7 +1703,7 @@ function expenseRow(e, c, S, forFilter) {
   const amt = pend ? '<span style="color:var(--out)">還沒填</span>'
     : e.sponsor
       ? `<span class="money" style="color:var(--in)">−${money(c.twdTotal).replace(/^[^\d]*/, m => m)}</span>`
-      : `${approx ? '<i class="approx" style="font-size:11px">約</i>' : ''}<span class="money">${money(c.twdTotal)}</span>`;
+      : `${approx ? '<i class="approx">約</i>' : ''}<span class="money">${money(c.twdTotal)}</span>`;
   const rowHtml = `<button class="exprow${pend ? ' pend' : ''}" data-editexp="${e.id}">
     <span class="ic">${e.emoji}</span>
     <span class="mid"><span class="t">${esc(e.title)}</span>
@@ -1609,7 +1728,7 @@ function renderS03() {
   </div>`);
 
   // #28-6a 分段控制：切換檢視，不是動作。「結算」分頁的內容就是 S-05 整頁。
-  h += b('S-03-33', `<div class="fld" style="padding-top:12px"><div class="seg">
+  h += b('S-03-33', `<div class="fld" style="padding-top:12px"><div class="tabs">
     <button class="${store.s03Tab==='exp'?'on':''}" data-s03tab="exp">消費</button>
     <button class="${store.s03Tab==='settle'?'on':''}" data-s03tab="settle">結算</button></div></div>`);
 
@@ -1624,20 +1743,13 @@ function renderS03() {
     return;
   }
 
-  // 統計卡：預設只顯示總花費，每人分擔收合（#17-2）
+  // 統計卡：預設只顯示總花費，每人分擔收合（#17-2）。#29-10 起與 S-06 共用同一份。
   const openStat = store.s03StatOpen;
+  const sc3 = statCard(S, { open: openStat, totId: 's03stat', readonly: false });
   h += `<div class="statcard">
-    ${b('S-03-9', `<button class="tot" id="s03stat"><span>總花費</span>
-      <span class="totright">${anyApprox && !S.readonly ? '<i class="approx">約</i>' : ''}<b class="money">${money(S.total)}</b>
-      ${ic(openStat ? 'up' : 'down', 16)}</span></button>`)}
-    ${openStat ? b('S-03-27', `<div class="perlist">${t.members.map(m => {
-      const ap = S.approx[m.id];
-      return `<button class="perrow" data-permember="${m.id}">
-        <span class="av">${m.emoji || firstGrapheme(m.name) || '🙂'}</span>
-        <span class="nm">${esc(m.name)}</span>
-        <span class="am ${ap ? 'ap' : ''}">${ap ? '<i>約</i>' : ''}<span class="money">${money(S.per[m.id])}</span></span>
-      </button>`; }).join('')}</div>`) : ''}
-    ${openStat && anyApprox && !S.readonly ? b('S-03-28', `<div class="foot">標「約」的金額還沒算清楚，點名字看是哪幾筆</div>`) : ''}
+    ${b('S-03-9', sc3.tot)}
+    ${openStat ? b('S-03-27', sc3.per) : ''}
+    ${openStat && sc3.foot ? b('S-03-28', sc3.foot) : ''}
   </div>`;
 
   const rateNow = tripRate(t), curMode = rateNow ? store.s03Cur : 'TWD';
@@ -1691,23 +1803,49 @@ function renderS03() {
    「刪除行程」是選單裡唯一著色的一項。 */
 function s03MoreSheet(st) {
   if (!store.s03Menu) return '';
-  const item = (id, txt) => id
-    ? b(id, `<button class="shopt"><p class="t">${txt}</p></button>`)
-    : `<button class="shopt"><p class="t">${txt}</p></button>`;
+  // #29-8c 每項配一個 16px 的 icon：刪除配上垃圾桶，危險訊號在按下去之前就看得到，
+  // 不是等對話框跳出來才知道。只有「刪除行程」的 icon 與文字同時用 --dg。
+  const row = (icn, txt, del) =>
+    `<button class="shopt mi${del ? ' del' : ''}">${ic(icn,16)}<p class="t">${txt}</p></button>`;
+  const item = (id, icn, txt, del) => id ? b(id, row(icn, txt, del)) : row(icn, txt, del);
   const rule = `<div class="mrule"></div>`;
   let body = '';
-  if (st !== 'archived') body += item('S-03-3', '編輯行程');
-  body += item('S-03-5', '分享') + rule + item('S-03-4', '複製成新的一趟') + rule;
-  if (st === 'settled') body += item(null, '封存行程');
-  body += b('S-03-25', `<button class="shopt del"><p class="t">刪除行程</p></button>`);
+  if (st !== 'archived') body += item('S-03-3', 'edit', '編輯行程');
+  body += item('S-03-5', 'share', '分享') + rule + item('S-03-4', 'copy', '複製成新的一趟') + rule;
+  if (st === 'settled') body += item(null, 'archive', '封存行程');
+  body += item('S-03-25', 'del', '刪除行程', true);
   return b('S-03-32', `<div class="scrim" style="padding:22px 0 0" id="s03menuscrim">
-      <div style="font-size:10px;color:rgba(255,255,255,.7);text-align:center;padding-bottom:12px">遮罩 · 點擊關閉</div></div>
+      <div style="font-size:var(--fs-tag);color:rgba(255,255,255,.7);text-align:center;padding-bottom:12px">遮罩 · 點擊關閉</div></div>
     <div class="sheet"><div class="grab"></div><div style="padding:6px 14px 0">${body}</div>
       <div style="padding:6px 14px 16px"><button class="btn qt" id="s03menux">取消</button></div></div>`);
 }
 function syncSettlePane() {
   const pane = document.getElementById('s03settlepane'), src = document.getElementById('scr-s05');
   if (pane && src) pane.innerHTML = src.innerHTML;
+}
+/* #29-10 統計卡：總花費（可展開）＋每人分擔列。**S-03 與 S-06 共用這一份。**
+   理由與 S-05 的 transferView() 相同——兩處分開寫，遲早會走鐘。
+   分享頁是唯讀：每人分擔列不可點（那裡沒有 S-03d 可以進，也不該讓外人進編輯視圖），
+   註腳也不邀請點擊。 */
+function statCard(S, o) {
+  const t = S.t;
+  const showApprox = t.members.some(m => S.approx[m.id]) && !S.readonly;
+  const tot = `<button class="tot" id="${o.totId}"><span>總花費</span>
+      <span class="totright">${showApprox ? '<i class="approx">約</i>' : ''}<b class="money">${money(S.total)}</b>
+      ${ic(o.open ? 'up' : 'down', 16)}</span></button>`;
+  const per = `<div class="perlist">${t.members.map(m => {
+      const ap = S.approx[m.id];
+      const inner = `<span class="av">${m.emoji || firstGrapheme(m.name) || '🙂'}</span>
+        <span class="nm">${esc(m.name)}</span>
+        <span class="am ${ap ? 'ap' : ''}">${ap ? '<i>約</i>' : ''}<span class="money">${money(S.per[m.id])}</span></span>`;
+      return o.readonly
+        ? `<div class="perrow ro">${inner}</div>`
+        : `<button class="perrow" data-permember="${m.id}">${inner}</button>`;
+    }).join('')}</div>`;
+  const foot = showApprox
+    ? `<div class="foot">標「約」的金額還沒算清楚${o.readonly ? '' : '，點名字看是哪幾筆'}</div>`
+    : '';
+  return { tot, per, foot };
 }
 function RULES_CUR_SYM(c) { const f = CURRENCIES.find(x => x[0] === c); return f ? f[2] : '¥'; }
 
@@ -1764,10 +1902,17 @@ function renderS04() {
 
   let h = b('S-04-1', `<div class="shd" style="padding-top:14px"><h3>${g._edit ? '編輯消費' : '記一筆'}</h3><button class="x" id="s04x">${ic('close',13)}</button></div>`);
 
+  // #29-1 日期不是「這一筆的屬性」，是「這一批帳的共同前提」——一天只設一次，
+  // 卻擋在每筆都要填的「誰付的」前面。移出欄位序列，改成標題下的一條窄狀態列。
+  h += b('S-04-10', `<button class="daterow" id="e-daterow">
+      <span class="k">記在</span><span class="v tnum">${md(g.date)}（${'日一二三四五六'[new Date(g.date).getDay()]}）</span>
+      ${ic('next',16)}
+      <input type="date" id="e-date" value="${g.date}"></button>`);
+
   h += b('S-04-2', `<div class="fld"><div class="fieldrow">
       ${b('S-04-3', editing === 'exp:g'
-          ? `<span class="avatar" style="width:24px;height:24px;font-size:15px">${inlineEditInput('exp:g')}</span>`
-          : `<button data-av="exp:g" style="font-size:18px;line-height:1.5;width:22px;text-align:center;flex:none">${g.emoji}</button>`, 'inl')}
+          ? `<span class="avatar" style="width:24px;height:24px;font-size:var(--fs-title)">${inlineEditInput('exp:g')}</span>`
+          : `<button data-av="exp:g" style="font-size:var(--fs-title);line-height:1.5;width:22px;text-align:center;flex:none">${g.emoji}</button>`, 'inl')}
       <span class="lbl" style="width:46px">花費</span>
       <input type="text" id="e-title" value="${esc(g.title)}" placeholder="例如：藥妝店"></div></div>`);
 
@@ -1777,12 +1922,12 @@ function renderS04() {
       ${b('S-04-5', `<div class="amtline${c.noAutoReason === 'noForeignTotal' ? ' needfill' : ''}">
         <span class="cur">${sym} ${cur}</span>
         <input type="text" inputmode="decimal" id="e-for" value="${esc(g.forAmt)}"
-          class="${c.forTotalAuto ? 'auto' : ''}" placeholder="${c.forTotalAuto ? c.forTotalEff : '可留空'}">
+          class="${c.forTotalAuto ? 'auto' : ''}" placeholder="${c.forTotalAuto ? c.forTotalEff : '0'}">
         ${c.forTotalAuto ? b('S-04-30', '<span class="autotag">自動</span>', 'inl') : ''}</div>`)}
       ${b('S-04-6', `<div class="amtline">
         <span class="cur">$ 台幣</span>
         <input type="text" inputmode="decimal" id="e-twd" value="${esc(g.twdAmt)}"
-          class="${c.twdFromRate ? 'auto' : ''}" placeholder="${c.twdFromRate ? c.twdTotal : '可留空'}">
+          class="${c.twdFromRate ? 'auto' : ''}" placeholder="${c.twdFromRate ? c.twdTotal : '0'}">
         ${c.twdFromRate ? '<span class="autotag">自動</span>' : ''}</div>`)}
     </div>
     <div id="amtnote"></div></div>`);
@@ -1791,9 +1936,6 @@ function renderS04() {
     <div class="chips">${Object.entries(PAY).map(([k,v]) =>
       `<button class="chip${g.pay===k?' on':''}" data-pay="${k}">${v}</button>`).join('')}</div>
     </div>`);
-
-  h += b('S-04-10', `<div class="fld"><div class="fieldrow"><span class="lbl">日期</span>
-    <input type="date" id="e-date" value="${g.date}"></div></div>`);
 
   h += b('S-04-21', `<div class="fld"><span class="lbl" data-group="chips 多選一，非單一輸入欄">誰付的？</span>
     <div class="chips">${t.members.map(m =>
@@ -1829,12 +1971,13 @@ function paintS04() {
   const note = document.getElementById('amtnote');
   if (note) {
     // #17-11：只留「不做就不會知道、且會影響判斷」的兩句；換算結果改由欄位自己說話
+    // #29-2「填一邊就好」與匯率警告互斥：沒設匯率時只出警告，不再多疊一句做不到的事
     note.innerHTML = c.needRateLink
       ? b('S-04-38', `<div class="note warn">${ic('warn',14)} 還沒設這趟的匯率，算不出台幣。
           <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div>`)
       : c.twdPending
         ? `<div class="note warn">${ic('warn',14)} 沒有台幣金額，結算會跳過這筆</div>`
-        : '';
+        : (tripRate(t) ? `<p class="hint">填一邊就好，另一邊會自動換算</p>` : '');
   }
 
   const tb = document.getElementById('typebody');
@@ -1845,15 +1988,15 @@ function paintS04() {
     const n = (g.parts||[]).length;
     tb.innerHTML = b('S-04-12', `<div style="margin-top:10px">
       <div class="sharedhead">
-        <div><div style="font-size:12.5px;font-weight:600">${n} 人均分</div>
-          ${b('S-04-13', `<div class="money" style="font-size:16px;font-weight:600;margin-top:2px">${
+        <div><div style="font-size:var(--fs-body);font-weight:600">${n} 人均分</div>
+          ${b('S-04-13', `<div class="money" style="font-size:var(--fs-money);font-weight:600;margin-top:2px">${
             c.twdPending ? '每人 —' : '每人 ' + money(Math.round(c.twdTotal / Math.max(1,n)))}</div>`)}</div>
         <button class="expandbtn" data-eexpand>${g._partsOpen ? '收起' : '要排除誰？'}</button>
       </div>
       ${g._partsOpen ? `<div class="gap" style="margin-top:9px">${t2.members.map(m => {
         const on = (g.parts||[]).includes(m.id);
         return `<button class="rowb${on?' on':''}" data-epart="${m.id}">
-          <span style="font-size:15px">${m.emoji||firstGrapheme(m.name)}</span>
+          <span style="font-size:var(--fs-title)">${m.emoji||firstGrapheme(m.name)}</span>
           <span style="flex:1;font-weight:600">${esc(m.name)}</span>
           <span class="selchip ${on?'on':''}">分</span></button>`; }).join('')}</div>` : ''}
     </div>`);
@@ -1873,8 +2016,8 @@ function paintS04() {
       const m = t2.members.find(x => x.id === id) || {};
       const auto = c.valInCur[id] != null && !(id in c.manual);
       const cell = `<div class="amtrow" data-arow="${id}">
-        <span style="font-size:15px">${m.emoji||firstGrapheme(m.name||'')}</span>
-        <span style="flex:1;font-size:12.5px">${esc(m.name||'')}</span>
+        <span style="font-size:var(--fs-title)">${m.emoji||firstGrapheme(m.name||'')}</span>
+        <span style="flex:1;font-size:var(--fs-body)">${esc(m.name||'')}</span>
         <span data-eauto="${id}">${auto ? '<span class="autotag">自動</span>' : ''}</span>
         <input type="text" inputmode="decimal" data-eindiv="${id}" value="${esc(g.indiv[id] ?? '')}"
           class="${auto ? 'auto' : ''}" placeholder="${
@@ -1961,13 +2104,13 @@ function renderS05() {
   if (store.s05 === 'check') {
     // §6 結算前檢查層
     h = nav + b('S-05-4', `<div class="fld" style="padding-top:16px">
-      <div style="font-size:16px;font-weight:700;margin-bottom:5px">有 ${nUn} 筆還沒算清楚</div>
-      <div style="font-size:12.5px;color:var(--md);margin-bottom:12px">結算之後金額就固定了。要先去看一下嗎？</div>
+      <div style="font-size:var(--fs-strong);font-weight:700;margin-bottom:5px">有 ${nUn} 筆還沒算清楚</div>
+      <div style="font-size:var(--fs-body);color:var(--md);margin-bottom:12px">結算之後金額就固定了。要先去看一下嗎？</div>
       ${b('S-05-30', `<div class="gap">${S.unsettledList.map(({e,c}) => {
         const why = c.twdPending ? '金額還沒填' : `${c.blanks.length} 人還沒填`;
-        return `<button class="rowb" data-editexp="${e.id}"><span style="font-size:15px">${e.emoji}</span>
+        return `<button class="rowb" data-editexp="${e.id}"><span style="font-size:var(--fs-title)">${e.emoji}</span>
           <span style="flex:1;font-weight:600">${esc(e.title)}</span>
-          <span style="font-size:10.5px;color:var(--gr)">${why}</span></button>`; }).join('')}</div>`)}
+          <span style="font-size:var(--fs-sub);color:var(--gr)">${why}</span></button>`; }).join('')}</div>`)}
     </div>`) + b('S-05-5', `<div class="btnrow"><button class="btn qt" id="s05anyway">就這樣結算</button>
       <button class="btn" id="s05look">先去看一下</button></div>`);
   } else if (store.s05 === 'pending') {
@@ -1996,7 +2139,7 @@ function renderS05() {
           ${ic('warn',14)} 這趟有 ${Math.round(ps.ratio*100)}% 是 ${nm2(t, ps.top)} 先付的。
           改成「都轉給同一個人」的話，每個人只要轉一次。
           <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div></div>`) : '') + b('S-05-6', `<div class="fld" style="padding-top:12px"><div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
-      <div style="font-size:11.5px;font-weight:600;color:var(--md);margin-bottom:6px">1 / ${Math.max(1,tx.length)} 筆已確認</div>
+      <div style="font-size:var(--fs-body);font-weight:600;color:var(--md);margin-bottom:6px">1 / ${Math.max(1,tx.length)} 筆已確認</div>
       <div style="height:4px;background:#E4E7E0;border-radius:2px;overflow:hidden"><div style="width:${tx.length?100/tx.length:0}%;height:100%;background:var(--in)"></div></div>
     </div></div>`)
       + b('S-05-7', `<div>${transferView(t, tx, { withClear: true })}</div>`)
@@ -2006,14 +2149,14 @@ function renderS05() {
             const mine = tx.filter(x => x.from === m.id || x.to === m.id);
             return `<div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:9px 10px">
               <div style="display:flex;align-items:center;gap:8px">
-                <span style="font-size:14px">${m.emoji||firstGrapheme(m.name)}</span>
-                <span style="flex:1;font-size:12px;font-weight:600">${esc(m.name)}</span>
-                <span class="money" style="font-size:12px;font-weight:600;color:${v>0?'var(--in)':v<0?'var(--out)':'var(--gr)'}">${
+                <span style="font-size:var(--fs-title)">${m.emoji||firstGrapheme(m.name)}</span>
+                <span style="flex:1;font-size:var(--fs-body);font-weight:600">${esc(m.name)}</span>
+                <span class="money" style="font-size:var(--fs-money);font-weight:600;color:${v>0?'var(--in)':v<0?'var(--out)':'var(--gr)'}">${
                   v>0?`可以拿回 ${money(v)}`:v<0?`要給出 ${money(-v)}`:'剛好打平'}</span></div>
-              ${mine.length ? `<div style="margin-top:5px;font-size:10.5px;color:var(--gr);line-height:1.7">${
+              ${mine.length ? `<div style="margin-top:5px;font-size:var(--fs-sub);color:var(--gr);line-height:1.7">${
                 mine.map(x => x.from === m.id
-                  ? `給 ${nm2(t, x.to)} <span class="money">${money(x.amount)}</span>`
-                  : `${nm2(t, x.from)} 給你 <span class="money">${money(x.amount)}</span>`).join('<br>')}</div>` : ''}
+                  ? `給 ${nm2(t, x.to)} <span class="money inline">${money(x.amount)}</span>`
+                  : `${nm2(t, x.from)} 給你 <span class="money inline">${money(x.amount)}</span>`).join('<br>')}</div>` : ''}
             </div>`; }).join('')}</div>`)}
           ${b('S-05-13', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:3px;overflow:hidden">
             <div class="detailhd"><span>成員</span><span>實際付出</span><span>應分攤</span><span>差額</span></div>
@@ -2039,15 +2182,15 @@ function renderS05() {
         <g class="plane">
           <path pathLength="100" d="M18 44 L84 22 L56 60 L48 46 Z" fill="none" stroke="#0F5E9E" stroke-width="1.8" stroke-linejoin="round"/>
         </g></svg>
-      <p style="font-size:20px;margin-top:10px">帳算清楚了</p><p>下次去哪？</p></div>`)
+      <p style="font-size:var(--fs-title);margin-top:10px">帳算清楚了</p><p>下次去哪？</p></div>`)
       + b('S-05-17', `<div class="fld"><div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:12px;display:flex">
         ${[['5','天','出遊'],[String(S.list.length),'筆','共記了'],[money(Math.max(0,...S.list.map(e=>calc(e,t).twdTotal||0))),'','最大手筆']]
           .map(([n,u,l],i)=>`<div style="flex:1;text-align:center;${i<2?'border-right:1px solid #F1F2EE':''}">
-            <div class="tnum" style="font-size:18px;font-weight:600">${n}<span style="font-size:11px;color:var(--md)">${u}</span></div>
-            <div style="font-size:9px;color:var(--gr);margin-top:2px">${l}</div></div>`).join('')}
+            <div class="tnum" style="font-size:var(--fs-title);font-weight:600">${n}<span style="font-size:var(--fs-tag);color:var(--md)">${u}</span></div>
+            <div style="font-size:var(--fs-sub);color:var(--gr);margin-top:2px">${l}</div></div>`).join('')}
       </div></div>`)
       + b('S-05-18', `<div class="fld"><span class="lbl">誰付給誰</span>${tx.map(x=>`<div class="rowb" style="margin-bottom:6px">
-        <span style="flex:1;font-size:12px">${nm2(t,x.from)} <span style="color:var(--gr)">→</span> ${nm2(t,x.to)}</span>
+        <span style="flex:1;font-size:var(--fs-body)">${nm2(t,x.from)} <span style="color:var(--gr)">→</span> ${nm2(t,x.to)}</span>
         <span class="money" style="font-weight:600">${money(x.amount)}</span></div>`).join('') || '<div class="empty"><p>沒有人欠誰。</p></div>'}</div>`)
       + b('S-05-29', `<div class="fld"><button class="btn">把結果傳給大家</button>
         <p class="hint" style="text-align:center">任何人免登入可看</p></div>`)
@@ -2159,7 +2302,7 @@ Object.assign(INDEX, {
     ['S-04-1','標題','st','新增＝記一筆／編輯＝編輯消費'],
     ['S-04-2','什麼花費？','op','必填'],
     ['S-04-3','類別 emoji','op','<b>改（#27-6b）</b>：改成<b>可點的就地編輯</b>——點一下變單字元輸入框、自動聚焦、輸入後自動存檔收合，<b>與 S-02c-11 共用同一個處理函式</b>（<code>beginInlineEdit()</code>／<code>commitInlineEdit()</code>），不做第二種寫法。<br>原本工作清單寫「複用既有 EmojiPicker」，但同一份檔案又裁示刪掉 EmojiPicker——兩條互斥，改用就地編輯。<br><b>手動指定優先於自動推斷</b>：改過之後再改標題不會被蓋回去'],
-    ['S-04-4','金額區塊','op','外幣與台幣兩欄，都可留空'],
+    ['S-04-4','金額區塊','op','外幣與台幣兩欄。<b>改（#29-2）</b>：placeholder 改成 <code>0</code>（原本兩欄都寫同一句「你被允許不填」）——placeholder 該放的是「這格長什麼樣子」，不是「你被允許不填」；而且兩欄寫同一個詞，分不出哪格是哪種幣別。真正有用的那句「填一邊就好」改成整個區塊講一次'],
     ['S-04-5','外幣總額','op','欄位上標明幣別（P1-0 的根因就是沒標）'],
     ['S-04-6','台幣總額','op','空白＝整筆待填，結算跳過；現金會用行程匯率換算後填進 placeholder'],
     ['S-04-7','匯率顯示','del','已移除：唯讀倒推值沒有用，改由 S-02b-12 設定行程匯率'],
@@ -2428,22 +2571,22 @@ function renderS02c() {
       : firstGrapheme(nm) ? `<span class="avatar letter" style="background:${LETTER_COLORS[i % LETTER_COLORS.length]}">${esc(firstGrapheme(nm))}</span>`
       : `<span class="avatar">🙂</span>`;
     const row = `<div class="rowb">${av}
-      <span style="flex:1"><span style="font-size:12.5px;font-weight:600">${esc(nm) || '<span style="color:var(--gr)">（沒有名字）</span>'}</span>
-      <span style="display:block;font-size:9.5px;color:var(--gr);margin-top:1px">${note}</span></span></div>`;
+      <span style="flex:1"><span style="font-size:var(--fs-body);font-weight:600">${esc(nm) || '<span style="color:var(--gr)">（沒有名字）</span>'}</span>
+      <span style="display:block;font-size:var(--fs-sub);color:var(--gr);margin-top:1px">${note}</span></span></div>`;
     return id ? b(id, row) : row;
   }).join('');
   h += `</div>`;
 
   h += `<div class="sec">編輯：點識別圓圈，就地改</div><div style="margin:0 14px" class="gap">`;
   h += b('S-02c-11', `<div class="rowb"><span class="avatar">🐵</span>
-      <span style="flex:1;font-size:12.5px;font-weight:600">Rozi</span>
-      <span style="font-size:9.5px;color:var(--gr)">① 點一下圓圈</span></div>`);
+      <span style="flex:1;font-size:var(--fs-body);font-weight:600">Rozi</span>
+      <span style="font-size:var(--fs-sub);color:var(--gr)">① 點一下圓圈</span></div>`);
   h += `<div class="rowb on"><span class="avatar" style="border-color:var(--w)">🐵<span style="display:inline-block;width:1px;height:14px;background:var(--w);margin-left:1px"></span></span>
-      <span style="flex:1;font-size:12.5px;font-weight:600">Rozi</span>
-      <span style="font-size:9.5px;color:var(--gr)">② 變單字元輸入框、自動聚焦</span></div>
+      <span style="flex:1;font-size:var(--fs-body);font-weight:600">Rozi</span>
+      <span style="font-size:var(--fs-sub);color:var(--gr)">② 變單字元輸入框、自動聚焦</span></div>
     <div class="rowb"><span class="avatar">🦊</span>
-      <span style="flex:1;font-size:12.5px;font-weight:600">Rozi</span>
-      <span style="font-size:9.5px;color:var(--gr)">③ 輸入後自動存檔收合</span></div></div>`;
+      <span style="flex:1;font-size:var(--fs-body);font-weight:600">Rozi</span>
+      <span style="font-size:var(--fs-sub);color:var(--gr)">③ 輸入後自動存檔收合</span></div></div>`;
 
   // #25-3 S-02c-12（emoji 鍵盤限制）與 S-02c-13（驗證規則）已移出手機框：
   // 那兩張是給看稿的人的資訊，說明文字改放右側清單。驗證邏輯與編號都沒動。
@@ -2456,7 +2599,7 @@ function renderS03b() {
   let h;
   if (store.s03bView === 'share') {
     h = b('S-03b-1', `<div class="scrim" style="padding:22px 0 0">
-        <div style="font-size:10px;color:rgba(255,255,255,.7);text-align:center;padding-bottom:12px">遮罩 · 點擊關閉</div></div>`)
+        <div style="font-size:var(--fs-tag);color:rgba(255,255,255,.7);text-align:center;padding-bottom:12px">遮罩 · 點擊關閉</div></div>`)
       + `<div class="sheet"><div class="grab"></div><div style="padding:10px 14px 0">`
       + b('S-03b-2', `<div class="shopt"><p class="t">複製文字摘要</p></div>`)
       + b('S-03b-3', `<div class="shopt"><p class="t">複製分享連結</p><p class="s">不用登入就看得到消費明細</p></div>`)
@@ -2466,11 +2609,11 @@ function renderS03b() {
   } else {
     h = `<div class="scrim" style="padding:26px 0">`
       + b('S-03c-1', `<div class="dlg">
-          <p style="margin:0 0 8px;font-size:13.5px;font-weight:700;text-align:center">刪除「${esc(t.name)}」？</p>
-          ${b('S-03c-2', `<p style="margin:0 0 7px;font-size:11.5px;color:var(--md);line-height:1.5">刪掉就<b>救不回來</b>：</p>`)}
-          ${b('S-03c-3', `<ul style="margin:0 0 11px;padding-left:16px;font-size:11.5px;color:var(--md);line-height:1.7">
+          <p style="margin:0 0 8px;font-size:var(--fs-strong);font-weight:700;text-align:center">刪除「${esc(t.name)}」？</p>
+          ${b('S-03c-2', `<p style="margin:0 0 7px;font-size:var(--fs-body);color:var(--md);line-height:1.5">刪掉就<b>救不回來</b>：</p>`)}
+          ${b('S-03c-3', `<ul style="margin:0 0 11px;padding-left:16px;font-size:var(--fs-body);color:var(--md);line-height:1.7">
             <li>${n} 筆消費與分帳紀錄</li><li>${t.members.length} 位成員</li><li>結算結果與分享連結</li></ul>`)}
-          ${b('S-03c-4', `<p style="margin:0 0 6px;font-size:11px;color:var(--md)">請輸入「刪除」兩個字</p>`)}
+          ${b('S-03c-4', `<p style="margin:0 0 6px;font-size:var(--fs-body);color:var(--md)">請輸入「刪除」兩個字</p>`)}
           ${b('S-03c-5', `<div class="fieldrow" style="margin-bottom:11px"><input type="text" id="delconfirm" value="${esc(store.delText||'')}" placeholder="刪除"></div>`)}
           <div class="flexrow" style="display:flex;gap:8px">
             ${b('S-03c-6', `<button class="btn qt">算了，留著</button>`)}
@@ -2498,17 +2641,22 @@ function renderS06() {
       <div class="dt">${dateRange(t.start, t.end)}　${t.members.map(m=>m.emoji||firstGrapheme(m.name)).join('')}</div></div>`)}
   </div>`);
 
-  h += `<div class="stats">
-    ${b('S-06-4', `<div><b class="money">${money(S.total)}</b><span>總花費</span></div>`)}
-    ${b('S-06-6', `<div><b class="money">${money(per)}</b><span>人均</span></div>`)}
+  // #29-10 與 S-03-9／S-03-27 共用 statCard()。人均取消——每人分擔列已經取代它，
+  // 而且人均只在均分時才有意義。S-06-6 編號保留、標為移除。
+  const open6 = store.s06StatOpen;
+  const sc6 = statCard(S, { open: open6, totId: 's06stat', readonly: true });
+  h += `<div class="statcard">
+    ${b('S-06-4', sc6.tot)}
+    ${open6 ? b('S-06-14', sc6.per) : ''}
+    ${open6 && sc6.foot ? b('S-06-15', sc6.foot) : ''}
   </div>`;
 
   h += b('S-06-7', `<div class="sec">誰付給誰</div>`);
   h += tx.length
     ? `<div style="margin:0 14px">${tx.map(x => `<div class="rowb" style="margin-bottom:6px">
-        <span style="flex:1;font-size:12px">${nm2(t,x.from)} <span style="color:var(--gr)">→</span> ${nm2(t,x.to)}</span>
+        <span style="flex:1;font-size:var(--fs-body)">${nm2(t,x.from)} <span style="color:var(--gr)">→</span> ${nm2(t,x.to)}</span>
         <span class="money">${money(x.amount)}</span></div>`).join('')}</div>`
-    : b('S-06-8', `<div style="margin:0 14px" class="rowb"><span style="flex:1;font-size:11.5px;color:var(--gr)">這趟旅程還沒結算。</span></div>`);
+    : b('S-06-8', `<div style="margin:0 14px" class="rowb"><span style="flex:1;font-size:var(--fs-body);color:var(--gr)">這趟旅程還沒結算。</span></div>`);
 
   h += b('S-06-9', `<div class="sec">消費明細</div>`);
   if (!list.length) {
@@ -2533,7 +2681,7 @@ function renderS06() {
   // S-06-12 保留——旅伴看到帳算得清清楚楚，是 Phase 1 唯一的獲客時機——但不說沒有的事。
   h += b('S-06-12', `<div style="margin-top:12px;padding:12px 14px 16px;background:#EDEEE8;border-top:1px solid var(--ln);
       display:flex;align-items:center;gap:9px">
-      <p style="margin:0;flex:1;font-size:11.5px;color:var(--md)">這趟帳是用 Tripay 記的</p>
+      <p style="margin:0;flex:1;font-size:var(--fs-body);color:var(--md)">這趟帳是用 Tripay 記的</p>
       <span class="chip" style="background:var(--w);border-color:var(--w);color:#fff;font-weight:600">開一趟自己的</span>
     </div>`);
   $('#scr-s06').innerHTML = h;
@@ -2545,26 +2693,26 @@ function renderS07() {
   h += b('S-07-2', `<div class="sec">登入帳號</div>`);
   h += b('S-07-3', `<div style="margin:0 14px"><div class="rowb">
       <span class="avatar letter" style="background:#2D6A8A">R</span>
-      <span style="flex:1;min-width:0"><span class="trunc" style="font-size:12.5px;font-weight:600">Rozi</span>
-      <span class="trunc" style="font-size:10px;color:var(--gr)">msziyu@gmail.com</span></span></div></div>`);
+      <span style="flex:1;min-width:0"><span class="trunc" style="font-size:var(--fs-strong);font-weight:600">Rozi</span>
+      <span class="trunc" style="font-size:var(--fs-sub);color:var(--gr)">msziyu@gmail.com</span></span></div></div>`);
 
   h += b('S-07-4', `<div class="sec">我的資料</div>
     <div style="margin:0 14px" class="gap">
-      <div class="rowb"><span style="font-size:15px">👥</span><span style="flex:1;font-size:12.5px;font-weight:600">通訊錄</span>
-        <span style="font-size:10px;color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
-      <div class="rowb"><span style="font-size:15px">💳</span><span style="flex:1;font-size:12.5px;font-weight:600">卡片管理</span>
-        <span style="font-size:10px;color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
-      <div class="rowb"><span style="font-size:15px">🧾</span><span style="flex:1;font-size:12.5px;font-weight:600">帳單週期</span>
-        <span style="font-size:10px;color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',15)}</span></div>
+      <div class="rowb"><span style="font-size:var(--fs-title)">👥</span><span style="flex:1;font-size:var(--fs-body);font-weight:600">通訊錄</span>
+        <span style="font-size:var(--fs-sub);color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',16)}</span></div>
+      <div class="rowb"><span style="font-size:var(--fs-title)">💳</span><span style="flex:1;font-size:var(--fs-body);font-weight:600">卡片管理</span>
+        <span style="font-size:var(--fs-sub);color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',16)}</span></div>
+      <div class="rowb"><span style="font-size:var(--fs-title)">🧾</span><span style="flex:1;font-size:var(--fs-body);font-weight:600">帳單週期</span>
+        <span style="font-size:var(--fs-sub);color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',16)}</span></div>
     </div>`);
 
   // #27-2 S-07-5「顯示／深色模式」整段移除：查證 src/ 沒有任何深色樣式、
   // tailwind.config 也沒設 darkMode——這一列寫著「跟隨系統」又有 ›，點進去後面什麼都沒有。
   // 與 S-06-12 是同一個毛病：畫面承諾了產品沒有的東西。編號保留、標為移除。
   h += b('S-07-6', `<div style="margin:16px 14px 0"><button class="btn qt" id="s07logout2" style="color:var(--md)">登出</button></div>`);
-  h += b('S-07-7', `<div style="padding:14px;text-align:center;font-size:9.5px;color:var(--gr)">Tripay · 每一趟，都記得</div>`);
+  h += b('S-07-7', `<div style="padding:14px;text-align:center;font-size:var(--fs-sub);color:var(--gr)">Tripay · 每一趟，都記得</div>`);
   if (store.s07dlg) h += b('S-07-8', `<div class="scrim" style="padding:20px 0"><div class="dlg">
-      <p style="margin:0 0 14px;font-size:13.5px;font-weight:700;text-align:center">確定要登出嗎？</p>
+      <p style="margin:0 0 14px;font-size:var(--fs-strong);font-weight:700;text-align:center">確定要登出嗎？</p>
       <div style="display:flex;gap:8px"><button class="btn qt" id="s07no">取消</button><button class="btn gh">登出</button></div>
     </div></div>`);
   $('#scr-s07').innerHTML = h;
@@ -2609,9 +2757,11 @@ Object.assign(INDEX, {
     ['S-06-1','Hero','st','<b>改</b>：改用 destinationOf() 的目的地色調，與首頁卡一致（讀碼發現 #4）'],
     ['S-06-2','「朋友檢視」徽章','st','右上常駐，宣告唯讀。<b>改（#27-4a）</b>：拿掉 <code>rt</code>——它的內容自己是 <code>position:absolute</code>，盒子撐不開，標註徽章靠右就正好壓在「朋友檢視」上'],
     ['S-06-3','名稱／日期／成員','st','<b>改</b>：行程 emoji 已退場；成員 emoji 依既有決策保留'],
-    ['S-06-4','總花費','op','<b>改</b>：與行程頁同一套算法（排除贊助），不再兩頁數字不同（讀碼發現 #5）'],
+    ['S-06-4','總花費（可展開）','op','<b>改</b>：與行程頁同一套算法（排除贊助），不再兩頁數字不同（讀碼發現 #5）。<br><b>改（#29-10）</b>：改成與 S-03-9 <b>完全同一個元件</b>（<code>statCard()</code>）——上面一列總花費、點了展開每人分擔。兩處分開寫遲早會走鐘'],
     ['S-06-5','外幣格','del','已移除：非台幣行程永遠顯示「—」，是廢版位（讀碼發現 #14）'],
-    ['S-06-6','人均','op','總額 ÷ 成員數'],
+    ['S-06-6','人均','del','<b>已移除（#29-10）</b>：每人分擔列（S-06-14）已經取代它，而且人均只在均分時才有意義。編號保留不回收'],
+    ['S-06-14','每人分擔列','op','<b>新（#29-10）</b>：與 S-03-27 同一個元件。<b>分享頁是唯讀</b>——這裡的列<b>不可點</b>（沒有 S-03d 可以進，也不該讓外人進編輯視圖）'],
+    ['S-06-15','統計卡註腳','st','<b>新（#29-10）</b>：有「約」時才出現。文案去掉動作指示——點不了就不要邀請人點'],
     ['S-06-7','誰付給誰','op','已確認的結算明細，隨 S-05 的模式變'],
     ['S-06-8','未結算狀態','st','「這趟旅程還沒結算。」'],
     ['S-06-9','消費明細','op','不分天，平鋪；每列顯示付款人與日期'],
@@ -2642,6 +2792,7 @@ document.addEventListener('click', ev => {
   const t = ev.target;
   const o = t.closest('#s03brig button');
   if (o) { store.s03bView = o.dataset.o; store.delText=''; renderS03b(); return; }
+  if (t.closest('#s06stat')) { store.s06StatOpen = !store.s06StatOpen; renderS06(); return; }
   if (t.closest('#s07logout') || t.closest('#s07logout2')) { store.s07dlg = true; renderS07(); return; }
   if (t.closest('#s07no')) { store.s07dlg = false; renderS07(); return; }
 });

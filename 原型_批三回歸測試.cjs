@@ -180,6 +180,9 @@ E("store.s03bView='share'; store.s07dlg=true; render()"); snap();
 E("store.s03bView='del'; renderS03b()"); snap();
 E("store.expenses.t1=[]; renderS06()"); snap();
 E("store.expenses.t1=demoExpenses(); tripOf('t1').settleMode='direct'; renderS06()"); snap();
+// #29-10 S-06 的統計卡與 S-03 共用，每人分擔列只在展開時才在 DOM 上
+E("store.s06StatOpen=true; renderS06()"); snap();
+E("store.s06StatOpen=false; renderS06()"); snap();
 let missing=[],unexpected=[];
 ['s02c','s03b','s06','s07'].forEach(k=>IDX[k].forEach(([id,el,kind])=>{
   const has=seen.has(id);

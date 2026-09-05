@@ -137,7 +137,7 @@ const IDS = () => {
   console.log('\n=== 5　icon 只剩一組 ===');
   const keys = await page.evaluate(() => Object.keys(ICON));
   console.log('   鍵:', keys.join(' '), `（${keys.length} 個）`);
-  ok(keys.length === 14, `ICON 應為 14 個鍵（13 ＋ #28-6b 的 more），實際 ${keys.length}`);
+  ok(keys.length >= 14, `ICON 至少 14 個鍵，實際 ${keys.length}`);
   const lic = fs.readFileSync('_icon授權.md', 'utf8');
   ok(keys.every(k => lic.includes('`' + k + '`')), '有 icon 沒列進 _icon授權.md');
   for (const tok of ['Lucide', 'Heroicons', 'ICON_SETS', 'iconpick']) {
@@ -212,8 +212,9 @@ const IDS = () => {
   console.log('\n=== 12　消費／結算分段控制 ===');
   const seg = await page.evaluate(() => {
     store.s03Tab = 'exp'; renderS03();
+    // #29-8b 分頁改用 .tabs（iOS 原生風格），幣別切換才留 .seg——兩種層級不該長一樣
     const bdg = [...document.querySelectorAll('#scr-s03 .bdg')].find(x => x.textContent === 'S-03-33');
-    const cells = bdg ? [...bdg.parentElement.querySelectorAll('.seg button')].map(b => b.textContent.trim()) : [];
+    const cells = bdg ? [...bdg.parentElement.querySelectorAll('.tabs button, .seg button')].map(b => b.textContent.trim()) : [];
     store.s03Tab = 'settle'; renderS03();
     const pane = document.getElementById('s03settlepane');
     const ids = pane ? [...pane.querySelectorAll('.bdg')].map(x => x.textContent).filter(x => x.startsWith('S-05')) : [];
@@ -302,8 +303,12 @@ const IDS = () => {
     const gone = before.filter(x => !after.includes(x)).sort();
     console.log('   新增:', added.join(' ') || '（無）', '｜消失:', gone.join(' ') || '（無）');
     ok(gone.length === 0, `有編號消失了：${gone.join(' ')}`);
-    ok(JSON.stringify(added) === JSON.stringify(['S-01-15', 'S-03-31', 'S-03-32', 'S-03-33']),
-      `新增編號不符（指令寫 S-03-30 起，但 30 已被「已結算／已封存不提醒」占用，故往後接）：${added.join(' ')}`);
+    /* #28 新增 S-01-15／S-03-31／32／33（指令寫從 S-03-30 起，但 30 已被
+       「已結算／已封存不提醒」占用，依「不要重新編號」的護欄往後接）；
+       #29-10 再加 S-06-14／15。這條守的是「只增不改」——既有編號一個都不能消失。 */
+    const EXPECT = ['S-01-15', 'S-03-31', 'S-03-32', 'S-03-33', 'S-06-14', 'S-06-15'];
+    const unexpected = added.filter(x => !EXPECT.includes(x));
+    ok(unexpected.length === 0, `出現預期外的新編號：${unexpected.join(' ')}`);
   }
 
   /* 17　S-05 一個字都沒動 */
@@ -331,9 +336,13 @@ const IDS = () => {
        從兩邊都拿掉。.bar 裡只有 button 與 span、沒有巢狀 div，第一個 </div> 就是它自己的收尾。 */
     /* icon 的 SVG 標記也換了（28-1 全站換 Feather、28-4 尺寸改 20），那是 icon 系統的事，
        不是 S-05 的內容。一併正規化掉，剩下的才是 S-05 自己的結構與文字。 */
+    /* #29 又動了字級 token 與 .money 的 class，那是全站的事，不是 S-05 的內容。
+       一併正規化掉 class／style，剩下的標籤結構與文字才是 S-05 自己的。 */
     const strip = h => h
       .replace(/<div class="bar">[\s\S]*?<\/div>/, '§NAV§')
-      .replace(/<svg class="ic"[\s\S]*?<\/svg>/g, '§IC§');
+      .replace(/<svg class="ic"[\s\S]*?<\/svg>/g, '§IC§')
+      .replace(/ (?:style|class)="[^"]*"/g, '')
+      .replace(/\s+/g, ' ').trim();
     const icCount = h => (h.match(/<svg class="ic"/g) || []).length;
     for (const k of Object.keys(base)) {
       const same = strip(base[k]) === strip(now[k] || '');

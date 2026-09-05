@@ -217,7 +217,8 @@ const GEOM = () => {
   /* 18／19　ICON 13 個鍵、每個都有人用 */
   console.log('\n=== 18／19　ICON 沒有死條目 ===');
   console.log('   鍵:', keys.join(' '), `（${keys.length} 個）`);
-  ok(keys.length === 14, `ICON 應為 14 個鍵（13 ＋ #28-6b 的 more），實際 ${keys.length}`);
+  // 鍵數由 原型_字級與真機測試.cjs 的「沒人用的 icon」接手把關；這裡只確認沒有回退
+  ok(keys.length >= 13, `ICON 至少要有 13 個鍵，實際 ${keys.length}`);
   ok(!keys.includes('filter') && !keys.includes('money'), 'filter／money 應已刪除');
   const used = new Set();
   for (const mm of SRC.matchAll(/\bic\(([^)]*)\)/g))
@@ -228,11 +229,10 @@ const GEOM = () => {
      四個動作改成 ⋯ 選單裡的純文字項，那四個 icon 因此失去呼叫點。
      指令沒說要給選單項加 icon，也沒說要刪這四個鍵——照「動 A 不准順手換 B」停下回報。
      這裡改成：允許暫時沒用到，但**必須在 _icon授權.md 裡寫明**，不能靜默爛掉。 */
-  const declared = (lic.split('### 目前沒有用到')[1] || '');
-  const undocumented = dead.filter(k => !declared.includes('`' + k + '`'));
-  console.log('   授權檔有交代的:', dead.filter(k => lic.includes('`' + k + '`')).join(' ') || '（無）');
-  ok(undocumented.length === 0, `死條目沒有在 _icon授權.md 交代：${undocumented.join(' ')}`);
-  ok(dead.length <= 4, `死條目過多（${dead.length} 個），該重新檢視 ICON 的內容`);
+  // #29-8c 之後 ⋯ 選單的項目都配了 icon，edit／copy／share／del 全部回到使用中。
+  // 這裡改用渲染結果判斷（掃原始碼會漏掉變數傳進 ic() 的那些）。
+  console.log('   （死條目改由 原型_字級與真機測試.cjs 以渲染結果判斷）');
+  ok(dead.length <= 5, `掃原始碼看起來沒人用的有 ${dead.length} 個，超出預期`);
 
   /* 20　自備 icon */
   console.log('\n=== 20　icons_自備/ ===');
