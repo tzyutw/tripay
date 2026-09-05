@@ -438,6 +438,9 @@ input.auto { color:#9AA5AB }
 .dlginput { width: 100%; height: 42px; padding: 0 11px; background: #fff;
             border: 1px solid var(--ln); border-radius: var(--r-base); margin-bottom: 14px; }
 .dlgrow { display: flex; gap: 8px; }
+/* S-03c-3 影響清單：三個 <li>，數字即時帶入。數值照原型 2876–2877 的 inline style */
+.dlglist { margin: 0 0 11px; padding-left: 16px; font-size: var(--fs-body);
+           color: var(--md); line-height: 1.7; list-style: disc; }
 .dlgrow .btn { flex: 1; }
 
 

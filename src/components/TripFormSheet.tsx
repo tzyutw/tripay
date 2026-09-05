@@ -8,6 +8,7 @@ import PaymentMethods from '@/components/shared/PaymentMethods';
 import CashRate from '@/components/shared/CashRate';
 import SettleMode from '@/components/shared/SettleMode';
 import { useInlineEdit } from '@/components/shared/useInlineEdit';
+import Avatar from '@/components/shared/Avatar';
 import { nextToneSeq } from '@/lib/tones';
 import type { TripWithMembers, SettlementMode } from '@/types/database';
 
@@ -70,7 +71,9 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
   const [showCurrency,    setShowCurrency]    = useState(false);
   const currencyInputRef = useRef<HTMLInputElement | null>(null);
   const [addingMember,    setAddingMember]    = useState(false);
-  const [newMemberEmoji,  setNewMemberEmoji]  = useState('🙂');
+  /* 預設**留空**，不是 '🙂'——填了預設值的話 Avatar 的第二層（名字第一個字）
+     永遠走不到，三層 fallback 等於只有一層。 */
+  const [newMemberEmoji,  setNewMemberEmoji]  = useState('');
   const [newMemberName,   setNewMemberName]   = useState('');
   const addMemberInputRef = useRef<HTMLInputElement>(null);
 
@@ -363,7 +366,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
     if (!newMemberName.trim()) return;
     setMembers(prev => [...prev, { emoji: newMemberEmoji, name: newMemberName.trim().slice(0, 10) }]);
     setNewMemberName('');
-    setNewMemberEmoji('🙂');
+    setNewMemberEmoji('');
     setAddingMember(false);
   }
 
@@ -535,13 +538,16 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                         }}
                       />
                     ) : (
-                      <button
-                        onClick={() => inline.begin(`m:${i}`)}
+                      /* S-02c-10 三層 fallback：有 emoji → emoji；沒 emoji 但有名字 →
+                         名字第一個 grapheme ＋ 填色圓底；兩者皆無 → 🙂。
+                         S-02 建立與 S-02b 編輯走的是同一個元件。 */
+                      <Avatar
+                        emoji={m.emoji}
+                        name={m.name}
+                        index={i}
                         aria-label={`換 ${m.name} 的 emoji`}
-                        className="text-strong w-8 h-8 rounded-base border-[1.5px] border-[#E4DFD9] bg-white flex items-center justify-center flex-shrink-0"
-                      >
-                        {m.emoji}
-                      </button>
+                        onClick={() => inline.begin(`m:${i}`)}
+                      />
                     )}
                     <span className="flex-1 text-input font-semibold text-ink">{m.name}</span>
                     {myMemberIdx === i && (
@@ -582,12 +588,13 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                         }}
                       />
                     ) : (
-                      <button
+                      <Avatar
+                        emoji={newMemberEmoji}
+                        name={newMemberName}
+                        index={members.length}
+                        aria-label="選新成員的 emoji"
                         onClick={() => inline.begin('new')}
-                        className="w-12 h-12 rounded-base border-[1.5px] border-[#E4DFD9] bg-white text-title flex items-center justify-center flex-shrink-0"
-                      >
-                        {newMemberEmoji}
-                      </button>
+                      />
                     )}
                   </div>
                   <input

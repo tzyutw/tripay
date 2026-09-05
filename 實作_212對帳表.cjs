@@ -31,15 +31,24 @@ const TFS  = read('src/components/TripFormSheet.tsx');
 const EVIDENCE = {
   emojiPickerGone:   !fs.existsSync('src/components/EmojiPicker.tsx'),
   inlineEditExists:  fs.existsSync('src/components/shared/useInlineEdit.ts'),
-  /* S-02c-10 三層 fallback：emoji → 名字第一個字的填色圓底 → 🙂 */
-  threeLayerAvatar:  !!TFS && /avatar letter|LETTER_COLORS/.test(TFS),
+  /* S-02c-10 三層 fallback：emoji → 名字第一個字的填色圓底 → 🙂。
+     共用元件在 shared/Avatar.tsx；TripFormSheet 只准引用，不准自己再寫一份。 */
+  threeLayerAvatar:  fs.existsSync('src/components/shared/Avatar.tsx')
+                     && !!TFS && TFS.includes("shared/Avatar")
+                     && !/useState\('🙂'\)/.test(TFS),
   shareTitleFixed:   !!ELP && ELP.includes('複製文字摘要') && !ELP.includes('複製結算摘要'),
   shareSubFixed:     !!ELP && ELP.includes('不用登入就看得到消費明細'),
   shareNoBenefitGrey: !!ELP && !ELP.includes('貼到 LINE 群組') && !ELP.includes('看看對方收到連結'),
   oneDeleteDialog:   !!ELP && (ELP.match(/\{deleteOpen && \(/g) || []).length === 1,
   /* S-03c 逐項：拿原型的字面量去比 */
   delConsequence:    !!ELP && ELP.includes('刪掉就'),
-  delList:           !!ELP && /筆消費與分帳紀錄/.test(ELP),
+  delListItems:      !!ELP && /<li>\{expenses\.length\} 筆消費與分帳紀錄<\/li>/.test(ELP)
+                     && /<li>結算結果與分享連結<\/li>/.test(ELP),
+  delBtnLabel:       !!ELP && /: '刪除'\}/.test(ELP) && !ELP.includes("'刪除行程'}"),
+  shareHeroNoEmoji:  (() => {
+    const sp = read('src/pages/SharePage.tsx');
+    return !!sp && /<div className="dt">\{dateRange\(trip\.start_date, trip\.end_date\)\}<\/div>/.test(sp);
+  })(),
   delPrompt:         !!ELP && ELP.includes('請輸入「刪除」兩個字'),
   delInputPh:        !!ELP && /placeholder="刪除"/.test(ELP),
   delBtnDg:          !!ELP && /className="btn dg"/.test(ELP),
@@ -47,16 +56,9 @@ const EVIDENCE = {
 
 /* ── ② 例外清單：與「該畫面測試全綠 → 已完成」不同的，逐項寫明 ─────────── */
 const EXCEPTIONS = {
-  /* 原型與佇列指令有出入，已回報待 Rozi 裁示 */
-  'S-06-3': ['不適用', '原型 hero 仍帶成員 emoji、佇列指令說拿掉。目前照佇列做，' +
-                       '差異釘在 SharePage.test.tsx 的 KNOWN_DIVERGENCE，待 Rozi 裁示'],
-
-  /* 對表過程新發現、尚未修的（依 Cowork 指示：先寫進表回報，不一邊對表一邊改） */
-  'S-02c-10': ['未做', '三層 fallback 沒做：TripFormSheet 直接印 {m.emoji}，' +
-                       '沒有「名字第一個字＋填色圓底」與 🙂 兩層'],
-  'S-03c-2':  ['未做', '後果說明文案未對齊：原型是「刪掉就救不回來：」'],
-  'S-03c-3':  ['未做', '影響清單未對齊：原型是三個 <li>，目前收成一句話'],
-  'S-03c-4':  ['未做', '確認提示文案未對齊：原型是「請輸入「刪除」兩個字」'],
+  'S-06-3': ['已完成', 'Rozi 2026-09-05 裁示不帶 emoji，與 S-03 一致；原型此處待日後同步。' +
+                       'SharePage.test.tsx 的 KNOWN_DIVERGENCE 保留為守門常數'],
+  'S-03c-7': ['已完成', '顏色本來就對（--dg 實心）；實作-E 一併把按鈕字由「刪除行程」改回「刪除」'],
 };
 
 /* ── ③ 有「對原型逐字比對」測試守著的畫面 ─────────────────────────────── */
@@ -80,14 +82,12 @@ ok(EVIDENCE.shareTitleFixed && EVIDENCE.shareSubFixed && EVIDENCE.shareNoBenefit
   'S-03b-2／3／4 的文案還沒對齊原型');
 ok(EVIDENCE.oneDeleteDialog, '還有兩個 deleteOpen 區塊');
 ok(EVIDENCE.delInputPh && EVIDENCE.delBtnDg, 'S-03c-5／7 的證據不成立');
-/* S-03c-3 宣告是「未做」，所以原型那三個 <li> 的字串**應該不在**——
-   在的話代表已經做好了，例外清單要跟著改。 */
-ok(EVIDENCE.delList === false,
-  'S-03c-3 看起來已經做好了（找到「筆消費與分帳紀錄」），例外清單要跟著改');
-ok(EVIDENCE.threeLayerAvatar === false,
-  'S-02c-10 已經做好了？例外清單要跟著改（宣告是「未做」）');
-ok(EVIDENCE.delConsequence === false && EVIDENCE.delPrompt === false,
-  'S-03c-2／4 已經對齊了？例外清單要跟著改（宣告是「未做」）');
+ok(EVIDENCE.threeLayerAvatar, 'S-02c-10 三層 fallback 還沒做（或 TripFormSheet 沒走共用元件）');
+ok(EVIDENCE.delConsequence, 'S-03c-2 後果說明還沒對齊原型（缺「刪掉就」）');
+ok(EVIDENCE.delPrompt, 'S-03c-4 確認提示還沒對齊原型（缺「請輸入「刪除」兩個字」）');
+ok(EVIDENCE.delListItems, 'S-03c-3 影響清單還不是三個 <li>');
+ok(EVIDENCE.delBtnLabel, 'S-03c-7 按鈕字還不是「刪除」');
+ok(EVIDENCE.shareHeroNoEmoji, 'S-06-3 分享頁 hero 又帶回成員 emoji 了');
 
 const verdict = r => {
   if (EXCEPTIONS[r.id]) return EXCEPTIONS[r.id];

@@ -429,11 +429,14 @@ export default function ExpenseListPage() {
           <div className="dlgwrap">
             <div className="dlg">
               <p className="dlgt">刪除「{trip.name}」？</p>
-              <p className="dlgs">
-                這會一併刪掉 {expenses.length} 筆消費、{trip.trip_members.length} 位成員，
-                以及結算結果與分享連結。
-              </p>
-              <p className="dlgs">確定的話，請在下面打「刪除」兩個字。</p>
+              {/* S-03c-2／3／4　逐字對齊 Tripay_原型.html:2875–2878 */}
+              <p className="dlgs">刪掉就<b>救不回來</b>：</p>
+              <ul className="dlglist">
+                <li>{expenses.length} 筆消費與分帳紀錄</li>
+                <li>{trip.trip_members.length} 位成員</li>
+                <li>結算結果與分享連結</li>
+              </ul>
+              <p className="dlgs">請輸入「刪除」兩個字</p>
               <input
                 type="text" className="dlginput" value={deleteConfirm}
                 placeholder="刪除" autoComplete="off"
@@ -446,7 +449,7 @@ export default function ExpenseListPage() {
                   disabled={deleteConfirm.trim() !== '刪除' || deleteTripMutation.isPending}
                   onClick={() => deleteTripMutation.mutate()}
                 >
-                  {deleteTripMutation.isPending ? '刪除中…' : '刪除行程'}
+                  {deleteTripMutation.isPending ? '刪除中…' : '刪除'}
                 </button>
               </div>
             </div>

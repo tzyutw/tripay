@@ -322,7 +322,41 @@ describe('D-①　只能有一個刪除對話框', () => {
     /* 舊版是「請輸入行程名稱」才 enable，新版是打「刪除」兩個字 */
     expect(flat(), '舊的刪除對話框還在').not.toContain('請輸入行程名稱');
     expect(flat()).not.toContain('這會一併刪掉這趟的');
-    expect(screen.getByText('確定的話，請在下面打「刪除」兩個字。')).toBeInTheDocument();
+    expect(screen.getByText('請輸入「刪除」兩個字')).toBeInTheDocument();
+  });
+
+  it('S-03c-2／3／4／7　對話框的字串集合與原型 renderS03c() 差異為空', async () => {
+    const fs = await import('fs');
+    const proto = fs.readFileSync('Tripay_原型.html', 'utf8');
+    /* 雙向綁住：這些字面量必須**同時**存在於原型與 App。
+       原型哪天改了字，這裡就會紅，而不是靜靜地各走各的。 */
+    const FROM_PROTO = [
+      '刪掉就', '救不回來', '筆消費與分帳紀錄', '位成員',
+      '結算結果與分享連結', '請輸入「刪除」兩個字', '算了，留著',
+    ];
+    for (const t of FROM_PROTO)
+      expect(proto, `原型裡找不到這句了：${t}`).toContain(t);
+
+    await show();
+    fireEvent.click(document.querySelector('button[aria-label="更多"]')!);
+    fireEvent.click(screen.getByText('刪除行程'));
+
+    const dlg = document.querySelector('.dlg') as HTMLElement;
+    expect(dlg).not.toBeNull();
+    /* 數字用同一組 fixture：8 筆消費、4 位成員 */
+    const want = '刪除「2026 濟州島四寶團」？刪掉就救不回來：'
+      + '8 筆消費與分帳紀錄4 位成員結算結果與分享連結'
+      + '請輸入「刪除」兩個字算了，留著刪除';
+    expect((dlg.textContent ?? '').replace(/\s+/g, ''))
+      .toBe(want.replace(/\s+/g, ''));
+  });
+
+  it('S-03c-3　影響清單是三個 <li>，數字即時帶入', async () => {
+    await show();
+    fireEvent.click(document.querySelector('button[aria-label="更多"]')!);
+    fireEvent.click(screen.getByText('刪除行程'));
+    const lis = [...document.querySelectorAll('.dlg li')].map(x => x.textContent);
+    expect(lis).toEqual(['8 筆消費與分帳紀錄', '4 位成員', '結算結果與分享連結']);
   });
 
   it('打「刪除」兩個字才 enable，而且只有一顆刪除鍵', async () => {

@@ -89,10 +89,10 @@ const show = async () => {
   await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 };
 
-/* 原型的 S-06 hero 仍然把成員 emoji 接在日期後面，fixture 也是這樣抓的；
-   但 B-6 明寫「拿掉成員 emoji（與 S-03 一致，同一段 join('') 的問題）」。
-   **這是原型與佇列指令的出入**，已寫進 _停點.md 給 Rozi 裁示。
-   目前照佇列做，並把這一項單獨釘在這裡——不藏進「差異為空集合」裡。 */
+/* 原型的 S-06 hero 仍然把成員 emoji 接在日期後面，fixture 也是這樣抓的。
+   **Rozi 2026-09-05 已裁示：不要 emoji，維持現狀**——與行程頁 S-03 一致，
+   收到連結的人第一眼該看到的是「哪一趟、什麼時候」。原型此處待日後同步。
+   這個常數留著當守門的：hero 哪天又被接回 emoji，下面那條就會紅。 */
 const KNOWN_DIVERGENCE = '3/14 – 3/18 · 2026 🐵🐱🍋🐟';
 
 describe('B-6　S-06 分享頁', () => {
