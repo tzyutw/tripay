@@ -10,7 +10,7 @@ export function deriveDisplayStatus(trip: Pick<Trip, 'status' | 'start_date'>): 
 export const STATUS_LABEL: Record<DisplayStatus, string> = {
   planned:  '出發前',
   active:   '旅途中',
-  settled:  '✅ 已結算',
+  settled:  '已結算',
   archived: '已封存',
 };
 

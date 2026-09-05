@@ -66,7 +66,23 @@ export default defineConfig(({ mode }) => ({
 
   resolve: {
     alias: {
+      /* ⚠️ 更精確的 alias 必須排在 `'@'` **前面**——object 形式是照順序比對的，
+         排在後面會先被 `'@'` 吃掉，樁靜靜地沒生效（畫面照樣 render，
+         只是連去真的 Supabase 拿不到資料，看起來像「元件壞了」）。 */
+      ...(mode === 'harness'
+        ? { '@/lib/supabaseClient': path.resolve(__dirname, './src/test/harness/supabaseStub.ts') }
+        : {}),
       '@': path.resolve(__dirname, './src'),
     },
   },
+
+  /* harness 模式只建置量測靶，不動正式的 index.html */
+  ...(mode === 'harness'
+    ? {
+        /* file:// 開啟，資產路徑必須是相對的——寫成 '/assets/…' 會被解析到
+           檔案系統根目錄，頁面靜靜地空白（不報錯，只是什麼都沒有）。 */
+        base: './',
+        build: { outDir: 'dist-harness', rollupOptions: { input: path.resolve(__dirname, 'harness.html') } },
+      }
+    : {}),
 }));

@@ -1,11 +1,19 @@
+/* 實作-B-5　S-05 結算（30 項）。版面與文案逐字對齊原型的 renderS05()。
+ *
+ * **hub 模式的兩段式呈現（S-05-26）留到實作-C**，本節只做 direct——
+ * 不過 `settleTrip()` 與 `TransferView` 兩邊本來就都含 hub 分支，
+ * 硬把它們拆一半反而會製造第二份路徑。這裡照原型整套搬，C-2 負責驗與接引導。 */
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabaseClient';
 import { deriveDisplayStatus } from '@/lib/deriveStatus';
-import { getCurrencySymbol } from '@/lib/currencies';
-import type { TripWithMembers, SettlementItem } from '@/types/database';
+import { tripSummary, settleTrip, prepaidShare, calc } from '@/lib/summary';
+import { money, memberLabel, firstGrapheme } from '@/lib/format';
+import { Icon } from '@/components/Icon';
+import TransferView from '@/components/shared/TransferView';
+import type { TripWithMembers, SettlementItem, ExpenseWithSplits } from '@/types/database';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -51,16 +59,15 @@ export default function SettlementPage() {
     enabled: Boolean(tripId),
   });
 
-  const { data: expenses = [] } = useQuery<Array<{ id: string; twd_amount: number | null; twd_pending: boolean; foreign_pending: boolean }>>({
-    queryKey: ['expenses-light', tripId],
+  /* 要整列（含 expense_splits）——預覽的淨額與轉帳是前端用同一支引擎算的 */
+  const { data: expenses = [] } = useQuery<ExpenseWithSplits[]>({
+    queryKey: ['expenses', tripId],
     queryFn: async () => {
       if (!tripId) return [];
       const { data } = await supabase
-        .from('expenses')
-        .select('id, twd_amount, twd_pending, foreign_pending')
-        .eq('trip_id', tripId)
-        .is('deleted_at', null);
-      return data ?? [];
+        .from('expenses').select('*, expense_splits(*)')
+        .eq('trip_id', tripId).is('deleted_at', null);
+      return (data ?? []) as ExpenseWithSplits[];
     },
     enabled: Boolean(tripId),
   });
@@ -111,34 +118,43 @@ export default function SettlementPage() {
     return items.every(i => i.is_cleared) ? 'done' : 'partial';
   }, [trip, settlement]);
 
-  const pendingCount = useMemo(
-    () => expenses.filter(e => e.twd_pending || e.foreign_pending).length,
-    [expenses]
-  );
-
   const progress = useMemo(() => {
     const items   = settlement?.settlement_items ?? [];
     const cleared = items.filter(i => i.is_cleared).length;
     return { cleared, total: items.length };
   }, [settlement]);
 
+  /* G-08 回顧卡（S-05-17）：數字帶符號，標籤純文字 */
   const highlights = useMemo(() => {
     if (!trip) return null;
-    const start     = new Date(trip.start_date);
-    const end       = new Date(trip.end_date);
-    const days      = Math.floor((end.getTime() - start.getTime()) / 86_400_000) + 1;
-    const active    = expenses.filter(e => !e.twd_pending && e.twd_amount !== null);
-    const count     = active.length;
-    const maxAmount = active.reduce((m, e) => Math.max(m, e.twd_amount ?? 0), 0);
-    return { days, count, maxAmount };
+    const days = Math.floor(
+      (Date.parse(trip.end_date) - Date.parse(trip.start_date)) / 86_400_000) + 1;
+    const active = expenses.filter(e => !e.twd_pending && e.twd_amount !== null);
+    return {
+      days,
+      count: active.length,
+      maxAmount: active.reduce((m, e) => Math.max(m, e.twd_amount ?? 0), 0),
+    };
   }, [trip, expenses]);
+
+  /* 前端預覽用的彙總與轉帳。已確認之後改讀 settlement_items（後端才是權威）。 */
+  const S = useMemo(
+    () => trip ? tripSummary(trip, expenses, deriveDisplayStatus(trip)) : null,
+    [trip, expenses]);
+  const preview = useMemo(
+    () => (trip && S) ? settleTrip(S, expenses, trip) : null,
+    [S, expenses, trip]);
+  const prepaid = useMemo(
+    () => trip ? prepaidShare(expenses, trip) : null,
+    [expenses, trip]);
+  /* #22-6b 只引導，不在這裡提供設定。代墊比例 > 70% 且目前是 direct 才出現。 */
+  const suggestHub = Boolean(
+    trip && prepaid && trip.settlement_mode !== 'hub' && prepaid.top && prepaid.ratio > 0.7);
 
   const memberMap = useMemo(
     () => Object.fromEntries((trip?.trip_members ?? []).map(m => [m.id, m])),
     [trip]
   );
-
-  const symbol = getCurrencySymbol(trip?.currency ?? 'TWD');
 
   // ── Mutations ─────────────────────────────────────────────────────────────────
 
@@ -212,334 +228,292 @@ export default function SettlementPage() {
     },
   });
 
-  // ── Warn sheet (有待填時) ──────────────────────────────────────────────────────
+  if (!trip || !S || !preview) {
+    return <div className="spin"><i /></div>;
+  }
 
+  const { net, tx } = preview;
+  const t        = S.t;
+  const nUn      = S.unsettledList.length;
+  const items    = settlement?.settlement_items ?? [];
+  const clearedIds = items.filter(i => i.is_cleared)
+    .map(i => `${i.from_member_id}>${i.to_member_id}`);
+  const itemOf = (from: string, to: string) =>
+    items.find(i => i.from_member_id === from && i.to_member_id === to);
+
+  const Nav = (
+    <div className="bar">
+      <button className="ic2" aria-label="返回" onClick={() => navigate(-1)}>
+        <Icon name="back" size={20} />
+      </button>
+      <span className="ttl">結算</span>
+      <span style={{ width: 40 }} />
+    </div>
+  );
+
+  /* S-05-31　代墊集中時的引導：**只給連結不給設定**，
+     設定的唯一入口是 S-02b-13（一個設定只有一個入口）。 */
+  const HubHint = suggestHub && prepaid?.top ? (
+    <div className="fld" style={{ paddingTop: 12 }}>
+      <div className="note calm">
+        <Icon name="warn" size={14} /> 這趟有 {Math.round(prepaid.ratio * 100)}% 是{' '}
+        {memberLabel(t.members.find(m => m.id === prepaid.top)!)} 先付的。
+        改成「都轉給同一個人」的話，每個人只要轉一次。
+        <button className="ratelink" onClick={() => navigate(`/trips/${tripId}/edit`)}>
+          去設定 <Icon name="next" size={13} />
+        </button>
+      </div>
+    </div>
+  ) : null;
+
+  // ── §6　結算前檢查層（S-05-4／30）─────────────────────────────────────────────
+  // 這是**提醒不是禁止**：「就這樣結算」一定要能真的結算。
   if (showWarnSheet) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <NavBar tripId={tripId} onBack={() => navigate(-1)} />
-        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-4">
-          <span className="text-5xl">⚠️</span>
-          <p className="text-lg font-bold text-ink">還有 {pendingCount} 筆沒填完</p>
-          <p className="text-sm text-md">結算數字可能不準確</p>
+      <div className="min-h-screen bg-bg flex flex-col">
+        {Nav}
+        <div className="fld" style={{ paddingTop: 16 }}>
+          <div className="text-strong font-bold mb-[5px]">有 {nUn} 筆還沒算清楚</div>
+          <div className="text-body text-md mb-3">結算之後金額就固定了。要先去看一下嗎？</div>
+          <div className="gap">
+            {S.unsettledList.map(({ e, c }) => (
+              <button key={e.id} className="rowb"
+                onClick={() => navigate(`/trips/${tripId}`)}>
+                <span className="text-title">{e.emoji}</span>
+                <span className="flex-1 font-semibold">{e.title}</span>
+                <span className="text-sub text-gr">
+                  {c.twdPending ? '金額還沒填' : `${c.blanks.length} 人還沒填`}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="px-5 pb-10 pt-4 flex gap-3 flex-shrink-0">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex-1 h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform"
-          >
-            回去補填
-          </button>
-          <button
-            onClick={() => { setShowWarnSheet(false); calculateMutation.mutate(); }}
-            className="flex-1 h-[50px] bg-w text-white rounded-base text-body font-bold active:scale-[0.97] transition-transform"
-            disabled={calculateMutation.isPending}
-          >
-            先這樣算
-          </button>
+        <div className="btnrow">
+          <button className="btn qt" disabled={calculateMutation.isPending}
+            onClick={() => calculateMutation.mutate()}>就這樣結算</button>
+          <button className="btn" onClick={() => navigate(`/trips/${tripId}`)}>先去看一下</button>
         </div>
-        {/* Toast handled globally by ToastProvider */}
       </div>
     );
   }
 
-  // ── State 1：未結算 ───────────────────────────────────────────────────────────
-
+  // ── 狀態 1　未結算：完整轉帳預覽（S-05-28）────────────────────────────────────
   if (pageState === 'pending') {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <NavBar tripId={tripId} onBack={() => navigate(-1)} />
-        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-5">
-          <span className="text-5xl">🧮</span>
-          <p className="text-body text-md leading-relaxed max-w-xs">
-            準備好了嗎？結算後可以標記付清，也可以隨時回來修改。
-          </p>
-          {pendingCount > 0 && (
-            <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-base px-4 py-3">
-              <p className="text-out text-sub font-semibold">
-                ⚠️ 還有 {pendingCount} 筆沒填完，結算數字可能不準確
-              </p>
-            </div>
-          )}
+      <div className="min-h-screen bg-bg flex flex-col">
+        {Nav}
+        {/* #24-2 預覽直接給轉帳明細。統計卡展開看的是「分攤多少」，
+            這裡是「該收該付多少」，兩者是不同的數字。 */}
+        <div style={{ paddingTop: 14 }}>
+          <div className="txtitle">現在的狀況</div>
+          <div className="txsub">還會變 —— 之後記帳會影響這裡</div>
+          <TransferView t={t} tx={tx} approx={nUn > 0} />
         </div>
-        <div className="px-5 pb-10 pt-4 flex-shrink-0">
-          <button
-            onClick={() => {
-              if (pendingCount > 0) setShowWarnSheet(true);
-              else calculateMutation.mutate();
-            }}
-            disabled={calculateMutation.isPending}
-            className="w-full h-[50px] bg-w text-white rounded-base text-body font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
-            style={{ boxShadow: '0 3px 14px rgba(124,45,18,0.36)' }}
-          >
-            {calculateMutation.isPending ? '計算中…' : '算清楚'}
+        {HubHint}
+        <div className="btnrow" style={{ flexDirection: 'column', gap: 6 }}>
+          <button className="btn" disabled={calculateMutation.isPending}
+            onClick={() => (nUn > 0 ? setShowWarnSheet(true) : calculateMutation.mutate())}>
+            {calculateMutation.isPending ? '計算中…' : '結算行程'}
           </button>
+          <p className="hint" style={{ textAlign: 'center', margin: 0 }}>
+            結算後金額固定，可以逐筆標記付清
+          </p>
         </div>
-        {/* Toast handled globally by ToastProvider */}
       </div>
     );
   }
 
-  // ── State 3：全員付清（慶祝） ─────────────────────────────────────────────────
-
+  // ── 狀態 3　全員付清：摺紙 signature（S-05-16）＋ 回顧卡 ──────────────────────
   if (pageState === 'done') {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <NavBar tripId={tripId} onBack={() => navigate(-1)} title="結算" />
-        <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-6">
-          {/* Celebration */}
-          <div className="text-center py-8">
-            <span className="text-logo block mb-4" style={{ animation: 'popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both' }}>
-              ✨
-            </span>
-            <h2 className="text-title font-bold text-ink mb-2">帳算清楚了 ✨</h2>
-            <p className="text-strong text-md">下次去哪？</p>
+      <div className="min-h-screen bg-bg flex flex-col">
+        {Nav}
+        <div className="empty" style={{ padding: '30px 22px' }}>
+          <FoldSignature />
+          <p style={{ fontSize: 'var(--fs-title)', marginTop: 10 }}>帳算清楚了</p>
+          <p>下次去哪？</p>
+        </div>
+
+        {/* S-05-17　G-08 回顧卡：數字帶符號，標籤純文字 */}
+        {highlights && (
+          <div className="fld">
+            <div className="recap">
+              {([
+                [String(highlights.days), '天', '出遊'],
+                [String(highlights.count), '筆', '共記了'],
+                [money(highlights.maxAmount), '', '最大手筆'],
+              ] as const).map(([n, u, l]) => (
+                <div key={l}>
+                  <div className="tnum n">{n}<span className="u">{u}</span></div>
+                  <div className="l">{l}</div>
+                </div>
+              ))}
+            </div>
           </div>
+        )}
 
-          {/* G-08 Highlights */}
-          {highlights && (
-            <div className="bg-white rounded-panel shadow-card p-4 mb-5">
-              <p className="text-tag font-bold text-gr tracking-widest uppercase text-center mb-4">
-                這趟的回顧
-              </p>
-              <div className="grid grid-cols-3 divide-x divide-[#EEEBE6]">
-                <HighlightCell
-                  num={highlights.days}
-                  unit="天"
-                  label="出遊"
-                />
-                <HighlightCell
-                  num={highlights.count}
-                  unit="筆"
-                  label="共記了"
-                />
-                <HighlightCell
-                  num={highlights.maxAmount.toLocaleString()}
-                  unit=""
-                  label={`最大手筆 ${symbol}`}
-                />
-              </div>
+        <div className="fld">
+          <span className="lbl">誰付給誰</span>
+          {tx.map(x => (
+            <div className="rowb" key={`${x.from}>${x.to}`} style={{ marginBottom: 6 }}>
+              <span className="flex-1 text-body">
+                {memberLabel(t.members.find(m => m.id === x.from)!)}
+                {' '}<span className="text-gr">→</span>{' '}
+                {memberLabel(t.members.find(m => m.id === x.to)!)}
+              </span>
+              <span className="money">{money(x.amount)}</span>
             </div>
-          )}
-
-          {/* Settlement items (done) */}
-          {(settlement?.settlement_items ?? []).length > 0 && (
-            <div className="mb-5">
-              <p className="text-tag font-bold text-gr tracking-widest uppercase mb-3">誰付給誰</p>
-              {(settlement?.settlement_items ?? []).map(item => {
-                const from = memberMap[item.from_member_id];
-                const to   = memberMap[item.to_member_id];
-                return (
-                  <div key={item.id} className="bg-white rounded-base shadow-card p-4 mb-2 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-body">
-                      <span>{from?.emoji} {from?.name}</span>
-                      <span className="text-gr text-sm">→</span>
-                      <span>{to?.emoji} {to?.name}</span>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-strong font-bold text-in tabular-nums">
-                        $ {item.amount.toLocaleString()}
-                      </p>
-                      <p className="text-tag font-bold text-in">✅ 已付清</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          ))}
         </div>
 
-        {/* Bottom actions */}
-        <div className="px-5 pb-10 pt-3 flex gap-3 flex-shrink-0 border-t border-black/[0.05]">
-          <button
-            onClick={() => navigate('/trips/new')}
-            className="flex-1 h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform"
-          >
-            ＋ 建立新行程
-          </button>
-          <button
-            onClick={() => archiveMutation.mutate()}
-            disabled={archiveMutation.isPending}
-            className="flex-1 h-[50px] bg-w text-white rounded-base text-body font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
-          >
-            {archiveMutation.isPending ? '封存中…' : '封存行程'}
-          </button>
+        {/* S-05-29　分享 CTA 升為主要動作，「建立新行程／封存行程」降為次級 */}
+        <div className="btnrow" style={{ flexDirection: 'column', gap: 6 }}>
+          <button className="btn" onClick={() => navigate(`/trips/${tripId}`)}>分享給大家</button>
+          <div className="flex gap-2 w-full">
+            <button className="btn qt" onClick={() => navigate('/')}>建立新行程</button>
+            <button className="btn qt" disabled={archiveMutation.isPending}
+              onClick={() => archiveMutation.mutate()}>封存行程</button>
+          </div>
         </div>
-        {/* Toast handled globally by ToastProvider */}
-        <style>{`@keyframes popIn { from { transform: scale(0) rotate(-12deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }`}</style>
       </div>
     );
   }
 
-  // ── State 2：部分付清 ─────────────────────────────────────────────────────────
-
-  const items = settlement?.settlement_items ?? [];
-  const clearedCount = items.filter(i => i.is_cleared).length;
-  const pct = items.length > 0 ? (clearedCount / items.length) * 100 : 0;
-
+  // ── 狀態 2　已結算、逐筆標記付清 ──────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <NavBar tripId={tripId} onBack={() => navigate(-1)} title="結算" />
+    <div className="min-h-screen bg-bg flex flex-col">
+      {Nav}
+      {HubHint}
 
-      <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-24">
-        {/* Progress */}
-        <div className="bg-white rounded-base shadow-card p-4 mb-4 mt-4">
-          <p className="text-sub font-semibold text-md mb-2">
-            {clearedCount} / {items.length} 筆已確認
-          </p>
-          <div className="h-[6px] bg-[#F5F4F2] rounded-chip overflow-hidden">
-            <div
-              className="h-full bg-in rounded-chip transition-all duration-500"
-              style={{ width: `${pct}%` }}
-            />
+      {/* S-05-6　進度 */}
+      <div className="fld" style={{ paddingTop: 12 }}>
+        <div className="progbox">
+          <div className="progtxt">{progress.cleared} / {Math.max(1, progress.total)} 筆已確認</div>
+          <div className="progbar">
+            <div style={{ width: `${progress.total ? progress.cleared * 100 / progress.total : 0}%` }} />
           </div>
         </div>
+      </div>
 
-        {/* Settlement items */}
-        <div className="mb-4">
-          {items.map(item => {
-            const from = memberMap[item.from_member_id];
-            const to   = memberMap[item.to_member_id];
-            return (
-              <div key={item.id} className="bg-white rounded-base shadow-card p-4 mb-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-body">
-                    <span>{from?.emoji} {from?.name}</span>
-                    <span className="text-gr text-sm">→</span>
-                    <span>{to?.emoji} {to?.name}</span>
-                  </div>
-                  <p className="text-strong font-bold text-in tabular-nums">
-                    $ {item.amount.toLocaleString()}
-                  </p>
-                </div>
-                <div className="mt-2 flex justify-end">
-                  {item.is_cleared ? (
-                    <span className="text-tag font-bold text-in">✅ 已付清</span>
-                  ) : (
-                    <button
-                      onClick={() => clearItemMutation.mutate(item.id)}
-                      disabled={clearItemMutation.isPending}
-                      className="text-tag font-bold text-w border-[1.5px] border-w rounded-base px-[10px] py-1 active:scale-95 transition-transform disabled:opacity-60"
-                    >
-                      標記付清
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      {/* S-05-7　與 S-05-28 共用同一份 transferView */}
+      <TransferView
+        t={t}
+        tx={items.length
+          ? items.map(i => ({ from: i.from_member_id, to: i.to_member_id, amount: i.amount }))
+          : tx}
+        withClear
+        clearedIds={clearedIds}
+        onClear={x => {
+          const it = itemOf(x.from, x.to);
+          if (it) clearItemMutation.mutate(it.id);
+        }}
+      />
 
-        {/* 計算依據（折疊） */}
-        <button
-          onClick={() => setShowDetails(v => !v)}
-          className="w-full text-left py-3 border-t border-[#EFEBE6] text-sub font-semibold text-md flex items-center justify-between"
-        >
-          查看計算依據
-          <span className="text-gr">{showDetails ? '▲' : '▼'}</span>
-        </button>
+      {/* S-05-10 */}
+      <button className="detailtoggle" onClick={() => setShowDetails(o => !o)}>
+        查看計算依據 <Icon name={showDetails ? 'up' : 'down'} size={16} />
+      </button>
 
-        {showDetails && (
-          <div className="mt-2">
-            {/* Member balances from calculation result */}
-            {netFromItems.length > 0 && (
-              <div className="mb-4">
-                <p className="text-tag font-bold text-md mb-2">這趟結算下來</p>
-                <div className="flex flex-col gap-[6px]">
-                  {netFromItems.map(b => (
-                    <div key={b.id} className="flex items-center gap-2 bg-white rounded-base px-3 py-2">
-                      <span className="text-body">{b.emoji}</span>
-                      <span className="text-sub font-semibold text-ink flex-1">{b.name}</span>
-                      <span className={`text-sub font-bold tabular-nums ${b.net > 0 ? 'text-in' : b.net < 0 ? 'text-out' : 'text-gr'}`}>
-                        {b.net > 0 ? `可以拿回 $${b.net.toLocaleString()}`
-                          : b.net < 0 ? `要給出 $${Math.abs(b.net).toLocaleString()}`
-                          : '剛好打平'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-tag text-gr mt-2 leading-relaxed">
-                  ※ 對照 Excel 時注意：Excel 習慣用「負數」表示應收，Tripay 這裡相反，請看文字不要只看正負號。
-                </p>
-              </div>
-            )}
-
-            {(calcData?.member_balances ?? []).length > 0 ? (
-              <div className="bg-white rounded-base shadow-card overflow-hidden mb-4">
-                <div className="grid grid-cols-4 text-tag font-bold text-gr px-4 py-2 border-b border-[#EFEBE6]">
-                  <span>成員</span>
-                  <span className="text-right">實際付出</span>
-                  <span className="text-right">應分攤</span>
-                  <span className="text-right">差額</span>
-                </div>
-                {(calcData?.member_balances ?? []).map(b => (
-                  <div key={b.member_id} className="grid grid-cols-4 px-4 py-[10px] border-b border-[#F5F4F2] last:border-0">
-                    <span className="text-sub font-semibold text-ink">{b.emoji} {b.name}</span>
-                    <span className="text-right text-sub font-semibold tabular-nums">{b.payout.toLocaleString()}</span>
-                    <span className="text-right text-sub tabular-nums">{b.cost.toLocaleString()}</span>
-                    <span className={`text-right text-sub font-bold tabular-nums ${b.net_balance >= 0 ? 'text-in' : 'text-out'}`}>
-                      {b.net_balance >= 0 ? '+' : ''}{b.net_balance.toLocaleString()}
+      {showDetails && (
+        <div className="fld">
+          {/* S-05-11　人話淨額。由多筆轉帳組成時**對象要全部列出**。 */}
+          <div className="gap">
+            {t.members.map(m => {
+              const v = netFromItems.find(x => x.id === m.id)?.net ?? net[m.id] ?? 0;
+              const mine = (items.length
+                ? items.map(i => ({ from: i.from_member_id, to: i.to_member_id, amount: i.amount }))
+                : tx).filter(x => x.from === m.id || x.to === m.id);
+              return (
+                <div className="netcard" key={m.id}>
+                  <div className="netrow">
+                    <span className="text-title">{m.emoji || firstGrapheme(m.name)}</span>
+                    <span className="flex-1 text-body font-semibold">{m.name}</span>
+                    <span className="money"
+                      style={{ color: v > 0 ? 'var(--in)' : v < 0 ? 'var(--out)' : 'var(--gr)' }}>
+                      {v > 0 ? `可以拿回 ${money(v)}` : v < 0 ? `要給出 ${money(-v)}` : '剛好打平'}
                     </span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              netFromItems.length === 0 ? (
-                <p className="text-tag text-gr py-2">（依消費明細自動計算，重新整理後需重新計算才能顯示）</p>
-              ) : (
-                <p className="text-tag text-gr py-2">（每人「實際付出／應分攤」的明細，按一次「重新計算」就會出現）</p>
-              )
-            )}
+                  {mine.length > 0 && (
+                    <div className="netwho">
+                      {mine.map(x => (
+                        <div key={`${x.from}>${x.to}`}>
+                          {x.from === m.id
+                            ? <>給 {memberLabel(t.members.find(y => y.id === x.to)!)}{' '}
+                                <span className="money inline">{money(x.amount)}</span></>
+                            : <>{memberLabel(t.members.find(y => y.id === x.from)!)} 給你{' '}
+                                <span className="money inline">{money(x.amount)}</span></>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        )}
-      </div>
 
-      {/* Bottom actions */}
-      <div className="fixed bottom-0 inset-x-0 px-5 pb-8 pt-3 bg-white border-t border-black/[0.05] flex gap-3">
-        <button
-          onClick={() => reopenMutation.mutate('reopen')}
-          disabled={reopenMutation.isPending}
-          className="flex-1 h-[50px] bg-white text-md rounded-base border-[1.5px] border-[#E4DFD9] text-sub font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
-        >
-          {reopenMutation.isPending ? '處理中…' : '重新計算'}
-        </button>
-        <button
-          onClick={() => archiveMutation.mutate()}
-          disabled={archiveMutation.isPending}
-          className="flex-1 h-[50px] bg-w text-white rounded-base text-sub font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
-        >
-          {archiveMutation.isPending ? '封存中…' : '封存行程'}
-        </button>
-      </div>
+          {/* S-05-13　對帳表 */}
+          <div className="detailtable">
+            <div className="detailhd">
+              <span>成員</span><span>實際付出</span><span>應分攤</span><span>差額</span>
+            </div>
+            {t.members.map(m => {
+              const v = netFromItems.find(x => x.id === m.id)?.net ?? net[m.id] ?? 0;
+              const paid = expenses
+                .filter(e => e.payer_member_id === m.id && !e.settled_on_spot)
+                .reduce((a, e) => a + (calc(e, trip, trip.trip_members).twdTotal || 0), 0);
+              return (
+                <div className="detailrow tnum" key={m.id}>
+                  <span style={{ fontFamily: 'var(--sans)' }}>
+                    {m.emoji || firstGrapheme(m.name)} {m.name}
+                  </span>
+                  <span>{paid.toLocaleString()}</span>
+                  <span>{(paid - v).toLocaleString()}</span>
+                  <span style={{ color: v >= 0 ? 'var(--in)' : 'var(--out)' }}>
+                    {v >= 0 ? '+' : ''}{v.toLocaleString()}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
 
+          {/* S-05-14。S-05-12（Excel 正負號提醒）已移除 */}
+          <p className="hint">待填的筆不進結算，所以這裡的數字可能小於總花費</p>
+        </div>
+      )}
+
+      <div className="btnrow">
+        <button className="btn qt" disabled={reopenMutation.isPending}
+          onClick={() => reopenMutation.mutate('reopen')}>重新計算</button>
+        <button className="btn" disabled={archiveMutation.isPending}
+          onClick={() => archiveMutation.mutate()}>封存行程</button>
+      </div>
     </div>
   );
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function NavBar({ tripId: _tripId, onBack, title }: { tripId?: string; onBack: () => void; title?: string }) {
+/* S-05-16　摺紙 signature：三拍、總長 1.4s、**只播一次**、forwards 停在最終畫面。
+   `prefers-reduced-motion: reduce` 直接給最終畫面（CSS 負責，見 index.css 的 .fold）。 */
+function FoldSignature() {
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-[#EFEBE6] flex-shrink-0">
-      <button
-        onClick={onBack}
-        className="flex items-center gap-1 text-w text-sub font-medium"
-      >
-        ‹ 返回
-      </button>
-      <span className="text-sub font-semibold text-md">{title ?? '結算'}</span>
-      <div className="w-12" />
-    </div>
-  );
-}
-
-function HighlightCell({ num, unit, label }: { num: number | string; unit: string; label: string }) {
-  return (
-    <div className="text-center px-2">
-      <p className="text-title font-extrabold text-ink leading-tight">
-        {num}<span className="text-sub font-semibold text-md">{unit}</span>
-      </p>
-      <p className="text-tag font-semibold text-gr mt-1">{label}</p>
-    </div>
+    <svg className="anim fold" viewBox="0 -6 102 82" style={{ width: 86, height: 69 }}
+      aria-label="一疊帳摺起來寄出去">
+      <g className="sheetline">
+        <path d="M14 10 h54 l18 18 v40 h-72 z" fill="#fff" stroke="#0F5E9E"
+          strokeWidth="1.6" strokeLinejoin="round" />
+        <path d="M68 10 v18 h18" fill="none" stroke="#0F5E9E"
+          strokeWidth="1.6" strokeLinejoin="round" />
+        <g className="lines">
+          <path d="M26 26 h30 M26 36 h38 M26 46 h22" stroke="#9FB0BA"
+            strokeWidth="1.4" strokeLinecap="round" />
+        </g>
+      </g>
+      {/* 軌跡在 .plane 之外：飛機飛走之後它要留在原地，那才叫殘影 */}
+      <path className="trail" d="M48 46 L84 22" fill="none" stroke="#9B1B14"
+        strokeWidth="1" strokeDasharray="3 3" />
+      <g className="plane">
+        <path pathLength={100} d="M18 44 L84 22 L56 60 L48 46 Z" fill="none"
+          stroke="#0F5E9E" strokeWidth="1.8" strokeLinejoin="round" />
+      </g>
+    </svg>
   );
 }

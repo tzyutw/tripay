@@ -6,13 +6,8 @@ import { deriveDisplayStatus, STATUS_LABEL, STATUS_BADGE_CLASS } from '@/lib/der
 import { destinationOf } from '@/lib/destinations';
 import type { TripWithMembers } from '@/types/database';
 import TripFormSheet from '@/components/TripFormSheet';
-
-function formatDateRange(start: string, end: string) {
-  const s = new Date(start);
-  const e = new Date(end);
-  const fmt = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`;
-  return `${fmt(s)} – ${fmt(e)} · ${s.getFullYear()}`;
-}
+import { Icon } from '@/components/Icon';
+import { dateRange } from '@/lib/format';
 
 export default function TripListPage() {
   const navigate    = useNavigate();
@@ -64,13 +59,25 @@ export default function TripListPage() {
       {/* Header */}
       <div className="px-5 pt-4 pb-0 flex items-center justify-between flex-shrink-0">
         <span className="font-sans text-title font-bold tracking-tight text-w">Tripay</span>
-        <button
-          onClick={openNew}
-          className="h-9 px-4 bg-w text-white rounded-base text-sub font-bold flex items-center gap-1 active:scale-95 transition-transform duration-100"
-          style={{ boxShadow: '0 2px 8px rgba(124,45,18,0.32)' }}
-        >
-          ＋ 新增行程
-        </button>
+        <span className="flex items-center gap-2">
+          {/* S-01-2　全形「＋」改用 Feather 的 add——同一個動作全站原本有兩種畫法 */}
+          <button
+            onClick={openNew}
+            className="px-3 py-[7px] bg-w text-white rounded-base text-body font-semibold flex items-center gap-1 active:scale-95 transition-transform duration-100"
+          >
+            <Icon name="add" size={16} /> 新增行程
+          </button>
+          {/* S-01-15　設定入口（#28-6c）：從 S-03 行程頁移過來。那是 App 設定
+              （登入帳號、我的資料），不是這趟行程的設定，掛在行程頁是層級錯位。
+              排在「新增行程」之後——設定的使用頻率比新增行程低。 */}
+          <button
+            onClick={() => navigate('/settings')}
+            className="ic2 text-md active:scale-95 transition-transform duration-100"
+            aria-label="設定"
+          >
+            <Icon name="settings" size={20} />
+          </button>
+        </span>
       </div>
 
       {/* Trip list */}
@@ -84,19 +91,20 @@ export default function TripListPage() {
           )}
 
           {!isLoading && trips.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 gap-2">
-              <p className="text-ink font-semibold text-lg">還沒有行程。</p>
-              <p className="text-gr text-sm">第一趟要去哪？</p>
+            <div className="py-10 px-6 text-center">
+              <p className="text-strong font-semibold">還沒有行程。</p>
+              <p className="text-sub text-gr mt-[5px]">第一趟要去哪？</p>
+              <button
+                onClick={openNew}
+                className="mt-[14px] inline-flex items-center gap-1 px-[18px] py-[9px] bg-w text-white rounded-base text-body font-semibold active:scale-95 transition-transform duration-100"
+              >
+                <Icon name="add" size={16} /> 建立第一趟
+              </button>
             </div>
           )}
 
           {trips.map((trip) => {
             const display    = deriveDisplayStatus(trip);
-            // simplified pending count via member count as proxy (replace with real query later)
-            const memberEmojis = trip.trip_members
-              .sort((a, b) => a.sort_order - b.sort_order)
-              .map(m => m.emoji)
-              .join('');
             const dest = destinationOf(trip.name, trip.id);
 
             return (
@@ -127,11 +135,10 @@ export default function TripListPage() {
                       {trip.name}
                     </p>
 
-                    <div className="flex items-center gap-2 mt-[6px]">
-                      <span className="text-strong tracking-wider">{memberEmojis}</span>
-                      <span className="text-tag text-white/85">
-                        {formatDateRange(trip.start_date, trip.end_date)}
-                      </span>
+                    {/* S-01-13　成員識別「僅首頁不顯示」，其他頁照常——
+                        首頁卡片是「哪一趟」，不是「誰在裡面」。 */}
+                    <div className="text-sub text-white/90 mt-[3px] tabular-nums">
+                      {dateRange(trip.start_date, trip.end_date)}
                     </div>
                   </div>
                 </div>
@@ -161,16 +168,8 @@ export default function TripListPage() {
           </div>
         </div>
 
-        {/* G-06 Share banner */}
-        <div className="mx-5 mb-6 bg-white border border-[#E7E5E4] rounded-panel p-4 flex items-center gap-3">
-          <span className="text-title flex-shrink-0">🔗</span>
-          <p className="flex-1 text-sub text-md leading-snug">
-            分享行程連結，朋友免下載就能看帳
-          </p>
-          <button className="flex-shrink-0 px-3 py-[7px] rounded-base border-[1.5px] border-w text-w text-xs font-bold whitespace-nowrap">
-            複製連結
-          </button>
-        </div>
+        {/* S-01-9／S-01-10　G-06 分享橫幅與「複製連結」鈕已移除：
+            首頁沒有「哪一趟」的 context，複製不出有意義的連結。 */}
       </div>
 
       {/* Trip form sheet */}

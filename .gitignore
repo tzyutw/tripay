@@ -6,6 +6,8 @@ node_modules/
 # Build output
 dist/
 dist-ssr/
+# 實作-C-3 的版面量測靶建置產物（只在跑測試時產生）
+dist-harness/
 
 # Environment variables (NEVER commit secrets)
 .env
@@ -43,3 +45,5 @@ MEMORY_*.md
 
 # Playwright 登入 session（歷史資料匯入 Loop 任務）
 .auth/
+.claude/hooks/
+.claude/.keepgoing_count

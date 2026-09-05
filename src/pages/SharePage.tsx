@@ -1,303 +1,118 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+/* 實作-B-6　S-06 分享頁（15 項）。
+ *
+ * ⚠️ 資料來源是 `get_shared_trip()` RPC，**不要改回直接查表**——
+ * migration 013 已經把 anon 對 trips／expenses 的直接讀取收掉了，
+ * 直接查表在正式站會拿到空資料（而且不會報錯，只是整頁空白）。
+ *
+ * 統計卡與消費列表用 A-4 的共用元件，結果是「外幣格與人均消失」（S-06-5／6 標為移除）、
+ * 消費明細改日期分組、列上不寫日期、待填列補左邊框。**這是預期的，不要補回去。**
+ */
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
-import { getCurrencySymbol } from '@/lib/currencies';
-import type { TripWithMembers, Expense, SettlementItem, TripMember } from '@/types/database';
+import { destinationOf } from '@/lib/destinations';
+import { deriveDisplayStatus } from '@/lib/deriveStatus';
+import { dateRange } from '@/lib/format';
+import { tripSummary, settleTrip } from '@/lib/summary';
+import ExpenseGroups from '@/components/shared/ExpenseGroups';
+import TransferView from '@/components/shared/TransferView';
+import { StatCardTotal, StatCardPerList, StatCardFoot } from '@/components/shared/StatCard';
+import { useState } from 'react';
+import type { Trip, TripMember, ExpenseWithSplits } from '@/types/database';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-interface SettlementWithItems {
-  id: string;
-  status: string;
-  settlement_items: SettlementItem[];
+interface SharedPayload {
+  trip: Trip;
+  members: TripMember[];
+  expenses: Omit<ExpenseWithSplits, 'expense_splits'>[];
+  splits: ExpenseWithSplits['expense_splits'];
+  settlement_items: { id: string; from_member_id: string; to_member_id: string; amount: number }[];
 }
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-function fmtDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
-}
-
-function categoryFromTitle(title: string): string {
-  if (/餐|吃|食/i.test(title))   return '🍜';
-  if (/交通|車|巴士/i.test(title)) return '🚌';
-  if (/住|飯店/i.test(title))     return '🏨';
-  if (/票|景點/i.test(title))     return '🎡';
-  if (/買|購物/i.test(title))     return '🛍️';
-  return '➕';
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function SharePage() {
   const { token } = useParams<{ token: string }>();
-  const [pwaPrompt, setPwaPrompt] = useState<Event | null>(null);
-  const [copiedToast, setCopiedToast] = useState(false);
+  const [statOpen, setStatOpen] = useState(false);
 
-  // Capture PWA install prompt
-  useEffect(() => {
-    const handler = (e: Event) => { e.preventDefault(); setPwaPrompt(e); };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
-  // ── Queries (anon — no auth required) ────────────────────────────────────────
-
-  const { data: trip, isLoading: tripLoading, isError: tripError } = useQuery<TripWithMembers | null>({
-    queryKey: ['share-trip', token],
+  const { data, isLoading, isError } = useQuery<SharedPayload | null>({
+    queryKey: ['share', token],
     queryFn: async () => {
       if (!token) return null;
-      const { data, error } = await supabase
-        .from('trips')
-        .select('*, trip_members!trip_members_trip_id_fkey(*)')
-        .eq('share_token', token)
-        .single();
+      const { data, error } = await supabase.rpc('get_shared_trip', { p_token: token });
       if (error) throw error;
-      return data as TripWithMembers;
+      return (data ?? null) as SharedPayload | null;
     },
     enabled: Boolean(token),
-    retry: false,
   });
 
-  const { data: expenses = [] } = useQuery<Expense[]>({
-    queryKey: ['share-expenses', trip?.id],
-    queryFn: async () => {
-      if (!trip) return [];
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('*')
-        .eq('trip_id', trip.id)
-        .is('deleted_at', null)
-        .order('expense_date', { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as Expense[];
-    },
-    enabled: Boolean(trip?.id),
-  });
-
-  const { data: settlement } = useQuery<SettlementWithItems | null>({
-    queryKey: ['share-settlement', trip?.id],
-    queryFn: async () => {
-      if (!trip) return null;
-      const { data } = await supabase
-        .from('settlements')
-        .select('id, status, settlement_items(*)')
-        .eq('trip_id', trip.id)
-        .eq('status', 'confirmed')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data as SettlementWithItems | null;
-    },
-    enabled: Boolean(trip?.id),
-  });
-
-  // ── Loading / Error ───────────────────────────────────────────────────────────
-
-  if (tripLoading) {
+  if (isLoading) return <div className="spin"><i /></div>;
+  if (isError || !data?.trip) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-w border-t-transparent rounded-chip animate-spin" />
+      <div className="empty">
+        <p>找不到這趟行程。</p>
+        <p>連結可能已經失效</p>
       </div>
     );
   }
 
-  if (tripError || !trip) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-8 text-center gap-3">
-        <span className="text-4xl">🔍</span>
-        <p className="text-ink font-semibold">找不到這個行程</p>
-        <p className="text-gr text-sm">連結可能已失效或被移除。</p>
-      </div>
-    );
-  }
+  /* RPC 把 expenses 與 splits 分兩袋回來，這裡接回成引擎吃的形狀 */
+  const expenses: ExpenseWithSplits[] = data.expenses.map(e => ({
+    ...e,
+    expense_splits: data.splits.filter(s => s.expense_id === e.id),
+  })) as ExpenseWithSplits[];
 
-  // ── Computed ──────────────────────────────────────────────────────────────────
+  const trip = { ...data.trip, trip_members: data.members };
+  /* 彙總用**行程真正的狀態**（「約」的判定跟著它走）；
+     「這一頁不能點」是另一回事，由各元件的 readonly prop 表達。 */
+  const S = tripSummary(trip as never, expenses, deriveDisplayStatus(trip as never));
+  const t = S.t;
 
-  const members     = trip.trip_members.sort((a, b) => a.sort_order - b.sort_order);
-  const memberMap   = Object.fromEntries(members.map(m => [m.id, m]));
-  const symbol      = getCurrencySymbol(trip.currency);
-  const memberEmojis = members.map(m => m.emoji).join('');
-
-  const activeExpenses = expenses.filter(e => !e.twd_pending && e.twd_amount !== null);
-  const totalTwd       = activeExpenses.reduce((s, e) => s + (e.twd_amount ?? 0), 0);
-  const perPerson      = members.length > 0 ? Math.round(totalTwd / members.length) : 0;
-
-  const settleItems = settlement?.settlement_items ?? [];
-
-  function handleInstall() {
-    if (!pwaPrompt) return;
-    (pwaPrompt as BeforeInstallPromptEvent).prompt?.();
-  }
-
-  function copyLink() {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      setCopiedToast(true);
-      setTimeout(() => setCopiedToast(false), 2000);
-    });
-  }
-
-  // ── Render ────────────────────────────────────────────────────────────────────
+  /* 已確認的轉帳優先用後端的；還沒結算就用前端預覽 */
+  const tx = data.settlement_items.length
+    ? data.settlement_items.map(i => ({ from: i.from_member_id, to: i.to_member_id, amount: i.amount }))
+    : settleTrip(S, expenses, trip as never).tx;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Header hero */}
-      <div
-        className="flex-shrink-0 pt-12 pb-4 px-5 relative"
-        style={{ background: 'linear-gradient(148deg, #1A3558 0%, #2B5590 42%, #684533 100%)' }}
-      >
-        {/* Read-only badge */}
-        <div className="absolute top-4 right-5">
-          <span className="inline-flex items-center gap-1 bg-white/20 text-white/80 text-xs font-semibold px-3 py-1 rounded-chip border border-white/25">
-            朋友檢視
-          </span>
-        </div>
+    <div className="min-h-screen bg-bg flex flex-col">
 
-        <div className="flex items-center gap-3 mb-2">
-          <div>
-            <h1 className="font-sans text-title font-bold text-white tracking-tight leading-tight">
-              {trip.name}
-            </h1>
-            <p className="text-sm text-white/70 mt-1">
-              {fmtDate(trip.start_date)} – {fmtDate(trip.end_date)} · {memberEmojis}
-            </p>
-          </div>
+      {/* S-06-1／2／3 */}
+      <div className="hero" style={{
+        background: destinationOf(trip.name, trip.id).gradient, paddingTop: 22,
+      }}>
+        <div className="sc" />
+        <span className="viewtag"><span className="stamp">朋友檢視</span></span>
+        <div style={{ position: 'relative' }}>
+          <div className="tt">{trip.name}</div>
+          {/* 成員 emoji 已拿掉，與 S-03 一致——同一段 join('') 的問題 */}
+          <div className="dt">{dateRange(trip.start_date, trip.end_date)}</div>
         </div>
       </div>
 
-      {/* Stats row */}
-      <div className="flex-shrink-0 bg-white shadow-sm">
-        <div className="flex">
-          <div className="flex-1 text-center py-3 border-r border-[#EFEBE6]">
-            <p className="text-strong font-bold text-ink tabular-nums">$ {totalTwd.toLocaleString()}</p>
-            <p className="text-tag text-gr mt-[2px]">總花費</p>
-          </div>
-          <div className="flex-1 text-center py-3 border-r border-[#EFEBE6]">
-            <p className="text-strong font-bold text-ink tabular-nums">
-              {symbol} {symbol === '$' ? totalTwd.toLocaleString() : '—'}
-            </p>
-            <p className="text-tag text-gr mt-[2px]">{trip.currency}</p>
-          </div>
-          <div className="flex-1 text-center py-3">
-            <p className="text-strong font-bold text-ink tabular-nums">$ {perPerson.toLocaleString()}</p>
-            <p className="text-tag text-gr mt-[2px]">人均</p>
-          </div>
-        </div>
+      {/* S-06-4／14／15　與 S-03-9／27／28 共用 statCard()。
+          S-06-5 外幣格與 S-06-6 人均因此消失——每人分擔列已經取代它們。 */}
+      <div className="statcard">
+        <StatCardTotal S={S} open={statOpen} readonly onToggleTotal={() => setStatOpen(o => !o)} />
+        {statOpen && <StatCardPerList S={S} readonly />}
+        {statOpen && <StatCardFoot S={S} readonly />}
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-8">
+      {/* S-06-7／8　與 S-05 共用同一個 TransferView（arrows 變體）——
+          兩處分開寫遲早會走鐘，理由與 statCard()／expenseGroups() 相同。 */}
+      <div className="sec">誰付給誰</div>
+      <TransferView t={t} tx={tx} variant="arrows" />
 
-        {/* 誰付給誰 */}
-        {settleItems.length > 0 && (
-          <div className="px-5 mt-5">
-            <SectionTitle title="誰付給誰" />
-            {settleItems.map(item => {
-              const from = memberMap[item.from_member_id];
-              const to   = memberMap[item.to_member_id];
-              return (
-                <div key={item.id} className="bg-white rounded-base shadow-card p-4 mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-body">
-                    <span>{from?.emoji} {from?.name}</span>
-                    <span className="text-gr text-sm">→</span>
-                    <span>{to?.emoji} {to?.name}</span>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-strong font-bold text-in tabular-nums">
-                      $ {item.amount.toLocaleString()}
-                    </p>
-                    {item.is_cleared && (
-                      <p className="text-tag font-bold text-in">✅ 已付清</p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+      {/* S-06-9／10／11 */}
+      <div className="sec">消費明細</div>
+      {S.list.length
+        ? <ExpenseGroups S={S} readonly />
+        : <div className="empty"><p>還沒有消費紀錄。</p></div>}
 
-        {/* 結算尚未執行 */}
-        {!settlement && (
-          <div className="px-5 mt-5">
-            <SectionTitle title="誰付給誰" />
-            <div className="bg-white rounded-base shadow-card p-4 text-center">
-              <p className="text-gr text-sub">這趟旅程還沒結算。</p>
-            </div>
-          </div>
-        )}
-
-        {/* 消費明細 */}
-        <div className="px-5 mt-5">
-          <SectionTitle title="消費明細" />
-          {expenses.length === 0 && (
-            <p className="text-gr text-sm py-4 text-center">還沒有消費紀錄。</p>
-          )}
-          {expenses.map(exp => {
-            const payer = memberMap[exp.payer_member_id] as TripMember | undefined;
-            return (
-              <div key={exp.id} className="bg-white rounded-base shadow-card p-[11px] flex items-center gap-[10px] mb-2">
-                <span className="text-title w-[32px] text-center flex-shrink-0">
-                  {exp.category_emoji || categoryFromTitle(exp.title)}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-body font-semibold text-ink truncate">{exp.title}</p>
-                  <p className="text-tag text-gr mt-[2px]">
-                    {payer?.emoji} {payer?.name} · {exp.expense_date}
-                  </p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-body font-bold text-ink tabular-nums">
-                    {exp.twd_pending || exp.twd_amount === null
-                      ? '—'
-                      : `$ ${exp.twd_amount.toLocaleString()}`}
-                  </p>
-                  {exp.twd_pending && (
-                    <p className="text-tag text-out">待補填</p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* G-06 Footer CTA */}
-      <div className="flex-shrink-0 bg-white border-t border-[#E7E5E4] px-5 py-4 pb-8">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sub text-md leading-snug flex-1">
-            想自己記帳？下載 Tripay
-          </p>
-          <div className="flex gap-2 flex-shrink-0">
-            <button
-              onClick={copyLink}
-              className="h-9 px-3 rounded-base border border-[#E4DFD9] text-md text-xs font-semibold"
-            >
-              {copiedToast ? '已複製 ✓' : '複製連結'}
-            </button>
-            {pwaPrompt && (
-              <button
-                onClick={handleInstall}
-                className="h-9 px-3 rounded-base bg-w text-white text-xs font-bold"
-              >
-                安裝
-              </button>
-            )}
-          </div>
-        </div>
+      {/* S-06-12　旅伴看到帳算得清清楚楚，是 Phase 1 唯一的獲客時機——但不說沒有的事。
+          #27-1 S-06-13「安裝」鈕整顆移除：它綁在瀏覽器的 PWA 安裝事件上，
+          iOS Safari 不支援該事件，Tripay 使用者以 iPhone 為主，
+          等於多數人看不到卻要維護一條分支。編號保留、標為移除。 */}
+      <div className="sharefoot">
+        <p>這趟帳是用 Tripay 記的</p>
+        <a href={import.meta.env.BASE_URL} className="clearbtn">開一趟自己的</a>
       </div>
     </div>
   );
-}
-
-function SectionTitle({ title }: { title: string }) {
-  return (
-    <p className="text-tag font-bold text-gr tracking-widest uppercase mb-3">{title}</p>
-  );
-}
-
-// BeforeInstallPromptEvent type
-interface BeforeInstallPromptEvent extends Event {
-  prompt?: () => Promise<void>;
 }

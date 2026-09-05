@@ -1,20 +1,25 @@
+/* 實作-B-7　S-07 設定（8 項）。
+ *
+ * **不要補做**「我的資料」（S-07-4）與「顯示設定」（S-07-5）——
+ * 兩段都已裁示整段拿掉（#30-4／#27-2）。編號保留不回收，但畫面上不渲染。
+ * 理由是同一個毛病：畫面承諾了產品沒有的東西。
+ */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
+import { firstGrapheme } from '@/lib/format';
+import { Icon } from '@/components/Icon';
 import type { User } from '@supabase/supabase-js';
 
 export default function SettingsPage() {
-  const navigate             = useNavigate();
+  const navigate = useNavigate();
   const [showDialog, setShowDialog] = useState(false);
-  const [loading,    setLoading]    = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const { data: user } = useQuery<User | null>({
     queryKey: ['auth-user'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    },
+    queryFn: async () => (await supabase.auth.getUser()).data.user,
     staleTime: 60_000,
   });
 
@@ -24,75 +29,62 @@ export default function SettingsPage() {
     navigate('/login', { replace: true });
   }
 
+  const name   = (user?.user_metadata?.full_name as string) ?? '使用者';
+  const avatar = user?.user_metadata?.avatar_url as string | undefined;
+
   return (
-    <div className="min-h-screen bg-[#F5F4F2] animate-slide-in">
-      {/* Nav bar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#FEF9EE] border-b border-[#EFEBE6]">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-1 text-w text-sub font-medium"
-        >
-          ‹ 返回
+    <div className="min-h-screen bg-bg flex flex-col">
+      {/* S-07-1 */}
+      <div className="bar">
+        <button className="ic2" aria-label="返回" onClick={() => navigate(-1)}>
+          <Icon name="back" size={20} />
         </button>
-        <span className="text-sub font-semibold text-md">設定</span>
-        <div className="w-12" />
+        <span className="ttl">設定</span>
+        <span style={{ width: 40 }} />
       </div>
 
-      <div className="px-5 pt-6">
-        {/* Account section */}
-        <p className="text-tag font-bold text-gr tracking-widest uppercase mb-3">登入帳號</p>
-        <div className="bg-white rounded-panel shadow-card p-4 flex items-center gap-3 mb-5">
-          {user?.user_metadata?.avatar_url ? (
-            <img
-              src={user.user_metadata.avatar_url as string}
-              alt=""
-              className="w-12 h-12 rounded-chip flex-shrink-0"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-chip bg-w flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
-              {((user?.user_metadata?.full_name as string) ?? 'U')[0]}
-            </div>
-          )}
-          <div className="min-w-0">
-            <p className="font-semibold text-ink truncate">
-              {(user?.user_metadata?.full_name as string) ?? '使用者'}
-            </p>
-            <p className="text-sub text-gr truncate">{user?.email}</p>
-          </div>
+      {/* S-07-2／3 */}
+      <div className="sec">登入帳號</div>
+      <div style={{ margin: '0 14px' }}>
+        <div className="rowb">
+          {avatar
+            ? <img src={avatar} alt="" className="avatar" />
+            : <span className="avatar letter" style={{ background: '#2D6A8A' }}>
+                {firstGrapheme(name)}
+              </span>}
+          <span className="flex-1 min-w-0">
+            <span className="trunc text-strong font-semibold">{name}</span>
+            <span className="trunc text-sub text-gr">{user?.email}</span>
+          </span>
         </div>
-
-        {/* Logout */}
-        <button
-          onClick={() => setShowDialog(true)}
-          className="w-full h-[50px] bg-white rounded-panel shadow-card text-out text-body font-bold active:scale-[0.97] transition-transform"
-        >
-          登出
-        </button>
       </div>
 
-      {/* Logout confirm dialog */}
+      {/* S-07-6　登出是描邊、文字用中性色 --md——**不是 --dg**。
+          登出可復原（再登入就好），不該跟「刪除行程」共用同一組危險語彙。 */}
+      <div style={{ margin: '16px 14px 0' }}>
+        <button className="btn qt" style={{ color: 'var(--md)' }}
+          onClick={() => setShowDialog(true)}>登出</button>
+      </div>
+
+      {/* S-07-7　照原型沒有版本號，不要自己加 */}
+      <div className="verfoot">Tripay · 每一趟，都記得</div>
+
+      {/* S-07-8　確認框也是描邊 */}
       {showDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-black/40 animate-fade-in" onClick={() => setShowDialog(false)} />
-          <div className="relative bg-white rounded-panel p-6 w-full max-w-sm shadow-sheet">
-            <p className="text-strong font-bold text-ink mb-2 text-center">確定要登出嗎？</p>
-            <div className="flex gap-3 mt-5">
-              <button
-                onClick={() => setShowDialog(false)}
-                className="flex-1 h-[46px] bg-[#F5F4F2] text-ink rounded-base text-sub font-bold"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleLogout}
-                disabled={loading}
-                className="flex-1 h-[46px] bg-out text-white rounded-base text-sub font-bold disabled:opacity-60"
-              >
-                {loading ? '登出中…' : '登出'}
-              </button>
+        <>
+          <div className="scrim" onClick={() => setShowDialog(false)} />
+          <div className="dlgwrap">
+            <div className="dlg">
+              <p className="dlgt" style={{ textAlign: 'center', marginBottom: 14 }}>確定要登出嗎？</p>
+              <div className="dlgrow">
+                <button className="btn qt" onClick={() => setShowDialog(false)}>取消</button>
+                <button className="btn gh" disabled={loading} onClick={handleLogout}>
+                  {loading ? '登出中…' : '登出'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

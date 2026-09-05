@@ -3,8 +3,13 @@ import { createPortal } from 'react-dom';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { searchCurrencies } from '@/lib/currencies';
-import EmojiPicker from '@/components/EmojiPicker';
-import type { TripWithMembers } from '@/types/database';
+import { Icon } from '@/components/Icon';
+import PaymentMethods from '@/components/shared/PaymentMethods';
+import CashRate from '@/components/shared/CashRate';
+import SettleMode from '@/components/shared/SettleMode';
+import { useInlineEdit } from '@/components/shared/useInlineEdit';
+import { nextToneSeq } from '@/lib/tones';
+import type { TripWithMembers, SettlementMode } from '@/types/database';
 
 /** id 存在＝資料庫既有成員；不存在＝本次新加的 */
 interface MemberEntry { id?: string; emoji: string; name: string; }
@@ -53,15 +58,29 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
       ? existingTrip.trip_members.findIndex(m => m.id === existingTrip.owner_member_id)
       : null
   );
+  /* B-1 的三段新區塊：支付方式、現金匯率、結算模式。都存在 trips 上 */
+  const [pays, setPays] = useState<string[]>([]);
+  const [rateTwd, setRateTwd] = useState('');
+  const [rateFor, setRateFor] = useState('');
+  const [settleMode, setSettleMode] = useState<SettlementMode>('direct');
+  const [hubMember, setHubMember] = useState<string | null>(null);
+  const [payBlocked, setPayBlocked] = useState('');
+
   const [currencySearch,  setCurrencySearch]  = useState('');
   const [showCurrency,    setShowCurrency]    = useState(false);
+  const currencyInputRef = useRef<HTMLInputElement | null>(null);
   const [addingMember,    setAddingMember]    = useState(false);
   const [newMemberEmoji,  setNewMemberEmoji]  = useState('🙂');
   const [newMemberName,   setNewMemberName]   = useState('');
   const addMemberInputRef = useRef<HTMLInputElement>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [emojiPickerFor, setEmojiPickerFor] = useState<null | { kind: 'member'; index: number } | { kind: 'new' }>(null);
+  /* emoji 就地編輯（A-4 共用元件）。key 是 `m:<index>` 或 'new' */
+  const inline = useInlineEdit((key, one) => {
+    if (key === 'new') { setNewMemberEmoji(one); return; }
+    const i = Number(key.split(':')[1]);
+    setMembers(prev => prev.map((m, k) => (k === i ? { ...m, emoji: one } : m)));
+  });
   const [hydrated, setHydrated] = useState(false);
 
   // 編輯模式：existingTrip 是非同步載入的，useState 初始值抓不到，
@@ -76,6 +95,12 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
     setMembers(ms.map(m => ({ id: m.id, emoji: m.emoji, name: m.name })));
     const oi = ms.findIndex(m => m.id === existingTrip.owner_member_id);
     setMyMemberIdx(oi >= 0 ? oi : null);
+    setPays(Array.isArray(existingTrip.payment_methods)
+      ? (existingTrip.payment_methods as string[]) : ['現金', '信用卡']);
+    setRateTwd(existingTrip.cash_rate_twd == null ? '' : String(existingTrip.cash_rate_twd));
+    setRateFor(existingTrip.cash_rate_foreign == null ? '' : String(existingTrip.cash_rate_foreign));
+    setSettleMode(existingTrip.settlement_mode);
+    setHubMember(existingTrip.hub_member_id);
     setHydrated(true);
   }, [isEdit, existingTrip, hydrated]);
 
@@ -108,6 +133,38 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
     setHydrated(true);
   }, [isEdit, prefill, prefillTrip, hydrated]);
 
+  /* 每種支付方式被幾筆消費用到——「已經有消費在用的不能刪」要靠它。
+     讀的是這趟自己的消費，不是全站。 */
+  const { data: payUsage = {} } = useQuery<Record<string, number>>({
+    queryKey: ['trip-pay-usage', tripId],
+    queryFn: async () => {
+      if (!tripId) return {};
+      const { data } = await supabase
+        .from('expenses').select('payment_method, payment_label')
+        .eq('trip_id', tripId).is('deleted_at', null);
+      const u: Record<string, number> = {};
+      const NAME: Record<string, string> = {
+        cash: '現金', credit_card: '信用卡', stored_value: '儲值卡',
+      };
+      for (const e of data ?? []) {
+        const label = e.payment_label || NAME[e.payment_method] || e.payment_method;
+        u[label] = (u[label] ?? 0) + 1;
+      }
+      return u;
+    },
+    enabled: isEdit,
+  });
+
+  /* 建立新行程時要算循環色號，需要知道目前有幾趟 */
+  const { data: tripCount = 0 } = useQuery<number>({
+    queryKey: ['trip-count'],
+    queryFn: async () => {
+      const { count } = await supabase.from('trips').select('id', { count: 'exact', head: true });
+      return count ?? 0;
+    },
+    enabled: !isEdit,
+  });
+
   // 編輯模式：查每位成員是否已有消費／分帳紀錄——有的話不准移除，避免 splits 變孤兒
   const { data: memberUsage = {} } = useQuery<Record<string, number>>({
     queryKey: ['trip-member-usage', tripId],
@@ -128,6 +185,15 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
       }
       // 結算項目也要算——migration 005 會讓 settlement_items 對 trip_members CASCADE，
       // 少了這道守衛，刪成員會連帶把結算紀錄悄悄刪掉。
+      /* B-1 第三種情形：有一筆消費「只算他一個人」。
+         012 給了 individual_member_id 一個 on delete restrict 的 FK，
+         少了這道 UI 守衛，使用者會看到資料庫層的錯誤而不是那句話。 */
+      const { data: indiv } = await supabase
+        .from('expenses').select('individual_member_id')
+        .eq('trip_id', tripId).is('deleted_at', null).not('individual_member_id', 'is', null);
+      for (const x of indiv ?? [])
+        if (x.individual_member_id) usage[x.individual_member_id] = (usage[x.individual_member_id] ?? 0) + 1;
+
       const { data: stl } = await supabase.from('settlements').select('id').eq('trip_id', tripId);
       const sIds = (stl ?? []).map(x => x.id);
       if (sIds.length) {
@@ -152,7 +218,14 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
       if (isEdit && tripId) {
         const { error } = await supabase
           .from('trips')
-          .update({ name, currency, start_date: startDate, end_date: endDate })
+          .update({
+            name, currency, start_date: startDate, end_date: endDate || startDate,
+            payment_methods: pays,
+            cash_rate_twd: rateTwd.trim() === '' ? null : Number(rateTwd),
+            cash_rate_foreign: rateFor.trim() === '' ? null : Number(rateFor),
+            settlement_mode: settleMode,
+            hub_member_id: settleMode === 'hub' ? hubMember : null,
+          })
           .eq('id', tripId);
         if (error) throw error;
 
@@ -191,8 +264,14 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
         }
 
         if (removed.length) {
-          const { error: dErr } = await supabase.from('trip_members').delete().in('id', removed);
+          /* 帳務鐵律：每個 DELETE 都要斷言實際影響列數。RLS 會把不符政策的 DELETE
+             靜默過濾成「影響 0 列」而仍回 200——刪不掉卻以為刪掉了，
+             下一步的 owner_member_id 就會指向一個還在的成員。 */
+          const { data: dRows, error: dErr } = await supabase
+            .from('trip_members').delete().in('id', removed).select();
           if (dErr) throw dErr;
+          if ((dRows ?? []).length !== removed.length)
+            throw new Error(`成員沒刪乾淨（要刪 ${removed.length} 位，實際 ${(dRows ?? []).length} 位）`);
         }
 
         // owner_member_id 跟著走
@@ -212,9 +291,14 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
           name,
           currency,
           start_date:  startDate,
-          end_date:    endDate,
+          /* 回程留空＝當天來回，不是漏填 */
+          end_date:    endDate || startDate,
           status:      'planned',
           share_token: crypto.randomUUID(),
+          /* 循環色號在建立當下就決定並存起來——用「清單第幾筆」算的話，
+             刪掉一趟，後面所有行程的顏色會集體位移 */
+          tone_seq:    nextToneSeq(tripCount),
+          payment_methods: ['現金', '信用卡'],
         })
         .select()
         .single();
@@ -265,7 +349,6 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
     const errs: Record<string, string> = {};
     if (!name.trim())      errs.name      = '這欄還沒填喔';
     if (!startDate)        errs.startDate = '這欄還沒填喔';
-    if (!endDate)          errs.endDate   = '這欄還沒填喔';
     if (members.filter(m => m.name.trim()).length === 0) errs.members = '至少要有一位成員';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -299,7 +382,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
 
   const filteredCurrencies = searchCurrencies(currencySearch);
 
-  // 同 EmojiPicker：portal 到 body，避開祖先 transform 造成的 fixed 定位錯亂
+  // Sheet 一律 portal 到 body，避開祖先 transform 造成的 fixed 定位錯亂
   return createPortal(
     <>
       {/* ── Main sheet ──────────────────────────────────────────────────────── */}
@@ -321,11 +404,8 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
             <h2 className="text-strong font-bold text-ink">
               {isEdit ? '編輯行程' : '這趟去哪？'}
             </h2>
-            <button
-              onClick={onClose}
-              className="w-[30px] h-[30px] rounded-chip bg-[#EAE6E1] flex items-center justify-center text-md text-sub"
-            >
-              ✕
+            <button onClick={onClose} className="ic2" aria-label="關閉">
+              <Icon name="close" size={20} />
             </button>
           </div>
 
@@ -333,6 +413,9 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
           <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pt-4 pb-0">
 
 
+            {/* 編輯模式沒有名稱／幣別／日期——那些在建立時就定了，
+                這一頁管的是「這趟怎麼記帳」。照原型 S-02b。 */}
+            {!isEdit && <>
             {/* Trip name */}
             <div className="mb-5">
               <label className="block text-sub font-bold text-md tracking-wide mb-2">去哪？</label>
@@ -350,7 +433,11 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
             <div className="mb-5">
               <label className="block text-sub font-bold text-md tracking-wide mb-2">當地幣別</label>
               <button
-                onClick={() => setShowCurrency(v => !v)}
+                onClick={() => setShowCurrency(v => {
+                  /* 使用者真的要搜尋時才聚焦——不用 autofocus */
+                  if (!v) requestAnimationFrame(() => currencyInputRef.current?.focus());
+                  return !v;
+                })}
                 className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-left text-input text-ink flex items-center justify-between"
               >
                 <span>{currency}</span>
@@ -359,13 +446,16 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
               {showCurrency && (
                 <div className="mt-2 bg-white rounded-base border border-[#E4DFD9] max-h-52 overflow-y-auto scrollbar-hide">
                   <div className="p-3 border-b border-[#E4DFD9]">
+                    {/* **禁止 autofocus**：它綁的是「元素被放進 DOM」，不是「使用者要編輯」。
+                        只要有任何一次重繪把它插回畫面，瀏覽器就再聚焦一次——
+                        手機上就是鍵盤關掉又跳出來。改由使用者按下「幣別」時才 focus。 */}
                     <input
+                      ref={currencyInputRef}
                       type="text"
                       value={currencySearch}
                       onChange={e => setCurrencySearch(e.target.value)}
                       placeholder="搜尋幣別名稱或代碼"
                       className="w-full h-9 px-3 bg-[#F5F4F2] rounded-base text-sm outline-none"
-                      autoFocus
                     />
                   </div>
                   {filteredCurrencies.map(c => (
@@ -382,9 +472,13 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
               )}
             </div>
 
-            {/* Dates — Bug 1 fix: lang="en" prevents zh-TW Chrome from mangling the format */}
+            {/* Dates — Bug 1 fix: lang="en" prevents zh-TW Chrome from mangling the format
+                #33-2／C-3：`flex-1` 的預設 `min-width:auto` 會讓欄位**不肯縮到 min-content 以下**，
+                而 `input[type=date]` 的 min-content 由作業系統決定、比一半的寬度還寬——
+                於是整列在 320px 撐出畫面 28px。加 `min-w-0` 才允許它縮。
+                （這是真實瀏覽器量出來的，jsdom 與桌機寬度都看不到。） */}
             <div className="mb-5 flex gap-3">
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <label className="block text-sub font-bold text-md tracking-wide mb-2">出發</label>
                 <input
                   type="date"
@@ -395,7 +489,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                 />
                 {errors.startDate && <p className="text-tag text-out mt-1">{errors.startDate}</p>}
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <label className="block text-sub font-bold text-md tracking-wide mb-2">回程</label>
                 <input
                   type="date"
@@ -405,14 +499,15 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                   onChange={e => { setEndDate(e.target.value); setErrors(ev => ({ ...ev, endDate: '' })); }}
                   className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-body text-ink outline-none focus:border-w transition-colors"
                 />
-                {errors.endDate && <p className="text-tag text-out mt-1">{errors.endDate}</p>}
+                <p className="hint">不填就是當天來回</p>
               </div>
             </div>
+
+            </>}
 
             {/* Members */}
             <div className="mb-5">
               <label className="block text-sub font-bold text-md tracking-wide mb-1">誰一起去？</label>
-              <p className="text-tag text-gr mb-3">點成員，標記哪位是你</p>
               {!isEdit && prefill && members.length > 0 && (
                 <p className="text-tag text-w mb-3 -mt-2">
                   {prefill.mode === 'full' ? '已帶入原本那趟的成員與幣別，可以改' : '已帶入上一趟的成員，可以改'}
@@ -423,23 +518,31 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                 {members.map((m, i) => {
                   const used = m.id ? (memberUsage[m.id] ?? 0) : 0;
                   return (
-                  <div
-                    key={m.id ?? `new-${i}`}
-                    onClick={() => setMyMemberIdx(myMemberIdx === i ? null : i)}
-                    className={`bg-white rounded-base px-[14px] py-[10px] flex items-center gap-[10px] cursor-pointer border-[1.5px] transition-colors ${myMemberIdx === i ? 'border-w bg-[#FFF6F1]' : 'border-transparent'}`}
-                  >
-                    <div
-                      className={`w-[22px] h-[22px] rounded-chip border-2 flex-shrink-0 flex items-center justify-center text-tag font-bold text-white transition-colors ${myMemberIdx === i ? 'bg-w border-w' : 'bg-transparent border-[#C8BFB8]'}`}
-                    >
-                      {myMemberIdx === i ? '✓' : ''}
-                    </div>
-                    <button
-                      onClick={e => { e.stopPropagation(); setEmojiPickerFor({ kind: 'member', index: i }); }}
-                      aria-label={`換 ${m.name} 的 emoji`}
-                      className="text-strong w-8 h-8 rounded-base border-[1.5px] border-[#E4DFD9] bg-white flex items-center justify-center flex-shrink-0"
-                    >
-                      {m.emoji}
-                    </button>
+                  <div key={m.id ?? `new-${i}`} className="rowb">
+                    {/* emoji 就地編輯：不開第二個畫面，點了直接在原位改（B-1 共用元件）*/}
+                    {inline.editing === `m:${i}` ? (
+                      <input
+                        ref={inline.inputRef}
+                        type="text"
+                        maxLength={4}
+                        defaultValue=""
+                        aria-label={`換 ${m.name} 的 emoji`}
+                        className="text-strong w-8 h-8 rounded-base border-[1.5px] border-w bg-white text-center flex-shrink-0 outline-none"
+                        onBlur={e => inline.commit(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') inline.commit((e.target as HTMLInputElement).value);
+                          if (e.key === 'Escape') inline.cancel();
+                        }}
+                      />
+                    ) : (
+                      <button
+                        onClick={() => inline.begin(`m:${i}`)}
+                        aria-label={`換 ${m.name} 的 emoji`}
+                        className="text-strong w-8 h-8 rounded-base border-[1.5px] border-[#E4DFD9] bg-white flex items-center justify-center flex-shrink-0"
+                      >
+                        {m.emoji}
+                      </button>
+                    )}
                     <span className="flex-1 text-input font-semibold text-ink">{m.name}</span>
                     {myMemberIdx === i && (
                       <span className="text-tag font-bold text-w bg-w/10 px-2 py-[2px] rounded-chip">這是我</span>
@@ -464,13 +567,28 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                 <div className="mt-3 bg-white rounded-base p-3 border border-[#E4DFD9]">
                   <p className="text-sub font-bold text-md mb-2">加一個人</p>
                   <div className="flex items-center gap-3 mb-3">
-                    <button
-                      onClick={() => setEmojiPickerFor({ kind: 'new' })}
-                      className="w-12 h-12 rounded-base border-[1.5px] border-[#E4DFD9] bg-white text-title flex items-center justify-center flex-shrink-0"
-                    >
-                      {newMemberEmoji}
-                    </button>
-                    <p className="text-tag text-gr leading-snug">點一下換 emoji<br />也可以貼上你自己的</p>
+                    {inline.editing === 'new' ? (
+                      <input
+                        ref={inline.inputRef}
+                        type="text"
+                        maxLength={4}
+                        defaultValue=""
+                        aria-label="換 emoji"
+                        className="w-12 h-12 rounded-base border-[1.5px] border-w bg-white text-title text-center flex-shrink-0 outline-none"
+                        onBlur={e => inline.commit(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') inline.commit((e.target as HTMLInputElement).value);
+                          if (e.key === 'Escape') inline.cancel();
+                        }}
+                      />
+                    ) : (
+                      <button
+                        onClick={() => inline.begin('new')}
+                        className="w-12 h-12 rounded-base border-[1.5px] border-[#E4DFD9] bg-white text-title flex items-center justify-center flex-shrink-0"
+                      >
+                        {newMemberEmoji}
+                      </button>
+                    )}
                   </div>
                   <input
                     ref={addMemberInputRef}
@@ -480,9 +598,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                     onKeyDown={e => e.key === 'Enter' && addMember()}
                     placeholder="叫什麼名字？"
                     className="w-full h-[42px] px-3 bg-[#F5F4F2] rounded-base text-body text-ink outline-none mb-3"
-                    autoFocus
                   />
-                  <p className="text-tag text-gr mb-2">最多 10 個字</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setAddingMember(false)}
@@ -492,7 +608,8 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                     </button>
                     <button
                       onClick={addMember}
-                      className="flex-1 h-10 rounded-base bg-w text-white text-sm font-bold"
+                      disabled={!newMemberName.trim()}
+                      className="flex-1 h-10 rounded-base bg-w text-white text-sm font-bold disabled:opacity-45"
                     >
                       加進來
                     </button>
@@ -503,16 +620,33 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                   onClick={() => setAddingMember(true)}
                   className="mt-3 w-full h-11 rounded-base border-[1.5px] border-dashed border-[#C8BFB8] text-md text-sm font-semibold flex items-center justify-center gap-2"
                 >
-                  ＋ 新增成員
+                  <Icon name="add" size={16} /> 新增成員
                 </button>
               )}
             </div>
 
-            {!isEdit && (
-              <p className="text-tag text-gr mb-4">
-                標記哪位是你，統計卡的「我的花費」就會算你這一份。
-              </p>
-            )}
+            {isEdit && <>
+              <SettleMode
+                mode={settleMode}
+                hubMember={hubMember}
+                members={members.filter(m => m.id).map(m => ({ id: m.id!, name: m.name, emoji: m.emoji }))}
+                onMode={setSettleMode}
+                onHub={setHubMember}
+              />
+              <PaymentMethods
+                pays={pays}
+                used={payUsage}
+                onChange={setPays}
+                onBlocked={label => setPayBlocked(`${label} 已經有消費在用，不能刪。`)}
+              />
+              {payBlocked && <p className="hint" style={{ color: 'var(--md)' }}>{payBlocked}</p>}
+              <CashRate
+                currency={currency}
+                rateTwd={rateTwd}
+                rateFor={rateFor}
+                onChange={(side, v) => (side === 'twd' ? setRateTwd(v) : setRateFor(v))}
+              />
+            </>}
           </div>
 
           {/* Action buttons */}
@@ -535,21 +669,6 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
         </div>
       </div>
 
-      {/* 成員 Emoji 選擇器（封面用途已隨行程 emoji 退場而移除）*/}
-      {emojiPickerFor && (
-        <EmojiPicker
-          mode="member"
-          value={
-            emojiPickerFor.kind === 'new' ? newMemberEmoji
-              : (members[emojiPickerFor.index]?.emoji ?? '🙂')
-          }
-          onPick={(e) => {
-            if (emojiPickerFor.kind === 'new') setNewMemberEmoji(e);
-            else setMembers(prev => prev.map((m, i) => i === emojiPickerFor.index ? { ...m, emoji: e } : m));
-          }}
-          onClose={() => setEmojiPickerFor(null)}
-        />
-      )}
     </>,
     document.body,
   );

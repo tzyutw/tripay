@@ -1,45 +1,25 @@
 import { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { deriveDisplayStatus } from '@/lib/deriveStatus';
 import { getCurrencySymbol } from '@/lib/currencies';
+import { destinationOf } from '@/lib/destinations';
+import { dateRange } from '@/lib/format';
+import { tripSummary, tripRate } from '@/lib/summary';
 import { useToast } from '@/contexts/ToastContext';
 import type { TripWithMembers, ExpenseWithSplits } from '@/types/database';
 import ExpenseFormSheet from '@/components/ExpenseFormSheet';
 import TripFormSheet from '@/components/TripFormSheet';
-
-// ── Day grouping ──────────────────────────────────────────────────────────────
-
-const WEEKDAY = ['日', '一', '二', '三', '四', '五', '六'];
-
-function groupKey(expenseDate: string, trip: TripWithMembers): string {
-  if (expenseDate < trip.start_date) return '出發前';
-  const start   = new Date(trip.start_date);
-  const expDate = new Date(expenseDate);
-  const dayDiff = Math.floor((expDate.getTime() - start.getTime()) / 86_400_000);
-  const n       = dayDiff + 1;
-  const wd      = WEEKDAY[expDate.getDay()];
-  const m       = expDate.getMonth() + 1;
-  const d       = expDate.getDate();
-  return `第 ${n} 天 · ${m}/${d}（${wd}）`;
-}
+import SettlementPage from '@/pages/SettlementPage';
+import { Icon } from '@/components/Icon';
+import Seg from '@/components/shared/Seg';
+import MoreSheet from '@/components/shared/MoreSheet';
+import ExpenseGroups from '@/components/shared/ExpenseGroups';
+import { StatCardTotal, StatCardPerList, StatCardFoot } from '@/components/shared/StatCard';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-
-function fmtAmount(val: number | null, pending: boolean, symbol: string) {
-  if (pending || val === null) return '—';
-  return `${symbol} ${val.toLocaleString()}`;
-}
-
-function categoryFromTitle(title: string): string {
-  if (/餐|吃|食|lunch|dinner|food/i.test(title))          return '🍜';
-  if (/交通|車|巴士|bus|train|地鐵|metro/i.test(title))    return '🚌';
-  if (/住|飯店|hotel|旅館|hostel/i.test(title))            return '🏨';
-  if (/票|景點|ticket|入場|樂園/i.test(title))             return '🎡';
-  if (/買|購物|shop|便利|超市/i.test(title))               return '🛍️';
-  return '➕';
-}
 
 // ── Share action sheet ────────────────────────────────────────────────────────
 
@@ -103,7 +83,9 @@ function ShareSheet({
     { title: '預覽分享頁面', sub: '看看對方收到連結會看到什麼', action: () => { window.open(shareUrl, '_blank'); onClose(); } },
   ];
 
-  return (
+  /* Sheet 一律 portal 到 body：頁面根層的 animate-slide-in 帶 transform，
+     會讓 position:fixed 的定位基準變成那個元素而不是視窗，整個彈層跑掉。 */
+  return createPortal(
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/40" style={{ backdropFilter: 'blur(3px)' }} onClick={onClose} />
       <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-panel shadow-sheet animate-sheet-up p-5 pb-10">
@@ -122,7 +104,8 @@ function ShareSheet({
         ))}
         <button onClick={onClose} className="w-full h-[50px] mt-4 rounded-base border-[1.5px] border-[#E4DFD9] text-md font-bold text-body">取消</button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -136,12 +119,17 @@ export default function ExpenseListPage() {
 
   const [formOpen,        setFormOpen]        = useState(false);
   const [editExpenseId,   setEditExpenseId]   = useState<string | undefined>();
-  const [currencyMode,    setCurrencyMode]    = useState<'twd' | 'foreign'>('twd');
+  const [currencyMode,    setCurrencyMode]    = useState<'TWD' | 'FOR'>('TWD');
   const [shareSheetOpen,  setShareSheetOpen]  = useState(false);
-  const [g05Dismissed,    setG05Dismissed]    = useState(() => sessionStorage.getItem('g05-dismissed') === '1');
   const [copyOpen,        setCopyOpen]        = useState(false);
   const [deleteOpen,      setDeleteOpen]      = useState(false);
   const [deleteConfirm,   setDeleteConfirm]   = useState('');
+  /* S-03-33 分段控制：切換檢視不是動作。「結算」分頁的內容就是 S-05 整頁 */
+  const [tab,             setTab]             = useState<'exp' | 'settle'>('exp');
+  const [statOpen,        setStatOpen]        = useState(false);   // #17-2 每人分擔預設收合
+  const [menuOpen,        setMenuOpen]        = useState(false);   // S-03-31 ⋯ 選單
+  /* S-03d 未定案清單：null＝不在該畫面；'all'＝全部；否則是成員 id */
+  const [unsettledView,   setUnsettledView]   = useState<string | null>(null);
   const { toast: showToast } = useToast();
 
   // ── Queries ──────────────────────────────────────────────────────────────────
@@ -184,8 +172,13 @@ export default function ExpenseListPage() {
     mutationFn: async () => {
       // 先刪 settlements：settlement_items 對 trip_members 的 FK 雖已改 CASCADE，
       // 顯式先刪可讓「影響列數」可被斷言，避免又一次靜默失敗。
-      const { error: sErr } = await supabase.from('settlements').delete().eq('trip_id', tripId!);
+      const { data: sDel, error: sErr } = await supabase
+        .from('settlements').delete().eq('trip_id', tripId!).select();
       if (sErr) throw sErr;
+      /* 帳務鐵律：每個 DELETE 都要斷言實際影響列數。RLS 會把不符政策的 DELETE
+         靜默過濾成「影響 0 列」而仍回 200——這一類根因已咬過三次。
+         這裡本來就可能是 0 列（還沒結算過），所以只要求「查得到結果」，不要求 >0。 */
+      if (sDel == null) throw new Error('刪除結算沒有回傳影響列數，無法確認是否生效');
       const { data, error } = await supabase.from('trips').delete().eq('id', tripId!).select();
       if (error) throw error;
       if (!data || data.length !== 1) throw new Error('刪除沒有生效（影響 0 列），請重試或回報');
@@ -225,320 +218,236 @@ export default function ExpenseListPage() {
     },
   });
 
-  // ── Computed stats ────────────────────────────────────────────────────────────
-  const stats = useMemo(() => {
-    const myMemberId    = trip?.owner_member_id ?? null;
-    const activeExpenses = expenses.filter(e => !e.twd_pending && e.twd_amount !== null);
-    // 總花費排除贊助（負額），避免把總支出灌低；settled_on_spot 仍計入（確實花了）
-    const totalTwd      = activeExpenses.reduce((s, e) => s + (e.is_sponsor ? 0 : (e.twd_amount ?? 0)), 0);
-    const pendingCount  = expenses.filter(e => e.twd_pending || e.foreign_pending).length;
-
-    let myCost = 0;
-    if (myMemberId) {
-      for (const exp of activeExpenses) {
-        if (exp.expense_type === 'personal') continue;
-        const splits = exp.expense_splits ?? [];
-        const mySplit = splits.find(s => s.member_id === myMemberId && s.is_participating);
-        if (!mySplit) continue;
-        if (exp.expense_type === 'shared') {
-          const n = splits.filter(s => s.is_participating).length;
-          if (n > 0) myCost += Math.round((exp.twd_amount ?? 0) / n);
-        } else if (exp.expense_type === 'individual') {
-          if (!mySplit.split_pending && mySplit.split_amount !== null) myCost += mySplit.split_amount;
-        }
-      }
-    }
-
-    return { totalTwd, myCost, pendingCount };
-  }, [expenses, trip]);
-
-  // ── Grouped expenses ──────────────────────────────────────────────────────────
-  const groups = useMemo(() => {
-    if (!trip) return [];
-    const map = new Map<string, ExpenseWithSplits[]>();
-    for (const e of expenses) {
-      const k = groupKey(e.expense_date, trip);
-      if (!map.has(k)) map.set(k, []);
-      map.get(k)!.push(e);
-    }
-    return Array.from(map.entries());
-  }, [expenses, trip]);
+  // ── 行程層彙總（規格 §5.1 §5.2）──────────────────────────────────────────────
+  const display = trip ? deriveDisplayStatus(trip) : 'active';
+  const S = useMemo(
+    () => trip ? tripSummary(trip, expenses, display) : null,
+    [trip, expenses, display],
+  );
 
   // ── Loading ───────────────────────────────────────────────────────────────────
-  if (tripLoading || !trip) {
+  if (tripLoading || !trip || !S) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-w border-t-transparent rounded-chip animate-spin" />
+      <div className="spin">
+        <i />
+        <div className="text-sub text-gr mt-2">載入中</div>
       </div>
     );
   }
 
-  const display      = deriveDisplayStatus(trip);
-  const isArchived   = display === 'archived';
-  const isSettled    = display === 'settled';
-  const isActive     = display === 'active' || display === 'planned';
-  const symbol       = getCurrencySymbol(trip.currency);
-  const todayYmd     = new Date().toISOString().slice(0, 10);
-  const beforeTrip   = todayYmd < trip.start_date;
-  const memberEmojis = trip.trip_members.sort((a, b) => a.sort_order - b.sort_order).map(m => m.emoji).join('');
-  const memberMap    = Object.fromEntries(trip.trip_members.map(m => [m.id, m]));
-  const showG05      = !g05Dismissed && expenses.length === 1;
+  const isArchived = display === 'archived';
+  const isSettled  = display === 'settled';
+  const symbol     = getCurrencySymbol(trip.currency);
+  const rateNow    = tripRate(trip);
+  /* 沒有匯率就沒有外幣可切——切了也算不出來，所以強制留在台幣 */
+  const curMode    = rateNow ? currencyMode : 'TWD';
+  const moneyOpts  = curMode === 'TWD' ? undefined : { sym: symbol, rate: rateNow };
+  const nUn        = S.unsettledList.length;
 
-  // /trips/:id/edit → 開啟行程編輯（此路由原本是死碼，沒有任何地方渲染 TripFormSheet）
+  /* #30-6 只數「因為沒設匯率而算不出台幣」的那幾筆——有外幣金額、缺台幣金額。
+     完全沒填金額的不算在這裡：補上匯率也救不回來，而且 S-03-29 已經在講它們了。
+     這樣「補上匯率 → 這條消失」才成立。 */
+  const nGap = expenses.filter(
+    e => S.calcOf({ id: e.id } as never).twdPending && Number.isFinite(e.foreign_amount as number),
+  ).length;
+
+  // /trips/:id/edit → 開啟行程編輯
   const tripFormOpen = location.pathname.endsWith('/edit');
   function openTripEdit() { navigate(`/trips/${tripId}/edit`); }
   function closeTripEdit() { navigate(`/trips/${tripId}`, { replace: true }); }
 
   function openNew() { setEditExpenseId(undefined); setFormOpen(true); }
-  function openEdit(eid: string) { setEditExpenseId(eid); setFormOpen(true); }
-  function dismissG05() { sessionStorage.setItem('g05-dismissed', '1'); setG05Dismissed(true); }
+  /* 既有 bug：封存／已結算的行程原本仍點得進編輯。封存＝預設只讀，是既有決策。 */
+  function openEdit(eid: string) {
+    if (isArchived || isSettled) return;
+    setEditExpenseId(eid); setFormOpen(true);
+  }
+
+  /* ── S-03d 未定案清單 ──────────────────────────────────────────────────────
+     兩種進入方式（點統計卡的人／點列表上方入口）走同一個畫面，
+     只有標題與範圍不同。規格就是原型的 renderS03d()。 */
+  if (unsettledView) {
+    const byMember = unsettledView !== 'all';
+    const m = S.t.members.find(x => x.id === unsettledView);
+    const rows = byMember
+      ? S.unsettledList.filter(({ e, c }) =>
+          (e.parts ?? []).includes(unsettledView) && (c.twdPending || c.estimated[unsettledView]))
+      : S.unsettledList;
+    const title = byMember
+      ? `影響 ${m?.name ?? ''} 的 · ${rows.length} 筆`
+      : `還沒算清楚 · ${rows.length} 筆`;
+
+    return (
+      <div className="min-h-screen bg-bg flex flex-col">
+        <div className="bar">
+          <button className="ic2" aria-label="返回" onClick={() => setUnsettledView(null)}>
+            <Icon name="back" size={20} />
+          </button>
+          <span className="ttl">{title.split(' · ')[0]}</span>
+          <span style={{ width: 40 }} />
+        </div>
+        <div className="sec">{title}</div>
+        {rows.length
+          ? <ExpenseGroups
+              S={{ ...S, list: rows.map(r => r.e) }}
+              readonly money={moneyOpts} />
+          : <div className="empty"><p>都算清楚了。</p><p>沒有需要補的筆數</p></div>}
+        <div style={{ height: 18 }} />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col animate-slide-in">
+    <div className="min-h-screen bg-bg flex flex-col">
 
-      {/* Hero */}
-      <div
-        className="flex-shrink-0 relative pt-[64px] px-5 pb-4"
-        style={{
-          background: 'linear-gradient(148deg, #1A3558 0%, #2B5590 42%, #684533 100%)',
-          minHeight: 156,
-        }}
-      >
-        {/* Nav bar */}
-        <div className="absolute top-3 left-4 right-4 flex items-center justify-between">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-1 text-white/90 text-sub font-medium"
-          >
-            ‹ 返回
+      {/* S-03-1　hero：目的地色調。副標只有日期區間，沒有成員 emoji */}
+      <div className="hero" style={{ background: destinationOf(trip.name, trip.id).gradient }}>
+        <div className="sc" />
+        <div className="navrow">
+          {/* #28-6b hero 右上只留「返回」與「⋯」。編輯／複製／分享／封存／刪除全部進 ⋯ 選單 */}
+          <button className="ic2" aria-label="返回" onClick={() => navigate('/')}>
+            <Icon name="back" size={20} />
           </button>
-          <div className="flex gap-2">
-            {!isArchived && (
-              <button
-                onClick={openTripEdit}
-                className="w-[34px] h-[34px] rounded-base flex items-center justify-center"
-                style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(6px)' }}
-                aria-label="編輯行程"
-                title="編輯行程"
-              >
-                <span className="text-white text-sm">✎</span>
-              </button>
+          <button className="ic2" aria-label="更多" onClick={() => setMenuOpen(true)}>
+            <Icon name="more" size={20} />
+          </button>
+        </div>
+        <div className="tt">{trip.name}</div>
+        <div className="dt tnum">{dateRange(trip.start_date, trip.end_date)}</div>
+      </div>
+
+      {/* S-03-33　分段控制 */}
+      <div className="fld" style={{ paddingTop: 12 }}>
+        <Seg
+          options={[{ value: 'exp', label: '消費' }, { value: 'settle', label: '結算' }]}
+          value={tab}
+          onChange={setTab}
+        />
+      </div>
+
+      {tab === 'settle' ? (
+        /* 「結算」分頁的內容就是 S-05 整頁，**一個字都沒動**。
+           S-05 自己帶著導覽列（‹ 結算），放進分頁裡會變成兩顆返回鍵疊在一起——
+           用 CSS 收起來（.settlepane > .bar），不動 S-05 的輸出。 */
+        <div className="settlepane"><SettlementPage /></div>
+      ) : (
+        <>
+          {/* S-03-9／27／28　統計卡：與 S-06 共用同一份 */}
+          <div className="statcard">
+            <StatCardTotal S={S} open={statOpen} money={moneyOpts}
+              onToggleTotal={() => setStatOpen(o => !o)} />
+            {statOpen && <StatCardPerList S={S} money={moneyOpts}
+              onPickMember={id => setUnsettledView(id)} />}
+            {statOpen && <StatCardFoot S={S} />}
+          </div>
+
+          {/* S-03-12　整頁金額可切外幣。結算恆為台幣，不受影響（既有決策） */}
+          <div className="curswitch">
+            <Seg
+              options={[
+                { value: 'TWD', label: '$ 台幣' },
+                { value: 'FOR', label: `${symbol} ${trip.currency}`, disabled: !rateNow },
+              ]}
+              value={curMode}
+              onChange={setCurrencyMode}
+            />
+            {nGap > 0 && (
+              <p className="hint">
+                有 {nGap} 筆還沒換算成台幣，上面的總花費不含它們。
+                {!rateNow && (
+                  <button className="ratelink" onClick={openTripEdit}>
+                    設現金匯率 <Icon name="next" size={13} />
+                  </button>
+                )}
+              </p>
             )}
-            <button
-              onClick={() => setCopyOpen(true)}
-              className="w-[34px] h-[34px] rounded-base flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(6px)' }}
-              aria-label="複製行程"
-              title="以這趟為範本開新行程"
-            >
-              <span className="text-white text-sm">⧉</span>
-            </button>
-            <button
-              onClick={() => setShareSheetOpen(true)}
-              className="w-[34px] h-[34px] rounded-base flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(6px)' }}
-              aria-label="分享"
-            >
-              <span className="text-white text-base">↑</span>
-            </button>
-            <button
-              onClick={() => navigate('/settings')}
-              className="w-[34px] h-[34px] rounded-base flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(6px)' }}
-              aria-label="設定"
-            >
-              <span className="text-white text-sm">⚙</span>
-            </button>
           </div>
-        </div>
 
-        <h1 className="font-sans text-title font-bold text-white tracking-tight">{trip.name}</h1>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-strong">{memberEmojis}</span>
-          <span className="text-sub text-white/70">{trip.start_date} – {trip.end_date}</span>
-        </div>
-      </div>
+          <div className="listhd"><span>消費紀錄 · {S.list.length} 筆</span></div>
 
-      {/* Stats strip */}
-      <div className="bg-white flex-shrink-0 flex" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <div className="flex-1 text-center py-3 px-2">
-          <p className="text-strong font-bold text-ink tabular-nums">
-            $ {stats.totalTwd.toLocaleString()}
-          </p>
-          <p className="text-tag text-gr mt-[2px]">總花費</p>
-          {stats.pendingCount > 0 && (
-            <p className="text-tag text-out mt-[3px]">⚠️ 含 {stats.pendingCount} 筆待填，數字僅供參考</p>
+          {/* S-03-29　未定案入口。N＝0 整條不顯示 */}
+          {nUn > 0 && !S.readonly && (
+            <button className="unsettled" onClick={() => setUnsettledView('all')}>
+              <span><Icon name="warn" size={16} /> 有 {nUn} 筆還沒算清楚</span>
+              <Icon name="next" size={16} />
+            </button>
           )}
-        </div>
-        <div className="flex-1 text-center py-3 px-2 border-l border-[#EFEBE6]">
-          <p className="text-strong font-bold text-ink tabular-nums">
-            $ {stats.myCost.toLocaleString()}
-          </p>
-          <p className="text-tag text-gr mt-[2px]">我的花費</p>
-        </div>
-        {/* Currency toggle */}
-        <div className="w-[68px] flex-shrink-0 border-l border-[#EFEBE6] flex flex-col items-center justify-center gap-1 py-2 px-1">
-          {(['twd', 'foreign'] as const).map(m => (
-            <button
-              key={m}
-              onClick={() => setCurrencyMode(m)}
-              className={`w-14 h-[22px] rounded-base text-tag font-bold transition-colors ${currencyMode === m ? 'bg-w text-white' : 'text-gr'}`}
-            >
-              {m === 'twd' ? `$ 台幣` : `${symbol} 外幣`}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {/* G-05 Share banner (one-time) */}
-      {showG05 && (
-        <div className="mx-5 mt-4 bg-[#FFF5F0] border border-[#FFD9C0] rounded-panel p-4 flex items-start gap-3">
-          <span className="text-2xl">🎉</span>
-          <div className="flex-1">
-            <p className="text-sub font-bold text-ink">記完了嗎？讓大家看看。</p>
-            <p className="text-tag text-md mt-1">把這趟的消費明細分享給大家，一起確認。</p>
-          </div>
-          <div className="flex flex-col gap-1 flex-shrink-0">
-            <button
-              onClick={() => setShareSheetOpen(true)}
-              className="px-3 py-1 bg-w text-white text-xs font-bold rounded-base"
-            >
-              分享給大家
-            </button>
-            <button onClick={dismissG05} className="text-gr text-xs text-right">之後再說</button>
-          </div>
-        </div>
+          {expLoading && <div className="spin"><i /></div>}
+
+          {!expLoading && !S.list.length ? (
+            <div className="empty">
+              <p style={{ marginTop: 10 }}>第一筆從哪裡開始？</p>
+              <p>早餐、計程車、門票，都可以記</p>
+            </div>
+          ) : (
+            <ExpenseGroups S={S} readonly={S.readonly} money={moneyOpts} onEdit={openEdit} />
+          )}
+
+          {/* #28-6b 底部只留一顆主鈕，且依狀態變。已結算態沒有主鈕——
+              那時的主要動作是「逐筆標記付清」，在結算分頁裡做，不在這裡。 */}
+          {isArchived && (
+            <div className="btnrow">
+              <button className="btn gh" disabled={unarchiveMutation.isPending}
+                onClick={() => unarchiveMutation.mutate()}>
+                {unarchiveMutation.isPending ? '處理中…' : '重新開啟行程'}
+              </button>
+            </div>
+          )}
+          {!isArchived && !isSettled && (
+            <div className="btnrow">
+              <button className="btn" onClick={openNew}>
+                <Icon name="add" size={16} /> 記一筆
+              </button>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Expense list */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-24">
-        {expLoading && (
-          <div className="flex justify-center py-12">
-            <div className="w-6 h-6 border-2 border-w border-t-transparent rounded-chip animate-spin" />
-          </div>
-        )}
+      {/* S-03-31／32　⋯ 選單 */}
+      {menuOpen && (
+        <MoreSheet
+          status={display as 'planned' | 'active' | 'settled' | 'archived'}
+          onEdit={() => { setMenuOpen(false); openTripEdit(); }}
+          onShare={() => { setMenuOpen(false); setShareSheetOpen(true); }}
+          onCopy={() => { setMenuOpen(false); setCopyOpen(true); }}
+          onArchive={() => { setMenuOpen(false); archiveMutation.mutate(); }}
+          onDelete={() => { setMenuOpen(false); setDeleteConfirm(''); setDeleteOpen(true); }}
+          onClose={() => setMenuOpen(false)}
+        />
+      )}
 
-        {!expLoading && expenses.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
-            <p className="text-ink font-semibold text-input leading-snug">
-              {beforeTrip ? '出發前的費用也先記' : '第一筆從哪裡開始？'}
-            </p>
-            <p className="text-gr text-sub mt-2">
-              {beforeTrip
-                ? '訂票、換外幣、買行李，都算這趟的帳'
-                : '早餐、計程車、門票，都可以記'}
-            </p>
-          </div>
-        )}
-
-        {groups.map(([groupLabel, groupExpenses]) => (
-          <div key={groupLabel} className="px-5">
-            <p className="text-tag font-bold text-gr tracking-widest uppercase py-[14px] pb-2">
-              {groupLabel}
-            </p>
-            <div className="flex flex-col gap-2">
-              {groupExpenses.map(exp => {
-                const payer   = memberMap[exp.payer_member_id];
-                const isPend  = exp.twd_pending || exp.foreign_pending;
-                const showAmt = currencyMode === 'twd'
-                  ? fmtAmount(exp.twd_amount, exp.twd_pending, '$')
-                  : fmtAmount(exp.foreign_amount, exp.foreign_pending, symbol);
-
-                return (
-                  <button
-                    key={exp.id}
-                    onClick={() => openEdit(exp.id)}
-                    className={`bg-white rounded-base p-[11px] flex items-center gap-[10px] shadow-card text-left w-full relative overflow-hidden ${isPend ? 'border-l-[3px] border-out' : ''}`}
-                  >
-                    <span className="text-title w-[34px] text-center flex-shrink-0">
-                      {exp.category_emoji || categoryFromTitle(exp.title)}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-input font-semibold text-ink truncate">{exp.title}</p>
-                      <div className="flex items-center gap-[6px] mt-[3px] flex-wrap">
-                        <span className="text-tag text-gr">{payer?.emoji} {payer?.name}</span>
-                        {exp.expense_type === 'individual' && (
-                          <span className="text-tag font-bold bg-[#FEF3C7] text-[#92400E] px-[7px] py-[2px] rounded-chip">各付各的</span>
-                        )}
-                        {exp.expense_type === 'personal' && (
-                          <span className="text-tag font-bold bg-[#FEF2F2] text-[#991B1B] px-[7px] py-[2px] rounded-chip">只算我</span>
-                        )}
-                        {isPend && (
-                          <span className="text-tag font-bold bg-[#FFF7ED] text-out px-[7px] py-[2px] rounded-chip">待補填</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-money font-bold text-ink tabular-nums">{showAmt}</p>
-                    </div>
-                  </button>
-                );
-              })}
+      {/* S-03-25　刪除確認：打「刪除」二字才 enable。
+          全站只有這裡用 --dg 實心——刪除是不可逆的，語彙不與其他動作共用。 */}
+      {deleteOpen && (
+        <>
+          <div className="scrim" onClick={() => setDeleteOpen(false)} />
+          <div className="dlgwrap">
+            <div className="dlg">
+              <p className="dlgt">刪除「{trip.name}」？</p>
+              <p className="dlgs">
+                這會一併刪掉 {expenses.length} 筆消費、{trip.trip_members.length} 位成員，
+                以及結算結果與分享連結。
+              </p>
+              <p className="dlgs">確定的話，請在下面打「刪除」兩個字。</p>
+              <input
+                type="text" className="dlginput" value={deleteConfirm}
+                placeholder="刪除" autoComplete="off"
+                onChange={e => setDeleteConfirm(e.target.value)}
+              />
+              <div className="dlgrow">
+                <button className="btn qt" onClick={() => setDeleteOpen(false)}>算了，留著</button>
+                <button
+                  className="btn dg"
+                  disabled={deleteConfirm.trim() !== '刪除' || deleteTripMutation.isPending}
+                  onClick={() => deleteTripMutation.mutate()}
+                >
+                  {deleteTripMutation.isPending ? '刪除中…' : '刪除行程'}
+                </button>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Bottom action bar */}
-      {!isArchived && (
-        <div className="fixed bottom-0 inset-x-0 px-5 py-3 pb-8 bg-white border-t border-black/[0.05] flex gap-[10px]">
-          {isActive && (
-            <>
-              <button
-                onClick={() => navigate(`/trips/${tripId}/settlement`)}
-                className="flex-1 h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform"
-              >
-                前往結算
-              </button>
-              <button
-                onClick={openNew}
-                className="flex-1 h-[50px] bg-w text-white rounded-base text-body font-bold active:scale-[0.97] transition-transform"
-                style={{ boxShadow: '0 3px 14px rgba(124,45,18,0.36)' }}
-              >
-                ＋ 記一筆
-              </button>
-            </>
-          )}
-          {isSettled && (
-            <>
-              <button
-                onClick={() => navigate(`/trips/${tripId}/settlement`)}
-                className="flex-1 h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform"
-              >
-                查看結算
-              </button>
-              <button
-                onClick={() => archiveMutation.mutate()}
-                disabled={archiveMutation.isPending}
-                className="flex-1 h-[50px] bg-[#F5F4F2] text-md rounded-base text-body font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
-              >
-                {archiveMutation.isPending ? '封存中…' : '封存行程'}
-              </button>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* 刪除行程入口：放在最下方、樣式弱化，避免誤觸 */}
-      <div className="px-5 pb-28 pt-2">
-        <button
-          onClick={() => { setDeleteConfirm(''); setDeleteOpen(true); }}
-          className="w-full py-2 text-tag text-gr underline underline-offset-2"
-        >
-          刪除這趟行程
-        </button>
-      </div>
-
-      {isArchived && (
-        <div className="fixed bottom-0 inset-x-0 px-5 py-3 pb-8 bg-white border-t border-black/[0.05]">
-          <button
-            onClick={() => unarchiveMutation.mutate()}
-            disabled={unarchiveMutation.isPending}
-            className="w-full h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
-          >
-            {unarchiveMutation.isPending ? '處理中…' : '重新開啟'}
-          </button>
-        </div>
+        </>
       )}
 
       {/* Expense form sheet */}

@@ -1,5 +1,13 @@
 import { supabase } from '@/lib/supabaseClient';
 
+/* 實作-B-2　S-00 登入（4 項）
+ *   S-00-1 App icon — 已移除：App 未設計 logo，不放代用圖示
+ *   S-00-2 Tripay 字標／S-00-3 Slogan／S-00-4 Tagline
+ *   S-00-5 Google 登入鈕 — 官方四色 G（gstatic 釋出檔原樣內嵌，
+ *          **不套 currentColor**，是全站 icon 規則的唯一例外）；文案「用 Google 繼續」
+ *   S-00-6 G-02 幽靈卡 — 已移除：不可點卻長得可點，稀釋唯一動作
+ * 版面（.s00*）定義在 src/index.css，整段搬自原型。
+ */
 export default function LoginPage() {
   async function handleGoogleLogin() {
     await supabase.auth.signInWithOAuth({
@@ -9,71 +17,40 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col relative overflow-hidden"
-      style={{ background: 'linear-gradient(155deg, #3A1508 0%, #7C2D12 38%, #B45309 72%, #D97706 100%)' }}
-    >
-      {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-9 pb-16">
+    <div className="s00wrap">
+      <div className="s00pad" style={{ flex: 1 }} />
 
-        {/* App icon */}
-        <div
-          className="w-[76px] h-[76px] rounded-panel flex items-center justify-center text-logo mb-5"
-          style={{
-            background: 'rgba(255,255,255,0.14)',
-            border: '1px solid rgba(255,255,255,0.22)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.22)',
-          }}
-        >
-          ✈️
+      <div className="s00brand">
+        <div className="s00logo">Tripay</div>
+        <div className="s00slogan">每一趟，都記得</div>
+        {/* 標語與登入鈕共用同一個 240px 欄，單行不折 */}
+        <div className="s00col">
+          <div className="s00tag">大家一起出發，帳交給 Tripay。</div>
         </div>
-
-        {/* Wordmark */}
-        <h1
-          className="font-sans text-logo font-bold text-white leading-none mb-3 tracking-tight"
-        >
-          Tripay
-        </h1>
-
-        {/* Slogan */}
-        <p
-          className="text-strong mb-9 tracking-widest"
-          style={{ color: 'rgba(255,255,255,0.78)' }}
-        >
-          每一趟，都記得
-        </p>
-
-        {/* Tagline */}
-        <p
-          className="text-body text-center leading-relaxed mb-11 max-w-[230px]"
-          style={{ color: 'rgba(255,255,255,0.65)' }}
-        >
-          大家一起出發，帳交給 Tripay。
-        </p>
-
-        {/* Google login button */}
-        <button
-          onClick={handleGoogleLogin}
-          className="w-full max-w-[280px] h-[54px] bg-white rounded-base flex items-center justify-center gap-[10px] text-body font-semibold text-[#292524] active:scale-[0.97] transition-transform duration-100"
-          style={{ boxShadow: '0 4px 18px rgba(0,0,0,0.22)' }}
-        >
-          <GoogleIcon />
-          用 Google 帳號繼續
-        </button>
       </div>
 
+      <div className="s00pad" style={{ flex: 1.35 }} />
+
+      <div className="s00col s00act">
+        <button
+          onClick={handleGoogleLogin}
+          className="gbtn active:scale-[0.97] transition-transform duration-100"
+        >
+          <GoogleMark /> 用 Google 繼續
+        </button>
+      </div>
     </div>
   );
 }
 
-function GoogleIcon() {
+/* Google 官方四色 G。品牌識別，四個 fill 是規定的顏色，不得改成 currentColor。 */
+function GoogleMark() {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="flex-shrink-0">
-      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+    <svg viewBox="0 0 118 120" width="18" height="18" aria-hidden="true" style={{ flex: 'none' }}>
+      <path fill="#4285F4" d="M117.6,61.3636364 C117.6,57.1090909 117.218182,53.0181818 116.509091,49.0909091 L60,49.0909091 L60,72.3 L92.2909091,72.3 C90.9,79.8 86.6727273,86.1545455 80.3181818,90.4090909 L80.3181818,105.463636 L99.7090909,105.463636 C111.054545,95.0181818 117.6,79.6363636 117.6,61.3636364 L117.6,61.3636364 Z" />
+      <path fill="#34A853" d="M60,120 C76.2,120 89.7818182,114.627273 99.7090909,105.463636 L80.3181818,90.4090909 C74.9454545,94.0090909 68.0727273,96.1363636 60,96.1363636 C44.3727273,96.1363636 31.1454545,85.5818182 26.4272727,71.4 L6.38181818,71.4 L6.38181818,86.9454545 C16.2545455,106.554545 36.5454545,120 60,120 L60,120 Z" />
+      <path fill="#FBBC05" d="M26.4272727,71.4 C25.2272727,67.8 24.5454545,63.9545455 24.5454545,60 C24.5454545,56.0454545 25.2272727,52.2 26.4272727,48.6 L26.4272727,33.0545455 L6.38181818,33.0545455 C2.31818182,41.1545455 0,50.3181818 0,60 C0,69.6818182 2.31818182,78.8454545 6.38181818,86.9454545 L26.4272727,71.4 L26.4272727,71.4 Z" />
+      <path fill="#EA4335" d="M60,23.8636364 C68.8090909,23.8636364 76.7181818,26.8909091 82.9363636,32.8363636 L100.145455,15.6272727 C89.7545455,5.94545455 76.1727273,0 60,0 C36.5454545,0 16.2545455,13.4454545 6.38181818,33.0545455 L26.4272727,48.6 C31.1454545,34.4181818 44.3727273,23.8636364 60,23.8636364 L60,23.8636364 Z" />
     </svg>
   );
 }
