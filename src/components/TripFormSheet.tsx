@@ -18,7 +18,9 @@ interface MemberEntry { id?: string; emoji: string; name: string; }
 interface Props {
   tripId?: string;
   /** 新行程的預填來源：'full'＝複製行程（名稱/幣別/成員）；'members'＝G-09 只帶成員 */
-  prefill?: { tripId: string; mode: 'full' | 'members' };
+  /* 只剩「複製成新的一趟」這一條路。
+     `mode:'members'`（G-09 預填上一趟成員）已於 2026-09-04 移除，不要加回來。 */
+  prefill?: { tripId: string; mode: 'full' };
   onClose: () => void;
   onCreated: (id: string) => void;
 }
@@ -475,33 +477,39 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
               )}
             </div>
 
-            {/* Dates — Bug 1 fix: lang="en" prevents zh-TW Chrome from mangling the format
-                #33-2／C-3：`flex-1` 的預設 `min-width:auto` 會讓欄位**不肯縮到 min-content 以下**，
-                而 `input[type=date]` 的 min-content 由作業系統決定、比一半的寬度還寬——
-                於是整列在 320px 撐出畫面 28px。加 `min-w-0` 才允許它縮。
-                （這是真實瀏覽器量出來的，jsdom 與桌機寬度都看不到。） */}
-            <div className="mb-5 flex gap-3">
+            {/* S-02-9 日期列。結構與原型 Tripay_原型.html:1195–1200 相同。
+                **高度、外觀、日曆 icon 全部交給 `.datefield`**（index.css，整組移植自原型）：
+                iOS Safari 的原生 `input[type=date]` 在**沒有** `-webkit-appearance:none` 時，
+                寬度由作業系統決定、還會用 zh-TW 長格式（`2026年9月24日`），比半欄還寬 →
+                整列撐出 sheet。這是 Rozi 在 iPhone 上看到「兩欄黏在一起、日期被切掉」的原因。
+                #34-4（第三次修同一個地方）：高度必須明確給——關掉外觀後**空值裡面什麼都不畫**，
+                那一行會塌成 0，變成「回程比出發矮一截」。 */}
+            <div className="mb-5 flex" style={{ gap: 9 }}>
               <div className="flex-1 min-w-0">
-                <label className="block text-sub font-bold text-md tracking-wide mb-2">出發</label>
-                <input
-                  type="date"
-                  lang="en"
-                  value={startDate}
-                  onChange={e => { setStartDate(e.target.value); setErrors(ev => ({ ...ev, startDate: '' })); }}
-                  className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-body text-ink outline-none focus:border-w transition-colors"
-                />
+                <label className="lbl">出發</label>
+                <span className="datefield">
+                  <input
+                    type="date"
+                    aria-label="出發"
+                    value={startDate}
+                    onChange={e => { setStartDate(e.target.value); setErrors(ev => ({ ...ev, startDate: '' })); }}
+                  />
+                  <Icon name="calendar" size={16} />
+                </span>
                 {errors.startDate && <p className="text-tag text-out mt-1">{errors.startDate}</p>}
               </div>
               <div className="flex-1 min-w-0">
-                <label className="block text-sub font-bold text-md tracking-wide mb-2">回程</label>
-                <input
-                  type="date"
-                  lang="en"
-                  value={endDate}
-                  min={startDate}
-                  onChange={e => { setEndDate(e.target.value); setErrors(ev => ({ ...ev, endDate: '' })); }}
-                  className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-body text-ink outline-none focus:border-w transition-colors"
-                />
+                <label className="lbl">回程</label>
+                <span className="datefield">
+                  <input
+                    type="date"
+                    aria-label="回程"
+                    value={endDate}
+                    min={startDate}
+                    onChange={e => { setEndDate(e.target.value); setErrors(ev => ({ ...ev, endDate: '' })); }}
+                  />
+                  <Icon name="calendar" size={16} />
+                </span>
                 <p className="hint">不填就是當天來回</p>
               </div>
             </div>
@@ -513,7 +521,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
               <label className="block text-sub font-bold text-md tracking-wide mb-1">誰一起去？</label>
               {!isEdit && prefill && members.length > 0 && (
                 <p className="text-tag text-w mb-3 -mt-2">
-                  {prefill.mode === 'full' ? '已帶入原本那趟的成員與幣別，可以改' : '已帶入上一趟的成員，可以改'}
+                  已帶入原本那趟的成員與幣別，可以改
                 </p>
               )}
 

@@ -144,17 +144,39 @@ function serve(dir) {
                          w: Math.round(w), h: Math.round(h) });
         }
 
-        /* ⑤ 溢出容器：sheet／modal 自己也不得橫向捲 */
+        /* ⑤ 溢出容器：**哪個元素會捲動就量哪個**。
+           2026-09-05 的教訓：原本只量 `document.documentElement`，
+           但跑版發生在**底部 sheet 自己的捲動容器裡**——document 沒溢出，
+           172 條全綠，Rozi 一開手機就看到整個 sheet 左右跑掉。
+           所以除了固定清單，還要掃「所有 scrollWidth > clientWidth 的元素」。 */
         const overflow = [];
-        for (const sel of ['.sheet', '.dlg', '.statcard', '.detailtable']) {
+        for (const sel of ['.sheet', '.dlg', '.dlgwrap', '.statcard', '.detailtable']) {
           for (const el of document.querySelectorAll(sel))
             if (el.scrollWidth > el.clientWidth + 1)
               overflow.push({ sel, scroll: el.scrollWidth, client: el.clientWidth });
         }
+        /* 全域掃一遍，抓固定清單以外的**捲動**容器。
+           ⚠️ 只算 `overflow-x` 是 auto／scroll／hidden 的——`visible` 的元素不會捲，
+           內容溢出只是視覺上跑出去，那由上面的「超出右緣」那條負責。
+           不加這層過濾會誤判 `.rmbtn`：它的 `::after` 是**故意**撐出 44×44 的透明可點區，
+           scrollWidth 本來就比 clientWidth 大，但它一輩子不會捲。 */
+        let scrollables = 0;
+        for (const el of document.querySelectorAll('body *')) {
+          const cs = getComputedStyle(el);
+          if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+          if (el.clientWidth === 0) continue;
+          if (cs.overflowX === 'visible') continue;
+          scrollables++;
+          if (el.scrollWidth > el.clientWidth + 1)
+            overflow.push({
+              sel: `${el.tagName}.${(typeof el.className === 'string' ? el.className : '').slice(0, 36)}`,
+              scroll: el.scrollWidth, client: el.clientWidth,
+            });
+        }
 
         return {
           bodyText, textNodes, iconBtns,
-          bodyOverflow, past: past.slice(0, 5), pastCount: past.length,
+          bodyOverflow, past: past.slice(0, 5), pastCount: past.length, scrollables,
           clientWidth: de.clientWidth,
           near, small, overflow,
         };
@@ -167,8 +189,12 @@ function serve(dir) {
   /* ── 金絲雀：故意製造一次真的溢出，確認上面那兩條抓得到 ────────────────
      這一步就是這份斷言自己的反向驗證。少了它，「量不到」與「沒問題」
      在輸出裡長得一模一樣。 */
+  /* 金絲雀跑在 **s04**——那頁才有底部 sheet（`.sheet` 有 overflow-y:auto，
+     所以 overflow-x 的計算值是 auto，會捲）。跑 s01 的話 box 是 null，
+     第二隻金絲雀等於沒放出去。 */
   await page.setViewport({ width: 320, height: 844, isMobile: true, hasTouch: true });
-  await page.goto(`${BASE}/harness.html?screen=s01`, { waitUntil: 'networkidle0' });
+  await page.goto(`${BASE}/harness.html?screen=s04`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 300));
   const canary = await page.evaluate(() => {
     const d = document.createElement('div');
     d.style.cssText = 'width:900px;height:10px';
@@ -177,12 +203,31 @@ function serve(dir) {
     const de = document.documentElement;
     const past = [...document.querySelectorAll('body *')]
       .filter(e => e.getBoundingClientRect().right > de.clientWidth + 1).length;
-    return { bodyOverflow: document.body.scrollWidth - document.body.clientWidth, past };
+    /* 第一隻金絲雀量完就撤掉——留著會把整頁撐寬，干擾第二隻的量測 */
+    const bodyOverflow = document.body.scrollWidth - document.body.clientWidth;
+    d.remove();
+
+    /* 第二隻金絲雀：塞進**某個捲動容器裡**，document 不會溢出，
+       只有「量容器」那條抓得到。這正是 2026-09-05 漏掉的那一類。 */
+    let inContainer = 0;
+    const box = document.querySelector('.sheet');
+    if (box) {
+      const w = document.createElement('div');
+      /* `flex:none` 不能省——`.sheet` 是 flex 容器，flex-shrink 預設 1，
+         沒關掉的話 900px 會被縮回 320，金絲雀等於沒放出去（第一版就是這樣）。 */
+      w.style.cssText = 'width:900px;height:8px;flex:none';
+      box.appendChild(w);
+      if (box.scrollWidth > box.clientWidth + 1) inContainer = box.scrollWidth - box.clientWidth;
+      w.remove();
+    }
+    return { bodyOverflow, past, inContainer };
   });
-  console.log(`\n   金絲雀（故意塞 900px 寬的元素）：` +
-              `body 溢出 ${canary.bodyOverflow}px、超出右緣的元素 ${canary.past} 個`);
+  console.log(`\n   金絲雀（故意塞 900px 寬的元素）：body 溢出 ${canary.bodyOverflow}px、` +
+              `超出右緣 ${canary.past} 個、sheet 容器溢出 ${canary.inContainer}px`);
   ok(canary.bodyOverflow > 0, '金絲雀沒被 body 溢出這條抓到——這條斷言是假的');
   ok(canary.past > 0, '金絲雀沒被「超出右緣」這條抓到——這條斷言是假的');
+  ok(canary.inContainer > 0,
+    '金絲雀塞進 sheet 之後沒被「容器溢出」抓到——那條斷言是假的');
 
   await b.close();
   srv.close();
@@ -220,9 +265,10 @@ function serve(dir) {
       ok(m.small.length === 0,
         `${id} @${w} 可點區不足 44 的 icon 鈕 ${m.small.length} 個：` +
         m.small.map(x => `${x.label} ${x.w}×${x.h}`).join('；'));
+      ok(m.scrollables >= 1, `${id} @${w} 一個捲動容器都沒掃到，這條等於沒驗`);
       ok(m.overflow.length === 0,
-        `${id} @${w} 容器橫向溢出：` +
-        m.overflow.map(x => `${x.sel} ${x.scroll}>${x.client}`).join('；'));
+        `${id} @${w} 容器橫向溢出 ${m.overflow.length} 處：` +
+        [...new Set(m.overflow.map(x => `${x.sel} ${x.scroll}>${x.client}`))].slice(0, 4).join('；'));
     }
   }
 

@@ -181,3 +181,94 @@ describe('B-1　S-02b 編輯行程', () => {
       expect(document.body.textContent).not.toContain(s);
   });
 });
+
+/* ══════════════════════════════════════════════════════════════
+   實作-H　Rozi 手機實測回報的兩項
+   ══════════════════════════════════════════════════════════════ */
+describe('H-①　日期欄位走 .datefield，不要自己寫一份', () => {
+  it('兩欄都在 .datefield 裡，父層有 flex-1 min-w-0，gap 是 9px', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    const container = document.body;   // sheet 走 createPortal，RTL 的 container 是空的
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+
+    const fields = container.querySelectorAll('.datefield');
+    expect(fields.length, `.datefield 有 ${fields.length} 個，應該是 2`).toBe(2);
+
+    for (const f of fields) {
+      const input = f.querySelector('input[type=date]');
+      expect(input, '.datefield 裡面要有 date input').not.toBeNull();
+      /* 右側日曆 icon（.datefield>svg 靠絕對定位放上去） */
+      expect(f.querySelector('svg'), '缺日曆 icon').not.toBeNull();
+      /* 父層要允許縮——沒有 min-w-0 的話原生 date 的 min-content 會把整列撐開 */
+      const parent = f.parentElement!;
+      expect(parent.className, '日期欄的父層缺 flex-1').toContain('flex-1');
+      expect(parent.className, '日期欄的父層缺 min-w-0').toContain('min-w-0');
+    }
+
+    const row = fields[0].closest('.flex') as HTMLElement;
+    expect(row.style.gap, '兩欄之間的 gap 要是 9px').toBe('9px');
+  });
+
+  it('高度交給 .datefield，JSX 裡不再寫死 h-[46px]／border 顏色', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    const container = document.body;   // sheet 走 createPortal，RTL 的 container 是空的
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+    for (const f of container.querySelectorAll('.datefield')) {
+      const input = f.querySelector('input[type=date]') as HTMLElement;
+      expect(input.className, '日期欄不該再帶自己寫的高度').not.toContain('h-[46px]');
+      expect(input.className).not.toContain('border-[#E4DFD9]');
+    }
+  });
+
+  it('lang="en" 已拿掉——外觀關掉之後格式由我們控制', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    const container = document.body;   // sheet 走 createPortal，RTL 的 container 是空的
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+    for (const i of container.querySelectorAll('input[type=date]'))
+      expect(i.getAttribute('lang')).toBeNull();
+  });
+
+  it('S-02b（編輯行程）走同一段 JSX，不是另寫一份', async () => {
+    const src = await import('fs').then(fs =>
+      fs.readFileSync('src/components/TripFormSheet.tsx', 'utf8'));
+    /* 整個檔案只能有一組日期列 */
+    expect((src.match(/className="datefield"/g) ?? []).length,
+      '日期列被寫了兩份').toBe(2);   // 出發、回程各一，不是兩組四個
+  });
+});
+
+describe('H-②　新增行程不預填上一趟的成員（G-09 已於 2026-09-04 移除）', () => {
+  it('沒有 prefill 時，成員區是空的，畫面上找不到「已帶入」', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    const container = document.body;   // sheet 走 createPortal，RTL 的 container 是空的
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+
+    expect(seen(document.body)).not.toContain('已帶入');
+    /* 成員列數＝原型 S-02 的起始狀態：一個都沒有 */
+    const rows = [...container.querySelectorAll('.rowb')]
+      .filter(r => r.querySelector('.avatar'));
+    expect(rows.length, `成員列有 ${rows.length} 列，原型 S-02 起始是 0 列`).toBe(0);
+    /* 四位示範成員一個都不該出現 */
+    for (const n of ['Rozi', '小美', '阿明', '小魚'])
+      expect(seen(document.body), `不該預填 ${n}`).not.toContain(n);
+  });
+
+  it('TripListPage 不再傳 prefill，也不留沒人用的 latestTripId', async () => {
+    const src = await import('fs').then(fs =>
+      fs.readFileSync('src/pages/TripListPage.tsx', 'utf8'));
+    expect(src).not.toContain('prefill=');
+    expect(src, 'latestTripId 沒人用了就不要留').not.toContain('latestTripId');
+  });
+
+  it('mode:"full"（複製行程）**仍然**帶入成員與幣別，文案沒被砍掉', async () => {
+    render(<TripFormSheet prefill={{ tripId: 't1', mode: 'full' }} onClose={() => {}} onCreated={() => {}} />);
+    const container = document.body;
+    /* 成員是非同步帶進來的，要等它畫出來——提示句的條件是 members.length > 0 */
+    await waitFor(() => expect(screen.getByText('Rozi')).toBeInTheDocument());
+
+    expect(screen.getByText('已帶入原本那趟的成員與幣別，可以改')).toBeInTheDocument();
+    const rows = [...container.querySelectorAll('.rowb')].filter(r => r.querySelector('.avatar'));
+    expect(rows.length, '複製行程要帶入四位成員').toBe(4);
+    expect(seen(document.body)).toContain('Rozi');
+  });
+});

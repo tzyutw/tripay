@@ -40,8 +40,8 @@ export default function TripListPage() {
     },
   });
 
-  // G-09：新行程預填上一趟的成員（trips 已依出發日新→舊排序，取第一筆）
-  const latestTripId = trips[0]?.id;
+  /* G-09「新增行程預填上一趟成員」**已於 2026-09-04 移除**（專案狀態.md:422 劃掉那一列），
+     原型 S-02 裡也沒有這個行為。不要再接回來。 */
 
   function openNew() {
     setEditTripId(undefined);
@@ -176,7 +176,6 @@ export default function TripListPage() {
       {formOpen && (
         <TripFormSheet
           tripId={editTripId}
-          prefill={!editTripId && latestTripId ? { tripId: latestTripId, mode: 'members' } : undefined}
           onClose={closeForm}
           onCreated={(id) => navigate(`/trips/${id}`)}
         />

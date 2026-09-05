@@ -61,7 +61,11 @@ for (const [, selRaw, body] of rules) {
   const sel = selRaw.trim();
   if (!sel.startsWith('.ui ')) { skipped++; continue; }
   const classes = [...sel.matchAll(/\.([a-z][a-z0-9-]*)/g)].map(m => m[1]).filter(c => c !== 'ui');
-  if (!classes.length || !classes.some(c => used.has(c))) { skipped++; continue; }
+  /* 沒有 class 的**元素選擇器**（`.ui input[type=date]{…}` 這種）也要搬。
+     它們給的是 border／背景／padding 這些基礎樣式，少了就整組欄位裸奔——
+     `.datefield` 移植過來了卻沒邊框，就是漏了這一條。 */
+  const isBareElement = !classes.length && /^\.ui\s+[a-z]+(\[[^\]]*\])?/.test(sel);
+  if (!isBareElement && (!classes.length || !classes.some(c => used.has(c)))) { skipped++; continue; }
   out.push(`${sel.replace(/\.ui\s+/g, '')} { ${body.trim().replace(/\s*\n\s*/g, ' ')} }`);
   kept++;
 }

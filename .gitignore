@@ -47,3 +47,4 @@ MEMORY_*.md
 .auth/
 .claude/hooks/
 .claude/.keepgoing_count
+Claude outputs/_cowork暫存_可刪/

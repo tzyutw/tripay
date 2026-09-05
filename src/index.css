@@ -230,6 +230,9 @@ input, textarea, select { font-size: var(--fs-input); }
 .datefield>svg { position:absolute;right:10px;color:var(--gr);pointer-events:none }
 .hint { font-size:var(--fs-sub);color:var(--gr);margin:5px 0 0;line-height:1.45 }
 .fld { padding:0 14px 14px }
+input[type=text],input[type=number],input[type=date] { width:100%;background:#fff; border:1px solid var(--ln);border-radius:var(--r-base);padding:9px 10px;font-size:var(--fs-input);color:#151C21;outline:none }
+input:focus { border-color:var(--w) }
+input[type=date] { min-width:0 }
 .btn { width:100%;background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:11px 0; border-radius:var(--r-base);text-align:center }
 .btn.gh { background:#fff;color:var(--wi);border:1px solid var(--w) }
 .btn.qt { background:#fff;color:var(--md);border:1px solid var(--ln) }
