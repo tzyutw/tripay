@@ -335,10 +335,13 @@ const rgbLum = rgb => {
              w: getComputedStyle(document.querySelector('.ui')).getPropertyValue('--w').trim() };
   });
   console.log('   ' + JSON.stringify(ctl));
-  ok(ctl.tabsCls === 'tabs', `S-03-33 的容器不該是 seg，實際 ${ctl.tabsCls}`);
-  ok(ctl.segCls === 'seg', 'S-03-12 應維持 seg');
-  ok(ctl.tabsOn !== ctl.segOn, '兩者的選中樣式必須不同');
-  ok(ctl.segOn === hex2rgb(ctl.w), '幣別切換的選中格應仍是主色實心');
+  /* #29-8b 曾把切換器拆成兩套（.tabs／.seg）；#31-8 Rozi 收回，兩種合併成一套
+     ——淺灰底軌＋白色凸起 pill，不再有實心主色的切換器。
+     這條測試改成守「全站只有一套、選中格一律白色 pill」。 */
+  ok(ctl.tabsCls === 'seg' && ctl.segCls === 'seg', '兩種切換器都應是同一個 class');
+  ok(ctl.tabsOn === ctl.segOn, '合併之後兩者的選中樣式必須相同');
+  ok(ctl.tabsOn === 'rgb(255, 255, 255)', `選中格應是白色 pill，實際 ${ctl.tabsOn}`);
+  ok(ctl.segOn !== hex2rgb(ctl.w), '不該再有實心主色的切換器');
 
   /* 17　⋯ 選單配 icon */
   console.log('\n=== 17　⋯ 選單的項目配 icon ===');

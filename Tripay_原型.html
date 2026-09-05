@@ -11,6 +11,11 @@
   --pgink:#E8EDF0; --pgink2:#9FB0BA; --pgink3:#6B7C87;
   --pgrule:#2A353C; --mark:#4EA3E8; --okd:#63B588; --nod:#E0714E;
   --sans:"Onest","PingFang TC","Noto Sans TC",-apple-system,sans-serif;
+  /* #31-9 圓角。改前 .ui 之內有 8 個不同的值（2／3／4／6／8／14／50%／999px），
+     跟字級當初一樣：沒有階梯，是各自決定出來的。全部收斂成四個變數，
+     切換器只換這四個值。--r-icon 與 --r-chip 在 A～D 維持形狀（正圓／膠囊），
+     E／F 才跟著 --r-base 走——否則看不出「全部都圓」是什麼樣子。 */
+  --r-base:3px; --r-panel:14px; --r-icon:50%; --r-chip:999px;
 }
 :root[data-theme="light"]{--pg:#E7E9E4;--pg2:#FFF;--pg3:#F2F3EF;--pgink:#151C21;
   --pgink2:#4C5B64;--pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--okd:#276E45;--nod:#B03A22}
@@ -55,7 +60,19 @@ html.dev #devbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:30
 #devbar .list button{font-size:13px;padding:6px 11px;border:1px solid var(--ln);
   border-radius:999px;background:#fff;color:#4C5B64}
 #devbar .list button.on{background:#1276C4;border-color:#1276C4;color:#fff;font-weight:600}
-html.devmin #devbar .list{display:none}
+html.devmin #devbar .list,html.devmin #devbar .rr{display:none}
+/* #31-9 圓角版本切換器。**這是拋棄式工具**——Rozi 選定後把它整段移除，
+   把選中的值寫死成 :root 的預設。 */
+#radiussw{display:flex;align-items:center;gap:4px;margin-left:8px}
+#radiussw span{font-size:10.5px;letter-spacing:.1em;color:var(--pgink3)}
+#radiussw button{font-size:11px;font-weight:600;padding:5px 8px;border:1px solid var(--pgrule);
+  border-radius:3px;color:var(--pgink2);background:var(--pg2)}
+#radiussw button.on{background:var(--mark);border-color:var(--mark);color:var(--pg)}
+#devbar .rr{display:flex;flex-wrap:wrap;gap:5px;padding:0 12px 10px;align-items:center}
+#devbar .rr span{font-size:11px;color:var(--gr)}
+#devbar .rr button{font-size:12px;font-weight:600;padding:5px 9px;border:1px solid var(--ln);
+  border-radius:999px;background:#fff;color:#4C5B64}
+#devbar .rr button.on{background:#1276C4;border-color:#1276C4;color:#fff}
 #devtoggle{display:none;margin-left:8px;font-size:12.5px;font-weight:600;padding:7px 12px;
   border:1px solid var(--pgrule);border-radius:3px;color:var(--pgink2);background:var(--pg2)}
 @media(pointer:fine){#devtoggle{display:inline-flex}}
@@ -173,7 +190,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .money{font-variant-numeric:tabular-nums;font-weight:600;font-size:var(--fs-money)}
 .ic{display:inline-block;vertical-align:-.15em;flex:none}
 /* S-00-5 整頁唯一動作。白底深字、與任何「選取態」的語彙都不同 */
-.gbtn{width:min(250px,100%);height:48px;background:#fff;border-radius:4px;
+.gbtn{width:min(250px,100%);height:48px;background:#fff;border-radius:var(--r-base);
   display:flex;align-items:center;justify-content:center;gap:10px;
   font-size:var(--fs-body);font-weight:600;color:#151C21;box-shadow:0 1px 3px rgba(0,0,0,.24)}
 .gmark{flex:none}
@@ -185,45 +202,40 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .err{font-size:var(--fs-sub);color:var(--out);margin:5px 0 0}
 .ui .fld{padding:0 14px 14px}
 .ui input[type=text],.ui input[type=number],.ui input[type=date]{width:100%;background:#fff;
-  border:1px solid var(--ln);border-radius:3px;padding:9px 10px;font-size:var(--fs-input);color:#151C21;outline:none}
+  border:1px solid var(--ln);border-radius:var(--r-base);padding:9px 10px;font-size:var(--fs-input);color:#151C21;outline:none}
 .ui input:focus{border-color:var(--w)}
 .ui input[type=date]{min-width:0}   /* 原生 date 有內建最小寬，不設會撐爆窄螢幕 */
 .ui .btn{width:100%;background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:11px 0;
-  border-radius:3px;text-align:center}
+  border-radius:var(--r-base);text-align:center}
 .ui .btn.gh{background:#fff;color:var(--wi);border:1px solid var(--w)}
 .ui .btn.qt{background:#fff;color:var(--md);border:1px solid var(--ln)}
 .ui .btn.dg{background:var(--dg);color:#fff}
 .ui .btn:disabled{opacity:.4;cursor:not-allowed}
 .ui .btnrow{display:flex;gap:8px;padding:12px 14px 16px;background:#EDEEE8;border-top:1px solid var(--ln)}
-/* #29-8b 分頁與「選一個值」是兩種層級，不能長一樣。
-   .tabs＝切換整頁看什麼（iOS 原生風格：淺灰底軌、選中是白色 pill）；
-   .seg＝欄位內的二選一（實心主色填滿）。兩個大藍塊上下相鄰時，
-   視覺重量會壓過它們之間的統計卡——那才是這一頁的主角。 */
-.ui .tabs{display:flex;gap:2px;background:#E2E4DD;border-radius:8px;padding:2px}
-.ui .tabs button{flex:1;padding:7px 0;font-size:var(--fs-body);font-weight:600;
-  color:var(--md);background:transparent;border-radius:6px}
-.ui .tabs button.on{background:#fff;border:1px solid var(--ln);color:#151C21;
+/* #31-8 #29-8b 曾把切換器拆成兩套（分頁 .tabs／欄位 .seg），Rozi 收回：
+   兩種都改成「消費／結算」那個樣子——淺灰底軌＋白色凸起 pill。
+   全站只剩 .seg 一個 class，不再有實心主色的切換器。 */
+.ui .seg{display:flex;gap:2px;background:#E2E4DD;border-radius:calc(var(--r-base) + 5px);padding:2px}
+.ui .seg button{flex:1;padding:7px 0;font-size:var(--fs-body);font-weight:600;
+  color:var(--md);background:transparent;border-radius:calc(var(--r-base) + 3px)}
+.ui .seg button.on{background:#fff;border:1px solid var(--ln);color:#151C21;
   box-shadow:0 1px 2px rgba(0,0,0,.06)}
-.ui .seg{display:flex;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
-.ui .seg button{flex:1;padding:8px 0;font-size:var(--fs-body);background:#fff;color:var(--md);border-right:1px solid var(--ln)}
-.ui .seg button:last-child{border-right:0}
-.ui .seg button.on{background:var(--w);color:#fff;font-weight:600}
 .ui .chips{display:flex;gap:6px;flex-wrap:wrap}
-.ui .chip{font-size:var(--fs-body);padding:5px 10px;border-radius:999px;border:1px solid var(--ln);background:#fff;color:var(--md)}
+.ui .chip{font-size:var(--fs-body);padding:5px 10px;border-radius:var(--r-chip);border:1px solid var(--ln);background:#fff;color:var(--md)}
 .ui .chip.on{background:var(--w);border-color:var(--w);color:#fff;font-weight:600}
 /* #22-4：這不是「選一個人」，形狀與成員 chip 明確不同 */
-.ui .chip.alt{border-radius:3px;border-style:dashed}
+.ui .chip.alt{border-radius:var(--r-base);border-style:dashed}
 .ui .chip.alt.on{border-style:solid;background:var(--md);border-color:var(--md)}
 .ui .gap{display:flex;flex-direction:column;gap:6px}
 .ui .rowb{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
-  border-radius:3px;padding:8px 10px;width:100%;text-align:left}
+  border-radius:var(--r-base);padding:8px 10px;width:100%;text-align:left}
 .ui .rowb.on{border-color:var(--w);background:#F2F8FD}
 /* flex 子元素預設 min-width:auto，長字串（例如 email）會把整列撐爆 */
 .ui .rowb>*{min-width:0}
 .ui .trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 /* 全站唯一的「選取／未選取」語彙：未選＝描邊、選了＝填實工作色。
    S-04 的分給誰／贊助／大家各付各的都用同一個。 */
-.ui .selchip{font-size:var(--fs-tag);font-weight:600;padding:3px 9px;border-radius:999px;flex:none;
+.ui .selchip{font-size:var(--fs-tag);font-weight:600;padding:3px 9px;border-radius:var(--r-chip);flex:none;
   border:1px solid var(--ln);color:#A9B2B7;background:#fff;display:inline-flex;align-items:center;gap:3px}
 .ui .selchip.on{border-color:var(--w);background:var(--w);color:#fff}
 /* #20-1 金額欄一行：幣別標籤固定寬靠左，輸入框吃剩餘寬度。
@@ -232,7 +244,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
    #30-5c 改用 <label for>，點左側幣別文字也能聚焦，可點範圍變成整列，不需要任何 JS。 */
 .ui .amtstack{display:flex;flex-direction:column;gap:10px}
 .ui .amtline{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
-  border-radius:3px;padding:12px 10px;cursor:text}
+  border-radius:var(--r-base);padding:12px 10px;cursor:text}
 .ui .amtline.needfill{border-color:var(--out);background:#FBF0EC}
 .ui .amtline .cur{width:58px;flex:none;font-size:var(--fs-body);font-weight:600;color:var(--md)}
 .ui .amtline input{flex:1;min-width:0;border:0;background:transparent;padding:2px 0;
@@ -241,22 +253,22 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 /* #22-9：各自金額一列一人——emoji 名字靠左、輸入框靠右。
    先前漏掉這條 CSS，div 退回 block，名字與輸入框才會堆成兩行。 */
 .ui .amtrow{display:flex;align-items:center;gap:9px;cursor:text;background:#fff;border:1px solid var(--ln);
-  border-radius:3px;padding:7px 10px}
+  border-radius:var(--r-base);padding:7px 10px}
 .ui .amtrow input{width:96px;flex:none;text-align:right;background:#F4F5F1;padding:5px 8px;
   border:1px solid transparent;font-size:var(--fs-input);font-variant-numeric:tabular-nums}
 .ui .amtrow input:focus{border-color:var(--w);background:#fff}
 .ui .amtrow input.auto{color:#9AA5AB}
 /* #22-10-1：表單欄位的標籤與輸入框同列 */
 .ui .fieldrow{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
-  border-radius:3px;padding:7px 10px}
+  border-radius:var(--r-base);padding:7px 10px}
 .ui .fieldrow>.lbl{display:block;width:58px;flex:none;margin:0;font-size:var(--fs-body)}
 .ui .fieldrow>input{flex:1;min-width:0;border:0;background:transparent;padding:2px 0;font-size:var(--fs-input)}
 .ui .fieldrow>input:focus{border:0;outline:none}
 .ui .fieldrow.wide>.lbl{width:auto}
 .ui .autotag{font-size:var(--fs-tag);letter-spacing:.06em;color:var(--gr);
-  border:1px solid var(--ln);border-radius:2px;padding:1px 4px;flex:none}
+  border:1px solid var(--ln);border-radius:var(--r-base);padding:1px 4px;flex:none}
 /* R9 差額三級：剛好／淡色／橘色警示，三種都可存檔 */
-.ui .cmp{margin-top:8px;border-radius:3px;padding:8px 10px;font-size:var(--fs-sub);font-weight:500;
+.ui .cmp{margin-top:8px;border-radius:var(--r-base);padding:8px 10px;font-size:var(--fs-sub);font-weight:500;
   display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
   font-variant-numeric:tabular-nums}
 .ui .cmp .d{font-weight:600;display:inline-flex;align-items:center}
@@ -264,29 +276,29 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .cmp.ok{background:#EAF3E9;border:1px solid #C9DFC8;color:var(--in)}
 .ui .cmp.soft{background:#F4F5F1;border:1px solid var(--ln);color:var(--md)}
 .ui .cmp.bad{background:#FBF0EC;border:1px solid #E8C4B8;color:var(--out)}
-.ui .pill{font-size:var(--fs-tag);font-weight:600;padding:2px 7px;border-radius:999px;border:1px solid;line-height:1.6}
+.ui .pill{font-size:var(--fs-tag);font-weight:600;padding:2px 7px;border-radius:var(--r-chip);border:1px solid;line-height:1.6}
 .ui .pill.ind{color:var(--wi);border-color:#BFD9EE;background:#EEF5FB}
 .ui .pill.gr{color:var(--md);border-color:var(--ln);background:#F4F5F1}
 .ui .stamp{display:inline-block;border:1px solid rgba(255,255,255,.72);color:#fff;
-  font-size:var(--fs-tag);font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:2px}
-.ui .sheet{background:#EDEEE8;border-radius:14px 14px 0 0;overflow:hidden}
-.ui .grab{width:30px;height:3px;border-radius:2px;background:#CBD1CC;margin:9px auto 2px}
+  font-size:var(--fs-tag);font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:var(--r-base)}
+.ui .sheet{background:#EDEEE8;border-radius:var(--r-panel) var(--r-panel) 0 0;overflow:hidden}
+.ui .grab{width:30px;height:3px;border-radius:var(--r-chip);background:#CBD1CC;margin:9px auto 2px}
 .ui .shd{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 10px}
 .ui .shd h3{font-size:var(--fs-strong);font-weight:700;letter-spacing:-.01em}
 /* #30-2 原本 .x 是 24×24＋13px icon，可點區遠低於 44。
    全站只要是「一顆 icon 就是一個按鈕」，一律用 .ic2（不含列尾的 › 方向指示）。 */
 .ui .scrim{background:rgba(20,28,33,.45);padding:18px 0}
-.ui .dlg{background:#fff;border:1px solid var(--ln);border-radius:4px;margin:0 18px;padding:16px}
+.ui .dlg{background:#fff;border:1px solid var(--ln);border-radius:var(--r-panel);margin:0 18px;padding:16px}
 .ui .empty{padding:38px 22px;text-align:center}
 .ui .empty p{margin:0;font-size:var(--fs-strong);font-weight:600}
 .ui .empty p+p{font-size:var(--fs-sub);color:var(--gr);font-weight:400;margin-top:5px}
 .ui .spin{padding:34px 0;text-align:center}
 .ui .spin i{display:inline-block;width:20px;height:20px;border:2px solid var(--w);
-  border-top-color:transparent;border-radius:50%;font-style:normal}
+  border-top-color:transparent;border-radius:var(--r-icon);font-style:normal}
 @media(prefers-reduced-motion:no-preference){.ui .spin i{animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}}
 .ui .toast{position:absolute;left:14px;right:14px;bottom:14px;z-index:60;background:#151C21;color:#fff;
-  font-size:var(--fs-body);padding:10px 13px;border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+  font-size:var(--fs-body);padding:10px 13px;border-radius:var(--r-base);box-shadow:0 6px 18px rgba(0,0,0,.28)}
 
 
 /* ══ 批二：S-03 / S-03d / S-04 / S-05 ══ */
@@ -295,14 +307,15 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .hero .navrow{position:relative;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .ui .hero .nb{font-size:var(--fs-body);font-weight:600;color:rgba(255,255,255,.92)}
 .ui .hero .icons{display:flex;gap:6px}
-/* #28-7 原本 26×26 沒有邊框、icon 只有 15px，可點區遠低於 44 的最小觸控標準。
-   改成 40×40 正圓＋一圈線，icon 20px；可點區靠外距撐到 44，容器本身維持 40。
-   淺底是預設，深色 hero 上覆寫——灰線在彩色 hero 上會髒，改用半透明白線。 */
-.ui .ic2{width:40px;height:40px;border-radius:50%;box-sizing:border-box;
+/* #28-7 40×40 正圓＋一圈線＋20px icon，可點區靠外距撐到 44。
+   #31-5 容器永遠是「底下顏色的薄膜」——底暗就加亮、底亮就加暗，兩邊都半透明，
+   所以不管底下是漸層、表單底還是白卡片，都會透出底下的顏色。
+   之所以必須有兩個值，是因為底下的明暗相反，同一個半透明值在其中一邊一定會消失。 */
+.ui .ic2{width:40px;height:40px;border-radius:var(--r-icon);box-sizing:border-box;
   display:flex;align-items:center;justify-content:center;position:relative;flex:none;
-  background:#fff;border:1px solid var(--ln);color:var(--md)}
+  background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.14);color:var(--md)}
 .ui .ic2::after{content:'';position:absolute;left:-2px;top:-2px;width:44px;height:44px}
-.ui .hero .ic2{background:rgba(0,0,0,.28);border-color:rgba(255,255,255,.35);color:#fff}
+.ui .hero .ic2{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.38);color:#fff}
 .ui .hero .tt{position:relative;font-size:var(--fs-title);font-weight:700;letter-spacing:-.01em}
 .ui .hero .dt{position:relative;font-size:var(--fs-sub);color:rgba(255,255,255,.86);margin-top:4px}
 .ui .statcard{background:#fff;border-bottom:1px solid var(--ln)}
@@ -336,7 +349,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   border-bottom:1px solid #E8C4B8;font-size:var(--fs-body);font-weight:600;color:var(--out);text-align:left}
 .ui .exprow{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
   margin:0 14px 5px;width:calc(100% - 28px);background:#fff;border:1px solid var(--ln);
-  border-radius:3px;padding:8px 10px}
+  border-radius:var(--r-base);padding:8px 10px}
 .ui .exprow.pend{border-left:2px solid var(--out)}
 .ui .exprow .ic{font-size:var(--fs-title);width:24px;text-align:center;flex:none}
 .ui .exprow .mid{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -346,6 +359,8 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .delrow{padding:14px;text-align:center;font-size:var(--fs-body);color:var(--dg)}
 .ui .delrow span{border-bottom:1px solid #D7BCB2;display:inline-flex;align-items:center;gap:4px}
 .ui .mrule{height:1px;background:var(--ln);margin:0 -14px}
+/* #31-6 選單項目整列可點：撐滿面板、至少 44 高、線由 .mrule 負責 */
+.ui .shopt.mi{width:100%;min-height:44px;border-bottom:0}
 .ui .shopt{display:flex;align-items:center;gap:10px}
 .ui .shopt svg{color:var(--md);flex:none}
 /* ⋯ 選單的項目是「可點的選項」＝二階（--md），與 chip／seg 未選同一階。
@@ -357,12 +372,15 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .shopt .t{margin:0;font-size:var(--fs-body);font-weight:600}
 .ui .shopt .s{margin:2px 0 0;font-size:var(--fs-sub);color:var(--gr)}
 .ui .sharedhead{display:flex;align-items:center;justify-content:space-between;gap:10px;
-  background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px}
+  background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);padding:11px}
 .ui .expandbtn{border:1px solid var(--w);color:var(--wi);font-size:var(--fs-body);font-weight:600;
-  padding:6px 10px;border-radius:3px;flex:none}
+  padding:6px 10px;border-radius:var(--r-base);flex:none}
 .ui .paysep{width:1px;align-self:stretch;background:var(--ln);margin:0 2px}
 .ui .ratelink{color:var(--wi);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:2px}
-.ui .seg button.dis{opacity:.4}
+/* #31-8 停用態：不給白色 pill、字降到三階（--gr 對底軌 #E2E4DD 實測 3.6:1，
+   仍讀得出來但明顯弱於可按的 --md 6.2:1），再加 not-allowed。
+   下方的 hint 已經寫了為什麼不能按，兩者一起才夠。 */
+.ui .seg button.dis{color:var(--gr);cursor:not-allowed;background:transparent;box-shadow:none;border:0}
 .ui input.auto{color:#9AA5AB}
 .ui .unsettled span{display:inline-flex;align-items:center;gap:5px}
 /* #17-7 動態 icon：只做兩處，且遵守 prefers-reduced-motion */
@@ -405,7 +423,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   transform-box:view-box;transform-origin:50px 40px;stroke-dasharray:100;stroke-dashoffset:0}
 .ui .anim.fold .trail{clip-path:inset(-12% 0 -12% 0);opacity:.35}
 .ui .txrow{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--ln);
-  border-radius:3px;padding:9px 10px;margin:0 14px 6px}
+  border-radius:var(--r-base);padding:9px 10px;margin:0 14px 6px}
 .ui .txrow .who{font-size:var(--fs-body);font-weight:600}
 .ui .txrow .gv{font-size:var(--fs-sub);color:var(--gr)}
 .ui .txrow .amt{margin-left:auto;font-size:var(--fs-money);display:inline-flex;align-items:baseline}
@@ -438,9 +456,9 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .stats span{display:block;font-size:var(--fs-sub);color:var(--gr);margin-top:3px}
 .ui .txsec{padding:10px 14px 5px;font-size:var(--fs-sub);font-weight:600;color:var(--gr)}
 .ui .txempty{margin:0 14px;padding:14px;text-align:center;font-size:var(--fs-body);color:var(--gr);
-  background:#fff;border:1px solid var(--ln);border-radius:3px}
+  background:#fff;border:1px solid var(--ln);border-radius:var(--r-base)}
 .ui .clearbtn{border:1px solid var(--w);color:var(--wi);font-size:var(--fs-body);font-weight:600;
-  padding:3px 8px;border-radius:3px;flex:none}
+  padding:3px 8px;border-radius:var(--r-base);flex:none}
 .ui .cleared{font-size:var(--fs-tag);font-weight:600;color:var(--in);display:inline-flex;align-items:center;gap:3px;flex:none}
 .ui .detailtoggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 28px);
   margin:0 14px;padding:11px 0;border-top:1px solid var(--ln);font-size:var(--fs-body);font-weight:600;color:var(--md)}
@@ -453,23 +471,23 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .bar .ttl{font-size:var(--fs-body);font-weight:600;color:var(--md)}
 
 /* 行程卡 */
-.ui .tcard{margin:11px 14px 0;background:#fff;padding:4px;border:1px solid var(--ln);border-radius:3px;
+.ui .tcard{margin:11px 14px 0;background:#fff;padding:4px;border:1px solid var(--ln);border-radius:var(--r-base);
   display:block;width:calc(100% - 28px);text-align:left}
 .ui .tcard .img{height:150px;position:relative;padding:10px;display:flex;flex-direction:column;
-  justify-content:flex-end;border-radius:2px;overflow:hidden}
+  justify-content:flex-end;border-radius:var(--r-base);overflow:hidden}
 .ui .tcard .sc{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 38%,rgba(0,0,0,.46))}
 .ui .tcard .nm{position:relative;color:#fff;font-size:var(--fs-strong);font-weight:700;letter-spacing:-.01em;margin-top:6px}
 .ui .tcard .dt{position:relative;font-size:var(--fs-sub);color:rgba(255,255,255,.9);margin-top:3px;
   font-variant-numeric:tabular-nums}
-.ui .ghost{margin:11px 14px 0;border:1px solid var(--ln);border-radius:3px;overflow:hidden;opacity:.78;
+.ui .ghost{margin:11px 14px 0;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden;opacity:.78;
   display:block;width:calc(100% - 28px)}
 .ui .ghost div{height:60px;display:flex;align-items:center;justify-content:center;
   background:linear-gradient(135deg,#DCDED6,#C9CDC3);font-size:var(--fs-body);color:#5C6660}
-.ui .avatar{width:28px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;
+.ui .avatar{width:28px;height:28px;border-radius:var(--r-base);display:flex;align-items:center;justify-content:center;
   font-size:var(--fs-title);background:#fff;border:1px solid var(--ln);flex:none;overflow:hidden}
 .ui .avatar.letter{color:#fff;font-size:var(--fs-body);font-weight:700;border-color:transparent}
 .ui .avatar input{width:100%;height:100%;text-align:center;padding:0;border:0;background:#fff;font-size:var(--fs-input)}
-.ui .ratebox{background:#fff;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
+.ui .ratebox{background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden}
 .ui .raterow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #F1F2EE}
 .ui .raterow:last-child{border-bottom:0}
 .ui .raterow .flag{font-size:var(--fs-title);flex:none;line-height:1}
@@ -480,11 +498,11 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .rateinput:focus{border:0;outline:none}
 .ui .ratebox.editing .rateinput{color:#A9B2B7}
 .ui .ratebox.editing .rateinput:focus{color:#151C21}
-.ui .tone{width:32px;height:32px;border-radius:3px;flex:none}
+.ui .tone{width:32px;height:32px;border-radius:var(--r-base);flex:none}
 .ui .tone.auto{width:auto;padding:0 10px;height:32px;font-size:var(--fs-body);font-weight:600;color:var(--md);
   background:#fff;border:1px dashed #B9C1BB}
 .ui .tone.on{outline:2px solid var(--w);outline-offset:1px}
-.ui .drop{margin-top:6px;border:1px solid var(--ln);background:#fff;border-radius:3px;
+.ui .drop{margin-top:6px;border:1px solid var(--ln);background:#fff;border-radius:var(--r-base);
   max-height:190px;overflow-y:auto}
 .ui .drop button{width:100%;padding:8px 10px;font-size:var(--fs-body);display:flex;justify-content:space-between;
   border-bottom:1px solid #F1F2EE;text-align:left}
@@ -502,6 +520,7 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
     <button data-m="anno">標註模式</button>
     <button data-m="op">操作模式</button>
   </div>
+  <div id="radiussw"></div>
   <button id="devtoggle">真機模式</button>
 </div>
 
@@ -871,7 +890,11 @@ let editing = null;
    #27-6b 起 S-02c-11（成員識別）與 S-04-3（類別 emoji）走這同一套，不做第二種寫法。
    key 的格式是 "<ctx>:<id>"：f／b 是建立／編輯行程的成員，exp 是記帳表單的類別。 */
 function inlineEditInput(key) {
-  return `<input type="text" data-avin="${key}" value="" maxlength="4" autofocus>`;
+  // #31-1 這裡原本帶著一個「元素進 DOM 就自動聚焦」的屬性。那綁的是插入時機，
+  // 不是「使用者要編輯」——只要有任何一次重繪把它插回畫面，瀏覽器就再聚焦一次，
+  // 手機上就是鍵盤再彈一次、關不掉。
+  // 聚焦一律由 beginInlineEdit() 的 .focus() 負責，那才是使用者真的要編輯的時機。
+  return `<input type="text" data-avin="${key}" value="" maxlength="4">`;
 }
 function beginInlineEdit(key) {
   editing = key;
@@ -932,7 +955,7 @@ function renderS01() {
   const head = `${b('S-01-1', `<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 11px;border-bottom:1px solid var(--ln)">
       <span style="font-size:var(--fs-title);font-weight:700;letter-spacing:-.02em;color:var(--wi)">Tripay</span>
       <span style="display:flex;align-items:center;gap:8px">
-        ${b('S-01-2', `<button id="s01new" style="background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:7px 12px;border-radius:3px">＋ 新增行程</button>`)}
+        ${b('S-01-2', `<button id="s01new" style="background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:7px 12px;border-radius:var(--r-base)">＋ 新增行程</button>`)}
         ${b('S-01-15', `<button class="ic2" aria-label="設定">${ic('settings',20)}</button>`)}
       </span>
     </div>`)}`;
@@ -1060,13 +1083,13 @@ function renderS02() {
         ${`<div class="gap">${memberRows(f, 'f')}</div>`}
         ${f.errs.members ? `<p class="err">${f.errs.members}</p>` : ''}
         ${f.adding
-          ? b('S-02-15', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+          ? b('S-02-15', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);padding:11px">
               <p style="margin:0 0 8px;font-size:var(--fs-body);font-weight:600;color:var(--md)">加一個人</p>
               <input type="text" id="s02newname" value="${esc(f.newName)}" placeholder="叫什麼名字？" maxlength="10">
               <div style="height:8px"></div>
               <div class="flexrow" style="display:flex;gap:7px"><button class="btn qt" id="s02addcancel">取消</button><button class="btn" id="s02adddo" ${f.newName.trim() ? '' : 'disabled'}>加進來</button></div>
             </div>`)
-          : b('S-02-16', `<button id="s02add" style="margin-top:9px;width:100%;border:1px dashed #B9C1BB;border-radius:3px;padding:9px;font-size:var(--fs-body);color:var(--md);font-weight:600">＋ 新增成員</button>`)}
+          : b('S-02-16', `<button id="s02add" style="margin-top:9px;width:100%;border:1px dashed #B9C1BB;border-radius:var(--r-base);padding:9px;font-size:var(--fs-body);color:var(--md);font-weight:600">＋ 新增成員</button>`)}
       </div>`)}
 
       ${b('S-02-18', `<div class="btnrow"><button class="btn gh" id="s02cancel">取消</button><button class="btn" id="s02go">出發！</button></div>`)}
@@ -1112,8 +1135,8 @@ function renderS02b() {
       ${b('S-02b-1', `<div class="shd" style="padding-top:14px"><h3>編輯行程</h3><button class="ic2" aria-label="關閉">${ic('close',20)}</button></div>`)}
 
       ${b('S-02b-2', `<div class="fld"><span class="lbl" data-group="照片與色調兩個動作，非單一輸入欄">封面</span>
-        <div style="border:1px solid var(--ln);border-radius:3px;background:#fff;padding:4px">
-          <div style="height:104px;border-radius:2px;position:relative;overflow:hidden;
+        <div style="border:1px solid var(--ln);border-radius:var(--r-base);background:#fff;padding:4px">
+          <div style="height:104px;border-radius:var(--r-base);position:relative;overflow:hidden;
             background:${fb.photo ? '#3A4750' : tone}">
             ${fb.photo ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
               color:rgba(255,255,255,.7);font-size:var(--fs-tag)">（示意）已上傳的照片</div>` : ''}
@@ -1281,15 +1304,54 @@ function renderIndex() {
 let mode = 'anno';
 /* #29-9 真機模式：一次只顯示一個畫面，底部一條可收起的切換器。
    互動照常，只是把稿件元素（徽章、右側清單、稿頭、章節標題）全部藏起來。 */
+/* #31-9 六個圓角版本。A～D 之下 .ic2 維持正圓、chip 維持膠囊（那是形狀不是圓角）；
+   E／F 連它們也跟著 --r-base 走，否則看不出「全部都圓」是什麼樣子。
+   F 的 50% 用在非正方形元素上會變成橢圓——那是 border-radius:50% 的正常行為，
+   不是 bug，Rozi 要看的就是它真實的樣子，所以不加任何限制。 */
+const RADIUS_SETS = {
+  A: { nm:'A · 現況收斂', v:'3 / 14',   base:'3px',   panel:'14px', icon:'50%',   chip:'999px' },
+  B: { nm:'B · 微圓',     v:'6 / 16',   base:'6px',   panel:'16px', icon:'50%',   chip:'999px' },
+  C: { nm:'C · iOS 原生', v:'10 / 20',  base:'10px',  panel:'20px', icon:'50%',   chip:'999px' },
+  D: { nm:'D · 圓潤',     v:'14 / 24',  base:'14px',  panel:'24px', icon:'50%',   chip:'999px' },
+  E: { nm:'E · 膠囊',     v:'999 / 28', base:'999px', panel:'28px', icon:'999px', chip:'999px' },
+  F: { nm:'F · 全圓 50%', v:'50% / 50%',base:'50%',   panel:'50%',  icon:'50%',   chip:'50%'  },
+};
+let radiusSet = 'A';
+function applyRadius(k) {
+  radiusSet = k;
+  const r = RADIUS_SETS[k], st = document.documentElement.style;
+  st.setProperty('--r-base', r.base);  st.setProperty('--r-panel', r.panel);
+  st.setProperty('--r-icon', r.icon);  st.setProperty('--r-chip', r.chip);
+  renderRadiusSw(); renderDevBar();
+}
+function renderRadiusSw() {
+  const el = $('#radiussw'); if (!el) return;
+  el.innerHTML = `<span>圓角</span>` + Object.entries(RADIUS_SETS).map(([k, r]) =>
+    `<button data-radius="${k}" class="${k === radiusSet ? 'on' : ''}" title="${r.nm}｜${r.v}">${k}</button>`).join('');
+}
+document.addEventListener('click', ev => {
+  const r = ev.target.closest('[data-radius]');
+  if (r) { applyRadius(r.dataset.radius); return; }
+});
+
 const DEV_SCREENS = [['s00','登入'],['s01','首頁'],['s02','建立行程'],['s02b','編輯行程'],
   ['s02c','成員識別'],['s03','行程頁'],['s03b','分享／刪除'],['s03d','篩選'],
   ['s04','記一筆'],['s05','結算'],['s06','分享頁'],['s07','設定']];
 let devScreen = 's03';
+/* #31-3 真機模式一次只顯示一個畫面，返回鍵原本點了完全沒反應——
+   使用者點了沒反應就會再點幾次，這很可能就是「一直點」的來源。
+   接上「產品上這一顆會去哪裡」，不是瀏覽器的上一頁：讓它看起來是產品的一部分，
+   點下去就真的走得到。方案 B（做成明確不可點）會讓稿看起來像壞掉的，不採用。 */
+const DEV_BACK = { s02:'s01', s02b:'s01', s02c:'s02', s03:'s01', s03b:'s03',
+                   s03d:'s03', s04:'s03', s05:'s03', s06:'s01', s07:'s01' };
 function renderDevBar() {
   $('#devbar').innerHTML =
     `<div class="hd"><b>真機模式</b>
       <button id="devmin">${document.documentElement.classList.contains('devmin') ? '展開清單' : '收起清單'}</button>
      </div>
+     <div class="rr"><span>圓角 ${RADIUS_SETS[radiusSet].v}</span>${
+       Object.entries(RADIUS_SETS).map(([k, r]) =>
+         `<button data-radius="${k}" class="${k === radiusSet ? 'on' : ''}">${k}</button>`).join('')}</div>
      <div class="list">${DEV_SCREENS.map(([id,nm]) =>
        `<button data-dev="${id}" class="${id===devScreen?'on':''}">${nm}</button>`).join('')}</div>`;
   document.querySelectorAll('.scr').forEach(el => el.classList.toggle('devon', el.id === devScreen));
@@ -1311,6 +1373,14 @@ document.addEventListener('click', ev => {
   const d = ev.target.closest('[data-dev]');
   if (d) { devScreen = d.dataset.dev; renderDevBar();
     window.scrollTo({ top: 0 }); return; }
+  // 真機模式下的返回鍵：走產品上該去的地方
+  if (document.documentElement.classList.contains('dev')) {
+    // 返回與關閉在真機模式下是同一件事：離開這一頁，回到它的上一層
+    const back = ev.target.closest('[aria-label="返回"],[aria-label="關閉"]');
+    if (back && DEV_BACK[devScreen]) {
+      devScreen = DEV_BACK[devScreen]; renderDevBar(); window.scrollTo({ top: 0 });
+    }
+  }
 });
 function setMode(mNew) {
   mode = mNew;
@@ -1508,6 +1578,7 @@ document.addEventListener('keydown', ev => {
 
 /* 啟動 */
 setMode('anno');
+renderRadiusSw();
 if (DEV_MQ.matches) setDev(true);
 renderAll();
 renderIndex();
@@ -1735,7 +1806,7 @@ function renderS03() {
   </div>`);
 
   // #28-6a 分段控制：切換檢視，不是動作。「結算」分頁的內容就是 S-05 整頁。
-  h += b('S-03-33', `<div class="fld" style="padding-top:12px"><div class="tabs">
+  h += b('S-03-33', `<div class="fld" style="padding-top:12px"><div class="seg">
     <button class="${store.s03Tab==='exp'?'on':''}" data-s03tab="exp">消費</button>
     <button class="${store.s03Tab==='settle'?'on':''}" data-s03tab="settle">結算</button></div></div>`);
 
@@ -1823,6 +1894,9 @@ function s03MoreSheet(st) {
   if (!store.s03Menu) return '';
   // #29-8c 每項配一個 16px 的 icon：刪除配上垃圾桶，危險訊號在按下去之前就看得到，
   // 不是等對話框跳出來才知道。只有「刪除行程」的 icon 與文字同時用 --dg。
+  // #31-6 原本每顆按鈕只有內容寬（86／56／131／86px），自己帶 border-bottom，
+  // 畫面上就成了四條長短不一的短線；更糟的是可點區只有文字那麼寬。
+  // 改成整列撐滿、分隔線由面板負責。
   const row = (icn, txt, del) =>
     `<button class="shopt mi${del ? ' del' : ''}">${ic(icn,16)}<p class="t">${txt}</p></button>`;
   const item = (id, icn, txt, del) => id ? b(id, row(icn, txt, del)) : row(icn, txt, del);
@@ -2156,16 +2230,16 @@ function renderS05() {
       + (suggest ? b('S-05-31', `<div class="fld" style="padding-top:12px"><div class="note calm">
           ${ic('warn',14)} 這趟有 ${Math.round(ps.ratio*100)}% 是 ${nm2(t, ps.top)} 先付的。
           改成「都轉給同一個人」的話，每個人只要轉一次。
-          <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div></div>`) : '') + b('S-05-6', `<div class="fld" style="padding-top:12px"><div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:11px">
+          <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div></div>`) : '') + b('S-05-6', `<div class="fld" style="padding-top:12px"><div style="background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);padding:11px">
       <div style="font-size:var(--fs-body);font-weight:600;color:var(--md);margin-bottom:6px">1 / ${Math.max(1,tx.length)} 筆已確認</div>
-      <div style="height:4px;background:#E4E7E0;border-radius:2px;overflow:hidden"><div style="width:${tx.length?100/tx.length:0}%;height:100%;background:var(--in)"></div></div>
+      <div style="height:4px;background:#E4E7E0;border-radius:var(--r-chip);overflow:hidden"><div style="width:${tx.length?100/tx.length:0}%;height:100%;background:var(--in)"></div></div>
     </div></div>`)
       + b('S-05-7', `<div>${transferView(t, tx, { withClear: true })}</div>`)
       + b('S-05-10', `<button class="detailtoggle" id="s05detail">查看計算依據 ${ic(store.s05open ? 'up' : 'down', 16)}</button>`)
       + (store.s05open ? `<div class="fld">
           ${b('S-05-11', `<div class="gap">${t.members.map(m => { const v = net[m.id];
             const mine = tx.filter(x => x.from === m.id || x.to === m.id);
-            return `<div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:9px 10px">
+            return `<div style="background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);padding:9px 10px">
               <div style="display:flex;align-items:center;gap:8px">
                 <span style="font-size:var(--fs-title)">${m.emoji||firstGrapheme(m.name)}</span>
                 <span style="flex:1;font-size:var(--fs-body);font-weight:600">${esc(m.name)}</span>
@@ -2176,7 +2250,7 @@ function renderS05() {
                   ? `給 ${nm2(t, x.to)} <span class="money inline">${money(x.amount)}</span>`
                   : `${nm2(t, x.from)} 給你 <span class="money inline">${money(x.amount)}</span>`).join('<br>')}</div>` : ''}
             </div>`; }).join('')}</div>`)}
-          ${b('S-05-13', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:3px;overflow:hidden">
+          ${b('S-05-13', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden">
             <div class="detailhd"><span>成員</span><span>實際付出</span><span>應分攤</span><span>差額</span></div>
             ${t.members.map(m => { const v = net[m.id];
               const paid = S.list.filter(e => e.payer === m.id && !e.onSpot).reduce((a,e) => a + (calc(e,t).twdTotal||0), 0);
@@ -2201,7 +2275,7 @@ function renderS05() {
           <path pathLength="100" d="M18 44 L84 22 L56 60 L48 46 Z" fill="none" stroke="#0F5E9E" stroke-width="1.8" stroke-linejoin="round"/>
         </g></svg>
       <p style="font-size:var(--fs-title);margin-top:10px">帳算清楚了</p><p>下次去哪？</p></div>`)
-      + b('S-05-17', `<div class="fld"><div style="background:#fff;border:1px solid var(--ln);border-radius:3px;padding:12px;display:flex">
+      + b('S-05-17', `<div class="fld"><div style="background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);padding:12px;display:flex">
         ${[['5','天','出遊'],[String(S.list.length),'筆','共記了'],[money(Math.max(0,...S.list.map(e=>calc(e,t).twdTotal||0))),'','最大手筆']]
           .map(([n,u,l],i)=>`<div style="flex:1;text-align:center;${i<2?'border-right:1px solid #F1F2EE':''}">
             <div class="tnum" style="font-size:var(--fs-title);font-weight:600">${n}<span style="font-size:var(--fs-tag);color:var(--md)">${u}</span></div>
@@ -2558,11 +2632,14 @@ function paintIndiv() {
       inp.placeholder = auto ? String(c.valInCur[id]) : '0';
     } else if (inp) inp.classList.toggle('auto', false);
   });
+  // #31-2 重繪後把焦點還回去，只還給「本來就聚焦中的輸入框」。
+  // keep 是按鈕之類的東西時一律不呼叫 .focus()——在手機上那會把已經收起來的鍵盤再叫出來。
   const keep = document.activeElement;
+  const keepIsInput = keep && /^(INPUT|TEXTAREA)$/.test(keep.tagName);
   const ec = document.getElementById('eachcmp'); if (ec) ec.innerHTML = cmpRow(c, t);
   const tb = document.getElementById('eachnote');
   if (tb) tb.innerHTML = paintS04Note(c, t);
-  if (keep && document.contains(keep)) keep.focus();
+  if (keepIsInput && document.contains(keep) && document.activeElement !== keep) keep.focus();
 }
 function paintS04Note(c, t) {
   // #17-11：9 句砍到 3 句。留下的都是「不講使用者就會卡住」的：
