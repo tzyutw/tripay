@@ -77,10 +77,14 @@ function ShareSheet({
     });
   }
 
+  /* S-03b-2／3／4　逐字對齊 Tripay_原型.html:2866–2868。
+     #25-5 兩句灰字砍掉——它們在**講好處**，不是「使用者不做就不會知道的限制」
+     也不是隱私告知，不符合「灰字只留兩種」。留下的那一句講的是
+     「對方不用登入」，那是使用者不點下去就不會知道的事。 */
   const opts = [
-    { title: '複製結算摘要', sub: '貼到 LINE 群組，讓大家知道誰付誰', action: copySummary },
-    { title: '複製分享連結', sub: '任何人打開都能看消費明細，不用登入', action: copyLink },
-    { title: '預覽分享頁面', sub: '看看對方收到連結會看到什麼', action: () => { window.open(shareUrl, '_blank'); onClose(); } },
+    { title: '複製文字摘要', sub: '',                        action: copySummary },
+    { title: '複製分享連結', sub: '不用登入就看得到消費明細', action: copyLink },
+    { title: '預覽分享頁面', sub: '',                        action: () => { window.open(shareUrl, '_blank'); onClose(); } },
   ];
 
   /* Sheet 一律 portal 到 body：頁面根層的 animate-slide-in 帶 transform，
@@ -98,7 +102,7 @@ function ShareSheet({
           >
             <div className="flex-1">
               <p className="text-body font-semibold text-ink">{opt.title}</p>
-              <p className="text-tag text-gr mt-[2px]">{opt.sub}</p>
+              {opt.sub && <p className="text-tag text-gr mt-[2px]">{opt.sub}</p>}
             </div>
           </button>
         ))}
@@ -460,46 +464,6 @@ export default function ExpenseListPage() {
       )}
 
       {/* 複製行程：以這趟為範本開新行程（成員／幣別／封面帶過去，消費不帶） */}
-      {deleteOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setDeleteOpen(false)} />
-          <div className="relative bg-white rounded-panel p-6 w-full max-w-sm shadow-sheet">
-            <p className="text-strong font-bold text-ink mb-2 text-center">刪除「{trip.name}」？</p>
-            <p className="text-sub text-md mb-3 leading-relaxed">
-              這會一併刪掉這趟的<b>全部資料</b>，而且救不回來：
-            </p>
-            <ul className="text-sub text-md mb-4 leading-relaxed list-disc pl-5">
-              <li>{expenses.length} 筆消費與分帳紀錄</li>
-              <li>{trip.trip_members.length} 位成員</li>
-              <li>結算結果與分享連結</li>
-            </ul>
-            <p className="text-tag text-md mb-2">確定的話，請輸入行程名稱：</p>
-            <input
-              type="text"
-              value={deleteConfirm}
-              onChange={e => setDeleteConfirm(e.target.value)}
-              placeholder={trip.name}
-              className="w-full h-[42px] px-3 mb-4 bg-[#F5F4F2] rounded-base border-[1.5px] border-[#E4DFD9] text-sub text-ink outline-none focus:border-out"
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteOpen(false)}
-                className="flex-1 h-[46px] bg-[#F5F4F2] text-ink rounded-base text-sub font-bold"
-              >
-                算了，留著
-              </button>
-              <button
-                onClick={() => deleteTripMutation.mutate()}
-                disabled={deleteConfirm.trim() !== trip.name || deleteTripMutation.isPending}
-                className="flex-1 h-[46px] bg-out text-white rounded-base text-sub font-bold disabled:opacity-40"
-              >
-                {deleteTripMutation.isPending ? '刪除中…' : '刪除'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {copyOpen && (
         <TripFormSheet
           prefill={{ tripId: tripId!, mode: 'full' }}

@@ -304,3 +304,89 @@ describe('B-3　引擎移植：示範資料沒走到的兩條分支', () => {
     expect(c2.unsettled).toBe(true);
   });
 });
+
+/* ══════════════════════════════════════════════════════════════
+   實作-D　Cowork 複驗退回的兩項
+   ══════════════════════════════════════════════════════════════ */
+describe('D-①　只能有一個刪除對話框', () => {
+  it('按「刪除行程」時，畫面上只出現一個對話框', async () => {
+    await show();
+    fireEvent.click(document.querySelector('button[aria-label="更多"]')!);
+    fireEvent.click(screen.getByText('刪除行程'));
+
+    /* 舊區塊沒刪乾淨時，兩個會疊在一起——標題就會出現兩次 */
+    const titles = [...document.querySelectorAll('.dlgt')];
+    expect(titles.length, `刪除對話框出現 ${titles.length} 個`).toBe(1);
+    expect(screen.getAllByText(/刪除「2026 濟州島四寶團」？/).length).toBe(1);
+
+    /* 舊版是「請輸入行程名稱」才 enable，新版是打「刪除」兩個字 */
+    expect(flat(), '舊的刪除對話框還在').not.toContain('請輸入行程名稱');
+    expect(flat()).not.toContain('這會一併刪掉這趟的');
+    expect(screen.getByText('確定的話，請在下面打「刪除」兩個字。')).toBeInTheDocument();
+  });
+
+  it('打「刪除」兩個字才 enable，而且只有一顆刪除鍵', async () => {
+    await show();
+    fireEvent.click(document.querySelector('button[aria-label="更多"]')!);
+    fireEvent.click(screen.getByText('刪除行程'));
+
+    const dg = [...document.querySelectorAll('.dlg .btn.dg')] as HTMLButtonElement[];
+    expect(dg.length, '刪除鍵不只一顆——兩個對話框共用同一個 state').toBe(1);
+    expect(dg[0].disabled).toBe(true);
+
+    fireEvent.change(document.querySelector('.dlginput')!, { target: { value: '刪除' } });
+    expect((document.querySelector('.dlg .btn.dg') as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('原始碼裡只有一個 deleteOpen 區塊', async () => {
+    const src = await import('fs').then(fs =>
+      fs.readFileSync('src/pages/ExpenseListPage.tsx', 'utf8'));
+    const n = (src.match(/\{deleteOpen && \(/g) ?? []).length;
+    expect(n, `原始碼裡有 ${n} 個 {deleteOpen && (` ).toBe(1);
+  });
+});
+
+describe('D-②　S-03b 分享 sheet 對齊原型', () => {
+  /* 逐字取自 Tripay_原型.html:2866–2868（位階 1） */
+  const WANT = [
+    { title: '複製文字摘要', sub: null },
+    { title: '複製分享連結', sub: '不用登入就看得到消費明細' },
+    { title: '預覽分享頁面', sub: null },
+  ];
+
+  async function openShare() {
+    await show();
+    fireEvent.click(document.querySelector('button[aria-label="更多"]')!);
+    fireEvent.click(screen.getByText('分享'));
+  }
+
+  it('三個選項的標題與灰字逐字等於原型', async () => {
+    await openShare();
+    for (const w of WANT)
+      expect(screen.getByText(w.title), `缺選項：${w.title}`).toBeInTheDocument();
+
+    const got = flat();
+    /* #25-5 在講好處的灰字砍掉 */
+    for (const bad of ['貼到 LINE 群組，讓大家知道誰付誰',
+                       '任何人打開都能看消費明細，不用登入',
+                       '看看對方收到連結會看到什麼'])
+      expect(got, `原型沒有這句灰字：${bad}`).not.toContain(bad.replace(/\s+/g, ''));
+
+    expect(got).toContain('不用登入就看得到消費明細');
+    /* 舊標題不得殘留 */
+    expect(got).not.toContain('複製結算摘要');
+  });
+
+  it('沒有灰字的兩個選項不得渲染出空段落', async () => {
+    await openShare();
+    const rows = [...document.querySelectorAll('button')]
+      .filter(b => WANT.some(w => (b.textContent ?? '').includes(w.title)));
+    expect(rows.length).toBe(3);
+    for (const w of WANT) {
+      const row = rows.find(r => (r.textContent ?? '').includes(w.title))!;
+      const subs = row.querySelectorAll('.text-gr');
+      expect(subs.length, `${w.title} 的灰字數量不對`).toBe(w.sub ? 1 : 0);
+      if (w.sub) expect(subs[0].textContent).toBe(w.sub);
+    }
+  });
+});
