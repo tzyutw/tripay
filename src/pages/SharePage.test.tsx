@@ -75,10 +75,13 @@ beforeEach(() => {
     trip, members,
     expenses: built.map(b => b.e),
     splits: built.flatMap(b => b.splits),
+    settlements: [
+      { id: 'st1', trip_id: 't1', status: 'confirmed', settled_at: '2026-03-20T00:00:00Z' },
+    ],
     settlement_items: [
-      { id: 'i1', from_member_id: M[3], to_member_id: M[0], amount: 20220 },
-      { id: 'i2', from_member_id: M[2], to_member_id: M[0], amount: 17740 },
-      { id: 'i3', from_member_id: M[1], to_member_id: M[0], amount: 8220 },
+      { id: 'i1', settlement_id: 'st1', from_member_id: M[3], to_member_id: M[0], amount: 20220 },
+      { id: 'i2', settlement_id: 'st1', from_member_id: M[2], to_member_id: M[0], amount: 17740 },
+      { id: 'i3', settlement_id: 'st1', from_member_id: M[1], to_member_id: M[0], amount: 8220 },
     ],
   };
 });
@@ -172,5 +175,108 @@ describe('B-6　S-06 分享頁', () => {
     const src = await import('fs').then(fs => fs.readFileSync('src/pages/SharePage.tsx', 'utf8'));
     expect(src, 'listener 也要一起清掉').not.toContain('beforeinstallprompt');
     expect(src).not.toContain('pwaPrompt');
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════
+   實作-G　上線後複驗：分享頁把「誰付給誰」重複列了 12 次
+   根因：`get_shared_trip()` 回的是**這趟全部的結算**（superseded／draft／confirmed），
+   我改走 RPC 時把「挑 confirmed 那一次」那層篩選弄丟了。
+   改版前的 SharePage 有挑（`.eq('status','confirmed')`），SettlementPage 現在也還有。
+   ══════════════════════════════════════════════════════════════ */
+describe('G-①　只畫 confirmed 那一次的轉帳', () => {
+  /* 三筆結算，各 3 個 item——不挑的話會畫成 9 列 */
+  const three = {
+    settlements: [
+      { id: 'old', trip_id: 't1', status: 'superseded', settled_at: '2026-03-18T00:00:00Z' },
+      { id: 'now', trip_id: 't1', status: 'confirmed',  settled_at: '2026-03-20T00:00:00Z' },
+      { id: 'new', trip_id: 't1', status: 'draft',      settled_at: null },
+    ],
+    settlement_items: [
+      { id: 'o1', settlement_id: 'old', from_member_id: M[3], to_member_id: M[0], amount: 111 },
+      { id: 'o2', settlement_id: 'old', from_member_id: M[2], to_member_id: M[0], amount: 222 },
+      { id: 'o3', settlement_id: 'old', from_member_id: M[1], to_member_id: M[0], amount: 333 },
+      { id: 'c1', settlement_id: 'now', from_member_id: M[3], to_member_id: M[0], amount: 20220 },
+      { id: 'c2', settlement_id: 'now', from_member_id: M[2], to_member_id: M[0], amount: 17740 },
+      { id: 'c3', settlement_id: 'now', from_member_id: M[1], to_member_id: M[0], amount: 8220 },
+      { id: 'd1', settlement_id: 'new', from_member_id: M[3], to_member_id: M[0], amount: 999 },
+      { id: 'd2', settlement_id: 'new', from_member_id: M[2], to_member_id: M[0], amount: 888 },
+      { id: 'd3', settlement_id: 'new', from_member_id: M[1], to_member_id: M[0], amount: 777 },
+    ],
+  };
+
+  it('三筆結算（superseded／confirmed／draft）只畫出 confirmed 那 3 列', async () => {
+    payload.v = { ...(payload.v as object), ...three };
+    await show();
+
+    /* **比列數**，不是「有沒有出現某個字串」——重複的時候字串照樣在 */
+    const rows = [...document.querySelectorAll('.rowb')]
+      .filter(r => (r.textContent ?? '').includes('→'));
+    expect(rows.length, `畫出 ${rows.length} 列，應該只有 confirmed 那 3 列`).toBe(3);
+
+    const got = flat();
+    for (const v of ['$20,220', '$17,740', '$8,220'])
+      expect(got, `confirmed 的金額不見了：${v}`).toContain(v);
+    /* superseded 與 draft 的金額一個都不准出現 */
+    for (const v of ['$111', '$222', '$333', '$999', '$888', '$777'])
+      expect(got, `畫到了不該畫的結算：${v}`).not.toContain(v);
+  });
+
+  it('多筆 confirmed 時取 settled_at 最新的', async () => {
+    payload.v = {
+      ...(payload.v as object),
+      settlements: [
+        { id: 'a', trip_id: 't1', status: 'confirmed', settled_at: '2026-03-19T00:00:00Z' },
+        { id: 'b', trip_id: 't1', status: 'confirmed', settled_at: '2026-03-21T00:00:00Z' },
+        { id: 'c', trip_id: 't1', status: 'confirmed', settled_at: null },
+      ],
+      settlement_items: [
+        { id: 'a1', settlement_id: 'a', from_member_id: M[1], to_member_id: M[0], amount: 111 },
+        { id: 'b1', settlement_id: 'b', from_member_id: M[1], to_member_id: M[0], amount: 20220 },
+        { id: 'c1', settlement_id: 'c', from_member_id: M[1], to_member_id: M[0], amount: 333 },
+      ],
+    };
+    await show();
+    const rows = [...document.querySelectorAll('.rowb')]
+      .filter(r => (r.textContent ?? '').includes('→'));
+    expect(rows.length).toBe(1);
+    expect(flat()).toContain('$20,220');
+    expect(flat(), 'settled_at 為 null 應視為最舊').not.toContain('$333');
+  });
+
+  it('沒有 confirmed → 走前端預覽，不畫 draft／superseded', async () => {
+    payload.v = {
+      ...(payload.v as object),
+      settlements: [
+        { id: 'd', trip_id: 't1', status: 'draft', settled_at: null },
+        { id: 's', trip_id: 't1', status: 'superseded', settled_at: '2026-03-18T00:00:00Z' },
+      ],
+      settlement_items: [
+        { id: 'd1', settlement_id: 'd', from_member_id: M[1], to_member_id: M[0], amount: 999 },
+        { id: 's1', settlement_id: 's', from_member_id: M[1], to_member_id: M[0], amount: 111 },
+      ],
+    };
+    await show();
+    const got = flat();
+    expect(got, 'draft 不該被畫出來').not.toContain('$999');
+    expect(got, 'superseded 不該被畫出來').not.toContain('$111');
+    /* 前端預覽算出來的是 Rozi 收三筆 */
+    const rows = [...document.querySelectorAll('.rowb')]
+      .filter(r => (r.textContent ?? '').includes('→'));
+    expect(rows.length).toBe(3);
+  });
+
+  it('pickConfirmed 的挑法本身', async () => {
+    const { pickConfirmed } = await import('./SharePage');
+    expect(pickConfirmed([])).toBeNull();
+    expect(pickConfirmed([{ id: 'a', trip_id: 't', status: 'draft', settled_at: null }])).toBeNull();
+    expect(pickConfirmed([
+      { id: 'a', trip_id: 't', status: 'confirmed', settled_at: null },
+      { id: 'b', trip_id: 't', status: 'confirmed', settled_at: '2026-01-01' },
+    ])!.id).toBe('b');
+    expect(pickConfirmed([
+      { id: 'a', trip_id: 't', status: 'superseded', settled_at: '2026-09-09' },
+      { id: 'b', trip_id: 't', status: 'confirmed',  settled_at: '2026-01-01' },
+    ])!.id, 'superseded 再新也不能選').toBe('b');
   });
 });

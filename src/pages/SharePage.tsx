@@ -25,7 +25,29 @@ interface SharedPayload {
   members: TripMember[];
   expenses: Omit<ExpenseWithSplits, 'expense_splits'>[];
   splits: ExpenseWithSplits['expense_splits'];
-  settlement_items: { id: string; from_member_id: string; to_member_id: string; amount: number }[];
+  /* RPC 回的是**這趟全部的結算**：superseded／draft／confirmed 都在裡面 */
+  settlements: { id: string; trip_id: string; status: string; settled_at: string | null }[];
+  settlement_items: {
+    id: string; settlement_id: string;
+    from_member_id: string; to_member_id: string; amount: number;
+  }[];
+}
+
+/**
+ * 從一趟的全部結算裡挑出**唯一該顯示的那一次**。
+ *
+ * ⚠️ `get_shared_trip()` 回的是這趟**所有**結算（實測北海道那趟有 12 筆：
+ * 10 superseded ＋ 1 confirmed ＋ 1 draft），不挑就會把同樣三筆轉帳畫 12 遍。
+ * 挑法與 `SettlementPage` 一致：只認 `confirmed`，多筆時取 `settled_at` 最新的
+ * （`settled_at` 為 null 視為最舊）。
+ */
+export function pickConfirmed(
+  settlements: SharedPayload['settlements'],
+): SharedPayload['settlements'][number] | null {
+  const done = settlements.filter(x => x.status === 'confirmed');
+  if (!done.length) return null;
+  return done.reduce((a, b) =>
+    (b.settled_at ?? '') > (a.settled_at ?? '') ? b : a);
 }
 
 export default function SharePage() {
@@ -65,9 +87,12 @@ export default function SharePage() {
   const S = tripSummary(trip as never, expenses, deriveDisplayStatus(trip as never));
   const t = S.t;
 
-  /* 已確認的轉帳優先用後端的；還沒結算就用前端預覽 */
-  const tx = data.settlement_items.length
-    ? data.settlement_items.map(i => ({ from: i.from_member_id, to: i.to_member_id, amount: i.amount }))
+  /* 已確認的轉帳用後端那一次的；挑不到 confirmed 就走前端預覽 */
+  const confirmed = pickConfirmed(data.settlements ?? []);
+  const tx = confirmed
+    ? data.settlement_items
+        .filter(i => i.settlement_id === confirmed.id)
+        .map(i => ({ from: i.from_member_id, to: i.to_member_id, amount: i.amount }))
     : settleTrip(S, expenses, trip as never).tx;
 
   return (
