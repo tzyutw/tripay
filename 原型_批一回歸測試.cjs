@@ -52,6 +52,7 @@ let missing=[],unexpected=[];
 // 只檢查批一四頁；批二的編號由 原型_批二回歸測試.cjs 負責
 ['s00','s01','s02','s02b'].forEach(k=>IDX[k].forEach(([id,el,kind])=>{
   const has=seen.has(id);
+// #34-6 hid＝暫時隱藏（程式碼還在、由開關關掉），與 del 一樣不該出現徽章
   if((kind==='op'||kind==='st')&&!has) missing.push(id);
   if((kind==='del'||kind==='inv')&&has) unexpected.push(id);
 }));
@@ -88,9 +89,12 @@ const added=E('store.trips[store.trips.length-1]');
 ok(added.end===added.start,'單日行程的回程應等於出發日');
 
 console.log('\n=== 色調由行程名判定 ===');
-const tone=n=>w.eval('toneFor('+JSON.stringify(n)+')');
+const tone=(n,forced,seq)=>w.eval('toneFor('+JSON.stringify(n)+','+JSON.stringify(forced??null)+','+JSON.stringify(seq??0)+')');
 ok(tone('2027 沖繩四人行')===E("TONES.find(x=>x.k==='沖繩').g"),'沖繩沒對到色調');
-ok(tone('隨便亂打')===E('FALLBACK_TONE'),'對不到關鍵字應落回預設色調');
+// #34-6 單一 fallback 色已廢除——那正是「認不出目的地的行程長得一模一樣」的原因。
+// 改成依 TONES 的順序循環，序號在建立行程當下決定並存起來。
+ok(tone('隨便亂打',null,0)===E('TONES[0].g'),'對不到關鍵字應依序取循環色，不再全部落回同一色');
+ok(tone('隨便亂打',null,3)===E('TONES[3].g'),'循環色跟著存下來的序號走');
 console.log('   沖繩 →',tone('2027 沖繩四人行').slice(0,34)+'…');
 
 console.log('\n=== 成員識別三層 fallback ===');
@@ -205,7 +209,10 @@ E("f=blankForm(); f.members=[m('','阿華')]; renderS02()");
 ok(d.querySelectorAll('#scr-s02 .selchip').length===0,'S-02 的成員列不該再有選取標記');
 // 選取語彙本身仍在（S-04 用）
 E("(function(){var t=tripOf('t1'),M=t.members.map(x=>x.id);g=exp({twdAmt:'4000',type:'shared',parts:M,payer:M[0]});renderS04();g._partsOpen=true;paintS04();})()");
-ok(d.querySelectorAll('#scr-s04 .selchip').length>0,'S-04 的選取語彙仍應存在');
+// #34-2「要排除誰？」那一列是**複選**，圓形單選鈕的意思是「只能挑一個」，跟行為相反。
+// 改用另一個 class（.chkchip，方框打勾）——形狀不同就是兩個元件，不共用。
+ok(d.querySelectorAll('#scr-s04 .chkchip').length>0,'S-04 的選取語彙仍應存在（複選用方框打勾）');
+ok(d.querySelectorAll('#scr-s04 .selchip').length===0,'複選不該用單選鈕的形狀');
 console.log('   S-04 選取語彙仍在:',d.querySelectorAll('#scr-s04 .selchip').length,'個');
 
 console.log('\n=== 砍掉的灰字不得再出現 ===');
@@ -216,7 +223,10 @@ console.log('   逐條確認已清除：',gone.length,'條');
 // #29-2「可留空」是系統用語（講的是「你被允許不填」），改成「不填就是當天來回」。
 // 這條測試守的是「回程可以不填」這件事有講出來，那件事沒變。
 ok(d.querySelector('#scr-s02').innerHTML.includes('不填就是當天來回'),'回程可以不填這件事要講出來');
-ok(d.querySelector('#scr-s02b').innerHTML.includes('只有你和拿到分享連結的人看得到'),'隱私告知應保留');
+// #34-6 封面區整段暫時隱藏（封面上傳是 Phase 2 的功能），這句灰字隨之下架。
+// 那句話描述的事情現在不成立——封面照片目前沒有任何畫面在顯示。
+ok(!d.querySelector('#scr-s02b').innerHTML.includes('只有你和拿到分享連結的人看得到'),'封面區隱藏後這句不該還在');
+ok(d.querySelector('#scr-s02b').innerHTML.includes('誰一起去？'),'S-02b 從「誰一起去？」開始');
 
 console.log('\n════════════════════════════');
 console.log(`通過 ${pass}　失敗 ${fail}`);

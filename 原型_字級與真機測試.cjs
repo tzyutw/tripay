@@ -109,20 +109,30 @@ const rgbLum = rgb => {
   const dr = await page.evaluate(() => {
     g = blankExp(); store.expenses.t1 = demoExpenses(); renderS04();
     const html = document.getElementById('scr-s04').innerHTML;
-    const el = document.querySelector('#scr-s04 .daterow');
-    const flds = [...document.querySelectorAll('#scr-s04 .fld')].map(x => x.getBoundingClientRect().height);
+    /* #35-2 這一列從 .daterow（灰底窄狀態列）改成 .fieldrow 同款的欄位列，
+       選擇器跟著改成 id。「整條可點」不再靠 <button>，改成透明疊滿整列的
+       原生 date input——所以用 elementFromPoint 驗，不驗標籤名。 */
+    const el = document.getElementById('e-daterow');
+    const inp = el && el.querySelector('input[type=date]');
+    /* 標註模式是整頁攤開的，這一列可能捲在畫面外——
+       elementFromPoint 只認視窗座標，先捲進來再打，否則量到的是別的畫面 */
+    if (el) el.scrollIntoView({ block: 'center' });
+    const r = el && el.getBoundingClientRect();
+    const hit = x => { const e = document.elementFromPoint(x, r.top + r.height / 2);
+      return !!(e === inp || (inp && inp.contains(e))); };
     return { i1: html.indexOf('S-04-1'), i10: html.indexOf('S-04-10'), i2: html.indexOf('S-04-2'),
-             txt: el ? el.textContent.trim() : null, tag: el ? el.tagName : null,
-             h: el ? +el.getBoundingClientRect().height.toFixed(1) : null,
-             minFld: Math.min(...flds), hasDate: !!document.querySelector('#scr-s04 .daterow input[type=date]') };
+             txt: el ? el.textContent.trim() : null,
+             h: el ? +r.height.toFixed(1) : null,
+             covered: el ? [hit(r.left + 6), hit(r.left + r.width / 2), hit(r.right - 6)] : null,
+             hasDate: !!inp };
   });
   console.log(`   位置 S-04-1@${dr.i1} < S-04-10@${dr.i10} < S-04-2@${dr.i2}`);
-  console.log(`   文字「${dr.txt}」｜<${dr.tag}> 高 ${dr.h}px｜最矮的欄位列 ${dr.minFld}px`);
+  console.log(`   文字「${dr.txt}」｜高 ${dr.h}px｜左中右三點打到日期框 ${JSON.stringify(dr.covered)}`);
   ok(dr.i1 < dr.i10 && dr.i10 < dr.i2, 'S-04-10 應排在 S-04-1 之後、S-04-2 之前');
   ok(dr.txt && dr.txt.includes('記在'), '應含「記在」');
   ok(dr.txt && !dr.txt.includes('日期'), '不該再用「日期」當標籤——那是欄位的講法');
-  ok(dr.tag === 'BUTTON', '整條要可點');
-  ok(dr.h < dr.minFld, `日期列 ${dr.h}px 應低於任何欄位列 ${dr.minFld}px`);
+  ok(dr.covered && dr.covered.every(Boolean), `整條要可點，實際 ${JSON.stringify(dr.covered)}`);
+  ok(dr.h === 40, `#35-2 之後這一列就是一個欄位（40px），實際 ${dr.h}`);
   ok(dr.hasDate, '應沿用原生日期選擇，不新造第三種');
 
   /* 3／4　「可留空」與 placeholder */

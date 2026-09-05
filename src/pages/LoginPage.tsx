@@ -18,7 +18,7 @@ export default function LoginPage() {
 
         {/* App icon */}
         <div
-          className="w-[76px] h-[76px] rounded-[22px] flex items-center justify-center text-[38px] mb-5"
+          className="w-[76px] h-[76px] rounded-panel flex items-center justify-center text-logo mb-5"
           style={{
             background: 'rgba(255,255,255,0.14)',
             border: '1px solid rgba(255,255,255,0.22)',
@@ -31,14 +31,14 @@ export default function LoginPage() {
 
         {/* Wordmark */}
         <h1
-          className="font-sans text-[52px] font-bold text-white leading-none mb-3 tracking-tight"
+          className="font-sans text-logo font-bold text-white leading-none mb-3 tracking-tight"
         >
           Tripay
         </h1>
 
         {/* Slogan */}
         <p
-          className="text-[17px] mb-9 tracking-widest"
+          className="text-strong mb-9 tracking-widest"
           style={{ color: 'rgba(255,255,255,0.78)' }}
         >
           每一趟，都記得
@@ -46,7 +46,7 @@ export default function LoginPage() {
 
         {/* Tagline */}
         <p
-          className="text-[15px] text-center leading-relaxed mb-11 max-w-[230px]"
+          className="text-body text-center leading-relaxed mb-11 max-w-[230px]"
           style={{ color: 'rgba(255,255,255,0.65)' }}
         >
           大家一起出發，帳交給 Tripay。
@@ -55,7 +55,7 @@ export default function LoginPage() {
         {/* Google login button */}
         <button
           onClick={handleGoogleLogin}
-          className="w-full max-w-[280px] h-[54px] bg-white rounded-xl flex items-center justify-center gap-[10px] text-[15px] font-semibold text-[#292524] active:scale-[0.97] transition-transform duration-100"
+          className="w-full max-w-[280px] h-[54px] bg-white rounded-base flex items-center justify-center gap-[10px] text-body font-semibold text-[#292524] active:scale-[0.97] transition-transform duration-100"
           style={{ boxShadow: '0 4px 18px rgba(0,0,0,0.22)' }}
         >
           <GoogleIcon />

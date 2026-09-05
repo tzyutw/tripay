@@ -9,7 +9,7 @@ export default function TripFormPage() {
       <h1 className="text-2xl font-bold text-ink">
         {isEdit ? '編輯行程' : '新增行程'}
       </h1>
-      <p className="mt-2 text-muted text-sm">— S-02 行程表單（建置中）—</p>
+      <p className="mt-2 text-gr text-sm">— S-02 行程表單（建置中）—</p>
     </div>
   );
 }

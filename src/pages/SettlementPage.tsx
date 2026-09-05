@@ -216,23 +216,23 @@ export default function SettlementPage() {
 
   if (showWarnSheet) {
     return (
-      <div className="min-h-screen bg-surface flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         <NavBar tripId={tripId} onBack={() => navigate(-1)} />
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-4">
           <span className="text-5xl">⚠️</span>
           <p className="text-lg font-bold text-ink">還有 {pendingCount} 筆沒填完</p>
-          <p className="text-sm text-mid">結算數字可能不準確</p>
+          <p className="text-sm text-md">結算數字可能不準確</p>
         </div>
         <div className="px-5 pb-10 pt-4 flex gap-3 flex-shrink-0">
           <button
             onClick={() => navigate(-1)}
-            className="flex-1 h-[50px] bg-white text-primary rounded-xl border-[1.5px] border-primary text-[15px] font-bold active:scale-[0.97] transition-transform"
+            className="flex-1 h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform"
           >
             回去補填
           </button>
           <button
             onClick={() => { setShowWarnSheet(false); calculateMutation.mutate(); }}
-            className="flex-1 h-[50px] bg-primary text-white rounded-xl text-[15px] font-bold active:scale-[0.97] transition-transform"
+            className="flex-1 h-[50px] bg-w text-white rounded-base text-body font-bold active:scale-[0.97] transition-transform"
             disabled={calculateMutation.isPending}
           >
             先這樣算
@@ -247,16 +247,16 @@ export default function SettlementPage() {
 
   if (pageState === 'pending') {
     return (
-      <div className="min-h-screen bg-surface flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         <NavBar tripId={tripId} onBack={() => navigate(-1)} />
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-5">
           <span className="text-5xl">🧮</span>
-          <p className="text-[15px] text-mid leading-relaxed max-w-xs">
+          <p className="text-body text-md leading-relaxed max-w-xs">
             準備好了嗎？結算後可以標記付清，也可以隨時回來修改。
           </p>
           {pendingCount > 0 && (
-            <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-xl px-4 py-3">
-              <p className="text-warn text-[13px] font-semibold">
+            <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-base px-4 py-3">
+              <p className="text-out text-sub font-semibold">
                 ⚠️ 還有 {pendingCount} 筆沒填完，結算數字可能不準確
               </p>
             </div>
@@ -269,7 +269,7 @@ export default function SettlementPage() {
               else calculateMutation.mutate();
             }}
             disabled={calculateMutation.isPending}
-            className="w-full h-[50px] bg-primary text-white rounded-xl text-[15px] font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
+            className="w-full h-[50px] bg-w text-white rounded-base text-body font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
             style={{ boxShadow: '0 3px 14px rgba(124,45,18,0.36)' }}
           >
             {calculateMutation.isPending ? '計算中…' : '算清楚'}
@@ -284,22 +284,22 @@ export default function SettlementPage() {
 
   if (pageState === 'done') {
     return (
-      <div className="min-h-screen bg-surface flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         <NavBar tripId={tripId} onBack={() => navigate(-1)} title="結算" />
         <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-6">
           {/* Celebration */}
           <div className="text-center py-8">
-            <span className="text-[62px] block mb-4" style={{ animation: 'popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both' }}>
+            <span className="text-logo block mb-4" style={{ animation: 'popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both' }}>
               ✨
             </span>
-            <h2 className="text-[30px] font-bold text-ink mb-2">帳算清楚了 ✨</h2>
-            <p className="text-[18px] text-mid">下次去哪？</p>
+            <h2 className="text-title font-bold text-ink mb-2">帳算清楚了 ✨</h2>
+            <p className="text-strong text-md">下次去哪？</p>
           </div>
 
           {/* G-08 Highlights */}
           {highlights && (
-            <div className="bg-white rounded-2xl shadow-card p-4 mb-5">
-              <p className="text-[11px] font-bold text-muted tracking-widest uppercase text-center mb-4">
+            <div className="bg-white rounded-panel shadow-card p-4 mb-5">
+              <p className="text-tag font-bold text-gr tracking-widest uppercase text-center mb-4">
                 這趟的回顧
               </p>
               <div className="grid grid-cols-3 divide-x divide-[#EEEBE6]">
@@ -325,22 +325,22 @@ export default function SettlementPage() {
           {/* Settlement items (done) */}
           {(settlement?.settlement_items ?? []).length > 0 && (
             <div className="mb-5">
-              <p className="text-[11px] font-bold text-muted tracking-widest uppercase mb-3">誰付給誰</p>
+              <p className="text-tag font-bold text-gr tracking-widest uppercase mb-3">誰付給誰</p>
               {(settlement?.settlement_items ?? []).map(item => {
                 const from = memberMap[item.from_member_id];
                 const to   = memberMap[item.to_member_id];
                 return (
-                  <div key={item.id} className="bg-white rounded-xl shadow-card p-4 mb-2 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-[15px]">
+                  <div key={item.id} className="bg-white rounded-base shadow-card p-4 mb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-body">
                       <span>{from?.emoji} {from?.name}</span>
-                      <span className="text-muted text-sm">→</span>
+                      <span className="text-gr text-sm">→</span>
                       <span>{to?.emoji} {to?.name}</span>
                     </div>
                     <div className="text-right">
-                      <p className="text-[17px] font-bold text-ok tabular-nums">
+                      <p className="text-strong font-bold text-in tabular-nums">
                         $ {item.amount.toLocaleString()}
                       </p>
-                      <p className="text-[11px] font-bold text-ok">✅ 已付清</p>
+                      <p className="text-tag font-bold text-in">✅ 已付清</p>
                     </div>
                   </div>
                 );
@@ -353,14 +353,14 @@ export default function SettlementPage() {
         <div className="px-5 pb-10 pt-3 flex gap-3 flex-shrink-0 border-t border-black/[0.05]">
           <button
             onClick={() => navigate('/trips/new')}
-            className="flex-1 h-[50px] bg-white text-primary rounded-xl border-[1.5px] border-primary text-[15px] font-bold active:scale-[0.97] transition-transform"
+            className="flex-1 h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform"
           >
             ＋ 建立新行程
           </button>
           <button
             onClick={() => archiveMutation.mutate()}
             disabled={archiveMutation.isPending}
-            className="flex-1 h-[50px] bg-primary text-white rounded-xl text-[15px] font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
+            className="flex-1 h-[50px] bg-w text-white rounded-base text-body font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
           >
             {archiveMutation.isPending ? '封存中…' : '封存行程'}
           </button>
@@ -378,18 +378,18 @@ export default function SettlementPage() {
   const pct = items.length > 0 ? (clearedCount / items.length) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       <NavBar tripId={tripId} onBack={() => navigate(-1)} title="結算" />
 
       <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-24">
         {/* Progress */}
-        <div className="bg-white rounded-xl shadow-card p-4 mb-4 mt-4">
-          <p className="text-[13px] font-semibold text-mid mb-2">
+        <div className="bg-white rounded-base shadow-card p-4 mb-4 mt-4">
+          <p className="text-sub font-semibold text-md mb-2">
             {clearedCount} / {items.length} 筆已確認
           </p>
-          <div className="h-[6px] bg-[#F5F4F2] rounded-full overflow-hidden">
+          <div className="h-[6px] bg-[#F5F4F2] rounded-chip overflow-hidden">
             <div
-              className="h-full bg-ok rounded-full transition-all duration-500"
+              className="h-full bg-in rounded-chip transition-all duration-500"
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -401,25 +401,25 @@ export default function SettlementPage() {
             const from = memberMap[item.from_member_id];
             const to   = memberMap[item.to_member_id];
             return (
-              <div key={item.id} className="bg-white rounded-xl shadow-card p-4 mb-2">
+              <div key={item.id} className="bg-white rounded-base shadow-card p-4 mb-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[15px]">
+                  <div className="flex items-center gap-2 text-body">
                     <span>{from?.emoji} {from?.name}</span>
-                    <span className="text-muted text-sm">→</span>
+                    <span className="text-gr text-sm">→</span>
                     <span>{to?.emoji} {to?.name}</span>
                   </div>
-                  <p className="text-[17px] font-bold text-ok tabular-nums">
+                  <p className="text-strong font-bold text-in tabular-nums">
                     $ {item.amount.toLocaleString()}
                   </p>
                 </div>
                 <div className="mt-2 flex justify-end">
                   {item.is_cleared ? (
-                    <span className="text-[11px] font-bold text-ok">✅ 已付清</span>
+                    <span className="text-tag font-bold text-in">✅ 已付清</span>
                   ) : (
                     <button
                       onClick={() => clearItemMutation.mutate(item.id)}
                       disabled={clearItemMutation.isPending}
-                      className="text-[11px] font-bold text-primary border-[1.5px] border-primary rounded-lg px-[10px] py-1 active:scale-95 transition-transform disabled:opacity-60"
+                      className="text-tag font-bold text-w border-[1.5px] border-w rounded-base px-[10px] py-1 active:scale-95 transition-transform disabled:opacity-60"
                     >
                       標記付清
                     </button>
@@ -433,10 +433,10 @@ export default function SettlementPage() {
         {/* 計算依據（折疊） */}
         <button
           onClick={() => setShowDetails(v => !v)}
-          className="w-full text-left py-3 border-t border-[#EFEBE6] text-[13px] font-semibold text-mid flex items-center justify-between"
+          className="w-full text-left py-3 border-t border-[#EFEBE6] text-sub font-semibold text-md flex items-center justify-between"
         >
           查看計算依據
-          <span className="text-muted">{showDetails ? '▲' : '▼'}</span>
+          <span className="text-gr">{showDetails ? '▲' : '▼'}</span>
         </button>
 
         {showDetails && (
@@ -444,13 +444,13 @@ export default function SettlementPage() {
             {/* Member balances from calculation result */}
             {netFromItems.length > 0 && (
               <div className="mb-4">
-                <p className="text-[12px] font-bold text-mid mb-2">這趟結算下來</p>
+                <p className="text-tag font-bold text-md mb-2">這趟結算下來</p>
                 <div className="flex flex-col gap-[6px]">
                   {netFromItems.map(b => (
-                    <div key={b.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2">
-                      <span className="text-[15px]">{b.emoji}</span>
-                      <span className="text-[13px] font-semibold text-ink flex-1">{b.name}</span>
-                      <span className={`text-[13px] font-bold tabular-nums ${b.net > 0 ? 'text-ok' : b.net < 0 ? 'text-warn' : 'text-muted'}`}>
+                    <div key={b.id} className="flex items-center gap-2 bg-white rounded-base px-3 py-2">
+                      <span className="text-body">{b.emoji}</span>
+                      <span className="text-sub font-semibold text-ink flex-1">{b.name}</span>
+                      <span className={`text-sub font-bold tabular-nums ${b.net > 0 ? 'text-in' : b.net < 0 ? 'text-out' : 'text-gr'}`}>
                         {b.net > 0 ? `可以拿回 $${b.net.toLocaleString()}`
                           : b.net < 0 ? `要給出 $${Math.abs(b.net).toLocaleString()}`
                           : '剛好打平'}
@@ -458,15 +458,15 @@ export default function SettlementPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-[11px] text-muted mt-2 leading-relaxed">
+                <p className="text-tag text-gr mt-2 leading-relaxed">
                   ※ 對照 Excel 時注意：Excel 習慣用「負數」表示應收，Tripay 這裡相反，請看文字不要只看正負號。
                 </p>
               </div>
             )}
 
             {(calcData?.member_balances ?? []).length > 0 ? (
-              <div className="bg-white rounded-xl shadow-card overflow-hidden mb-4">
-                <div className="grid grid-cols-4 text-[11px] font-bold text-muted px-4 py-2 border-b border-[#EFEBE6]">
+              <div className="bg-white rounded-base shadow-card overflow-hidden mb-4">
+                <div className="grid grid-cols-4 text-tag font-bold text-gr px-4 py-2 border-b border-[#EFEBE6]">
                   <span>成員</span>
                   <span className="text-right">實際付出</span>
                   <span className="text-right">應分攤</span>
@@ -474,10 +474,10 @@ export default function SettlementPage() {
                 </div>
                 {(calcData?.member_balances ?? []).map(b => (
                   <div key={b.member_id} className="grid grid-cols-4 px-4 py-[10px] border-b border-[#F5F4F2] last:border-0">
-                    <span className="text-[14px] font-semibold text-ink">{b.emoji} {b.name}</span>
-                    <span className="text-right text-[13px] font-semibold tabular-nums">{b.payout.toLocaleString()}</span>
-                    <span className="text-right text-[13px] tabular-nums">{b.cost.toLocaleString()}</span>
-                    <span className={`text-right text-[13px] font-bold tabular-nums ${b.net_balance >= 0 ? 'text-ok' : 'text-warn'}`}>
+                    <span className="text-sub font-semibold text-ink">{b.emoji} {b.name}</span>
+                    <span className="text-right text-sub font-semibold tabular-nums">{b.payout.toLocaleString()}</span>
+                    <span className="text-right text-sub tabular-nums">{b.cost.toLocaleString()}</span>
+                    <span className={`text-right text-sub font-bold tabular-nums ${b.net_balance >= 0 ? 'text-in' : 'text-out'}`}>
                       {b.net_balance >= 0 ? '+' : ''}{b.net_balance.toLocaleString()}
                     </span>
                   </div>
@@ -485,9 +485,9 @@ export default function SettlementPage() {
               </div>
             ) : (
               netFromItems.length === 0 ? (
-                <p className="text-[12px] text-muted py-2">（依消費明細自動計算，重新整理後需重新計算才能顯示）</p>
+                <p className="text-tag text-gr py-2">（依消費明細自動計算，重新整理後需重新計算才能顯示）</p>
               ) : (
-                <p className="text-[12px] text-muted py-2">（每人「實際付出／應分攤」的明細，按一次「重新計算」就會出現）</p>
+                <p className="text-tag text-gr py-2">（每人「實際付出／應分攤」的明細，按一次「重新計算」就會出現）</p>
               )
             )}
           </div>
@@ -495,18 +495,18 @@ export default function SettlementPage() {
       </div>
 
       {/* Bottom actions */}
-      <div className="fixed bottom-0 inset-x-0 px-5 pb-8 pt-3 bg-surface border-t border-black/[0.05] flex gap-3">
+      <div className="fixed bottom-0 inset-x-0 px-5 pb-8 pt-3 bg-white border-t border-black/[0.05] flex gap-3">
         <button
           onClick={() => reopenMutation.mutate('reopen')}
           disabled={reopenMutation.isPending}
-          className="flex-1 h-[50px] bg-white text-mid rounded-xl border-[1.5px] border-[#E4DFD9] text-[14px] font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
+          className="flex-1 h-[50px] bg-white text-md rounded-base border-[1.5px] border-[#E4DFD9] text-sub font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
         >
           {reopenMutation.isPending ? '處理中…' : '重新計算'}
         </button>
         <button
           onClick={() => archiveMutation.mutate()}
           disabled={archiveMutation.isPending}
-          className="flex-1 h-[50px] bg-primary text-white rounded-xl text-[14px] font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
+          className="flex-1 h-[50px] bg-w text-white rounded-base text-sub font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
         >
           {archiveMutation.isPending ? '封存中…' : '封存行程'}
         </button>
@@ -523,11 +523,11 @@ function NavBar({ tripId: _tripId, onBack, title }: { tripId?: string; onBack: (
     <div className="flex items-center justify-between px-4 py-3 border-b border-[#EFEBE6] flex-shrink-0">
       <button
         onClick={onBack}
-        className="flex items-center gap-1 text-primary text-[13px] font-medium"
+        className="flex items-center gap-1 text-w text-sub font-medium"
       >
         ‹ 返回
       </button>
-      <span className="text-[14px] font-semibold text-mid">{title ?? '結算'}</span>
+      <span className="text-sub font-semibold text-md">{title ?? '結算'}</span>
       <div className="w-12" />
     </div>
   );
@@ -536,10 +536,10 @@ function NavBar({ tripId: _tripId, onBack, title }: { tripId?: string; onBack: (
 function HighlightCell({ num, unit, label }: { num: number | string; unit: string; label: string }) {
   return (
     <div className="text-center px-2">
-      <p className="text-[24px] font-extrabold text-ink leading-tight">
-        {num}<span className="text-[14px] font-semibold text-mid">{unit}</span>
+      <p className="text-title font-extrabold text-ink leading-tight">
+        {num}<span className="text-sub font-semibold text-md">{unit}</span>
       </p>
-      <p className="text-[10px] font-semibold text-muted mt-1">{label}</p>
+      <p className="text-tag font-semibold text-gr mt-1">{label}</p>
     </div>
   );
 }

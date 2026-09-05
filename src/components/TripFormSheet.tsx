@@ -312,18 +312,18 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
         />
 
         {/* Sheet */}
-        <div className="relative bg-surface rounded-t-[22px] shadow-sheet max-h-[93%] flex flex-col animate-sheet-up">
+        <div className="relative bg-white rounded-t-panel shadow-sheet max-h-[93%] flex flex-col animate-sheet-up">
           {/* Drag bar */}
-          <div className="w-9 h-1 bg-[#D0CBC5] rounded-full mx-auto mt-3 flex-shrink-0" />
+          <div className="w-9 h-1 bg-[#D0CBC5] rounded-chip mx-auto mt-3 flex-shrink-0" />
 
           {/* Header */}
           <div className="px-5 pt-4 pb-0 flex items-center justify-between flex-shrink-0">
-            <h2 className="text-[22px] font-bold text-ink">
+            <h2 className="text-strong font-bold text-ink">
               {isEdit ? '編輯行程' : '這趟去哪？'}
             </h2>
             <button
               onClick={onClose}
-              className="w-[30px] h-[30px] rounded-full bg-[#EAE6E1] flex items-center justify-center text-mid text-[13px]"
+              className="w-[30px] h-[30px] rounded-chip bg-[#EAE6E1] flex items-center justify-center text-md text-sub"
             >
               ✕
             </button>
@@ -335,36 +335,36 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
 
             {/* Trip name */}
             <div className="mb-5">
-              <label className="block text-[13px] font-bold text-mid tracking-wide mb-2">去哪？</label>
+              <label className="block text-sub font-bold text-md tracking-wide mb-2">去哪？</label>
               <input
                 type="text"
                 value={name}
                 onChange={e => { setName(e.target.value); setErrors(ev => ({ ...ev, name: '' })); }}
                 placeholder="例如：沖繩四人行 ☀️"
-                className="w-full h-[46px] px-[14px] bg-white rounded-xl border-[1.5px] border-[#E4DFD9] text-[16px] text-ink placeholder-muted outline-none focus:border-primary transition-colors"
+                className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-input text-ink placeholder-gr outline-none focus:border-w transition-colors"
               />
-              {errors.name && <p className="text-[11px] text-warn mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-tag text-out mt-1">{errors.name}</p>}
             </div>
 
             {/* Currency */}
             <div className="mb-5">
-              <label className="block text-[13px] font-bold text-mid tracking-wide mb-2">當地幣別</label>
+              <label className="block text-sub font-bold text-md tracking-wide mb-2">當地幣別</label>
               <button
                 onClick={() => setShowCurrency(v => !v)}
-                className="w-full h-[46px] px-[14px] bg-white rounded-xl border-[1.5px] border-[#E4DFD9] text-left text-[16px] text-ink flex items-center justify-between"
+                className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-left text-input text-ink flex items-center justify-between"
               >
                 <span>{currency}</span>
-                <span className="text-muted text-sm">▾</span>
+                <span className="text-gr text-sm">▾</span>
               </button>
               {showCurrency && (
-                <div className="mt-2 bg-white rounded-xl border border-[#E4DFD9] max-h-52 overflow-y-auto scrollbar-hide">
+                <div className="mt-2 bg-white rounded-base border border-[#E4DFD9] max-h-52 overflow-y-auto scrollbar-hide">
                   <div className="p-3 border-b border-[#E4DFD9]">
                     <input
                       type="text"
                       value={currencySearch}
                       onChange={e => setCurrencySearch(e.target.value)}
                       placeholder="搜尋幣別名稱或代碼"
-                      className="w-full h-9 px-3 bg-[#F5F4F2] rounded-lg text-sm outline-none"
+                      className="w-full h-9 px-3 bg-[#F5F4F2] rounded-base text-sm outline-none"
                       autoFocus
                     />
                   </div>
@@ -372,10 +372,10 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                     <button
                       key={c.code}
                       onClick={() => { setCurrency(c.code); setShowCurrency(false); setCurrencySearch(''); }}
-                      className={`w-full px-4 py-[11px] text-left text-[15px] flex items-center justify-between hover:bg-[#F5F4F2] ${c.code === currency ? 'text-primary font-bold' : 'text-ink'}`}
+                      className={`w-full px-4 py-[11px] text-left text-body flex items-center justify-between hover:bg-[#F5F4F2] ${c.code === currency ? 'text-w font-bold' : 'text-ink'}`}
                     >
                       <span>{c.code} · {c.name}</span>
-                      <span className="text-muted text-sm">{c.symbol}</span>
+                      <span className="text-gr text-sm">{c.symbol}</span>
                     </button>
                   ))}
                 </div>
@@ -385,36 +385,36 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
             {/* Dates — Bug 1 fix: lang="en" prevents zh-TW Chrome from mangling the format */}
             <div className="mb-5 flex gap-3">
               <div className="flex-1">
-                <label className="block text-[13px] font-bold text-mid tracking-wide mb-2">出發</label>
+                <label className="block text-sub font-bold text-md tracking-wide mb-2">出發</label>
                 <input
                   type="date"
                   lang="en"
                   value={startDate}
                   onChange={e => { setStartDate(e.target.value); setErrors(ev => ({ ...ev, startDate: '' })); }}
-                  className="w-full h-[46px] px-[14px] bg-white rounded-xl border-[1.5px] border-[#E4DFD9] text-[15px] text-ink outline-none focus:border-primary transition-colors"
+                  className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-body text-ink outline-none focus:border-w transition-colors"
                 />
-                {errors.startDate && <p className="text-[11px] text-warn mt-1">{errors.startDate}</p>}
+                {errors.startDate && <p className="text-tag text-out mt-1">{errors.startDate}</p>}
               </div>
               <div className="flex-1">
-                <label className="block text-[13px] font-bold text-mid tracking-wide mb-2">回程</label>
+                <label className="block text-sub font-bold text-md tracking-wide mb-2">回程</label>
                 <input
                   type="date"
                   lang="en"
                   value={endDate}
                   min={startDate}
                   onChange={e => { setEndDate(e.target.value); setErrors(ev => ({ ...ev, endDate: '' })); }}
-                  className="w-full h-[46px] px-[14px] bg-white rounded-xl border-[1.5px] border-[#E4DFD9] text-[15px] text-ink outline-none focus:border-primary transition-colors"
+                  className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-body text-ink outline-none focus:border-w transition-colors"
                 />
-                {errors.endDate && <p className="text-[11px] text-warn mt-1">{errors.endDate}</p>}
+                {errors.endDate && <p className="text-tag text-out mt-1">{errors.endDate}</p>}
               </div>
             </div>
 
             {/* Members */}
             <div className="mb-5">
-              <label className="block text-[13px] font-bold text-mid tracking-wide mb-1">誰一起去？</label>
-              <p className="text-[11px] text-muted mb-3">點成員，標記哪位是你</p>
+              <label className="block text-sub font-bold text-md tracking-wide mb-1">誰一起去？</label>
+              <p className="text-tag text-gr mb-3">點成員，標記哪位是你</p>
               {!isEdit && prefill && members.length > 0 && (
-                <p className="text-[11px] text-primary mb-3 -mt-2">
+                <p className="text-tag text-w mb-3 -mt-2">
                   {prefill.mode === 'full' ? '已帶入原本那趟的成員與幣別，可以改' : '已帶入上一趟的成員，可以改'}
                 </p>
               )}
@@ -426,29 +426,29 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                   <div
                     key={m.id ?? `new-${i}`}
                     onClick={() => setMyMemberIdx(myMemberIdx === i ? null : i)}
-                    className={`bg-white rounded-xl px-[14px] py-[10px] flex items-center gap-[10px] cursor-pointer border-[1.5px] transition-colors ${myMemberIdx === i ? 'border-primary bg-[#FFF6F1]' : 'border-transparent'}`}
+                    className={`bg-white rounded-base px-[14px] py-[10px] flex items-center gap-[10px] cursor-pointer border-[1.5px] transition-colors ${myMemberIdx === i ? 'border-w bg-[#FFF6F1]' : 'border-transparent'}`}
                   >
                     <div
-                      className={`w-[22px] h-[22px] rounded-full border-2 flex-shrink-0 flex items-center justify-center text-[12px] font-bold text-white transition-colors ${myMemberIdx === i ? 'bg-primary border-primary' : 'bg-transparent border-[#C8BFB8]'}`}
+                      className={`w-[22px] h-[22px] rounded-chip border-2 flex-shrink-0 flex items-center justify-center text-tag font-bold text-white transition-colors ${myMemberIdx === i ? 'bg-w border-w' : 'bg-transparent border-[#C8BFB8]'}`}
                     >
                       {myMemberIdx === i ? '✓' : ''}
                     </div>
                     <button
                       onClick={e => { e.stopPropagation(); setEmojiPickerFor({ kind: 'member', index: i }); }}
                       aria-label={`換 ${m.name} 的 emoji`}
-                      className="text-[18px] w-8 h-8 rounded-lg border-[1.5px] border-[#E4DFD9] bg-white flex items-center justify-center flex-shrink-0"
+                      className="text-strong w-8 h-8 rounded-base border-[1.5px] border-[#E4DFD9] bg-white flex items-center justify-center flex-shrink-0"
                     >
                       {m.emoji}
                     </button>
-                    <span className="flex-1 text-[16px] font-semibold text-ink">{m.name}</span>
+                    <span className="flex-1 text-input font-semibold text-ink">{m.name}</span>
                     {myMemberIdx === i && (
-                      <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-[2px] rounded-full">這是我</span>
+                      <span className="text-tag font-bold text-w bg-w/10 px-2 py-[2px] rounded-chip">這是我</span>
                     )}
                     <button
                       onClick={e => { e.stopPropagation(); removeMember(i); }}
                       disabled={used > 0}
                       title={used > 0 ? '這位已經有消費紀錄，不能移除' : '移除'}
-                      className={`text-sm ml-1 w-6 h-6 flex items-center justify-center ${used > 0 ? 'text-[#D8D2CC] cursor-not-allowed' : 'text-muted'}`}
+                      className={`text-sm ml-1 w-6 h-6 flex items-center justify-center ${used > 0 ? 'text-[#D8D2CC] cursor-not-allowed' : 'text-gr'}`}
                     >
                       ✕
                     </button>
@@ -457,20 +457,20 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                 })}
               </div>
 
-              {errors.members && <p className="text-[11px] text-warn mt-1">{errors.members}</p>}
+              {errors.members && <p className="text-tag text-out mt-1">{errors.members}</p>}
 
               {/* Add member inline form */}
               {addingMember ? (
-                <div className="mt-3 bg-white rounded-xl p-3 border border-[#E4DFD9]">
-                  <p className="text-[13px] font-bold text-mid mb-2">加一個人</p>
+                <div className="mt-3 bg-white rounded-base p-3 border border-[#E4DFD9]">
+                  <p className="text-sub font-bold text-md mb-2">加一個人</p>
                   <div className="flex items-center gap-3 mb-3">
                     <button
                       onClick={() => setEmojiPickerFor({ kind: 'new' })}
-                      className="w-12 h-12 rounded-xl border-[1.5px] border-[#E4DFD9] bg-white text-[24px] flex items-center justify-center flex-shrink-0"
+                      className="w-12 h-12 rounded-base border-[1.5px] border-[#E4DFD9] bg-white text-title flex items-center justify-center flex-shrink-0"
                     >
                       {newMemberEmoji}
                     </button>
-                    <p className="text-[12px] text-muted leading-snug">點一下換 emoji<br />也可以貼上你自己的</p>
+                    <p className="text-tag text-gr leading-snug">點一下換 emoji<br />也可以貼上你自己的</p>
                   </div>
                   <input
                     ref={addMemberInputRef}
@@ -479,20 +479,20 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                     onChange={e => setNewMemberName(e.target.value.slice(0, 10))}
                     onKeyDown={e => e.key === 'Enter' && addMember()}
                     placeholder="叫什麼名字？"
-                    className="w-full h-[42px] px-3 bg-[#F5F4F2] rounded-xl text-[15px] text-ink outline-none mb-3"
+                    className="w-full h-[42px] px-3 bg-[#F5F4F2] rounded-base text-body text-ink outline-none mb-3"
                     autoFocus
                   />
-                  <p className="text-[11px] text-muted mb-2">最多 10 個字</p>
+                  <p className="text-tag text-gr mb-2">最多 10 個字</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setAddingMember(false)}
-                      className="flex-1 h-10 rounded-xl border-[1.5px] border-[#E4DFD9] text-mid text-sm font-bold"
+                      className="flex-1 h-10 rounded-base border-[1.5px] border-[#E4DFD9] text-md text-sm font-bold"
                     >
                       取消
                     </button>
                     <button
                       onClick={addMember}
-                      className="flex-1 h-10 rounded-xl bg-primary text-white text-sm font-bold"
+                      className="flex-1 h-10 rounded-base bg-w text-white text-sm font-bold"
                     >
                       加進來
                     </button>
@@ -501,7 +501,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
               ) : (
                 <button
                   onClick={() => setAddingMember(true)}
-                  className="mt-3 w-full h-11 rounded-xl border-[1.5px] border-dashed border-[#C8BFB8] text-mid text-sm font-semibold flex items-center justify-center gap-2"
+                  className="mt-3 w-full h-11 rounded-base border-[1.5px] border-dashed border-[#C8BFB8] text-md text-sm font-semibold flex items-center justify-center gap-2"
                 >
                   ＋ 新增成員
                 </button>
@@ -509,7 +509,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
             </div>
 
             {!isEdit && (
-              <p className="text-[11px] text-muted mb-4">
+              <p className="text-tag text-gr mb-4">
                 標記哪位是你，統計卡的「我的花費」就會算你這一份。
               </p>
             )}
@@ -519,14 +519,14 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
           <div className="px-5 pt-[14px] pb-8 flex gap-[10px] flex-shrink-0 border-t border-black/[0.05]">
             <button
               onClick={onClose}
-              className="flex-1 h-[50px] bg-white text-primary rounded-xl border-[1.5px] border-primary text-[15px] font-bold active:scale-[0.97] transition-transform duration-100"
+              className="flex-1 h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform duration-100"
             >
               取消
             </button>
             <button
               onClick={handleSubmit}
               disabled={mutation.isPending}
-              className="flex-1 h-[50px] bg-primary text-white rounded-xl text-[15px] font-bold active:scale-[0.97] transition-transform duration-100 disabled:opacity-60"
+              className="flex-1 h-[50px] bg-w text-white rounded-base text-body font-bold active:scale-[0.97] transition-transform duration-100 disabled:opacity-60"
               style={{ boxShadow: '0 3px 14px rgba(124,45,18,0.36)' }}
             >
               {mutation.isPending ? '儲存中…' : isEdit ? '儲存' : '出發！'}

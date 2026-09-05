@@ -98,18 +98,18 @@ export default function SharePage() {
 
   if (tripLoading) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-w border-t-transparent rounded-chip animate-spin" />
       </div>
     );
   }
 
   if (tripError || !trip) {
     return (
-      <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-8 text-center gap-3">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-8 text-center gap-3">
         <span className="text-4xl">🔍</span>
         <p className="text-ink font-semibold">找不到這個行程</p>
-        <p className="text-muted text-sm">連結可能已失效或被移除。</p>
+        <p className="text-gr text-sm">連結可能已失效或被移除。</p>
       </div>
     );
   }
@@ -142,7 +142,7 @@ export default function SharePage() {
   // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Header hero */}
       <div
         className="flex-shrink-0 pt-12 pb-4 px-5 relative"
@@ -150,14 +150,14 @@ export default function SharePage() {
       >
         {/* Read-only badge */}
         <div className="absolute top-4 right-5">
-          <span className="inline-flex items-center gap-1 bg-white/20 text-white/80 text-xs font-semibold px-3 py-1 rounded-full border border-white/25">
+          <span className="inline-flex items-center gap-1 bg-white/20 text-white/80 text-xs font-semibold px-3 py-1 rounded-chip border border-white/25">
             朋友檢視
           </span>
         </div>
 
         <div className="flex items-center gap-3 mb-2">
           <div>
-            <h1 className="font-sans text-[24px] font-bold text-white tracking-tight leading-tight">
+            <h1 className="font-sans text-title font-bold text-white tracking-tight leading-tight">
               {trip.name}
             </h1>
             <p className="text-sm text-white/70 mt-1">
@@ -171,18 +171,18 @@ export default function SharePage() {
       <div className="flex-shrink-0 bg-white shadow-sm">
         <div className="flex">
           <div className="flex-1 text-center py-3 border-r border-[#EFEBE6]">
-            <p className="text-[18px] font-bold text-ink tabular-nums">$ {totalTwd.toLocaleString()}</p>
-            <p className="text-[11px] text-muted mt-[2px]">總花費</p>
+            <p className="text-strong font-bold text-ink tabular-nums">$ {totalTwd.toLocaleString()}</p>
+            <p className="text-tag text-gr mt-[2px]">總花費</p>
           </div>
           <div className="flex-1 text-center py-3 border-r border-[#EFEBE6]">
-            <p className="text-[18px] font-bold text-ink tabular-nums">
+            <p className="text-strong font-bold text-ink tabular-nums">
               {symbol} {symbol === '$' ? totalTwd.toLocaleString() : '—'}
             </p>
-            <p className="text-[11px] text-muted mt-[2px]">{trip.currency}</p>
+            <p className="text-tag text-gr mt-[2px]">{trip.currency}</p>
           </div>
           <div className="flex-1 text-center py-3">
-            <p className="text-[18px] font-bold text-ink tabular-nums">$ {perPerson.toLocaleString()}</p>
-            <p className="text-[11px] text-muted mt-[2px]">人均</p>
+            <p className="text-strong font-bold text-ink tabular-nums">$ {perPerson.toLocaleString()}</p>
+            <p className="text-tag text-gr mt-[2px]">人均</p>
           </div>
         </div>
       </div>
@@ -198,18 +198,18 @@ export default function SharePage() {
               const from = memberMap[item.from_member_id];
               const to   = memberMap[item.to_member_id];
               return (
-                <div key={item.id} className="bg-white rounded-xl shadow-card p-4 mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[15px]">
+                <div key={item.id} className="bg-white rounded-base shadow-card p-4 mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-body">
                     <span>{from?.emoji} {from?.name}</span>
-                    <span className="text-muted text-sm">→</span>
+                    <span className="text-gr text-sm">→</span>
                     <span>{to?.emoji} {to?.name}</span>
                   </div>
                   <div className="text-right">
-                    <p className="text-[17px] font-bold text-ok tabular-nums">
+                    <p className="text-strong font-bold text-in tabular-nums">
                       $ {item.amount.toLocaleString()}
                     </p>
                     {item.is_cleared && (
-                      <p className="text-[11px] font-bold text-ok">✅ 已付清</p>
+                      <p className="text-tag font-bold text-in">✅ 已付清</p>
                     )}
                   </div>
                 </div>
@@ -222,8 +222,8 @@ export default function SharePage() {
         {!settlement && (
           <div className="px-5 mt-5">
             <SectionTitle title="誰付給誰" />
-            <div className="bg-white rounded-xl shadow-card p-4 text-center">
-              <p className="text-muted text-[13px]">這趟旅程還沒結算。</p>
+            <div className="bg-white rounded-base shadow-card p-4 text-center">
+              <p className="text-gr text-sub">這趟旅程還沒結算。</p>
             </div>
           </div>
         )}
@@ -232,29 +232,29 @@ export default function SharePage() {
         <div className="px-5 mt-5">
           <SectionTitle title="消費明細" />
           {expenses.length === 0 && (
-            <p className="text-muted text-sm py-4 text-center">還沒有消費紀錄。</p>
+            <p className="text-gr text-sm py-4 text-center">還沒有消費紀錄。</p>
           )}
           {expenses.map(exp => {
             const payer = memberMap[exp.payer_member_id] as TripMember | undefined;
             return (
-              <div key={exp.id} className="bg-white rounded-xl shadow-card p-[11px] flex items-center gap-[10px] mb-2">
-                <span className="text-[20px] w-[32px] text-center flex-shrink-0">
+              <div key={exp.id} className="bg-white rounded-base shadow-card p-[11px] flex items-center gap-[10px] mb-2">
+                <span className="text-title w-[32px] text-center flex-shrink-0">
                   {exp.category_emoji || categoryFromTitle(exp.title)}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-semibold text-ink truncate">{exp.title}</p>
-                  <p className="text-[11px] text-muted mt-[2px]">
+                  <p className="text-body font-semibold text-ink truncate">{exp.title}</p>
+                  <p className="text-tag text-gr mt-[2px]">
                     {payer?.emoji} {payer?.name} · {exp.expense_date}
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-[15px] font-bold text-ink tabular-nums">
+                  <p className="text-body font-bold text-ink tabular-nums">
                     {exp.twd_pending || exp.twd_amount === null
                       ? '—'
                       : `$ ${exp.twd_amount.toLocaleString()}`}
                   </p>
                   {exp.twd_pending && (
-                    <p className="text-[10px] text-warn">待補填</p>
+                    <p className="text-tag text-out">待補填</p>
                   )}
                 </div>
               </div>
@@ -264,22 +264,22 @@ export default function SharePage() {
       </div>
 
       {/* G-06 Footer CTA */}
-      <div className="flex-shrink-0 bg-surface border-t border-[#E7E5E4] px-5 py-4 pb-8">
+      <div className="flex-shrink-0 bg-white border-t border-[#E7E5E4] px-5 py-4 pb-8">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[13px] text-mid leading-snug flex-1">
+          <p className="text-sub text-md leading-snug flex-1">
             想自己記帳？下載 Tripay
           </p>
           <div className="flex gap-2 flex-shrink-0">
             <button
               onClick={copyLink}
-              className="h-9 px-3 rounded-xl border border-[#E4DFD9] text-mid text-xs font-semibold"
+              className="h-9 px-3 rounded-base border border-[#E4DFD9] text-md text-xs font-semibold"
             >
               {copiedToast ? '已複製 ✓' : '複製連結'}
             </button>
             {pwaPrompt && (
               <button
                 onClick={handleInstall}
-                className="h-9 px-3 rounded-xl bg-primary text-white text-xs font-bold"
+                className="h-9 px-3 rounded-base bg-w text-white text-xs font-bold"
               >
                 安裝
               </button>
@@ -293,7 +293,7 @@ export default function SharePage() {
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <p className="text-[11px] font-bold text-muted tracking-widest uppercase mb-3">{title}</p>
+    <p className="text-tag font-bold text-gr tracking-widest uppercase mb-3">{title}</p>
   );
 }
 

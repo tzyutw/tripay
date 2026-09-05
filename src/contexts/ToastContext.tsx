@@ -34,7 +34,7 @@ function ToastBanner({ msg }: { msg: string }) {
   return (
     <div className="fixed top-4 inset-x-4 z-[200] flex justify-center pointer-events-none">
       <div
-        className="bg-[#292524] text-white text-sm font-semibold px-5 py-[10px] rounded-full animate-toast-in"
+        className="bg-[#292524] text-white text-sm font-semibold px-5 py-[10px] rounded-chip animate-toast-in"
         style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }}
       >
         {msg}

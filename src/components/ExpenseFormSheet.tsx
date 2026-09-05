@@ -301,17 +301,17 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
       />
 
       {/* Sheet */}
-      <div className="relative bg-surface rounded-t-[22px] shadow-sheet max-h-[95%] flex flex-col animate-sheet-up">
-        <div className="w-9 h-1 bg-[#D0CBC5] rounded-full mx-auto mt-3 flex-shrink-0" />
+      <div className="relative bg-white rounded-t-panel shadow-sheet max-h-[95%] flex flex-col animate-sheet-up">
+        <div className="w-9 h-1 bg-[#D0CBC5] rounded-chip mx-auto mt-3 flex-shrink-0" />
 
         {/* Header */}
         <div className="px-5 pt-4 pb-0 flex items-center justify-between flex-shrink-0">
-          <h2 className="text-[22px] font-bold text-ink">
+          <h2 className="text-strong font-bold text-ink">
             {isEdit ? '編輯消費' : '記一筆'}
           </h2>
           <button
             onClick={onClose}
-            className="w-[30px] h-[30px] rounded-full bg-[#EAE6E1] flex items-center justify-center text-mid text-[13px]"
+            className="w-[30px] h-[30px] rounded-chip bg-[#EAE6E1] flex items-center justify-center text-md text-sub"
           >
             ✕
           </button>
@@ -329,13 +329,13 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
                 value={form.title}
                 onChange={e => handleTitleChange(e.target.value)}
                 placeholder="例如：午餐 🍜"
-                className="flex-1 h-[46px] px-[14px] bg-white rounded-xl border-[1.5px] border-[#E4DFD9] text-[16px] text-ink placeholder-muted outline-none focus:border-primary transition-colors"
+                className="flex-1 h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-input text-ink placeholder-gr outline-none focus:border-w transition-colors"
               />
             </div>
           </Field>
 
           {/* Amounts */}
-          <div className="mb-5 bg-[#F5F4F2] rounded-2xl p-4">
+          <div className="mb-5 bg-[#F5F4F2] rounded-panel p-4">
             {/* Foreign amount */}
             <AmountRow
               label="外幣金額"
@@ -354,10 +354,10 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
               onToggle={() => { update('twdPending', !form.twdPending); setErrors(e => ({ ...e, twdAmount: '' })); }}
               placeholder="稍後再填也可以"
             />
-            {errors.twdAmount && <p className="text-[11px] text-warn mt-1">{errors.twdAmount}</p>}
+            {errors.twdAmount && <p className="text-tag text-out mt-1">{errors.twdAmount}</p>}
             {/* Exchange rate display */}
             {!form.foreignPending && !form.twdPending && form.foreignAmount && form.twdAmount && (
-              <p className="text-[11px] text-muted mt-1 text-right">
+              <p className="text-tag text-gr mt-1 text-right">
                 匯率 ≈ {(parseFloat(form.twdAmount) / parseFloat(form.foreignAmount)).toFixed(2)}
               </p>
             )}
@@ -370,7 +370,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
                 <button
                   key={opt.value}
                   onClick={() => update('paymentMethod', opt.value)}
-                  className={`flex-1 h-[42px] rounded-xl text-[14px] font-semibold border-[1.5px] transition-colors ${form.paymentMethod === opt.value ? 'bg-primary text-white border-primary' : 'bg-white text-mid border-[#E4DFD9]'}`}
+                  className={`flex-1 h-[42px] rounded-base text-sub font-semibold border-[1.5px] transition-colors ${form.paymentMethod === opt.value ? 'bg-w text-white border-w' : 'bg-white text-md border-[#E4DFD9]'}`}
                 >
                   {opt.label}
                 </button>
@@ -384,20 +384,20 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
               type="date"
               value={form.expenseDate}
               onChange={e => update('expenseDate', e.target.value)}
-              className="w-full h-[46px] px-[14px] bg-white rounded-xl border-[1.5px] border-[#E4DFD9] text-[15px] text-ink outline-none focus:border-primary transition-colors"
+              className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-body text-ink outline-none focus:border-w transition-colors"
             />
           </Field>
 
           {/* Expense type */}
           <Field label="分帳方式">
-            <div className="flex rounded-xl overflow-hidden border-[1.5px] border-[#E4DFD9] bg-[#F5F4F2]">
+            <div className="flex rounded-base overflow-hidden border-[1.5px] border-[#E4DFD9] bg-[#F5F4F2]">
               {(['shared', 'individual', 'personal'] as ExpenseType[]).map((t, i) => {
                 const labels = ['一起分', '各付各的', '只算我'];
                 return (
                   <button
                     key={t}
                     onClick={() => update('expenseType', t)}
-                    className={`flex-1 py-[9px] text-[13px] font-semibold transition-colors ${form.expenseType === t ? 'bg-primary text-white' : 'text-muted'} ${i > 0 ? 'border-l border-[#E4DFD9]' : ''}`}
+                    className={`flex-1 py-[9px] text-sub font-semibold transition-colors ${form.expenseType === t ? 'bg-w text-white' : 'text-gr'} ${i > 0 ? 'border-l border-[#E4DFD9]' : ''}`}
                   >
                     {labels[i]}
                   </button>
@@ -408,7 +408,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
             {/* Shared sub-state */}
             {form.expenseType === 'shared' && (
               <div className="mt-3">
-                <p className="text-[13px] font-bold text-mid mb-2">分給誰？</p>
+                <p className="text-sub font-bold text-md mb-2">分給誰？</p>
                 <div className="flex flex-col gap-2">
                   {members.map(m => {
                     const on = form.participating.has(m.id);
@@ -416,20 +416,20 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
                       <button
                         key={m.id}
                         onClick={() => toggleParticipant(m.id)}
-                        className={`flex items-center gap-[10px] bg-white rounded-xl px-3 py-[9px] border-[1.5px] transition-colors ${on ? 'border-primary bg-[#FFF6F1]' : 'border-[#E4DFD9]'}`}
+                        className={`flex items-center gap-[10px] bg-white rounded-base px-3 py-[9px] border-[1.5px] transition-colors ${on ? 'border-w bg-[#FFF6F1]' : 'border-[#E4DFD9]'}`}
                       >
-                        <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center text-[11px] font-bold text-white transition-colors ${on ? 'bg-primary border-primary' : 'border-[#C8BFB8]'}`}>
+                        <div className={`w-5 h-5 rounded-base border-2 flex-shrink-0 flex items-center justify-center text-tag font-bold text-white transition-colors ${on ? 'bg-w border-w' : 'border-[#C8BFB8]'}`}>
                           {on ? '✓' : ''}
                         </div>
-                        <span className="text-[17px]">{m.emoji}</span>
-                        <span className="text-[15px] font-semibold text-ink flex-1 text-left">{m.name}</span>
+                        <span className="text-strong">{m.emoji}</span>
+                        <span className="text-body font-semibold text-ink flex-1 text-left">{m.name}</span>
                       </button>
                     );
                   })}
                 </div>
-                {errors.participating && <p className="text-[11px] text-warn mt-1">{errors.participating}</p>}
+                {errors.participating && <p className="text-tag text-out mt-1">{errors.participating}</p>}
                 {sharedPerPerson !== null && (
-                  <div className="mt-2 py-[7px] bg-ok/10 rounded-lg text-center text-[13px] font-bold text-ok">
+                  <div className="mt-2 py-[7px] bg-in/10 rounded-base text-center text-sub font-bold text-in">
                     每人 $ {sharedPerPerson.toLocaleString()}
                   </div>
                 )}
@@ -439,15 +439,15 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
             {/* Individual sub-state */}
             {form.expenseType === 'individual' && (
               <div className="mt-3">
-                <p className="text-[13px] font-bold text-mid mb-2">各自多少？</p>
+                <p className="text-sub font-bold text-md mb-2">各自多少？</p>
                 <div className="flex flex-col gap-2">
                   {members.map(m => (
                     <div
                       key={m.id}
-                      className="flex items-center gap-[10px] bg-white rounded-xl px-3 py-2 border-[1.5px] border-[#E4DFD9]"
+                      className="flex items-center gap-[10px] bg-white rounded-base px-3 py-2 border-[1.5px] border-[#E4DFD9]"
                     >
-                      <span className="text-[17px]">{m.emoji}</span>
-                      <span className="flex-1 text-[14px] font-medium text-ink">{m.name}</span>
+                      <span className="text-strong">{m.emoji}</span>
+                      <span className="flex-1 text-sub font-medium text-ink">{m.name}</span>
                       <input
                         type="number"
                         inputMode="decimal"
@@ -457,13 +457,13 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
                           individualAmts: { ...f.individualAmts, [m.id]: e.target.value },
                         }))}
                         placeholder="輸入金額"
-                        className="w-[108px] h-9 px-[10px] bg-[#F5F4F2] rounded-lg border-[1.5px] border-transparent text-[15px] font-bold text-ink text-right tabular-nums outline-none focus:border-primary focus:bg-white transition-colors placeholder-muted placeholder:font-normal placeholder:text-[13px]"
+                        className="w-[108px] h-9 px-[10px] bg-[#F5F4F2] rounded-base border-[1.5px] border-transparent text-body font-bold text-ink text-right tabular-nums outline-none focus:border-w focus:bg-white transition-colors placeholder-gr placeholder:font-normal placeholder:text-sub"
                       />
                     </div>
                   ))}
                 </div>
                 {individualDiff && (
-                  <p className={`text-[12px] font-semibold mt-2 text-right ${Math.abs(individualDiff.diff) < 1 ? 'text-ok' : 'text-warn'}`}>
+                  <p className={`text-tag font-semibold mt-2 text-right ${Math.abs(individualDiff.diff) < 1 ? 'text-in' : 'text-out'}`}>
                     {Math.abs(individualDiff.diff) < 1
                       ? `已填 $${individualDiff.filled.toLocaleString()} ／ 總額 $${individualDiff.total.toLocaleString()} ✓`
                       : `已填 $${individualDiff.filled.toLocaleString()} ／ 總額 $${individualDiff.total.toLocaleString()}，差 $${Math.abs(individualDiff.diff).toLocaleString()}`
@@ -475,9 +475,9 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
 
             {/* Personal sub-state */}
             {form.expenseType === 'personal' && (
-              <div className="mt-3 bg-[#FFF7F0] border border-[#FFD9C0] rounded-xl p-4">
-                <p className="text-[15px] font-bold text-[#9A3412] mb-1">這筆不分帳</p>
-                <p className="text-[13px] text-mid leading-relaxed">
+              <div className="mt-3 bg-[#FFF7F0] border border-[#FFD9C0] rounded-base p-4">
+                <p className="text-body font-bold text-[#9A3412] mb-1">這筆不分帳</p>
+                <p className="text-sub text-md leading-relaxed">
                   這筆費用只記給自己，不進入任何分帳計算。<br />
                   適合紀念品、個人藥品，或不想跟大家一起分的花費。
                 </p>
@@ -489,24 +489,24 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
           {form.expenseType === 'shared' && !form.isSponsor && (
             <button
               onClick={() => update('settledOnSpot', !form.settledOnSpot)}
-              className={`w-full flex items-center gap-[10px] rounded-xl px-3 py-[10px] border-[1.5px] transition-colors ${form.settledOnSpot ? 'border-primary bg-[#FFF6F1]' : 'border-[#E4DFD9] bg-white'}`}
+              className={`w-full flex items-center gap-[10px] rounded-base px-3 py-[10px] border-[1.5px] transition-colors ${form.settledOnSpot ? 'border-w bg-[#FFF6F1]' : 'border-[#E4DFD9] bg-white'}`}
             >
-              <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center text-[11px] font-bold text-white ${form.settledOnSpot ? 'bg-primary border-primary' : 'border-[#C8BFB8]'}`}>{form.settledOnSpot ? '✓' : ''}</div>
-              <span className="text-[14px] font-semibold text-ink flex-1 text-left">大家當場各付各的，不用結算</span>
-              <span className="text-[11px] text-muted">記錄但不算欠款</span>
+              <div className={`w-5 h-5 rounded-base border-2 flex-shrink-0 flex items-center justify-center text-tag font-bold text-white ${form.settledOnSpot ? 'bg-w border-w' : 'border-[#C8BFB8]'}`}>{form.settledOnSpot ? '✓' : ''}</div>
+              <span className="text-sub font-semibold text-ink flex-1 text-left">大家當場各付各的，不用結算</span>
+              <span className="text-tag text-gr">記錄但不算欠款</span>
             </button>
           )}
 
           {/* 贊助 / 回饋（負額共同項）*/}
           <button
             onClick={() => setForm(f => ({ ...f, isSponsor: !f.isSponsor, expenseType: !f.isSponsor ? 'shared' : f.expenseType, settledOnSpot: false }))}
-            className={`w-full flex items-center gap-[10px] rounded-xl px-3 py-[10px] border-[1.5px] transition-colors ${form.isSponsor ? 'border-ok bg-ok/10' : 'border-[#E4DFD9] bg-white'}`}
+            className={`w-full flex items-center gap-[10px] rounded-base px-3 py-[10px] border-[1.5px] transition-colors ${form.isSponsor ? 'border-in bg-in/10' : 'border-[#E4DFD9] bg-white'}`}
           >
-            <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center text-[11px] font-bold text-white ${form.isSponsor ? 'bg-ok border-ok' : 'border-[#C8BFB8]'}`}>{form.isSponsor ? '✓' : ''}</div>
-            <span className="text-[14px] font-semibold text-ink flex-1 text-left">這是贊助／回饋（從大家帳上平均扣掉）</span>
+            <div className={`w-5 h-5 rounded-base border-2 flex-shrink-0 flex items-center justify-center text-tag font-bold text-white ${form.isSponsor ? 'bg-in border-in' : 'border-[#C8BFB8]'}`}>{form.isSponsor ? '✓' : ''}</div>
+            <span className="text-sub font-semibold text-ink flex-1 text-left">這是贊助／回饋（從大家帳上平均扣掉）</span>
           </button>
           {form.isSponsor && (
-            <p className="text-[12px] text-mid leading-relaxed -mt-1 px-1">
+            <p className="text-tag text-md leading-relaxed -mt-1 px-1">
               金額會自動記為負數、{form.participating.size} 人均分扣抵；「誰請客？」請選<b>實際代收這筆錢的人</b>。
             </p>
           )}
@@ -518,7 +518,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
                 <button
                   key={m.id}
                   onClick={() => update('payerMemberId', m.id)}
-                  className={`px-3 py-[7px] rounded-full text-[13px] font-semibold border-[1.5px] transition-colors ${form.payerMemberId === m.id ? 'border-primary bg-surface text-primary' : 'bg-white text-mid border-[#E4DFD9]'}`}
+                  className={`px-3 py-[7px] rounded-chip text-sub font-semibold border-[1.5px] transition-colors ${form.payerMemberId === m.id ? 'border-w bg-white text-w' : 'bg-white text-md border-[#E4DFD9]'}`}
                 >
                   {m.emoji} {m.name}
                 </button>
@@ -532,14 +532,14 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
           <div className="flex gap-[10px]">
             <button
               onClick={onClose}
-              className="flex-1 h-[50px] bg-white text-primary rounded-xl border-[1.5px] border-primary text-[15px] font-bold active:scale-[0.97] transition-transform"
+              className="flex-1 h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform"
             >
               取消
             </button>
             <button
               onClick={handleSubmit}
               disabled={saveMutation.isPending}
-              className="flex-1 h-[50px] bg-primary text-white rounded-xl text-[15px] font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
+              className="flex-1 h-[50px] bg-w text-white rounded-base text-body font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
               style={{ boxShadow: '0 3px 14px rgba(124,45,18,0.36)' }}
             >
               {saveMutation.isPending ? '儲存中…' : '記下來'}
@@ -548,7 +548,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
           {isEdit && (
             <button
               onClick={() => setShowDelete(true)}
-              className="w-full py-2 text-warn text-[13px] font-semibold"
+              className="w-full py-2 text-out text-sub font-semibold"
             >
               刪除這筆
             </button>
@@ -560,20 +560,20 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
       {showDelete && (
         <div className="fixed inset-0 z-60 flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowDelete(false)} />
-          <div className="relative bg-white rounded-2xl p-6 w-full max-w-sm shadow-sheet">
-            <p className="text-[17px] font-bold text-ink mb-2 text-center">刪除這筆消費？</p>
-            <p className="text-[13px] text-mid text-center mb-6">刪除後無法復原。</p>
+          <div className="relative bg-white rounded-panel p-6 w-full max-w-sm shadow-sheet">
+            <p className="text-strong font-bold text-ink mb-2 text-center">刪除這筆消費？</p>
+            <p className="text-sub text-md text-center mb-6">刪除後無法復原。</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDelete(false)}
-                className="flex-1 h-[46px] bg-[#F5F4F2] text-ink rounded-xl text-[14px] font-bold"
+                className="flex-1 h-[46px] bg-[#F5F4F2] text-ink rounded-base text-sub font-bold"
               >
                 取消
               </button>
               <button
                 onClick={() => deleteMutation.mutate()}
                 disabled={deleteMutation.isPending}
-                className="flex-1 h-[46px] bg-warn text-white rounded-xl text-[14px] font-bold disabled:opacity-60"
+                className="flex-1 h-[46px] bg-out text-white rounded-base text-sub font-bold disabled:opacity-60"
               >
                 {deleteMutation.isPending ? '刪除中…' : '刪除'}
               </button>
@@ -591,9 +591,9 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div className="mb-5">
-      <label className="block text-[13px] font-bold text-mid tracking-wide mb-2">{label}</label>
+      <label className="block text-sub font-bold text-md tracking-wide mb-2">{label}</label>
       {children}
-      {error && <p className="text-[11px] text-warn mt-1">{error}</p>}
+      {error && <p className="text-tag text-out mt-1">{error}</p>}
     </div>
   );
 }
@@ -611,17 +611,17 @@ function AmountRow({
   return (
     <div className="mb-3 last:mb-0">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[12px] font-bold text-mid">{label}</span>
+        <span className="text-tag font-bold text-md">{label}</span>
         <label className="flex items-center gap-1 cursor-pointer select-none">
           <div
             onClick={onToggle}
-            className={`w-9 h-5 rounded-full transition-colors ${pending ? 'bg-primary' : 'bg-[#C8BFB8]'} relative`}
+            className={`w-9 h-5 rounded-chip transition-colors ${pending ? 'bg-w' : 'bg-[#C8BFB8]'} relative`}
           >
             <div
-              className={`absolute top-[2px] w-4 h-4 rounded-full bg-white shadow transition-all ${pending ? 'left-[18px]' : 'left-[2px]'}`}
+              className={`absolute top-[2px] w-4 h-4 rounded-chip bg-white shadow transition-all ${pending ? 'left-[18px]' : 'left-[2px]'}`}
             />
           </div>
-          <span className="text-[11px] text-muted">之後再填</span>
+          <span className="text-tag text-gr">之後再填</span>
         </label>
       </div>
       <input
@@ -631,7 +631,7 @@ function AmountRow({
         disabled={pending}
         onChange={e => onChange(e.target.value)}
         placeholder={pending ? '之後再填' : placeholder}
-        className="w-full h-[46px] px-[14px] bg-white rounded-xl border-[1.5px] border-[#E4DFD9] text-[18px] font-bold text-ink tabular-nums outline-none focus:border-primary transition-colors disabled:bg-[#F5F4F2] disabled:text-muted placeholder-muted placeholder:font-normal placeholder:text-[14px]"
+        className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-strong font-bold text-ink tabular-nums outline-none focus:border-w transition-colors disabled:bg-[#F5F4F2] disabled:text-gr placeholder-gr placeholder:font-normal placeholder:text-sub"
       />
     </div>
   );

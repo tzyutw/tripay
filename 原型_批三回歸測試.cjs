@@ -188,6 +188,7 @@ E("store.s06StatOpen=false; renderS06()"); snap();
 let missing=[],unexpected=[];
 ['s02c','s03b','s06','s07'].forEach(k=>IDX[k].forEach(([id,el,kind])=>{
   const has=seen.has(id);
+// #34-6 hid＝暫時隱藏（程式碼還在、由開關關掉），與 del 一樣不該出現徽章
   if((kind==='op'||kind==='st')&&!has) missing.push(id);
   if((kind==='del'||kind==='inv')&&has) unexpected.push(id);}));
 console.log('   應有卻從未出現：',missing.length?missing.join(','):'（無）');

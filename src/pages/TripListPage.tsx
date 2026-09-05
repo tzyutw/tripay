@@ -60,13 +60,13 @@ export default function TripListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col animate-slide-in">
+    <div className="min-h-screen bg-white flex flex-col animate-slide-in">
       {/* Header */}
       <div className="px-5 pt-4 pb-0 flex items-center justify-between flex-shrink-0">
-        <span className="font-sans text-[28px] font-bold tracking-tight text-primary">Tripay</span>
+        <span className="font-sans text-title font-bold tracking-tight text-w">Tripay</span>
         <button
           onClick={openNew}
-          className="h-9 px-4 bg-primary text-white rounded-xl text-[13px] font-bold flex items-center gap-1 active:scale-95 transition-transform duration-100"
+          className="h-9 px-4 bg-w text-white rounded-base text-sub font-bold flex items-center gap-1 active:scale-95 transition-transform duration-100"
           style={{ boxShadow: '0 2px 8px rgba(124,45,18,0.32)' }}
         >
           ＋ 新增行程
@@ -79,14 +79,14 @@ export default function TripListPage() {
 
           {isLoading && (
             <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-w border-t-transparent rounded-chip animate-spin" />
             </div>
           )}
 
           {!isLoading && trips.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 gap-2">
               <p className="text-ink font-semibold text-lg">還沒有行程。</p>
-              <p className="text-muted text-sm">第一趟要去哪？</p>
+              <p className="text-gr text-sm">第一趟要去哪？</p>
             </div>
           )}
 
@@ -103,7 +103,7 @@ export default function TripListPage() {
               <div
                 key={trip.id}
                 onClick={() => navigate(`/trips/${trip.id}`)}
-                className="rounded-2xl overflow-hidden shadow-card cursor-pointer active:scale-[0.985] transition-transform"
+                className="rounded-panel overflow-hidden shadow-card cursor-pointer active:scale-[0.985] transition-transform"
               >
                 {/* 目的地照片卡：gradient 為佔位，data-photo 標示該換上的實體照片 */}
                 <div
@@ -118,18 +118,18 @@ export default function TripListPage() {
                   />
                   <div className="relative">
                     <span
-                      className={`inline-flex items-center px-[10px] py-[3px] rounded-full text-[11px] font-bold tracking-[0.04em] w-fit mb-[6px] ${STATUS_BADGE_CLASS[display]}`}
+                      className={`inline-flex items-center px-[10px] py-[3px] rounded-chip text-tag font-bold tracking-[0.04em] w-fit mb-[6px] ${STATUS_BADGE_CLASS[display]}`}
                     >
                       {STATUS_LABEL[display]}
                     </span>
 
-                    <p className="font-sans text-[22px] font-bold text-white tracking-tight leading-snug">
+                    <p className="font-sans text-title font-bold text-white tracking-tight leading-snug">
                       {trip.name}
                     </p>
 
                     <div className="flex items-center gap-2 mt-[6px]">
-                      <span className="text-[17px] tracking-wider">{memberEmojis}</span>
-                      <span className="text-[12px] text-white/85">
+                      <span className="text-strong tracking-wider">{memberEmojis}</span>
+                      <span className="text-tag text-white/85">
                         {formatDateRange(trip.start_date, trip.end_date)}
                       </span>
                     </div>
@@ -142,7 +142,7 @@ export default function TripListPage() {
 
         {/* G-02 Ghost card */}
         <div
-          className="mx-5 mb-5 rounded-2xl overflow-hidden cursor-pointer animate-ghost-pulse"
+          className="mx-5 mb-5 rounded-panel overflow-hidden cursor-pointer animate-ghost-pulse"
           // Aria 2026-08-30：原本 blur1.8/opacity.5 疊上低對比文字後幾乎看不見，
           // 但它是可點的「再開一趟」入口。保留幽靈感，調到讀得到。
           style={{ filter: 'blur(0.8px)', opacity: 0.72 }}
@@ -153,7 +153,7 @@ export default function TripListPage() {
             style={{ background: 'linear-gradient(135deg, #D6C4B5, #C2AFA0)' }}
           >
             <p
-              className="text-[18px]"
+              className="text-strong"
               style={{ color: 'rgba(80,55,42,0.72)' }}
             >
               你的下一趟在哪？
@@ -162,12 +162,12 @@ export default function TripListPage() {
         </div>
 
         {/* G-06 Share banner */}
-        <div className="mx-5 mb-6 bg-surface border border-[#E7E5E4] rounded-2xl p-4 flex items-center gap-3">
-          <span className="text-[28px] flex-shrink-0">🔗</span>
-          <p className="flex-1 text-[13px] text-mid leading-snug">
+        <div className="mx-5 mb-6 bg-white border border-[#E7E5E4] rounded-panel p-4 flex items-center gap-3">
+          <span className="text-title flex-shrink-0">🔗</span>
+          <p className="flex-1 text-sub text-md leading-snug">
             分享行程連結，朋友免下載就能看帳
           </p>
-          <button className="flex-shrink-0 px-3 py-[7px] rounded-lg border-[1.5px] border-primary text-primary text-xs font-bold whitespace-nowrap">
+          <button className="flex-shrink-0 px-3 py-[7px] rounded-base border-[1.5px] border-w text-w text-xs font-bold whitespace-nowrap">
             複製連結
           </button>
         </div>

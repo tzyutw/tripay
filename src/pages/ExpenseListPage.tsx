@@ -106,8 +106,8 @@ function ShareSheet({
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/40" style={{ backdropFilter: 'blur(3px)' }} onClick={onClose} />
-      <div className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-[22px] shadow-sheet animate-sheet-up p-5 pb-10">
-        <div className="w-9 h-1 bg-[#D0CBC5] rounded-full mx-auto mb-5" />
+      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-panel shadow-sheet animate-sheet-up p-5 pb-10">
+        <div className="w-9 h-1 bg-[#D0CBC5] rounded-chip mx-auto mb-5" />
         {opts.map(opt => (
           <button
             key={opt.title}
@@ -115,12 +115,12 @@ function ShareSheet({
             className="w-full flex items-center gap-3 py-4 border-b border-[#EFEBE6] last:border-0 active:bg-black/5 transition-colors text-left"
           >
             <div className="flex-1">
-              <p className="text-[15px] font-semibold text-ink">{opt.title}</p>
-              <p className="text-[12px] text-muted mt-[2px]">{opt.sub}</p>
+              <p className="text-body font-semibold text-ink">{opt.title}</p>
+              <p className="text-tag text-gr mt-[2px]">{opt.sub}</p>
             </div>
           </button>
         ))}
-        <button onClick={onClose} className="w-full h-[50px] mt-4 rounded-xl border-[1.5px] border-[#E4DFD9] text-mid font-bold text-[15px]">取消</button>
+        <button onClick={onClose} className="w-full h-[50px] mt-4 rounded-base border-[1.5px] border-[#E4DFD9] text-md font-bold text-body">取消</button>
       </div>
     </div>
   );
@@ -268,7 +268,7 @@ export default function ExpenseListPage() {
   if (tripLoading || !trip) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-w border-t-transparent rounded-chip animate-spin" />
       </div>
     );
   }
@@ -294,7 +294,7 @@ export default function ExpenseListPage() {
   function dismissG05() { sessionStorage.setItem('g05-dismissed', '1'); setG05Dismissed(true); }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col animate-slide-in">
+    <div className="min-h-screen bg-white flex flex-col animate-slide-in">
 
       {/* Hero */}
       <div
@@ -308,7 +308,7 @@ export default function ExpenseListPage() {
         <div className="absolute top-3 left-4 right-4 flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1 text-white/90 text-[13px] font-medium"
+            className="flex items-center gap-1 text-white/90 text-sub font-medium"
           >
             ‹ 返回
           </button>
@@ -316,7 +316,7 @@ export default function ExpenseListPage() {
             {!isArchived && (
               <button
                 onClick={openTripEdit}
-                className="w-[34px] h-[34px] rounded-xl flex items-center justify-center"
+                className="w-[34px] h-[34px] rounded-base flex items-center justify-center"
                 style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(6px)' }}
                 aria-label="編輯行程"
                 title="編輯行程"
@@ -326,7 +326,7 @@ export default function ExpenseListPage() {
             )}
             <button
               onClick={() => setCopyOpen(true)}
-              className="w-[34px] h-[34px] rounded-xl flex items-center justify-center"
+              className="w-[34px] h-[34px] rounded-base flex items-center justify-center"
               style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(6px)' }}
               aria-label="複製行程"
               title="以這趟為範本開新行程"
@@ -335,7 +335,7 @@ export default function ExpenseListPage() {
             </button>
             <button
               onClick={() => setShareSheetOpen(true)}
-              className="w-[34px] h-[34px] rounded-xl flex items-center justify-center"
+              className="w-[34px] h-[34px] rounded-base flex items-center justify-center"
               style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(6px)' }}
               aria-label="分享"
             >
@@ -343,7 +343,7 @@ export default function ExpenseListPage() {
             </button>
             <button
               onClick={() => navigate('/settings')}
-              className="w-[34px] h-[34px] rounded-xl flex items-center justify-center"
+              className="w-[34px] h-[34px] rounded-base flex items-center justify-center"
               style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(6px)' }}
               aria-label="設定"
             >
@@ -352,29 +352,29 @@ export default function ExpenseListPage() {
           </div>
         </div>
 
-        <h1 className="font-sans text-[26px] font-bold text-white tracking-tight">{trip.name}</h1>
+        <h1 className="font-sans text-title font-bold text-white tracking-tight">{trip.name}</h1>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-[17px]">{memberEmojis}</span>
-          <span className="text-[13px] text-white/70">{trip.start_date} – {trip.end_date}</span>
+          <span className="text-strong">{memberEmojis}</span>
+          <span className="text-sub text-white/70">{trip.start_date} – {trip.end_date}</span>
         </div>
       </div>
 
       {/* Stats strip */}
       <div className="bg-white flex-shrink-0 flex" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <div className="flex-1 text-center py-3 px-2">
-          <p className="text-[17px] font-bold text-ink tabular-nums">
+          <p className="text-strong font-bold text-ink tabular-nums">
             $ {stats.totalTwd.toLocaleString()}
           </p>
-          <p className="text-[11px] text-muted mt-[2px]">總花費</p>
+          <p className="text-tag text-gr mt-[2px]">總花費</p>
           {stats.pendingCount > 0 && (
-            <p className="text-[10px] text-warn mt-[3px]">⚠️ 含 {stats.pendingCount} 筆待填，數字僅供參考</p>
+            <p className="text-tag text-out mt-[3px]">⚠️ 含 {stats.pendingCount} 筆待填，數字僅供參考</p>
           )}
         </div>
         <div className="flex-1 text-center py-3 px-2 border-l border-[#EFEBE6]">
-          <p className="text-[17px] font-bold text-ink tabular-nums">
+          <p className="text-strong font-bold text-ink tabular-nums">
             $ {stats.myCost.toLocaleString()}
           </p>
-          <p className="text-[11px] text-muted mt-[2px]">我的花費</p>
+          <p className="text-tag text-gr mt-[2px]">我的花費</p>
         </div>
         {/* Currency toggle */}
         <div className="w-[68px] flex-shrink-0 border-l border-[#EFEBE6] flex flex-col items-center justify-center gap-1 py-2 px-1">
@@ -382,7 +382,7 @@ export default function ExpenseListPage() {
             <button
               key={m}
               onClick={() => setCurrencyMode(m)}
-              className={`w-14 h-[22px] rounded-md text-[11px] font-bold transition-colors ${currencyMode === m ? 'bg-primary text-white' : 'text-muted'}`}
+              className={`w-14 h-[22px] rounded-base text-tag font-bold transition-colors ${currencyMode === m ? 'bg-w text-white' : 'text-gr'}`}
             >
               {m === 'twd' ? `$ 台幣` : `${symbol} 外幣`}
             </button>
@@ -392,20 +392,20 @@ export default function ExpenseListPage() {
 
       {/* G-05 Share banner (one-time) */}
       {showG05 && (
-        <div className="mx-5 mt-4 bg-[#FFF5F0] border border-[#FFD9C0] rounded-2xl p-4 flex items-start gap-3">
+        <div className="mx-5 mt-4 bg-[#FFF5F0] border border-[#FFD9C0] rounded-panel p-4 flex items-start gap-3">
           <span className="text-2xl">🎉</span>
           <div className="flex-1">
-            <p className="text-[14px] font-bold text-ink">記完了嗎？讓大家看看。</p>
-            <p className="text-[12px] text-mid mt-1">把這趟的消費明細分享給大家，一起確認。</p>
+            <p className="text-sub font-bold text-ink">記完了嗎？讓大家看看。</p>
+            <p className="text-tag text-md mt-1">把這趟的消費明細分享給大家，一起確認。</p>
           </div>
           <div className="flex flex-col gap-1 flex-shrink-0">
             <button
               onClick={() => setShareSheetOpen(true)}
-              className="px-3 py-1 bg-primary text-white text-xs font-bold rounded-xl"
+              className="px-3 py-1 bg-w text-white text-xs font-bold rounded-base"
             >
               分享給大家
             </button>
-            <button onClick={dismissG05} className="text-muted text-xs text-right">之後再說</button>
+            <button onClick={dismissG05} className="text-gr text-xs text-right">之後再說</button>
           </div>
         </div>
       )}
@@ -414,16 +414,16 @@ export default function ExpenseListPage() {
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-24">
         {expLoading && (
           <div className="flex justify-center py-12">
-            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-w border-t-transparent rounded-chip animate-spin" />
           </div>
         )}
 
         {!expLoading && expenses.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
-            <p className="text-ink font-semibold text-[16px] leading-snug">
+            <p className="text-ink font-semibold text-input leading-snug">
               {beforeTrip ? '出發前的費用也先記' : '第一筆從哪裡開始？'}
             </p>
-            <p className="text-muted text-[13px] mt-2">
+            <p className="text-gr text-sub mt-2">
               {beforeTrip
                 ? '訂票、換外幣、買行李，都算這趟的帳'
                 : '早餐、計程車、門票，都可以記'}
@@ -433,7 +433,7 @@ export default function ExpenseListPage() {
 
         {groups.map(([groupLabel, groupExpenses]) => (
           <div key={groupLabel} className="px-5">
-            <p className="text-[11px] font-bold text-muted tracking-widest uppercase py-[14px] pb-2">
+            <p className="text-tag font-bold text-gr tracking-widest uppercase py-[14px] pb-2">
               {groupLabel}
             </p>
             <div className="flex flex-col gap-2">
@@ -448,28 +448,28 @@ export default function ExpenseListPage() {
                   <button
                     key={exp.id}
                     onClick={() => openEdit(exp.id)}
-                    className={`bg-white rounded-xl p-[11px] flex items-center gap-[10px] shadow-card text-left w-full relative overflow-hidden ${isPend ? 'border-l-[3px] border-warn' : ''}`}
+                    className={`bg-white rounded-base p-[11px] flex items-center gap-[10px] shadow-card text-left w-full relative overflow-hidden ${isPend ? 'border-l-[3px] border-out' : ''}`}
                   >
-                    <span className="text-[22px] w-[34px] text-center flex-shrink-0">
+                    <span className="text-title w-[34px] text-center flex-shrink-0">
                       {exp.category_emoji || categoryFromTitle(exp.title)}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[16px] font-semibold text-ink truncate">{exp.title}</p>
+                      <p className="text-input font-semibold text-ink truncate">{exp.title}</p>
                       <div className="flex items-center gap-[6px] mt-[3px] flex-wrap">
-                        <span className="text-[11px] text-muted">{payer?.emoji} {payer?.name}</span>
+                        <span className="text-tag text-gr">{payer?.emoji} {payer?.name}</span>
                         {exp.expense_type === 'individual' && (
-                          <span className="text-[10px] font-bold bg-[#FEF3C7] text-[#92400E] px-[7px] py-[2px] rounded-full">各付各的</span>
+                          <span className="text-tag font-bold bg-[#FEF3C7] text-[#92400E] px-[7px] py-[2px] rounded-chip">各付各的</span>
                         )}
                         {exp.expense_type === 'personal' && (
-                          <span className="text-[10px] font-bold bg-[#FEF2F2] text-[#991B1B] px-[7px] py-[2px] rounded-full">只算我</span>
+                          <span className="text-tag font-bold bg-[#FEF2F2] text-[#991B1B] px-[7px] py-[2px] rounded-chip">只算我</span>
                         )}
                         {isPend && (
-                          <span className="text-[10px] font-bold bg-[#FFF7ED] text-warn px-[7px] py-[2px] rounded-full">待補填</span>
+                          <span className="text-tag font-bold bg-[#FFF7ED] text-out px-[7px] py-[2px] rounded-chip">待補填</span>
                         )}
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-[16px] font-bold text-ink tabular-nums">{showAmt}</p>
+                      <p className="text-money font-bold text-ink tabular-nums">{showAmt}</p>
                     </div>
                   </button>
                 );
@@ -481,18 +481,18 @@ export default function ExpenseListPage() {
 
       {/* Bottom action bar */}
       {!isArchived && (
-        <div className="fixed bottom-0 inset-x-0 px-5 py-3 pb-8 bg-surface border-t border-black/[0.05] flex gap-[10px]">
+        <div className="fixed bottom-0 inset-x-0 px-5 py-3 pb-8 bg-white border-t border-black/[0.05] flex gap-[10px]">
           {isActive && (
             <>
               <button
                 onClick={() => navigate(`/trips/${tripId}/settlement`)}
-                className="flex-1 h-[50px] bg-white text-primary rounded-xl border-[1.5px] border-primary text-[15px] font-bold active:scale-[0.97] transition-transform"
+                className="flex-1 h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform"
               >
                 前往結算
               </button>
               <button
                 onClick={openNew}
-                className="flex-1 h-[50px] bg-primary text-white rounded-xl text-[15px] font-bold active:scale-[0.97] transition-transform"
+                className="flex-1 h-[50px] bg-w text-white rounded-base text-body font-bold active:scale-[0.97] transition-transform"
                 style={{ boxShadow: '0 3px 14px rgba(124,45,18,0.36)' }}
               >
                 ＋ 記一筆
@@ -503,14 +503,14 @@ export default function ExpenseListPage() {
             <>
               <button
                 onClick={() => navigate(`/trips/${tripId}/settlement`)}
-                className="flex-1 h-[50px] bg-white text-primary rounded-xl border-[1.5px] border-primary text-[15px] font-bold active:scale-[0.97] transition-transform"
+                className="flex-1 h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform"
               >
                 查看結算
               </button>
               <button
                 onClick={() => archiveMutation.mutate()}
                 disabled={archiveMutation.isPending}
-                className="flex-1 h-[50px] bg-[#F5F4F2] text-mid rounded-xl text-[15px] font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
+                className="flex-1 h-[50px] bg-[#F5F4F2] text-md rounded-base text-body font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
               >
                 {archiveMutation.isPending ? '封存中…' : '封存行程'}
               </button>
@@ -523,18 +523,18 @@ export default function ExpenseListPage() {
       <div className="px-5 pb-28 pt-2">
         <button
           onClick={() => { setDeleteConfirm(''); setDeleteOpen(true); }}
-          className="w-full py-2 text-[12px] text-muted underline underline-offset-2"
+          className="w-full py-2 text-tag text-gr underline underline-offset-2"
         >
           刪除這趟行程
         </button>
       </div>
 
       {isArchived && (
-        <div className="fixed bottom-0 inset-x-0 px-5 py-3 pb-8 bg-surface border-t border-black/[0.05]">
+        <div className="fixed bottom-0 inset-x-0 px-5 py-3 pb-8 bg-white border-t border-black/[0.05]">
           <button
             onClick={() => unarchiveMutation.mutate()}
             disabled={unarchiveMutation.isPending}
-            className="w-full h-[50px] bg-white text-primary rounded-xl border-[1.5px] border-primary text-[15px] font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
+            className="w-full h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform disabled:opacity-60"
           >
             {unarchiveMutation.isPending ? '處理中…' : '重新開啟'}
           </button>
@@ -554,35 +554,35 @@ export default function ExpenseListPage() {
       {deleteOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-black/50" onClick={() => setDeleteOpen(false)} />
-          <div className="relative bg-white rounded-2xl p-6 w-full max-w-sm shadow-sheet">
-            <p className="text-[17px] font-bold text-ink mb-2 text-center">刪除「{trip.name}」？</p>
-            <p className="text-[13px] text-mid mb-3 leading-relaxed">
+          <div className="relative bg-white rounded-panel p-6 w-full max-w-sm shadow-sheet">
+            <p className="text-strong font-bold text-ink mb-2 text-center">刪除「{trip.name}」？</p>
+            <p className="text-sub text-md mb-3 leading-relaxed">
               這會一併刪掉這趟的<b>全部資料</b>，而且救不回來：
             </p>
-            <ul className="text-[13px] text-mid mb-4 leading-relaxed list-disc pl-5">
+            <ul className="text-sub text-md mb-4 leading-relaxed list-disc pl-5">
               <li>{expenses.length} 筆消費與分帳紀錄</li>
               <li>{trip.trip_members.length} 位成員</li>
               <li>結算結果與分享連結</li>
             </ul>
-            <p className="text-[12px] text-mid mb-2">確定的話，請輸入行程名稱：</p>
+            <p className="text-tag text-md mb-2">確定的話，請輸入行程名稱：</p>
             <input
               type="text"
               value={deleteConfirm}
               onChange={e => setDeleteConfirm(e.target.value)}
               placeholder={trip.name}
-              className="w-full h-[42px] px-3 mb-4 bg-[#F5F4F2] rounded-xl border-[1.5px] border-[#E4DFD9] text-[14px] text-ink outline-none focus:border-warn"
+              className="w-full h-[42px] px-3 mb-4 bg-[#F5F4F2] rounded-base border-[1.5px] border-[#E4DFD9] text-sub text-ink outline-none focus:border-out"
             />
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteOpen(false)}
-                className="flex-1 h-[46px] bg-[#F5F4F2] text-ink rounded-xl text-[14px] font-bold"
+                className="flex-1 h-[46px] bg-[#F5F4F2] text-ink rounded-base text-sub font-bold"
               >
                 算了，留著
               </button>
               <button
                 onClick={() => deleteTripMutation.mutate()}
                 disabled={deleteConfirm.trim() !== trip.name || deleteTripMutation.isPending}
-                className="flex-1 h-[46px] bg-warn text-white rounded-xl text-[14px] font-bold disabled:opacity-40"
+                className="flex-1 h-[46px] bg-out text-white rounded-base text-sub font-bold disabled:opacity-40"
               >
                 {deleteTripMutation.isPending ? '刪除中…' : '刪除'}
               </button>

@@ -73,18 +73,18 @@ export default function EmojiPicker({ mode, value, onPick, onClose }: Props) {
     <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/30 animate-fade-in" onClick={onClose} />
 
-      <div className="relative bg-surface rounded-t-[22px] shadow-sheet animate-sheet-up max-h-[80vh] flex flex-col">
-        <div className="w-9 h-1 bg-[#D0CBC5] rounded-full mx-auto mt-3 flex-shrink-0" />
+      <div className="relative bg-white rounded-t-panel shadow-sheet animate-sheet-up max-h-[80vh] flex flex-col">
+        <div className="w-9 h-1 bg-[#D0CBC5] rounded-chip mx-auto mt-3 flex-shrink-0" />
 
         {/* 標題列（版位與 S-02／S-04 的 sheet header 一致） */}
         <div className="px-4 pt-3 pb-0 flex items-center justify-between flex-shrink-0">
-          <h3 className="text-[17px] font-bold text-ink">
+          <h3 className="text-strong font-bold text-ink">
             {mode === 'cover' ? '挑個封面' : '挑個 emoji'}
           </h3>
           <button
             onClick={onClose}
             aria-label="關閉"
-            className="w-[30px] h-[30px] rounded-full bg-[#EAE6E1] flex items-center justify-center text-mid text-[13px] flex-shrink-0"
+            className="w-[30px] h-[30px] rounded-chip bg-[#EAE6E1] flex items-center justify-center text-md text-sub flex-shrink-0"
           >
             ✕
           </button>
@@ -97,7 +97,7 @@ export default function EmojiPicker({ mode, value, onPick, onClose }: Props) {
               <button
                 key={s}
                 onClick={() => setSection(s)}
-                className={`px-4 py-[6px] rounded-full text-xs font-bold border transition-colors ${section === s ? 'bg-primary text-white border-primary' : 'text-muted border-[#E4DFD9]'}`}
+                className={`px-4 py-[6px] rounded-chip text-xs font-bold border transition-colors ${section === s ? 'bg-w text-white border-w' : 'text-gr border-[#E4DFD9]'}`}
               >
                 {s === 'travel' ? '旅遊' : '人物'}
               </button>
@@ -116,29 +116,29 @@ export default function EmojiPicker({ mode, value, onPick, onClose }: Props) {
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); confirm(); } }}
               placeholder="搜尋，或直接貼上"
               aria-label="搜尋，或直接貼上 emoji"
-              className="flex-1 min-w-[150px] h-10 px-3 bg-white rounded-xl border-[1.5px] border-[#E4DFD9] text-[15px] text-ink placeholder-muted outline-none focus:border-primary transition-colors"
+              className="flex-1 min-w-[150px] h-10 px-3 bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-body text-ink placeholder-gr outline-none focus:border-w transition-colors"
             />
             <button
               onClick={pasteFromClipboard}
-              className="px-3 h-10 rounded-xl border-[1.5px] border-[#E4DFD9] bg-white text-mid text-[13px] font-bold flex-shrink-0"
+              className="px-3 h-10 rounded-base border-[1.5px] border-[#E4DFD9] bg-white text-md text-sub font-bold flex-shrink-0"
             >
               直接貼上
             </button>
           </div>
-          {error && <p className="text-[11px] text-warn mt-1">{error}</p>}
+          {error && <p className="text-tag text-out mt-1">{error}</p>}
         </div>
 
         {/* 清單 */}
         <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide px-4 pb-3">
           {groups.map(g => (
             <div key={g.title || 'all'} className="mb-3 last:mb-0">
-              {g.title && <p className="text-[12px] font-bold text-mid mb-2">{g.title}</p>}
+              {g.title && <p className="text-tag font-bold text-md mb-2">{g.title}</p>}
               <div className="grid grid-cols-[repeat(auto-fill,minmax(44px,1fr))] gap-2">
                 {g.items.map(e => (
                   <button
                     key={e}
                     onClick={() => { setCustom(''); setError(''); setPreview(e); }}
-                    className={`aspect-square rounded-xl text-[24px] flex items-center justify-center border-[1.5px] transition-colors ${preview === e ? 'border-primary bg-[#FFF5F0]' : 'border-[#E4DFD9] bg-white'}`}
+                    className={`aspect-square rounded-base text-title flex items-center justify-center border-[1.5px] transition-colors ${preview === e ? 'border-w bg-[#FFF5F0]' : 'border-[#E4DFD9] bg-white'}`}
                   >
                     {e}
                   </button>
@@ -151,12 +151,12 @@ export default function EmojiPicker({ mode, value, onPick, onClose }: Props) {
         {/* 預覽 ＋ 確認 */}
         <div className="px-4 pb-8 pt-3 flex-shrink-0 border-t border-black/[0.05]">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[12px] font-bold text-mid">選的是</span>
-            <span className="text-[26px] leading-none">{preview || '—'}</span>
+            <span className="text-tag font-bold text-md">選的是</span>
+            <span className="text-title leading-none">{preview || '—'}</span>
           </div>
           <button
             onClick={confirm}
-            className="w-full h-[50px] bg-primary text-white text-[15px] font-bold rounded-xl active:scale-[0.97] transition-transform"
+            className="w-full h-[50px] bg-w text-white text-body font-bold rounded-base active:scale-[0.97] transition-transform"
           >
             就用這個
           </button>

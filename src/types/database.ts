@@ -3,6 +3,10 @@ export type ExpenseType       = 'shared' | 'individual' | 'personal';
 export type PaymentMethod     = 'cash' | 'credit_card' | 'stored_value';
 export type SettlementStatus  = 'draft' | 'confirmed' | 'superseded';
 export type DisplayStatus     = 'planned' | 'active' | 'settled' | 'archived';
+/* 實作-A-0a：以下兩個型別對應 production 的實際定義（用 MCP 查出來的，不是照文件抄）
+   trip_kind 是 enum；settlement_mode 是 text ＋ check 約束，不是 enum。 */
+export type TripKind          = 'trip' | 'statement';
+export type SettlementMode    = 'direct' | 'hub';
 
 export interface Trip {
   id: string;
@@ -16,6 +20,12 @@ export interface Trip {
   share_token: string;
   owner_member_id: string | null;
   collab_enabled: boolean;
+  /* 實作-A-0a：007／008／010 上線後型別一直沒補，TripListPage 早就在查 kind 了 */
+  kind: TripKind;                     // 007　trip＝一般行程，statement＝帳單
+  card_id: string | null;             // 007　kind='statement' 時必填，'trip' 時必為 null
+  cover_path: string | null;          // 008　Storage 上的封面路徑
+  settlement_mode: SettlementMode;    // 010　direct＝誰欠誰就轉給誰，hub＝都轉給同一個人
+  hub_member_id: string | null;       // 010　settlement_mode='hub' 時的中心人
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +37,7 @@ export interface TripMember {
   emoji: string;
   sort_order: number;
   linked_profile_id: string | null;
+  person_id: string | null;           // 006　people 層：跨行程認得同一個人
   created_at: string;
 }
 

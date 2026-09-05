@@ -197,8 +197,21 @@ html.anno .b .bdg:hover{background:#0F5E9E}
    那是溢出的直接原因）；系統外觀關掉之後日曆圖示要自己補回去，
    否則使用者看不出這是日期欄位。點擊仍會叫出原生的日期選擇器。 */
 .ui .datefield{position:relative;display:flex;align-items:center;width:100%;min-width:0}
+/* #34-4 這裡是第三次修同一個地方，前兩次修的是寬度，**高度從頭到尾沒有被固定過**。
+   日期欄的高度原本是「上下內距 ＋ 裡面那行字的行高」撐出來的：
+   Chrome 空值仍會畫一行示意文字，行高在，所以量起來是 40px；
+   iOS Safari 關掉系統外觀之後**空值裡面什麼都不畫**，那一行塌成 0，
+   整個框只剩 9＋9 的內距——這就是「回程比出發矮一截」的原因。
+   ⚠️ 實測（Chrome 390×844）：這裡固定 40px；有外框的文字輸入框（S-02b 的匯率、
+   新增支付方式）是 41px；S-04 的行內輸入是無框的 25px，不同類不互比。
+   哪一天改了字級或內距，這個數字要重量一次再改。 */
 .ui .datefield input[type=date]{-webkit-appearance:none;appearance:none;
-  flex:1;width:100%;min-width:0;padding-right:32px}
+  flex:1;width:100%;min-width:0;padding-right:32px;
+  height:40px;box-sizing:border-box}
+/* Safari 畫日期值用的內部元素，Chrome 上不存在，所以永遠測不到——
+   不給它高度與行高，外框固定了裡面的字仍會偏上或偏下。 */
+.ui .datefield input[type=date]::-webkit-date-and-time-value{
+  text-align:left;margin:0;height:20px;line-height:20px}
 .ui .datefield input[type=date]::-webkit-calendar-picker-indicator{opacity:0;position:absolute;
   right:0;top:0;width:100%;height:100%;cursor:pointer}
 .ui .datefield>svg{position:absolute;right:10px;color:var(--gr);pointer-events:none}
@@ -241,6 +254,15 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 /* #32-8 那個 ⠿ 原本是純文字，看起來可以拖、按了完全沒反應——假的操作暗示比沒有更糟。
    只能從把手起拖（整列起拖會跟畫面的垂直捲動打架，把手存在的理由就是這個）。
    touch-action:none 只給把手，列本身仍然捲得動。 */
+/* #34-1 列內的移除鈕：**裸 icon，不要容器**（Rozi 明確裁示）。
+   可見的還是 16px 的叉，可點區用一塊看不見的 44×44 撐出來——
+   把 border box 撐成 44 會把「3 筆在用」那段文字擠掉。
+   icon 從 12 加到 16，與同一列左邊的拖曳把手同尺寸。
+   顏色維持：可刪 --gr、已被使用 #CDD3D0；**不用 --dg**，移除一個成員不是刪除整趟。 */
+.ui .rmbtn{position:relative;width:16px;height:16px;flex:none;
+  display:inline-flex;align-items:center;justify-content:center;background:none;border:0;padding:0}
+.ui .rmbtn::after{content:'';position:absolute;left:50%;top:50%;
+  width:44px;height:44px;transform:translate(-50%,-50%)}
 .ui .grip{color:var(--gr);font-size:var(--fs-body);cursor:grab;touch-action:none;
   padding:4px 2px;margin:-4px -2px;user-select:none}
 .ui .grip:active{cursor:grabbing}
@@ -261,6 +283,15 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   justify-content:center;font-size:0}
 .ui .selchip.on{border-color:var(--w)}
 .ui .selchip.on::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--w)}
+/* #34-2 「要排除誰？」那一列是**複選**（每位成員各自可開可關），
+   圓形單選鈕的意思是「只能挑一個」，跟實際行為相反。形狀不同就是兩個元件，
+   不沿用 .selchip——共用只會讓下一次改動又漏一處。 */
+.ui .chkchip{width:20px;height:20px;border-radius:calc(var(--r-base) * .4);flex:none;box-sizing:border-box;
+  border:1.5px solid #B9C1BB;background:#fff;display:inline-flex;align-items:center;
+  justify-content:center;font-size:0}
+.ui .chkchip.on{border-color:var(--w);background:var(--w)}
+.ui .chkchip.on::after{content:'';width:12px;height:12px;
+  background:no-repeat center/12px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E")}
 /* #20-1 金額欄一行：幣別標籤固定寬靠左，輸入框吃剩餘寬度。
    輸入的數字字級刻意小於區塊標題——表單裡的數字是輸入不是展示。 */
 /* #30-5b 原本 .amtline 只有 39px，低於 44 的最小觸控標準——而金額是整張表單最重要的輸入。
@@ -409,6 +440,11 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .shopt.last{border-bottom:0}
 .ui .shopt .t{margin:0;font-size:var(--fs-body);font-weight:600}
 .ui .shopt .s{margin:2px 0 0;font-size:var(--fs-sub);color:var(--gr)}
+/* #34-3 「N 人均分」與「每人 ⋯」併成同一列，中間用一個「·」分隔
+   （比純空白更明確地說明那是同一句話的兩段）。金額仍套 .money，字型字級不變。 */
+.ui .shareline{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.ui .shareline>*{line-height:22px}
+.ui .shareline .sep{color:var(--gr)}
 .ui .sharedhead{display:flex;align-items:center;justify-content:space-between;gap:10px;
   background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);padding:11px}
 .ui .expandbtn{border:1px solid var(--w);color:var(--wi);font-size:var(--fs-body);font-weight:600;
@@ -471,15 +507,18 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 /* #28-2 .sec 一直沒有樣式定義，凡是用它的地方都是裸 div——文字頂到 x=0、字級偏大、
    顏色不是灰的，三件事同一個根因。與 .txsec 對齊同一套語彙，左內距 14px，
    和卡片、統計卡、.fld 同一條 x 軸。 */
-/* #29-1 日期列：不是輸入欄，是狀態列——高度明顯低於一個欄位列，整條可點。
-   原生 date input 疊在上面透明化，點哪裡都能開，不新造第三種日期選擇方式。 */
-.ui .daterow{position:relative;display:flex;align-items:center;gap:6px;width:100%;
-  padding:7px 14px;background:#E6E8E1;border-bottom:1px solid var(--ln);color:var(--gr);text-align:left}
-.ui .daterow .k{font-size:var(--fs-sub);color:var(--gr)}
-.ui .daterow .v{font-size:var(--fs-sub);font-weight:600;color:#151C21}
-.ui .daterow svg{margin-left:auto;color:var(--gr)}
-.ui .daterow input[type=date]{position:absolute;inset:0;width:100%;height:100%;
-  opacity:0;border:0;padding:0;font-size:var(--fs-input)}
+/* #35-2 「記在」改成與 S-02-6「去哪？」同款的欄位列：白底、圓角、一圈細線，
+   標籤靠左固定寬、值填滿剩下的寬度。原生 date input 透明疊滿整列——
+   點標籤、點日期、點日曆圖示都要叫得出選擇器，所以它不能只佔右半邊。
+   iOS 的三件修正（明確 height／appearance:none／::-webkit-date-and-time-value）
+   直接沿用 .datefield 那一條規則，兩處共用，不另寫一份。
+   兩段文字字級不同（標籤 15、日期 16），靠明訂同一個 line-height 對齊，
+   不是靠 align-items——字級不同時置中會讓兩者的頂端差 1px。 */
+.ui .fieldrow.datefield{height:40px;padding:0 14px}
+.ui .fieldrow.datefield>.lbl,.ui .fieldrow.datefield>.v{line-height:22px;margin:0}
+.ui .fieldrow.datefield>.v{flex:1;min-width:0;font-size:var(--fs-input);
+  font-weight:600;color:#151C21}
+.ui .fieldrow.datefield>input[type=date]{position:absolute;inset:0;opacity:0;padding:0}
 /* #32-5 原本容器寫死 min-height:520px，在 844px 的手機上根本沒撐滿——
    內容只能待在上半部，這才是「整體偏上」的根因，不是對齊沒設好。
    改成跟著可用高度走（100dvh 避開 iOS 網址列伸縮），三段 flex 分配：
@@ -856,6 +895,14 @@ function ic(name, size) {
 /* ═══════════════════════════════════════════════════════════
    共用資料與工具
    ═══════════════════════════════════════════════════════════ */
+/* #34-6 封面區的總開關。**這是「隱藏」不是「刪掉」**——CSS 與產生這一區的程式碼
+   都留在原地，Phase 2 的封面上傳做好時把這裡改成 true 就會整區回來。
+   關掉的是：封面標題、104px 色調預覽、「目前：目的地色調」、更換照片／重選色調兩顆鈕、
+   8 色預設盤與「自動」鈕，以及 S-02b-5 那句灰字（#34-5 被本項吸收）。
+   打開的時候要另外決定的事：S-02b-5 那句灰字要不要一起回來——那句話描述的隱私後果
+   要等封面真的會顯示在分享頁才成立，屆時由 Rozi 決定，**不要自動帶回**。 */
+const COVER_UI = false;
+
 const TONES = [
   { k:'北海道', kw:['北海道','小樽','札幌','富良野'], g:'linear-gradient(160deg,#5B8FA8,#3A6E8C 35%,#8B5E52 75%,#6B4A3E)' },
   { k:'濟州',   kw:['濟州','济州'],                    g:'linear-gradient(160deg,#1E4C6B,#2D6A8A 35%,#3D7A6A 65%,#2A5050)' },
@@ -866,11 +913,21 @@ const TONES = [
   { k:'京都',   kw:['京都','大阪','關西'],             g:'linear-gradient(160deg,#6B2B3A,#9A4A4A 40%,#C08552 75%,#4A2A2E)' },
   { k:'台灣',   kw:['台東','花蓮','墾丁','台南','台灣'],g:'linear-gradient(160deg,#2E6B4A,#4A9A6B 40%,#9AC98A 75%,#2A4A38)' },
 ];
-const FALLBACK_TONE = 'linear-gradient(148deg,#1A3558,#2B5590 42%,#684533)';
-function toneFor(name, forced) {
+/* #34-6 封面上傳是 Phase 2 的功能，這一階段沒有——所以 S-02b 的封面區整段隱藏、
+   色調改為自動。開關在下面的 COVER_UI。
+   自動規則是兩段式，順序不能顛倒：
+   ① **先比對關鍵字**（顯示時做）——卡片要能一眼看出是哪一國，這也是當初否決
+      「色票自由挑色器」的理由；使用者改名成「濟州島四寶團」顏色會立刻跟著對。
+   ② **比對不到才用循環色**（建立時就定好的備胎），依 TONES 的順序輪，第 9 趟回到第 1 色。
+   循環序號**在建立行程當下決定並存起來**（t.toneSeq），之後不再重算——
+   若改用「清單裡的第幾筆」，刪掉一趟會讓後面所有行程的顏色集體位移。
+   原本那個單一 FALLBACK_TONE 不再使用：它就是「認不出目的地的行程長得一模一樣」的原因。 */
+let toneSeqCounter = 0;
+function nextToneSeq() { return toneSeqCounter++ % TONES.length; }
+function toneFor(name, forced, seq) {
   if (forced != null) return TONES[forced].g;
   for (const t of TONES) if (t.kw.some(k => (name||'').includes(k))) return t.g;
-  return FALLBACK_TONE;
+  return TONES[(seq || 0) % TONES.length].g;
 }
 const CURRENCIES = [
   ['JPY','日圓','¥'],['TWD','台幣','$'],['KRW','韓元','₩'],['USD','美元','$'],['EUR','歐元','€'],
@@ -897,7 +954,9 @@ function firstGrapheme(s) {
   }
   return Array.from(s)[0] || '';
 }
-const today = () => new Date().toISOString().slice(0,10);
+/* #35-1 測試要能把「今天」推到出發前／區間內／回程後三種情形，所以留成可覆寫的
+   繫結（const 沒辦法注入）。產品行為不變。 */
+let today = () => new Date().toISOString().slice(0,10);
 const md = d => d ? `${+d.slice(5,7)}/${+d.slice(8,10)}` : '';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = s => document.querySelector(s);
@@ -908,13 +967,13 @@ const store = {
   trips: [
     { id:'t1', name:'2026 濟州島四寶團', start:'2026-03-14', end:'2026-03-18', status:'active',  tone:null,
       currency:'KRW', members:[m('🐵','Rozi',1),m('🐱','小美'),m('🍋','阿明'),m('🐟','小魚')],
-      pays:['現金','信用卡'], usedPays:{'現金':3,'信用卡':12} },
+      toneSeq:0, pays:['現金','信用卡'], usedPays:{'現金':3,'信用卡':12} },
     { id:'t2', name:'2024 東京富士山五寶團', start:'2024-11-02', end:'2024-11-08', status:'settled', tone:null,
       currency:'JPY', members:[m('🐵','Rozi'),m('🐱','小美'),m('🍋','阿明'),m('🐟','小魚'),m('🐰','小兔')],
-      pays:['現金','信用卡'], usedPays:{} },
+      toneSeq:1, pays:['現金','信用卡'], usedPays:{} },
     { id:'t3', name:'2023 福岡三人行', start:'2023-04-06', end:'2023-04-11', status:'archived', tone:null,
       currency:'JPY', members:[m('🐵','Rozi'),m('🐱','小美'),m('🍋','阿明')],
-      pays:['現金'], usedPays:{} },
+      toneSeq:2, pays:['現金'], usedPays:{} },
   ],
   s01: 'list',
 };
@@ -1033,7 +1092,7 @@ function renderS01() {
       const st = statusOf(t);
       const dim = st === 'archived' ? 'filter:saturate(.5) brightness(.9);' : '';
       const card = `<button class="tcard" data-open="${t.id}">
-        <div class="img" style="background:${toneFor(t.name, t.tone)};${dim}">
+        <div class="img" style="background:${toneFor(t.name, t.tone, t.toneSeq)};${dim}">
           <div class="sc"></div>
           ${b('S-01-6', `<span style="position:relative;width:fit-content;display:block"><span class="stamp">${STATUS_LABEL[st]}</span></span>`)}
           <div class="nm">${esc(t.name)}</div>
@@ -1077,7 +1136,7 @@ function tripToForm(t) {
            rateTwd: t.rateTwd ?? (oneSideOf(t.currency) === 'twd' ? '1' : ''),
            rateFor: t.rateFor ?? (oneSideOf(t.currency) === 'for' ? '1' : ''),
            members:t.members.map(x => ({...x})), showCur:false, curQ:'',
-           adding:false, newName:'', errs:{}, tone:t.tone, pays:[...t.pays], usedPays:t.usedPays,
+           adding:false, newName:'', errs:{}, tone:t.tone, toneSeq:t.toneSeq, pays:[...t.pays], usedPays:t.usedPays,
            newPay:'', photo:t.photo || null, tonePick:false };
 }
 
@@ -1088,7 +1147,7 @@ function memberRows(form, ctx) {
   return form.members.map((mem, i) => {
     const used = mem.used > 0;
     const avHtml = avatar(mem, i, true, ctx);
-    const rmHtml = `<button data-rm="${ctx}:${i}" style="font-size:var(--fs-body);color:${used?'#CDD3D0':'var(--gr)'};width:20px">${ic('close',12)}</button>`;
+    const rmHtml = `<button class="rmbtn" data-rm="${ctx}:${i}" style="color:${used?'#CDD3D0':'var(--gr)'}">${ic('close',16)}</button>`;
     // #19：「這是我」整組移除。owner_member_id 只被用來算「我的花費」，
     // 統計卡改成收合／展開後那個數字不再需要，欄位失去用途。
     return `<div class="rowb">
@@ -1190,13 +1249,13 @@ function rateRows(form) {
 function renderS02b() {
   const t = store.trips.find(x => x.id === editTripId);
   if (!fb || fb._id !== editTripId) { fb = tripToForm(t); fb._id = editTripId; }
-  const tone = fb.photo ? null : toneFor(fb.name, fb.tone);
+  const tone = fb.photo ? null : toneFor(fb.name, fb.tone, fb.toneSeq);
 
   $('#scr-s02b').innerHTML = `
     <div class="sheet" style="border-radius:0">
       ${b('S-02b-1', `<div class="shd" style="padding-top:14px"><h3>編輯行程</h3><button class="ic2" aria-label="關閉">${ic('close',20)}</button></div>`)}
 
-      ${b('S-02b-2', `<div class="fld"><span class="lbl" data-group="照片與色調兩個動作，非單一輸入欄">封面</span>
+      ${!COVER_UI ? '' : b('S-02b-2', `<div class="fld"><span class="lbl" data-group="照片與色調兩個動作，非單一輸入欄">封面</span>
         <div style="border:1px solid var(--ln);border-radius:var(--r-base);background:#fff;padding:4px">
           <div style="height:104px;border-radius:var(--r-base);position:relative;overflow:hidden;
             background:${fb.photo ? '#3A4750' : tone}">
@@ -1241,11 +1300,11 @@ function renderS02b() {
       ${b('S-02b-11', `<div class="fld"><span class="lbl" data-group="清單管理，非單一輸入欄">這趟的支付方式</span>
         <div class="gap">${fb.pays.map((p,i) => {
           const used = fb.usedPays[p] || 0;
-          return `<div class="rowb" data-payrow="${i}" style="padding:7px 14px">
+          return `<div class="rowb" data-payrow="${i}" style="padding:11px 14px">
             <span class="grip" data-paygrip="${i}" role="button" aria-label="拖曳排序">${ic('menu',16)}</span>
             <span style="flex:1;font-size:var(--fs-body);font-weight:600">${esc(p)}</span>
             <span style="font-size:var(--fs-sub);color:var(--gr)">${used ? used + ' 筆在用' : '還沒用到'}</span>
-            <button data-rmpay="${i}" style="font-size:var(--fs-body);color:${used?'#CDD3D0':'var(--gr)'};width:20px">${ic('close',12)}</button>
+            <button class="rmbtn" data-rmpay="${i}" style="color:${used?'#CDD3D0':'var(--gr)'}">${ic('close',16)}</button>
           </div>`;
         }).join('')}</div>
         <div style="display:flex;gap:7px;margin-top:8px">
@@ -1332,27 +1391,29 @@ const INDEX = {
   ],
   s02b: [
     ['S-02b-1','標題','st','「編輯行程」。<b>改（#30-2）</b>：關閉鍵改用 <code>.ic2</code>'],
-    ['S-02b-2','封面照片欄','op','有照片顯示照片，無則顯示目的地色調'],
-    ['S-02b-3','更換照片','op','原型以示意色塊代替真實上傳。#25-7 這一列與 S-02b-4 原本各被壓到 58px，已加 <code>.flexrow</code> 修正'],
-    ['S-02b-4','重選色調','op','展開 8 種預設盤'],
-    ['S-02b-5','上傳說明','st','只留「誰看得到」；壓縮規格已砍'],
+    ['S-02b-2','封面照片欄','hid','有照片顯示照片，無則顯示目的地色調。<b>暫時隱藏（#34-6）</b>：封面上傳是 Phase 2 的功能，這一階段沒有——整區由 <code>COVER_UI</code> 開關關掉，<b>程式碼留在原地</b>，Phase 2 打開就回來'],
+    ['S-02b-3','更換照片','hid','原型以示意色塊代替真實上傳。<b>暫時隱藏（#34-6）</b>：同 S-02b-2'],
+    ['S-02b-4','重選色調','hid','可重選色調；色調來源限 <code>destinations.ts</code> 八種。<b>暫時隱藏（#34-6）</b>：色調改為<b>自動</b>——先比對關鍵字（卡片要能一眼看出是哪一國），比對不到才依 <code>TONES</code> 的順序循環，序號在<b>建立行程當下決定並存起來</b>（否則刪掉一趟會讓後面所有行程的顏色集體位移）'],
+    ['S-02b-5','上傳說明','hid','<b>暫時隱藏（#34-6，吸收 #34-5）</b>：封面照片<b>目前沒有任何畫面在顯示</b>（首頁卡、行程頁 hero、分享頁 hero 三處都只畫漸層色調），所以「拿到分享連結的人看得到」這件事現在不成立；而且它掛在一塊漸層色下面，漸層色沒有隱私可言。<b>Phase 2 打開封面區時，這句要不要一起回來由 Rozi 決定，不要自動帶回</b>'],
     ['S-02b-6','封面 emoji','del','已移除：封面只有照片與色調兩種'],
     ['S-02b-7','成員列（唯讀態）','op','已有紀錄的成員 ✕ 呈 disabled'],
     ['S-02b-8','移除被擋的訊息','op','點 disabled 的 ✕ 才出現，用中性色不用橘紅'],
     ['S-02b-9','儲存','op','寫回 store，S-01 的卡片跟著變'],
-    ['S-02b-10','色調預設盤','op','8 種色票＋一個標著「自動」的選項，不用灰字解釋'],
+    ['S-02b-10','色調預設盤','hid','8 種色票＋一個標著「自動」的選項。<b>暫時隱藏（#34-6）</b>：同 S-02b-2'],
     ['S-02b-13','這趟怎麼結算？','op','<b>新（#22-6a）</b>：誰欠誰就轉給誰（預設）／都轉給同一個人。選第二項要選人，<b>預設帶代墊最多的成員</b>。<b>唯一入口</b>，S-05 只有引導連結'],
     ['S-02b-11','這趟的支付方式','op','可新增；已被使用的不可刪'],
     ['S-02b-12','這趟的現金匯率','op','<b>只有兩個輸入框</b>。「1」擺哪一欄依幣別決定（KRW 在台幣欄、JPY／THB／USD 在外幣欄），<b>「1」的那欄排在上面</b>，讀起來就是「1 X = N Y」'],
   ],
 };
-const KIND = { op:['可操作','op'], st:['靜態','st'], inv:['隱形','inv'], del:['已移除','del'] };
+/* hid＝暫時隱藏：程式碼還在、由開關關掉，不是移除。#34-6 的封面區用這個。 */
+const KIND = { op:['可操作','op'], st:['靜態','st'], inv:['隱形','inv'],
+               del:['已移除','del'], hid:['暫時隱藏','del'] };
 
 function renderIndex() {
   for (const [k, rows] of Object.entries(INDEX)) {
     $('#idx-' + k).innerHTML = `<table>
       <thead><tr><th>編號</th><th>元件</th><th>型態</th><th>說明</th></tr></thead><tbody>
-      ${rows.map(([id, el, kind, desc]) => `<tr class="${kind==='del'?'gone':''}">
+      ${rows.map(([id, el, kind, desc]) => `<tr class="${kind==='del'||kind==='hid'?'gone':''}">
         <td class="n">${id}</td><td class="el">${el}</td>
         <td><span class="kind ${KIND[kind][1]}">${KIND[kind][0]}</span></td>
         <td>${desc}</td></tr>`).join('')}
@@ -1552,7 +1613,7 @@ document.addEventListener('click', ev => {
 
 function createTrip() {
   const t = { id:nid(), name:f.name.trim(), start:f.start, end:f.end || f.start, status:'planned',
-              tone:null, currency:f.currency, members:f.members.map(x => ({...x})),
+              tone:null, toneSeq:nextToneSeq(), currency:f.currency, members:f.members.map(x => ({...x})),
               pays:['現金','信用卡'], usedPays:{} };
   store.trips.push(t);
   store.s01 = 'list';
@@ -1892,7 +1953,7 @@ function renderS03() {
   const nUn = S.unsettledList.length;
   const anyApprox = t.members.some(m => S.approx[m.id]);
 
-  let h = b('S-03-1', `<div class="hero" style="background:${toneFor(t.name, t.tone)}">
+  let h = b('S-03-1', `<div class="hero" style="background:${toneFor(t.name, t.tone, t.toneSeq)}">
     <div class="sc"></div>
     <div class="navrow">
       ${b('S-03-2', `<button class="ic2" aria-label="返回">${ic('back',20)}</button>`)}
@@ -2063,10 +2124,20 @@ function emojiForTitle(title) {
   if (/買|購物/.test(s))       return '🛍️';
   return '➕';
 }
+/* #35-1 「記一筆」預設今天，不是行程出發日。
+   兩邊的邊界只夾一邊：今天晚於回程日 → 夾到回程日，否則行程結束後補記的帳會被
+   dayLabel() 算成「第 200 天」那種分組；今天早於出發日 → 不夾，機票這類行前支出
+   本來就該落在「出發前」。回程日留空（當天來回）時不夾。
+   只影響新增；loadExp() 載入既有消費一律沿用那筆自己的日期。 */
+function defaultExpDate(t) {
+  const d = today();
+  return (t.end && d > t.end) ? t.end : d;
+}
+
 function blankExp() {
   const t = tripOf(store.s03Trip);
   // #33-4 預設是清單的第一項，不寫死「現金」——使用者可能把清單改成只有信用卡
-  return exp({ date: t.start, parts: t.members.map(m => m.id), payer: null,
+  return exp({ date: defaultExpDate(t), parts: t.members.map(m => m.id), payer: null,
                pay: (t.pays || [])[0] || '' });
 }
 function loadExp(id) {
@@ -2082,11 +2153,13 @@ function renderS04() {
   let h = b('S-04-1', `<div class="shd" style="padding-top:14px"><h3>${g._edit ? '編輯消費' : '記一筆'}</h3><button class="ic2" id="s04x" aria-label="關閉">${ic('close',20)}</button></div>`);
 
   // #29-1 日期不是「這一筆的屬性」，是「這一批帳的共同前提」——一天只設一次，
-  // 卻擋在每筆都要填的「誰付的」前面。移出欄位序列，改成標題下的一條窄狀態列。
-  h += b('S-04-10', `<button class="daterow" id="e-daterow">
-      <span class="k">記在</span><span class="v tnum">${md(g.date)}（${'日一二三四五六'[new Date(g.date).getDay()]}）</span>
-      ${ic('next',16)}
-      <input type="date" id="e-date" value="${g.date}"></button>`);
+  // 卻擋在每筆都要填的「誰付的」前面，所以放在標題正下方，不排進欄位序列。
+  // #35-2 改成與「去哪？」同款的欄位列（標籤與值同一列），不再是灰底窄狀態列。
+  h += b('S-04-10', `<div class="fld"><div class="fieldrow datefield" id="e-daterow">
+      <span class="lbl">記在</span>
+      <span class="v tnum">${md(g.date)}（${'日一二三四五六'[new Date(g.date).getDay()]}）</span>
+      ${ic('calendar',16)}
+      <input type="date" id="e-date" value="${g.date}"></div></div>`);
 
   h += b('S-04-2', `<div class="fld"><div class="fieldrow">
       ${b('S-04-3', editing === 'exp:g'
@@ -2167,9 +2240,10 @@ function paintS04() {
     const n = (g.parts||[]).length;
     tb.innerHTML = b('S-04-12', `<div style="margin-top:10px">
       <div class="sharedhead">
-        <div><div style="font-size:var(--fs-body);font-weight:600">${n} 人均分</div>
-          ${b('S-04-13', `<div class="money" style="font-size:var(--fs-money);font-weight:600;margin-top:2px">${
-            c.twdPending ? '每人 —' : '每人 ' + money(Math.round(c.twdTotal / Math.max(1,n)))}</div>`)}</div>
+        <div class="shareline"><span style="font-size:var(--fs-body);font-weight:600">${n} 人均分</span>
+          <span class="sep" aria-hidden="true">·</span>
+          ${b('S-04-13', `<span class="money" style="font-size:var(--fs-money);font-weight:600">${
+            c.twdPending ? '每人 —' : '每人 ' + money(Math.round(c.twdTotal / Math.max(1,n)))}</span>`, 'inl')}</div>
         <button class="expandbtn" data-eexpand>${g._partsOpen ? '收起' : '要排除誰？'}</button>
       </div>
       ${g._partsOpen ? `<div class="gap" style="margin-top:9px">${t2.members.map(m => {
@@ -2177,7 +2251,7 @@ function paintS04() {
         return `<button class="rowb${on?' on':''}" data-epart="${m.id}">
           <span style="font-size:var(--fs-title)">${m.emoji||firstGrapheme(m.name)}</span>
           <span style="flex:1;font-weight:600">${esc(m.name)}</span>
-          <span class="selchip ${on?'on':''}">分</span></button>`; }).join('')}</div>` : ''}
+          <span class="chkchip ${on?'on':''}" aria-hidden="true"></span></button>`; }).join('')}</div>` : ''}
     </div>`);
   } else if (g.type === 'single') {
     tb.innerHTML = b('S-04-17', `<div style="margin-top:10px"><span class="lbl" data-group="chips 多選一，非單一輸入欄">算誰的？</span>
@@ -2822,7 +2896,7 @@ function renderS06() {
   const per = S.t.members.length ? Math.round(S.total / S.t.members.length) : 0;
   const list = [...S.list].sort((a,c) => a.date.localeCompare(c.date));
 
-  let h = b('S-06-1', `<div class="hero" style="background:${toneFor(t.name, t.tone)};padding-top:22px">
+  let h = b('S-06-1', `<div class="hero" style="background:${toneFor(t.name, t.tone, t.toneSeq)};padding-top:22px">
     <div class="sc"></div>
     ${b('S-06-2', `<span style="position:absolute;top:10px;right:12px"><span class="stamp">朋友檢視</span></span>`)}
     ${b('S-06-3', `<div style="position:relative"><div class="tt">${esc(t.name)}</div>
