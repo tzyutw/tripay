@@ -111,30 +111,6 @@ html.anno .b.rt>.bdg{left:auto;right:0}
 html.anno .b.inl>.bdg{top:0;left:0}
 html.anno .b>.bdg:hover{background:#0F5E9E}
 
-/* ══ #27-3 icon 候選對照條（只在標註模式出現，不屬於任何一個畫面）══ */
-html:not(.anno) #iconpick{display:none}
-/* 全部走頁面自己的 token——這一頁預設深色、跟隨系統切淺色，寫死色值會有一邊看不見。 */
-#iconpick{margin:18px 0 0;background:var(--pg2);border:1px solid var(--pgrule);border-radius:3px;
-  overflow:hidden;max-width:78ch}
-#iconpick .hd{padding:11px 14px;border-bottom:1px solid var(--pgrule);border-left:2px solid var(--mark)}
-#iconpick .hd b{font-size:13.5px;color:var(--pgink)}
-#iconpick .hd p{margin:5px 0 0;font-size:12px;color:var(--pgink2);line-height:1.6}
-#iconpick .hd p b{font-size:12px}
-#iconpick .grp{padding:12px 14px;border-bottom:1px solid var(--pgrule);color:var(--pgink)}
-#iconpick .grp:last-child{border-bottom:0}
-#iconpick .grp.on{background:var(--pg3)}
-#iconpick .gh{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
-#iconpick .gh .nm{font-size:12.5px;font-weight:600;color:var(--pgink)}
-#iconpick .gh .lic{font-size:11px;color:var(--pgink3)}
-#iconpick .gh button{margin-left:auto;font-size:11px;font-weight:600;padding:4px 10px;border-radius:3px;
-  border:1px solid var(--mark);color:var(--mark);background:transparent;cursor:pointer}
-#iconpick .grp.on .gh button{background:var(--mark);color:var(--pg);border-color:var(--mark)}
-#iconpick .row{display:flex;flex-wrap:wrap;gap:13px;align-items:center;margin-bottom:8px}
-#iconpick .row:last-child{margin-bottom:0}
-#iconpick .row .sz{font-size:10px;color:var(--pgink3);width:32px;flex:none}
-#iconpick .cell{display:flex;flex-direction:column;align-items:center;gap:3px;width:42px;color:var(--pgink)}
-#iconpick .cell span{font-size:9px;color:var(--pgink3)}
-
 /* ══ 產品 UI（日記精裝 tokens）══ */
 .ui{background:#EDEEE8;color:#151C21;font-size:13px;line-height:1.5;
   --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#9B1B14;   /* #25-8 destructive 比提醒深一階；白字對比 7.7:1 */
@@ -254,8 +230,14 @@ html:not(.anno) #iconpick{display:none}
 .ui .hero .navrow{position:relative;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .ui .hero .nb{font-size:12px;font-weight:600;color:rgba(255,255,255,.92)}
 .ui .hero .icons{display:flex;gap:6px}
-.ui .hero .ic2{width:26px;height:26px;border-radius:4px;background:rgba(255,255,255,.2);
-  display:flex;align-items:center;justify-content:center;font-size:12px}
+/* #28-7 原本 26×26 沒有邊框、icon 只有 15px，可點區遠低於 44 的最小觸控標準。
+   改成 40×40 正圓＋一圈線，icon 20px；可點區靠外距撐到 44，容器本身維持 40。
+   淺底是預設，深色 hero 上覆寫——灰線在彩色 hero 上會髒，改用半透明白線。 */
+.ui .ic2{width:40px;height:40px;border-radius:50%;box-sizing:border-box;
+  display:flex;align-items:center;justify-content:center;position:relative;flex:none;
+  background:#fff;border:1px solid var(--ln);color:var(--md)}
+.ui .ic2::after{content:'';position:absolute;left:-2px;top:-2px;width:44px;height:44px}
+.ui .hero .ic2{background:rgba(0,0,0,.28);border-color:rgba(255,255,255,.35);color:#fff}
 .ui .hero .tt{position:relative;font-size:19px;font-weight:700;letter-spacing:-.01em}
 .ui .hero .dt{position:relative;font-size:11px;color:rgba(255,255,255,.86);margin-top:4px}
 .ui .statcard{background:#fff;border-bottom:1px solid var(--ln)}
@@ -295,6 +277,8 @@ html:not(.anno) #iconpick{display:none}
 .ui .exprow .a{font-size:12.5px;font-weight:600;text-align:right;flex:none}
 .ui .delrow{padding:14px;text-align:center;font-size:11px;color:var(--dg)}
 .ui .delrow span{border-bottom:1px solid #D7BCB2;display:inline-flex;align-items:center;gap:4px}
+.ui .mrule{height:1px;background:var(--ln);margin:0 -14px}
+.ui .shopt.del .t{color:var(--dg)}
 .ui .shopt{padding:11px 0;border-bottom:1px solid var(--ln)}
 .ui .shopt.last{border-bottom:0}
 .ui .shopt .t{margin:0;font-size:12.5px;font-weight:600}
@@ -355,6 +339,21 @@ html:not(.anno) #iconpick{display:none}
 .ui .txhead{padding:12px 14px 4px;font-size:12.5px;font-weight:600}
 .ui .txtitle{padding:0 14px 2px;font-size:15px;font-weight:700}
 .ui .txsub{padding:0 14px 10px;font-size:10.5px;color:var(--gr)}
+/* #28-2 .sec 一直沒有樣式定義，凡是用它的地方都是裸 div——文字頂到 x=0、字級偏大、
+   顏色不是灰的，三件事同一個根因。與 .txsec 對齊同一套語彙，左內距 14px，
+   和卡片、統計卡、.fld 同一條 x 軸。 */
+.ui .sec{padding:10px 14px 5px;font-size:10.5px;font-weight:600;color:var(--gr)}
+/* 結算分頁是把 S-05 的輸出整段借過來的。S-05 自己帶著導覽列（‹ 結算），
+   放進分頁裡就變成兩顆返回鍵疊在一起。用 CSS 收起來，**不動 S-05 的輸出**。 */
+.ui #s03settlepane > .b:has(> .bar), .ui #s03settlepane > .bar{display:none}
+/* S-06 的兩個統計格是同一種病：.stats 也從來沒有定義過，所以金額直接頂到 x=0。
+   比照 S-03 的 .statcard，左右各留 14px。 */
+.ui .stats{display:flex;background:#fff;border-bottom:1px solid var(--ln)}
+.ui .stats > .b{flex:1;min-width:0}
+.ui .stats > .b + .b{border-left:1px solid #F1F2EE}
+.ui .stats > .b > div{padding:11px 14px;text-align:center}
+.ui .stats b{display:block;font-size:16px;font-weight:600}
+.ui .stats span{display:block;font-size:9.5px;color:var(--gr);margin-top:3px}
 .ui .txsec{padding:10px 14px 5px;font-size:10.5px;font-weight:600;color:var(--gr)}
 .ui .txempty{margin:0 14px;padding:14px;text-align:center;font-size:12.5px;color:var(--gr);
   background:#fff;border:1px solid var(--ln);border-radius:3px}
@@ -439,7 +438,6 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
     不出現在原型上，號碼也不回收。<b>看不見的行為</b>（排序、列表過濾、登入後跳轉）沒有區塊可標，
     在右側清單標為「隱形」。
   </div>
-  <div id="iconpick"></div>
 </header>
 
 <!-- ══════════ S-00 ══════════ -->
@@ -466,7 +464,7 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
         <button data-s="list">有行程</button><button data-s="empty">空狀態</button><button data-s="loading">載入中</button>
       </div></div>
   </div>
-  <div><p class="cnt">編號清單 · 14 項（2 項已移除、2 項隱形）</p><div class="idx" id="idx-s01"></div></div>
+  <div><p class="cnt">編號清單 · 15 項（2 項已移除、2 項隱形）</p><div class="idx" id="idx-s01"></div></div>
 </section>
 
 <!-- ══════════ S-02 ══════════ -->
@@ -512,7 +510,7 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
         <button data-st="empty">還沒記帳</button><button data-st="reset">重置示範資料</button>
       </div></div>
   </div>
-  <div><p class="cnt">編號清單 · 30 項</p><div class="idx" id="idx-s03"></div></div>
+  <div><p class="cnt">編號清單 · 33 項</p><div class="idx" id="idx-s03"></div></div>
 </section>
 
 <!-- ══════════ S-03d ══════════ -->
@@ -659,63 +657,32 @@ const GOOGLE_G = `<svg class="gmark" viewBox="0 0 118 120" width="18" height="18
 
    #27-5a：原本還有 filter 與 money 兩個鍵，全站沒有任何 ic() 用到，已刪。
    往後要新增 icon 才加鍵——沒人用的 icon 沒人維護，換風格時它會是唯一沒被換到的那個。 */
-const ICON_SETS = {
-  /* Lucide（ISC）https://lucide.dev */
-  lucide: {
-    back:    '<path d="m15 18-6-6 6-6" />',
-    next:    '<path d="m9 18 6-6-6-6" />',
-    down:    '<path d="m6 9 6 6 6-6" />',
-    up:      '<path d="m18 15-6-6-6 6" />',
-    edit:    '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /> <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" />',
-    copy:    '<rect width="14" height="14" x="8" y="8" rx="2" ry="2" /> <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />',
-    share:   '<circle cx="18" cy="5" r="3" /> <circle cx="6" cy="12" r="3" /> <circle cx="18" cy="19" r="3" /> <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" /> <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />',
-    settings:'<path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /> <circle cx="12" cy="12" r="3" />',
-    add:     '<path d="M5 12h14" /> <path d="M12 5v14" />',
-    del:     '<path d="M10 11v6" /> <path d="M14 11v6" /> <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /> <path d="M3 6h18" /> <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />',
-    check:   '<path d="M20 6 9 17l-5-5" />',
-    warn:    '<circle cx="12" cy="12" r="10" /> <line x1="12" x2="12" y1="8" y2="12" /> <line x1="12" x2="12.01" y1="16" y2="16" />',
-    close:   '<path d="M18 6 6 18" /> <path d="m6 6 12 12" />',
-  },
-  /* Feather（MIT）https://feathericons.com */
-  feather: {
-    back:    '<polyline points="15 18 9 12 15 6"/>',
-    next:    '<polyline points="9 18 15 12 9 6"/>',
-    down:    '<polyline points="6 9 12 15 18 9"/>',
-    up:      '<polyline points="18 15 12 9 6 15"/>',
-    edit:    '<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
-    copy:    '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
-    share:   '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
-    settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
-    add:     '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-    del:     '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
-    check:   '<polyline points="20 6 9 17 4 12"/>',
-    warn:    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
-    close:   '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
-  },
-  /* Heroicons（MIT）https://heroicons.com */
-  hero: {
-    back:    '<path d="M15.75 19.5 8.25 12l7.5-7.5"/>',
-    next:    '<path d="m8.25 4.5 7.5 7.5-7.5 7.5"/>',
-    down:    '<path d="m19.5 8.25-7.5 7.5-7.5-7.5"/>',
-    up:      '<path d="m4.5 15.75 7.5-7.5 7.5 7.5"/>',
-    edit:    '<path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/>',
-    copy:    '<path d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"/>',
-    share:   '<path d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"/>',
-    settings:'<path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/> <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>',
-    add:     '<path d="M12 4.5v15m7.5-7.5h-15"/>',
-    del:     '<path d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>',
-    check:   '<path d="m4.5 12.75 6 6 9-13.5"/>',
-    warn:    '<path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>',
-    close:   '<path d="M6 18 18 6M6 6l12 12"/>',
-  },
-};
+/* 全站 icon（Feather，MIT）。Rozi 2026-09-05 從三組候選裡選定，對照條隨之移除。
+   線性系統：ic() 統一給 fill="none"、stroke="currentColor"、單一線寬，這裡只放造形。
+   方向鍵是開放折線的 chevron，不是實心三角——實心三角在 iOS 的語意是播放／排序。
 
-/* Rozi 從對照條選定後，只要改這一行。三組的 stroke-width／尺寸／顏色都一樣，只差造形。 */
-let ICON_SET = 'lucide';
-let ICON = ICON_SETS[ICON_SET];
+   ⚠️ Apple 的系統圖示與系統字體一律不得使用：授權限「執行在 Apple 作業系統上的軟體」，
+   且不得修改、不得內嵌。Tripay 是網頁，不在授權範圍。授權記在 _icon授權.md。
+   往後要新增 icon 才加鍵——沒人用的 icon 沒人維護，換風格時它會是唯一沒被換到的那個。 */
+const ICON = {
+  back:    '<polyline points="15 18 9 12 15 6"/>',
+  next:    '<polyline points="9 18 15 12 9 6"/>',
+  down:    '<polyline points="6 9 12 15 18 9"/>',
+  up:      '<polyline points="18 15 12 9 6 15"/>',
+  edit:    '<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
+  copy:    '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  share:   '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  add:     '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  del:     '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+  check:   '<polyline points="20 6 9 17 4 12"/>',
+  warn:    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  close:   '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  more:    '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+};
 const ICON_STROKE = 1.7;   /* 全站唯一線寬，在 24 格上量 */
-function ic(name, size, set) {
-  const g = (ICON_SETS[set] || ICON)[name];
+function ic(name, size) {
+  const g = ICON[name];
   return `<svg class="ic" viewBox="0 0 24 24" width="${size||18}" height="${size||18}"
     fill="none" stroke="currentColor" stroke-width="${ICON_STROKE}"
     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${g}</svg>`;
@@ -860,9 +827,13 @@ function renderS00() {
       padding:64px 26px 30px;display:flex;flex-direction:column;align-items:center;min-height:520px">
       ${b('S-00-2', `<div style="color:#fff;font-size:42px;font-weight:700;letter-spacing:-.03em;line-height:1">Tripay</div>`)}
       ${b('S-00-3', `<div style="color:rgba(255,255,255,.8);font-size:13px;letter-spacing:.32em;margin-top:12px">每一趟，都記得</div>`)}
-      ${b('S-00-4', `<div style="color:rgba(255,255,255,.66);font-size:13.5px;text-align:center;max-width:200px;margin-top:28px">大家一起出發，帳交給 Tripay。</div>`)}
-      <div style="height:34px"></div>
-      ${b('S-00-5', `<button id="s00login" class="gbtn">${GOOGLE_G} 用 Google 繼續</button>`)}
+      <!-- #28-3 標語與登入鈕共用一個 200px 的欄，兩者都填滿它。
+           只把按鈕設成 200px 不夠——標語會停在它自己的 189px，還是不齊。 -->
+      <div style="width:200px;display:flex;flex-direction:column;align-items:stretch">
+        ${b('S-00-4', `<div style="color:rgba(255,255,255,.66);font-size:13.5px;text-align:center;margin-top:28px">大家一起出發，帳交給 Tripay。</div>`)}
+        <div style="height:34px"></div>
+        ${b('S-00-5', `<button id="s00login" class="gbtn" style="width:100%">${GOOGLE_G} 用 Google 繼續</button>`)}
+      </div>
       <div style="flex:1;min-height:24px"></div>
       <div style="color:rgba(255,255,255,.4);font-size:10px;text-align:center;line-height:1.5">
         移除了 App icon 與幽靈卡<br>識別由字標與 slogan 承擔</div>
@@ -875,7 +846,10 @@ function renderS00() {
 function renderS01() {
   const head = `${b('S-01-1', `<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 11px;border-bottom:1px solid var(--ln)">
       <span style="font-size:21px;font-weight:700;letter-spacing:-.02em;color:var(--wi)">Tripay</span>
-      ${b('S-01-2', `<button id="s01new" style="background:var(--w);color:#fff;font-size:12px;font-weight:600;padding:7px 12px;border-radius:3px">＋ 新增行程</button>`, 'rt')}
+      <span style="display:flex;align-items:center;gap:8px">
+        ${b('S-01-2', `<button id="s01new" style="background:var(--w);color:#fff;font-size:12px;font-weight:600;padding:7px 12px;border-radius:3px">＋ 新增行程</button>`)}
+        ${b('S-01-15', `<button class="ic2" aria-label="設定">${ic('settings',20)}</button>`)}
+      </span>
     </div>`)}`;
 
   let body = '';
@@ -1164,6 +1138,7 @@ const INDEX = {
     ['S-01-12','列表過濾','inv','只顯示 kind=trip，帳單週期不混進來'],
     ['S-01-13','成員識別的適用範圍','inv','僅首頁不顯示成員；其他頁照常'],
     ['S-01-14','行程 emoji 全站退場','inv','卡片右上角 emoji 已拿掉，欄位保留'],
+    ['S-01-15','設定入口','op','<b>新（#28-6c）</b>：從 S-03 行程頁移過來。那是 <b>App 設定</b>（登入帳號、我的資料），不是這趟行程的設定，掛在行程頁是層級錯位。放標題列右上、「＋ 新增行程」之後——設定的使用頻率比新增行程低'],
   ],
   s02: [
     ['S-02-1','遮罩','st','黑 45%，點擊關閉'],
@@ -1460,6 +1435,8 @@ store.expenses = { t1: demoExpenses(), t2: [], t3: [] };
 store.s03Trip = 't1';
 store.s03Filter = null;     // {kind:'all'|'member', memberId}
 store.s03StatOpen = false;  // #17-2 統計卡預設收合
+store.s03Tab = 'exp';       // #28-6a 消費／結算兩個分頁
+store.s03Menu = false;      // #28-6b ⋯ 選單
 store.s03Cur = 'TWD';       // #17-3 幣別切換
 
 const tripOf = id => store.trips.find(x => x.id === id);
@@ -1624,12 +1601,28 @@ function renderS03() {
   let h = b('S-03-1', `<div class="hero" style="background:${toneFor(t.name, t.tone)}">
     <div class="sc"></div>
     <div class="navrow">
-      ${b('S-03-2', `<span class="nb">${ic('back',16)} 返回</span>`)}
-      <span class="icons">${b('S-03-3',`<span class="ic2">${ic('edit',15)}</span>`)}${b('S-03-4',`<span class="ic2">${ic('copy',15)}</span>`)}${b('S-03-5',`<span class="ic2">${ic('share',15)}</span>`)}${b('S-03-6',`<span class="ic2">${ic('settings',15)}</span>`)}</span>
+      ${b('S-03-2', `<button class="ic2" aria-label="返回">${ic('back',20)}</button>`)}
+      ${b('S-03-31', `<button class="ic2" id="s03more" aria-label="更多">${ic('more',20)}</button>`)}
     </div>
     ${b('S-03-7', `<div class="tt">${esc(t.name)}</div>`)}
     ${b('S-03-8', `<div class="dt tnum">${dateRange(t.start, t.end)}　${t.members.map(m=>m.emoji||firstGrapheme(m.name)).join('')}</div>`)}
   </div>`);
+
+  // #28-6a 分段控制：切換檢視，不是動作。「結算」分頁的內容就是 S-05 整頁。
+  h += b('S-03-33', `<div class="fld" style="padding-top:12px"><div class="seg">
+    <button class="${store.s03Tab==='exp'?'on':''}" data-s03tab="exp">消費</button>
+    <button class="${store.s03Tab==='settle'?'on':''}" data-s03tab="settle">結算</button></div></div>`);
+
+  if (store.s03Tab === 'settle') {
+    // S-05 一個字都沒動——這裡只是把它的輸出借過來放進分頁。
+    h += `<div id="s03settlepane"></div>`;
+    h += s03MoreSheet(st);
+    h += `<div id="s03toast"></div>`;
+    $('#scr-s03').innerHTML = h;
+    renderS05(); syncSettlePane();
+    document.querySelectorAll('#s03rig button').forEach(x => x.classList.toggle('on', x.dataset.st === st));
+    return;
+  }
 
   // 統計卡：預設只顯示總花費，每人分擔收合（#17-2）
   const openStat = store.s03StatOpen;
@@ -1682,15 +1675,39 @@ function renderS03() {
     }
   }
 
-  h += st === 'archived'
-    ? b('S-03-24', `<div class="btnrow"><span class="btn gh">重新開啟</span></div>`)
-    : st === 'settled'
-      ? b('S-03-23', `<div class="btnrow"><span class="btn gh">查看結算</span><span class="btn qt">封存行程</span></div>`)
-      : b('S-03-22', `<div class="btnrow"><button class="btn gh" id="s03settle">結算行程</button><button class="btn" id="s03add">${ic('add',16)} 記一筆</button></div>`);
-  h += b('S-03-25', `<div class="delrow"><span>${ic('del',14)} 刪除這趟行程</span></div>`);
+  // #28-6b 底部只留一顆主鈕，且依狀態變。已結算態沒有主鈕——那時的主要動作是
+  // 「逐筆標記付清」，那在結算分頁裡做，不在這裡。
+  if (st === 'archived')
+    h += b('S-03-24', `<div class="btnrow"><button class="btn gh">重新開啟行程</button></div>`);
+  else if (st !== 'settled')
+    h += b('S-03-22', `<div class="btnrow"><button class="btn" id="s03add">${ic('add',16)} 記一筆</button></div>`);
+  h += s03MoreSheet(st);
   h += `<div id="s03toast"></div>`;
   $('#scr-s03').innerHTML = h;
   document.querySelectorAll('#s03rig button').forEach(x => x.classList.toggle('on', x.dataset.st === st));
+}
+/* #28-6b ⋯ 選單。沿用既有的 .sheet 底部彈層，不新造第三種。
+   內容依行程狀態變：封存時不出現「編輯行程」（封存＝預設只讀）；
+   「刪除行程」是選單裡唯一著色的一項。 */
+function s03MoreSheet(st) {
+  if (!store.s03Menu) return '';
+  const item = (id, txt) => id
+    ? b(id, `<button class="shopt"><p class="t">${txt}</p></button>`)
+    : `<button class="shopt"><p class="t">${txt}</p></button>`;
+  const rule = `<div class="mrule"></div>`;
+  let body = '';
+  if (st !== 'archived') body += item('S-03-3', '編輯行程');
+  body += item('S-03-5', '分享') + rule + item('S-03-4', '複製成新的一趟') + rule;
+  if (st === 'settled') body += item(null, '封存行程');
+  body += b('S-03-25', `<button class="shopt del"><p class="t">刪除行程</p></button>`);
+  return b('S-03-32', `<div class="scrim" style="padding:22px 0 0" id="s03menuscrim">
+      <div style="font-size:10px;color:rgba(255,255,255,.7);text-align:center;padding-bottom:12px">遮罩 · 點擊關閉</div></div>
+    <div class="sheet"><div class="grab"></div><div style="padding:6px 14px 0">${body}</div>
+      <div style="padding:6px 14px 16px"><button class="btn qt" id="s03menux">取消</button></div></div>`);
+}
+function syncSettlePane() {
+  const pane = document.getElementById('s03settlepane'), src = document.getElementById('scr-s05');
+  if (pane && src) pane.innerHTML = src.innerHTML;
 }
 function RULES_CUR_SYM(c) { const f = CURRENCIES.find(x => x[0] === c); return f ? f[2] : '¥'; }
 
@@ -1705,7 +1722,7 @@ function renderS03d() {
     title = `影響 ${m ? m.name : ''} 的 · ${rows.length} 筆`;
   }
   $('#scr-s03d').innerHTML =
-    b('S-03d-2', `<div class="bar"><button class="bk" id="s03dback">${ic('back',15)} 回行程</button><span class="ttl">${esc(title.split(' · ')[0])}</span><span style="width:52px"></span></div>`) +
+    b('S-03d-2', `<div class="bar"><button class="ic2" id="s03dback" aria-label="返回">${ic('back',20)}</button><span class="ttl">${esc(title.split(' · ')[0])}</span><span style="width:40px"></span></div>`) +
     b('S-03d-1', `<div class="sec">${esc(title)}</div>`) +
     (rows.length
       ? rows.map(({e,c}, i) => {
@@ -1938,7 +1955,7 @@ function settleTrip(tid) {
 function renderS05() {
   const { net, tx, S } = settleTrip(store.s03Trip), t = S.t;
   const nUn = S.unsettledList.length;
-  const nav = `<div class="bar"><span class="bk">${ic('back',15)} 返回</span><span class="ttl">結算</span><span style="width:52px"></span></div>`;
+  const nav = `<div class="bar"><button class="ic2" aria-label="返回">${ic('back',20)}</button><span class="ttl">結算</span><span style="width:40px"></span></div>`;
   let h = '';
 
   if (store.s05 === 'check') {
@@ -2099,11 +2116,11 @@ function nm2(t, id) { const m = t.members.find(x => x.id === id) || {}; return (
 Object.assign(INDEX, {
   s03: [
     ['S-03-1','Hero','st','目的地色調＋壓暗遮罩'],
-    ['S-03-2','返回','st','回首頁'],
-    ['S-03-3','編輯行程','st','開 S-02b。封存時隱藏'],
-    ['S-03-4','複製行程','st','以這趟為範本開新行程'],
-    ['S-03-5','↑ 分享','st','開分享選單（S-03b，批三）'],
-    ['S-03-6','設定','st','全站唯一設定入口'],
+    ['S-03-2','返回','st','回首頁。<b>改（#28-4）</b>：拿掉「返回」二字只留 icon——返回永遠在左上角、永遠是同一顆，第一次點過就記住；文字在深色 hero 上還會跟行程標題爭視線。<code>aria-label="返回"</code> 保留，可點區維持 ≥44×44'],
+    ['S-03-3','編輯行程','op','開 S-02b。<b>改（#28-6b）</b>：從 hero 右上的 icon 排<b>移進 ⋯ 選單</b>，編號不變。封存態不出現（封存＝預設只讀）'],
+    ['S-03-4','複製行程','op','以這趟為範本開新行程。<b>改（#28-6b）</b>：<b>移進 ⋯ 選單</b>，文案改「複製成新的一趟」——它產出的是一趟新行程，屬於首頁層級，不該跟這趟的動作並排'],
+    ['S-03-5','分享','op','開分享選單（S-03b）。<b>改（#28-6b）</b>：<b>移進 ⋯ 選單</b>，編號不變'],
+    ['S-03-6','設定','del','<b>已移除（#28-6c）</b>：這是 <b>App 設定</b>（登入帳號、我的資料），不是這趟行程的設定，掛在行程頁是層級錯位。入口移到首頁標題列右上（S-01-15）。編號保留不回收'],
     ['S-03-7','行程名稱','st',''],
     ['S-03-8','日期＋成員','st','成員 emoji 在這裡顯示（首頁卡不顯示）'],
     ['S-03-9','總花費（可展開）','op','<b>改（#17-2）</b>：預設只顯示總花費，每人分擔收合。有人被標「約」時收合列上有提示點'],
@@ -2119,15 +2136,18 @@ Object.assign(INDEX, {
     ['S-03-19','「只算一個人」badge','st','顯示算的是誰'],
     ['S-03-20','「當場就清了」badge','st','<b>改（#22-4）</b>：與 S-04-18 同名，記錄但不進結算'],
     ['S-03-21','贊助列','st','負額共同項'],
-    ['S-03-22','底部列 · 旅途中','op','結算行程／＋ 記一筆'],
-    ['S-03-23','底部列 · 已結算','st','查看結算／封存行程'],
-    ['S-03-24','底部列 · 已封存','st','重新開啟'],
-    ['S-03-25','刪除這趟行程','st','弱化文字連結，點了才開對話框（批三）'],
+    ['S-03-22','底部列 · 旅途中','op','<b>改（#28-6b）</b>：只剩一顆主鈕「＋ 記一筆」。「結算行程」由分段控制（S-03-32）取代——結算是一個檢視，不是一次性動作'],
+    ['S-03-23','底部列 · 已結算','del','<b>已移除（#28-6b）</b>：已結算態<b>沒有底部主鈕</b>——那時的主要動作是「逐筆標記付清」，那在結算分頁裡做。「查看結算」由分段控制（S-03-33）取代，「封存行程」移進 ⋯ 選單。編號保留'],
+    ['S-03-24','底部列 · 已封存','st','<b>改（#28-6b）</b>：「重新開啟行程」留在底部主位——唯讀狀態下那是唯一能做的事，值得佔主位'],
+    ['S-03-25','刪除行程','op','<b>改（#28-6b）</b>：從列表底部的弱化連結<b>移進 ⋯ 選單</b>，是選單裡<b>唯一著色</b>的一項（<code>--dg</code>）。點了才開 S-03c 對話框。編號不變'],
     ['S-03-26','Toast','inv','存檔後的提示，四種文案見 S-04-36'],
     ['S-03-27','每人分擔列','op','<b>新</b>：每位成員一列。算不清楚的加「約」＋虛線底線，<b>整列可點</b>進 S-03d'],
     ['S-03-28','統計卡註腳','st','<b>新</b>：「標『約』的金額還沒算清楚，點名字看是哪幾筆」。沒人被標「約」就整行不顯示'],
     ['S-03-29','未定案入口','op','<b>新</b>：「有 N 筆還沒算清楚 ›」。N＝0 整條不顯示；同筆同時符合兩種條件只算一次'],
     ['S-03-30','已結算／已封存不提醒','inv','<b>新</b>：不顯示「約」、不顯示入口、不做結算前檢查（規格 §5.6）'],
+    ['S-03-31','⋯ 選單觸發鈕','op','<b>新（#28-6b）</b>：hero 右上唯一的一顆。原本那排四個 icon 混了三種層級——每天要用的只有記帳、複製行程產出的是新行程屬於首頁、設定是 App 層級的，這是違和感的來源'],
+    ['S-03-32','⋯ 選單','op','<b>新（#28-6b）</b>：沿用既有的 <code>.sheet</code> 底部彈層，不新造第三種。內容依狀態變——準備／旅途中 4 項、已結算 5 項（多「封存行程」）、已封存 3 項（沒有「編輯行程」）'],
+    ['S-03-33','消費／結算分段控制','op','<b>新（#28-6a）</b>：兩格，切換<b>檢視</b>不是動作。「結算」分頁的內容就是 S-05 整頁，<b>S-05 的編號、內容與行為一律未動</b>，只改了從哪裡進去'],
   ],
   s03d: [
     ['S-03d-1','標題','op','<b>新</b>：從入口進＝「還沒算清楚 · N 筆」；從成員進＝「影響 {名字} 的 · N 筆」'],
@@ -2216,40 +2236,7 @@ Object.assign(INDEX, {
 /* ═══ 批二互動 ═══ */
 function renderBatch2() { renderS03(); renderS03d(); renderS04(); renderS05(); }
 /* 批一用的是 renderAll()，沒有 render()。這裡補一個涵蓋全部的入口。*/
-/* #27-3 icon 候選對照條。三組只差造形——stroke-width、尺寸、顏色都由 ic() 統一給，
-   否則比較不出來。點「用這組」會即時換掉全站 icon，Rozi 可以直接在畫面上看。 */
-const ICON_SET_META = {
-  lucide:  { nm:'Lucide',    lic:'ISC',  url:'lucide.dev' },
-  feather: { nm:'Feather',   lic:'MIT',  url:'feathericons.com' },
-  hero:    { nm:'Heroicons', lic:'MIT',  url:'heroicons.com' },
-};
-function renderIconPick() {
-  const keys = Object.keys(ICON);
-  let h = `<div class="hd"><b>全站 icon 候選 —— 挑一組</b>
-    <p>三組都是可商用、可修改的開源集，線寬與尺寸完全相同，<b>只差造形</b>。
-    ${keys.length} 個 icon 全部列出，並以實際使用尺寸渲染。
-    按「用這組」會立刻換掉底下所有畫面的 icon，可以直接比。
-    <br><b>SF Symbols 不能用</b>：Apple 授權只涵蓋「執行在 Apple 作業系統上的軟體」，
-    且不得修改、不得內嵌——Tripay 是網頁，不在範圍內。以下是做出接近的風格，不是拿它的檔案。</p></div>`;
-  h += Object.keys(ICON_SETS).map(k => {
-    const m = ICON_SET_META[k];
-    const row = (px) => `<div class="row"><span class="sz">${px}px</span>` +
-      keys.map(n => `<span class="cell">${ic(n, px, k)}<span>${n}</span></span>`).join('') + `</div>`;
-    return `<div class="grp${k === ICON_SET ? ' on' : ''}">
-      <div class="gh"><span class="nm">${m.nm}</span><span class="lic">${m.lic} · ${m.url}</span>
-        <button data-iconset="${k}">${k === ICON_SET ? '目前這組' : '用這組'}</button></div>
-      ${row(17)}${row(20)}</div>`;
-  }).join('');
-  $('#iconpick').innerHTML = h;
-}
-document.addEventListener('click', ev => {
-  const t = ev.target.closest('[data-iconset]');
-  if (!t) return;
-  ICON_SET = t.dataset.iconset;
-  ICON = ICON_SETS[ICON_SET];
-  render();
-});
-function render() { renderAll(); renderBatch2(); renderIndex(); renderIconPick(); }
+function render() { renderAll(); renderBatch2(); renderIndex(); }
 
 document.addEventListener('click', ev => {
   const t = ev.target, hit = a => t.closest('[' + a + ']');
@@ -2281,16 +2268,27 @@ document.addEventListener('click', ev => {
 
   // S-03
   if (t.closest('#s03stat')) { store.s03StatOpen = !store.s03StatOpen; renderS03(); return; }
+  const tb = hit('data-s03tab');
+  if (tb) {
+    store.s03Tab = tb.dataset.s03tab;
+    // 結算入口從按鈕變成分頁，但規格 §6 的結算前檢查跟著入口走——
+    // 有未定案的帳就先進檢查層，不是直接看結果。
+    if (store.s03Tab === 'settle') {
+      const S = tripSummary(store.s03Trip);
+      store.s05 = (S.readonly || !S.unsettledList.length) ? 'pending' : 'check';
+      store.s05open = false;
+    }
+    renderS03(); return;
+  }
+  if (t.closest('#s03more'))   { store.s03Menu = true;  renderS03(); return; }
+  if (t.closest('#s03menux') || t.closest('#s03menuscrim')) { store.s03Menu = false; renderS03(); return; }
   const sc = hit('data-s03cur');
   if (sc) { const tr = tripOf(store.s03Trip);
     if (sc.dataset.s03cur === 'FOR' && !tripRate(tr)) return;   // 沒設匯率就不能切
     store.s03Cur = sc.dataset.s03cur; renderS03(); renderS03d(); renderS05(); return; }
   if (t.closest('#s03add')) { g = blankExp(); renderS04();
     document.getElementById('s04').scrollIntoView({behavior:'smooth',block:'start'}); return; }
-  if (t.closest('#s03settle')) {
-    const S = tripSummary(store.s03Trip);
-    store.s05 = (S.readonly || !S.unsettledList.length) ? 'pending' : 'check';   // §6
-    renderS05(); document.getElementById('s05').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  // #28-6a「結算行程」按鈕已由分段控制取代，§6 的檢查層判斷搬到上面的 data-s03tab。
   const pm = hit('data-permember');
   if (pm) { store.s03Filter = { kind:'member', memberId: pm.dataset.permember }; renderS03d();
     document.getElementById('s03d').scrollIntoView({behavior:'smooth',block:'start'}); return; }
@@ -2543,7 +2541,7 @@ function renderS06() {
 
 /* ── S-07 設定 ── */
 function renderS07() {
-  let h = b('S-07-1', `<div class="bar"><span class="bk">${ic('back',15)} 返回</span><span class="ttl">設定</span><span style="width:52px"></span></div>`);
+  let h = b('S-07-1', `<div class="bar"><button class="ic2" aria-label="返回">${ic('back',20)}</button><span class="ttl">設定</span><span style="width:40px"></span></div>`);
   h += b('S-07-2', `<div class="sec">登入帳號</div>`);
   h += b('S-07-3', `<div style="margin:0 14px"><div class="rowb">
       <span class="avatar letter" style="background:#2D6A8A">R</span>
@@ -2567,7 +2565,7 @@ function renderS07() {
   h += b('S-07-7', `<div style="padding:14px;text-align:center;font-size:9.5px;color:var(--gr)">Tripay · 每一趟，都記得</div>`);
   if (store.s07dlg) h += b('S-07-8', `<div class="scrim" style="padding:20px 0"><div class="dlg">
       <p style="margin:0 0 14px;font-size:13.5px;font-weight:700;text-align:center">確定要登出嗎？</p>
-      <div style="display:flex;gap:8px"><button class="btn qt" id="s07no">取消</button><button class="btn dg">登出</button></div>
+      <div style="display:flex;gap:8px"><button class="btn qt" id="s07no">取消</button><button class="btn gh">登出</button></div>
     </div></div>`);
   $('#scr-s07').innerHTML = h;
 }

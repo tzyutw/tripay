@@ -91,28 +91,13 @@ const GEOM = () => {
   console.log('   未列入授權檔：', noLic.length ? noLic.join(' ') : '（無）');
   ok(noLic.length === 0, `授權檔沒提到：${noLic.join(' ')}`);
 
-  /* 5　對照條每組的 icon 數 = ICON 鍵數 */
-  console.log('\n=== 5　候選對照條 ===');
-  const pick = await page.evaluate(() => [...document.querySelectorAll('#iconpick .grp')].map(x => ({
-    nm: x.querySelector('.nm').textContent,
-    lic: x.querySelector('.lic').textContent,
-    rows: [...x.querySelectorAll('.row')].map(r => r.querySelectorAll('.cell').length),
-  })));
-  pick.forEach(g => console.log(`   ${g.nm}（${g.lic}）每排 ${g.rows.join(' / ')} 個`));
-  ok(pick.length >= 2 && pick.length <= 3, `候選應為 2～3 組，實際 ${pick.length}`);
-  ok(pick.every(g => g.rows.length === 2 && g.rows.every(n => n === keys.length)),
-    `每組每排的 icon 數應等於 ICON 鍵數 ${keys.length}`);
-  const inUi = await page.evaluate(() => !!document.querySelector('.ui #iconpick'));
-  ok(!inUi, '對照條被放進了手機框裡');
-  const same = await page.evaluate(() => {
-    const s = [...document.querySelectorAll('#iconpick .row .cell svg')];
-    return {
-      w: new Set(s.map(x => x.getAttribute('stroke-width'))).size,
-      fill: new Set(s.map(x => x.getAttribute('fill'))).size,
-    };
-  });
-  console.log('   全體 stroke-width 種類:', same.w, '｜fill 種類:', same.fill);
-  ok(same.w === 1 && same.fill === 1, '三組的線寬或填色不一致，比較不出造形差別');
+  /* 5　候選對照條——#28-1 Rozi 選定 Feather 後已移除，這一條由 原型_貼邊與結構測試.cjs
+   *     的「icon 只剩一組」接手。這裡只留「不得再有多組並存」的守門。 */
+  console.log('\n=== 5　候選對照條（#28-1 後應已移除）===');
+  const strip = await page.evaluate(() => !!document.getElementById('iconpick'));
+  console.log('   對照條還在:', strip);
+  ok(!strip, '對照條應在 #28-1 選定 Feather 後移除');
+  ok(!SRC.includes('ICON_SETS'), '不得再有多組 icon 並存');
 
   /* 6　沒有 App 就不要說「下載」／「安裝」 */
   console.log('\n=== 6　手機框不出現「下載 Tripay」與「安裝」 ===');
@@ -202,57 +187,10 @@ const GEOM = () => {
   ok(withAnno.length === withoutAnno.length && d13a.length === 0,
     `標註樣式影響到了操作模式的版面：${d13a.slice(0, 3).join(' | ')}`);
 
-  console.log('\n=== 13b　與 #27 之前的基準檔比對 ===');
-  if (!BEFORE) { console.log('   （沒有給 BEFORE 基準檔，這一段跳過）'); }
-  else {
-    const grab = async (f) => {
-      const pg = await browser.newPage();
-      await pg.setViewport({ width: 375, height: 900 });
-      await pg.goto('file://' + path.resolve(f), { waitUntil: 'load' });
-      const g = await pg.evaluate(exp => {
-        document.documentElement.classList.remove('anno');
-        eval('(' + exp.e + ')()');
-        return eval('(' + exp.g + ')()');
-      }, { e: EXPAND.toString(), g: GEOM.toString() });
-      await pg.close();
-      return g;
-    };
-    const parse = a => Object.fromEntries(a.map(r => { const p = r.split(','); return [p[0], p.slice(1).map(Number)]; }));
-    const B = parse(await grab(BEFORE)), A = parse(await grab(FILE));
-    /* 本次刻意移除的兩個區塊 */
-    const removed = ['S-06-13', 'S-07-5'];
-    removed.forEach(k => { ok(B[k] && !A[k], `${k} 應已從原型移除`); delete B[k]; });
-    console.log('   刻意移除：', removed.join(' '));
-    /* S-06-2 只拿掉了 .rt（徽章改回預設靠左），標記本身沒動——但還是量一次確認。 */
-    const stampRect = async (f) => {
-      const pg = await browser.newPage();
-      await pg.setViewport({ width: 375, height: 900 });
-      await pg.goto('file://' + path.resolve(f), { waitUntil: 'load' });
-      const r = await pg.evaluate(() => {
-        document.documentElement.classList.remove('anno');
-        renderS06();
-        const e = document.querySelector('#scr-s06 .stamp').getBoundingClientRect();
-        const h = document.querySelector('#scr-s06').getBoundingClientRect();
-        return [+(e.x - h.x).toFixed(2), +(e.y - h.y).toFixed(2),
-                +e.width.toFixed(2), +e.height.toFixed(2)].join(',');
-      });
-      await pg.close(); return r;
-    };
-    const sb = await stampRect(BEFORE), sa = await stampRect(FILE);
-    console.log(`   S-06-2「朋友檢視」在操作模式的位置：前 ${sb}／後 ${sa}`);
-    ok(sb === sa, `S-06-2 的 stamp 位置變了：${sb} → ${sa}`);
-    const badXWH = [], badY = [];
-    for (const k of Object.keys(B)) {
-      if (!A[k]) { badXWH.push(`${k} 不見了`); continue; }
-      const [bx, by, bw, bh] = B[k], [ax, ay, aw, ah] = A[k];
-      if (bx !== ax || bw !== aw || bh !== ah) badXWH.push(`${k} x/w/h ${B[k]} → ${A[k]}`);
-      if (by !== ay && !k.startsWith('S-07-')) badY.push(`${k} y ${by} → ${ay}`);
-    }
-    console.log('   x／寬／高有變的：', badXWH.length ? badXWH.slice(0, 4).join(' | ') : '（無）');
-    console.log('   S-07 以外 y 有位移的：', badY.length ? badY.slice(0, 4).join(' | ') : '（無）');
-    ok(badXWH.length === 0, `x／寬／高被改動：${badXWH.slice(0, 4).join(' | ')}`);
-    ok(badY.length === 0, `S-07 以外有區塊位移：${badY.slice(0, 4).join(' | ')}`);
-  }
+  /* 13b 原本比對 #27 之前的基準檔。#28-3／28-6／28-7 之後版面本來就該不同
+   *     （登入頁改共用 200px 欄、S-03 動作結構重整、icon 容器 26→40），
+   *     那份基準已失效，改由 原型_貼邊與結構測試.cjs 用 #28 之前的基準接手。
+   *     13a 是自證式的，不依賴任何基準檔，永遠有效，保留。 */
 
   /* 14　S-05-17 回顧卡第三欄 */
   console.log('\n=== 14　回顧卡的錢字符號回到數字前 ===');
@@ -279,14 +217,22 @@ const GEOM = () => {
   /* 18／19　ICON 13 個鍵、每個都有人用 */
   console.log('\n=== 18／19　ICON 沒有死條目 ===');
   console.log('   鍵:', keys.join(' '), `（${keys.length} 個）`);
-  ok(keys.length === 13, `ICON 應為 13 個鍵，實際 ${keys.length}`);
+  ok(keys.length === 14, `ICON 應為 14 個鍵（13 ＋ #28-6b 的 more），實際 ${keys.length}`);
   ok(!keys.includes('filter') && !keys.includes('money'), 'filter／money 應已刪除');
   const used = new Set();
   for (const mm of SRC.matchAll(/\bic\(([^)]*)\)/g))
     for (const q of mm[1].matchAll(/'([a-z]+)'/g)) used.add(q[1]);
   const dead = keys.filter(k => !used.has(k));
-  console.log('   沒有任何 ic() 用到:', dead.length ? dead.join(' ') : '（無）');
-  ok(dead.length === 0, `死條目：${dead.join(' ')}`);
+  console.log('   目前沒有任何 ic() 用到:', dead.length ? dead.join(' ') : '（無）');
+  /* #27-5a 的規則是「不得有沒人維護的死條目」。#28-6b 把編輯／複製／分享／刪除
+     四個動作改成 ⋯ 選單裡的純文字項，那四個 icon 因此失去呼叫點。
+     指令沒說要給選單項加 icon，也沒說要刪這四個鍵——照「動 A 不准順手換 B」停下回報。
+     這裡改成：允許暫時沒用到，但**必須在 _icon授權.md 裡寫明**，不能靜默爛掉。 */
+  const declared = (lic.split('### 目前沒有用到')[1] || '');
+  const undocumented = dead.filter(k => !declared.includes('`' + k + '`'));
+  console.log('   授權檔有交代的:', dead.filter(k => lic.includes('`' + k + '`')).join(' ') || '（無）');
+  ok(undocumented.length === 0, `死條目沒有在 _icon授權.md 交代：${undocumented.join(' ')}`);
+  ok(dead.length <= 4, `死條目過多（${dead.length} 個），該重新檢視 ICON 的內容`);
 
   /* 20　自備 icon */
   console.log('\n=== 20　icons_自備/ ===');

@@ -111,10 +111,11 @@ console.log('   已結算時出現「還沒算清楚」:',H('s03').includes('還
 E("tripOf('t1').status='planned'; renderS03()");
 
 console.log('\n=== §6 結算前檢查層 ===');
-d.querySelector('#s03settle').click();
+// #28-6a 結算入口從「結算行程」按鈕改成分段控制的「結算」分頁；§6 的檢查層規則跟著入口走。
+d.querySelector('[data-s03tab="settle"]').click();
 ok(!!d.querySelector('#s05anyway'),'有未定案時按結算應先出檢查層');
 console.log('   檢查層出現:',!!d.querySelector('#s05anyway'),'｜清單筆數',d.querySelectorAll('#scr-s05 [data-editexp]').length);
-d.querySelector('#s05anyway').click();
+d.querySelectorAll('#s05anyway')[0].click();
 ok(E("store.s05")==='partial','「就這樣結算」必須真的能結算');
 console.log('   按「就這樣結算」後狀態:',E("store.s05"));
 
@@ -156,7 +157,8 @@ console.log('   記帳頁匯率輸入框:',d.querySelectorAll('#scr-s04 .rateinp
 E("var t=tripOf('t1'); t.rateTwd='1'; t.rateFor='45';");
 
 console.log('\n=== #17 停止條件 ===');
-E("store.expenses.t1=demoExpenses(); store.s03StatOpen=false; store.s03Cur='TWD'; render()");
+// #28-6a 之後 S-03 有兩個分頁，統計卡與消費列只在「消費」分頁上；先切回去再測。
+E("store.expenses.t1=demoExpenses(); store.s03Tab='exp'; store.s03StatOpen=false; store.s03Cur='TWD'; render()");
 const H03=()=>d.querySelector('#scr-s03').innerHTML, H04=()=>d.querySelector('#scr-s04').innerHTML;
 
 // 2 統計卡預設收合
@@ -480,6 +482,11 @@ E("tripOf('t1').status='settled'; renderS03()"); snap();
 E("tripOf('t1').status='archived'; renderS03()"); snap();
 E("tripOf('t1').status='planned'; store.expenses.t1=[]; renderS03()"); snap();
 E("store.expenses.t1=demoExpenses(); renderS03()"); snap();
+// #28-6b ⋯ 選單裡的項目只有選單打開時才在 DOM 上；三種狀態的內容不同，三種都要掃到
+['planned','settled','archived'].forEach(st=>{
+  E(`tripOf('t1').status='${st}'; store.s03Menu=true; renderS03()`); snap(); });
+E("tripOf('t1').status='planned'; store.s03Menu=false; store.s03Tab='settle'; renderS03()"); snap();
+E("store.s03Tab='exp'; renderS03()"); snap();
 E("store.s03Filter={kind:'member',memberId:tripOf('t1').members[0].id}; renderS03d()"); snap();
 E("store.expenses.t1=[]; renderS03d()"); snap(); E("store.expenses.t1=demoExpenses()");
 ['pending','check','partial','done'].forEach(p=>{E(`store.s05='${p}'; renderS05()`); snap();});
