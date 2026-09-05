@@ -228,9 +228,11 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .selchip.on{border-color:var(--w);background:var(--w);color:#fff}
 /* #20-1 金額欄一行：幣別標籤固定寬靠左，輸入框吃剩餘寬度。
    輸入的數字字級刻意小於區塊標題——表單裡的數字是輸入不是展示。 */
-.ui .amtstack{display:flex;flex-direction:column;gap:7px}
+/* #30-5b 原本 .amtline 只有 39px，低於 44 的最小觸控標準——而金額是整張表單最重要的輸入。
+   #30-5c 改用 <label for>，點左側幣別文字也能聚焦，可點範圍變成整列，不需要任何 JS。 */
+.ui .amtstack{display:flex;flex-direction:column;gap:10px}
 .ui .amtline{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
-  border-radius:3px;padding:7px 10px}
+  border-radius:3px;padding:12px 10px;cursor:text}
 .ui .amtline.needfill{border-color:var(--out);background:#FBF0EC}
 .ui .amtline .cur{width:58px;flex:none;font-size:var(--fs-body);font-weight:600;color:var(--md)}
 .ui .amtline input{flex:1;min-width:0;border:0;background:transparent;padding:2px 0;
@@ -238,7 +240,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .amtline input:focus{border:0;outline:none}
 /* #22-9：各自金額一列一人——emoji 名字靠左、輸入框靠右。
    先前漏掉這條 CSS，div 退回 block，名字與輸入框才會堆成兩行。 */
-.ui .amtrow{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
+.ui .amtrow{display:flex;align-items:center;gap:9px;cursor:text;background:#fff;border:1px solid var(--ln);
   border-radius:3px;padding:7px 10px}
 .ui .amtrow input{width:96px;flex:none;text-align:right;background:#F4F5F1;padding:5px 8px;
   border:1px solid transparent;font-size:var(--fs-input);font-variant-numeric:tabular-nums}
@@ -271,8 +273,8 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .grab{width:30px;height:3px;border-radius:2px;background:#CBD1CC;margin:9px auto 2px}
 .ui .shd{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 10px}
 .ui .shd h3{font-size:var(--fs-strong);font-weight:700;letter-spacing:-.01em}
-.ui .x{width:24px;height:24px;border-radius:50%;background:#E2E5DE;color:var(--md);font-size:var(--fs-tag);
-  display:flex;align-items:center;justify-content:center;flex:none}
+/* #30-2 原本 .x 是 24×24＋13px icon，可點區遠低於 44。
+   全站只要是「一顆 icon 就是一個按鈕」，一律用 .ic2（不含列尾的 › 方向指示）。 */
 .ui .scrim{background:rgba(20,28,33,.45);padding:18px 0}
 .ui .dlg{background:#fff;border:1px solid var(--ln);border-radius:4px;margin:0 18px;padding:16px}
 .ui .empty{padding:38px 22px;text-align:center}
@@ -589,6 +591,7 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
       <div class="row" id="s03rig">
         <button data-st="active">旅途中</button><button data-st="settled">已結算</button>
         <button data-st="empty">還沒記帳</button><button data-st="reset">重置示範資料</button>
+        <button id="s03demorate">設一個示範匯率（才切得到外幣）</button>
       </div></div>
   </div>
   <div><p class="cnt">編號清單 · 33 項</p><div class="idx" id="idx-s03"></div></div>
@@ -919,8 +922,6 @@ function renderS00() {
         ${b('S-00-5', `<button id="s00login" class="gbtn" style="width:100%">${GOOGLE_G} 用 Google 繼續</button>`)}
       </div>
       <div style="flex:1;min-height:24px"></div>
-      <div style="color:rgba(255,255,255,.4);font-size:var(--fs-sub);text-align:center;line-height:1.5">
-        移除了 App icon 與幽靈卡<br>識別由字標與 slogan 承擔</div>
     </div>`;
 }
 
@@ -958,9 +959,7 @@ function renderS01() {
       return st === 'archived' ? b('S-01-7', card) : b('S-01-5', card);
     }).join('');
     body += b('S-01-8', `<button class="ghost" id="s01ghost"><div>你的下一趟在哪？</div></button>`);
-    body += `<div style="height:18px"></div>
-      <div style="font-size:var(--fs-sub);color:var(--gr);text-align:center;padding-bottom:12px">
-        列表到此結束。首頁沒有固定底部操作列</div>`;
+    body += `<div style="height:18px"></div>`;
   }
   $('#scr-s01').innerHTML = head + body + `<div id="s01sheet"></div>`;
   document.querySelectorAll('#s01state button').forEach(x => x.classList.toggle('on', x.dataset.s === store.s01));
@@ -1042,7 +1041,7 @@ function renderS02() {
     ${b('S-02-1', `<div class="scrim" style="padding:12px 0 0"><div style="font-size:var(--fs-tag);color:rgba(255,255,255,.7);text-align:center;padding-bottom:8px">遮罩 · 點擊關閉</div></div>`)}
     <div class="sheet">
       ${b('S-02-2', `<div class="grab"></div>`)}
-      ${b('S-02-3', `<div class="shd"><h3>這趟去哪？</h3>${b('S-02-4', `<button class="x" id="s02x">${ic('close',13)}</button>`, 'rt')}</div>`)}
+      ${b('S-02-3', `<div class="shd"><h3>這趟去哪？</h3>${b('S-02-4', `<button class="ic2" id="s02x" aria-label="關閉">${ic('close',20)}</button>`, 'rt')}</div>`)}
 
       ${b('S-02-6', `<div class="fld"><div class="fieldrow"><span class="lbl">去哪？</span>
         <input type="text" id="s02name" value="${esc(f.name)}" placeholder="例如：沖繩四人行"></div>
@@ -1110,7 +1109,7 @@ function renderS02b() {
 
   $('#scr-s02b').innerHTML = `
     <div class="sheet" style="border-radius:0">
-      ${b('S-02b-1', `<div class="shd" style="padding-top:14px"><h3>編輯行程</h3><button class="x">${ic('close',13)}</button></div>`)}
+      ${b('S-02b-1', `<div class="shd" style="padding-top:14px"><h3>編輯行程</h3><button class="ic2" aria-label="關閉">${ic('close',20)}</button></div>`)}
 
       ${b('S-02b-2', `<div class="fld"><span class="lbl" data-group="照片與色調兩個動作，非單一輸入欄">封面</span>
         <div style="border:1px solid var(--ln);border-radius:3px;background:#fff;padding:4px">
@@ -1228,7 +1227,7 @@ const INDEX = {
     ['S-02-1','遮罩','st','黑 45%，點擊關閉'],
     ['S-02-2','拖曳條','st','純裝飾，不能真的拖'],
     ['S-02-3','標題','st','「這趟去哪？」'],
-    ['S-02-4','關閉 ✕','op','關閉 sheet'],
+    ['S-02-4','關閉','op','關閉 sheet。<b>改（#30-2）</b>：改用 <code>.ic2</code>（40×40 正圓＋一圈線＋20px icon）。原本 <code>.x</code> 是 24×24＋13px，可點區遠低於 44 的最小觸控標準。全站只要是「一顆 icon 就是一個按鈕」一律用 <code>.ic2</code>'],
     ['S-02-5','封面 emoji','del','已移除：改為依行程名自動套目的地色調'],
     ['S-02-6','行程名稱','op','必填。<b>打字即時換下方色調預覽</b>（試「沖繩」「京都」）'],
     ['S-02-7','幣別選擇','op','點開下拉'],
@@ -1247,7 +1246,7 @@ const INDEX = {
     ['S-02-20','單日行程確認','op','回程留空按「出發！」才出現。#25-1 文案定稿：標題改用出發日「只有 8/31 這一天？」（「單日行程」是系統講法），說明只留「之後可以再補」（原本那句在解釋系統怎麼運作），右鈕「就這一天」是動作不是回答'],
   ],
   s02b: [
-    ['S-02b-1','標題','st','「編輯行程」'],
+    ['S-02b-1','標題','st','「編輯行程」。<b>改（#30-2）</b>：關閉鍵改用 <code>.ic2</code>'],
     ['S-02b-2','封面照片欄','op','有照片顯示照片，無則顯示目的地色調'],
     ['S-02b-3','更換照片','op','原型以示意色塊代替真實上傳。#25-7 這一列與 S-02b-4 原本各被壓到 58px，已加 <code>.flexrow</code> 修正'],
     ['S-02b-4','重選色調','op','展開 8 種預設盤'],
@@ -1675,6 +1674,14 @@ function tripSummary(tid) {
 /* ═══════════════════════════════════════════════════════════
    S-03 行程頁
    ═══════════════════════════════════════════════════════════ */
+/* #30-5a 未定案狀態的文案。先說東西還在，再用可行動的語氣講解除條件——
+   使用者最怕的不是算不出來，是以為自己記的東西不見了。
+   「會跳過這筆」把一個隨時可以解除的暫時狀態寫成永久的判決，讀起來像在說「別記了」。
+   同一句只寫一次，兩處都引用這裡（CLAUDE.md「同一句文案只准寫一次」）。 */
+const MSG_NO_RATE     = '先記著了。設好這趟的現金匯率就會自動換算。';
+const MSG_TWD_PENDING = '先記著了。補上台幣金額就會算進結算。';
+const MSG_FILL_ONE    = '填一邊就好，另一邊會自動換算';
+
 /* #17-3：整頁金額可切外幣顯示。結算恆為台幣，不受影響（既有決策）*/
 function money(v) {
   const t = tripOf(store.s03Trip), r = tripRate(t);
@@ -1724,7 +1731,7 @@ function renderS03() {
       ${b('S-03-31', `<button class="ic2" id="s03more" aria-label="更多">${ic('more',20)}</button>`)}
     </div>
     ${b('S-03-7', `<div class="tt">${esc(t.name)}</div>`)}
-    ${b('S-03-8', `<div class="dt tnum">${dateRange(t.start, t.end)}　${t.members.map(m=>m.emoji||firstGrapheme(m.name)).join('')}</div>`)}
+    ${b('S-03-8', `<div class="dt tnum">${dateRange(t.start, t.end)}</div>`)}
   </div>`);
 
   // #28-6a 分段控制：切換檢視，不是動作。「結算」分頁的內容就是 S-05 整頁。
@@ -1753,10 +1760,21 @@ function renderS03() {
   </div>`;
 
   const rateNow = tripRate(t), curMode = rateNow ? store.s03Cur : 'TWD';
+  // #30-6 原本那句只描述系統的處境（我算不出來），沒講出對使用者的後果：
+  // 上面那個總花費是少算的，少了幾筆。一個看起來精確、實際上不完整的數字，比看不懂更危險。
+  //
+  // 只數「因為沒設匯率而算不出台幣」的那幾筆——有外幣金額、缺台幣金額。
+  // 完全沒填金額的那些不算在這裡：它們補上匯率也救不回來，而且 S-03-29
+  // 「有 N 筆還沒算清楚」已經在講它們了。這樣「補上匯率 → 這條消失」才成立。
+  const nGap = S.list.filter(e => {
+    const c = calc(e, t);
+    return c.twdPending && Number.isFinite(parseFloat(e.forAmt));
+  }).length;
   h += b('S-03-12', `<div class="curswitch"><div class="seg">
     <button class="${curMode==='TWD'?'on':''}" data-s03cur="TWD">$ 台幣</button>
     <button class="${curMode!=='TWD'?'on':''} ${rateNow?'':'dis'}" data-s03cur="FOR">${RULES_CUR_SYM(t.currency)} ${t.currency}</button></div>
-    ${rateNow ? '' : `<p class="hint">這趟還沒設現金匯率，換算不了</p>`}</div>`);
+    ${nGap ? `<p class="hint">有 ${nGap} 筆還沒換算成台幣，上面的總花費不含它們。${
+      rateNow ? '' : `<a href="#s02b" class="ratelink">設現金匯率 ${ic('next',13)}</a>`}</p>` : ''}</div>`);
 
   h += `<div class="listhd"><span>消費紀錄 · ${S.list.length} 筆</span></div>`;
   if (nUn > 0 && !S.readonly)
@@ -1900,7 +1918,7 @@ function renderS04() {
   if (!g) g = blankExp();
   const c = calc(g, t), cur = t.currency, sym = RULES_CUR_SYM(cur);
 
-  let h = b('S-04-1', `<div class="shd" style="padding-top:14px"><h3>${g._edit ? '編輯消費' : '記一筆'}</h3><button class="x" id="s04x">${ic('close',13)}</button></div>`);
+  let h = b('S-04-1', `<div class="shd" style="padding-top:14px"><h3>${g._edit ? '編輯消費' : '記一筆'}</h3><button class="ic2" id="s04x" aria-label="關閉">${ic('close',20)}</button></div>`);
 
   // #29-1 日期不是「這一筆的屬性」，是「這一批帳的共同前提」——一天只設一次，
   // 卻擋在每筆都要填的「誰付的」前面。移出欄位序列，改成標題下的一條窄狀態列。
@@ -1919,16 +1937,16 @@ function renderS04() {
   // 金額（§2.3 §2.4 §2A.3）
   h += b('S-04-4', `<div class="fld"><span class="lbl" data-group="兩列各自帶幣別標籤，非單一輸入欄">金額</span>
     <div class="amtstack">
-      ${b('S-04-5', `<div class="amtline${c.noAutoReason === 'noForeignTotal' ? ' needfill' : ''}">
+      ${b('S-04-5', `<label for="e-for" class="amtline${c.noAutoReason === 'noForeignTotal' ? ' needfill' : ''}">
         <span class="cur">${sym} ${cur}</span>
         <input type="text" inputmode="decimal" id="e-for" value="${esc(g.forAmt)}"
           class="${c.forTotalAuto ? 'auto' : ''}" placeholder="${c.forTotalAuto ? c.forTotalEff : '0'}">
-        ${c.forTotalAuto ? b('S-04-30', '<span class="autotag">自動</span>', 'inl') : ''}</div>`)}
-      ${b('S-04-6', `<div class="amtline">
+        ${c.forTotalAuto ? b('S-04-30', '<span class="autotag">自動</span>', 'inl') : ''}</label>`)}
+      ${b('S-04-6', `<label for="e-twd" class="amtline">
         <span class="cur">$ 台幣</span>
         <input type="text" inputmode="decimal" id="e-twd" value="${esc(g.twdAmt)}"
           class="${c.twdFromRate ? 'auto' : ''}" placeholder="${c.twdFromRate ? c.twdTotal : '0'}">
-        ${c.twdFromRate ? '<span class="autotag">自動</span>' : ''}</div>`)}
+        ${c.twdFromRate ? '<span class="autotag">自動</span>' : ''}</label>`)}
     </div>
     <div id="amtnote"></div></div>`);
 
@@ -1973,11 +1991,11 @@ function paintS04() {
     // #17-11：只留「不做就不會知道、且會影響判斷」的兩句；換算結果改由欄位自己說話
     // #29-2「填一邊就好」與匯率警告互斥：沒設匯率時只出警告，不再多疊一句做不到的事
     note.innerHTML = c.needRateLink
-      ? b('S-04-38', `<div class="note warn">${ic('warn',14)} 還沒設這趟的匯率，算不出台幣。
+      ? b('S-04-38', `<div class="note warn">${ic('warn',14)} ${MSG_NO_RATE}
           <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div>`)
       : c.twdPending
-        ? `<div class="note warn">${ic('warn',14)} 沒有台幣金額，結算會跳過這筆</div>`
-        : (tripRate(t) ? `<p class="hint">填一邊就好，另一邊會自動換算</p>` : '');
+        ? `<div class="note warn">${ic('warn',14)} ${MSG_TWD_PENDING}</div>`
+        : (tripRate(t) ? `<p class="hint">${MSG_FILL_ONE}</p>` : '');
   }
 
   const tb = document.getElementById('typebody');
@@ -2015,13 +2033,13 @@ function paintS04() {
     inner += `<div class="gap">${(g.parts||[]).map((id, i) => {
       const m = t2.members.find(x => x.id === id) || {};
       const auto = c.valInCur[id] != null && !(id in c.manual);
-      const cell = `<div class="amtrow" data-arow="${id}">
+      const cell = `<label for="ei-${id}" class="amtrow" data-arow="${id}">
         <span style="font-size:var(--fs-title)">${m.emoji||firstGrapheme(m.name||'')}</span>
         <span style="flex:1;font-size:var(--fs-body)">${esc(m.name||'')}</span>
         <span data-eauto="${id}">${auto ? '<span class="autotag">自動</span>' : ''}</span>
-        <input type="text" inputmode="decimal" data-eindiv="${id}" value="${esc(g.indiv[id] ?? '')}"
+        <input type="text" inputmode="decimal" id="ei-${id}" data-eindiv="${id}" value="${esc(g.indiv[id] ?? '')}"
           class="${auto ? 'auto' : ''}" placeholder="${
-            c.noAutoReason ? '—' : (auto ? c.valInCur[id] : '0')}"></div>`;
+            c.noAutoReason ? '—' : (auto ? c.valInCur[id] : '0')}"></label>`;
       return i === 0 ? b('S-04-32', cell) : cell; }).join('')}</div>`;
     inner += `<div id="eachcmp"></div><div id="eachnote"></div>`;
     inner += `</div>`;
@@ -2050,7 +2068,7 @@ function cmpRow(c, t) {
     <span>${fs} ${sum.toLocaleString()} ／ ${fs} ${base.toLocaleString()}</span>
     <span class="d">${lvl === 'ok' ? ic('check',14)
       : `差 ${fs} ${Math.abs(diff).toLocaleString()}`}</span>
-    <div class="sub2">${c.twdPending ? '沒有台幣金額，結算會跳過這筆'
+    <div class="sub2">${c.twdPending ? MSG_TWD_PENDING
       : (fillCur === 'TWD' ? '' : `換算後台幣 $ ${twdSum.toLocaleString()}`)}</div></div>`);
 }
 function tripFormShim(t) { return { currency:t.currency, rateTwd:t.rateTwd ?? (oneSideOf(t.currency)==='twd'?'1':''), rateFor:t.rateFor ?? (oneSideOf(t.currency)==='for'?'1':'') }; }
@@ -2265,7 +2283,7 @@ Object.assign(INDEX, {
     ['S-03-5','分享','op','開分享選單（S-03b）。<b>改（#28-6b）</b>：<b>移進 ⋯ 選單</b>，編號不變'],
     ['S-03-6','設定','del','<b>已移除（#28-6c）</b>：這是 <b>App 設定</b>（登入帳號、我的資料），不是這趟行程的設定，掛在行程頁是層級錯位。入口移到首頁標題列右上（S-01-15）。編號保留不回收'],
     ['S-03-7','行程名稱','st',''],
-    ['S-03-8','日期＋成員','st','成員 emoji 在這裡顯示（首頁卡不顯示）'],
+    ['S-03-8','日期','st','<b>改（#30-3）</b>：<b>拿掉成員 emoji</b>，只留日期範圍。<br>它的來歷是 2026-06-26 決策 D（空白行程只顯示成員 emoji）＋ 2026-08-31 裁示「由 hero 滿足」。<br>但沒設 emoji 的成員會退回名字第一個字，四個字直接串在一起、沒有間距也沒有圓底——四人都沒設時會出現「小阿美魚」這種像亂碼的字串。<br><b>決策 D 已由 S-03-14 空狀態的引導取代</b>；有記帳之後每一列本來就寫了誰付的，hero 上那排 emoji 沒有資訊價值'],
     ['S-03-9','總花費（可展開）','op','<b>改（#17-2）</b>：預設只顯示總花費，每人分擔收合。有人被標「約」時收合列上有提示點'],
     ['S-03-10','待填警語','del','已移除：「N 筆待填，數字僅供參考」整條刪除，功能由 S-03-29 取代'],
     ['S-03-11','我的花費','del','已移除（#19）：不顯示。「切換成員視角」也從 Phase 1.5 候選移除'],
@@ -2299,7 +2317,7 @@ Object.assign(INDEX, {
     ['S-03d-4','空狀態','st','<b>新</b>：都算清楚時'],
   ],
   s04: [
-    ['S-04-1','標題','st','新增＝記一筆／編輯＝編輯消費'],
+    ['S-04-1','標題','st','新增＝記一筆／編輯＝編輯消費。<b>改（#30-2）</b>：關閉鍵改用 <code>.ic2</code>'],
     ['S-04-2','什麼花費？','op','必填'],
     ['S-04-3','類別 emoji','op','<b>改（#27-6b）</b>：改成<b>可點的就地編輯</b>——點一下變單字元輸入框、自動聚焦、輸入後自動存檔收合，<b>與 S-02c-11 共用同一個處理函式</b>（<code>beginInlineEdit()</code>／<code>commitInlineEdit()</code>），不做第二種寫法。<br>原本工作清單寫「複用既有 EmojiPicker」，但同一份檔案又裁示刪掉 EmojiPicker——兩條互斥，改用就地編輯。<br><b>手動指定優先於自動推斷</b>：改過之後再改標題不會被蓋回去'],
     ['S-04-4','金額區塊','op','外幣與台幣兩欄。<b>改（#29-2）</b>：placeholder 改成 <code>0</code>（原本兩欄都寫同一句「你被允許不填」）——placeholder 該放的是「這格長什麼樣子」，不是「你被允許不填」；而且兩欄寫同一個詞，分不出哪格是哪種幣別。真正有用的那句「填一邊就好」改成整個區塊講一次'],
@@ -2410,6 +2428,12 @@ document.addEventListener('click', ev => {
   if (rg5) { store.s05 = rg5.dataset.p; renderS05(); return; }
 
   // S-03
+  if (t.closest('#s03demorate')) {
+    // 示範資料本來就沒設匯率（要展示「還沒設匯率」那一態），外幣分頁因此是 dis。
+    // 這顆只是給看稿的人一鍵補上匯率，好實際看到外幣檢視。
+    const tr = tripOf(store.s03Trip);
+    tr.rateTwd = '1'; tr.rateFor = '45';
+    render(); return; }
   if (t.closest('#s03stat')) { store.s03StatOpen = !store.s03StatOpen; renderS03(); return; }
   const tb = hit('data-s03tab');
   if (tb) {
@@ -2696,16 +2720,10 @@ function renderS07() {
       <span style="flex:1;min-width:0"><span class="trunc" style="font-size:var(--fs-strong);font-weight:600">Rozi</span>
       <span class="trunc" style="font-size:var(--fs-sub);color:var(--gr)">msziyu@gmail.com</span></span></div></div>`);
 
-  h += b('S-07-4', `<div class="sec">我的資料</div>
-    <div style="margin:0 14px" class="gap">
-      <div class="rowb"><span style="font-size:var(--fs-title)">👥</span><span style="flex:1;font-size:var(--fs-body);font-weight:600">通訊錄</span>
-        <span style="font-size:var(--fs-sub);color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',16)}</span></div>
-      <div class="rowb"><span style="font-size:var(--fs-title)">💳</span><span style="flex:1;font-size:var(--fs-body);font-weight:600">卡片管理</span>
-        <span style="font-size:var(--fs-sub);color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',16)}</span></div>
-      <div class="rowb"><span style="font-size:var(--fs-title)">🧾</span><span style="flex:1;font-size:var(--fs-body);font-weight:600">帳單週期</span>
-        <span style="font-size:var(--fs-sub);color:var(--gr)">即將推出</span><span style="color:var(--gr)">${ic('next',16)}</span></div>
-    </div>`);
-
+  // #30-4 S-07-4「我的資料」整段移除（含通訊錄／卡片管理／帳單週期三列與小標）。
+  // #25-9 原本裁示「稿上保留、標即將推出，Phase 1 不渲染」，理由只是標示 Phase 2 的位置；
+  // 但那讓 Rozi 每次檢視都要重新想一次「這個到底要不要」——已經發生兩次。
+  // Phase 2 的位置等批四畫 S-08～S-11 時再標。編號保留不回收。
   // #27-2 S-07-5「顯示／深色模式」整段移除：查證 src/ 沒有任何深色樣式、
   // tailwind.config 也沒設 darkMode——這一列寫著「跟隨系統」又有 ›，點進去後面什麼都沒有。
   // 與 S-06-12 是同一個毛病：畫面承諾了產品沒有的東西。編號保留、標為移除。
@@ -2774,7 +2792,7 @@ Object.assign(INDEX, {
     ['S-07-1','導覽列','st','從 S-03 的 ⚙ 進來'],
     ['S-07-2','「登入帳號」標題','st',''],
     ['S-07-3','帳號卡','st','Google 頭像／名字首字＋姓名＋email'],
-    ['S-07-4','我的資料','op','通訊錄／卡片管理／帳單週期三個入口，手機框裡標「即將推出」（#25-9：「批四」是內部批號，使用者看不懂）。<br>這三列屬於 <b>Phase 2 副卡記帳</b>。<b>Phase 1 上線時整段不渲染</b>——還沒做的功能不該在設定頁先站著位置。稿上保留是為了標示 Phase 2 的位置'],
+    ['S-07-4','我的資料','del','<b>已移除（#30-4）</b>：通訊錄／卡片管理／帳單週期三列與「我的資料」小標整段從稿上拿掉。<br>#25-9 原本裁示「稿上保留、標即將推出，Phase 1 不渲染」，理由只是標示 Phase 2 的位置；但那讓 Rozi 每次檢視都要重新想一次「這個到底要不要」——已經發生兩次。<b>Phase 2 的位置等批四畫 S-08～S-11 時再標。</b>編號保留不回收'],
     ['S-07-5','顯示設定','del','<b>已移除（#27-2）</b>：查證 <code>src/</code> 沒有任何深色樣式、<code>tailwind.config</code> 也沒設 <code>darkMode</code>——這一列寫著「跟隨系統」又有 ›，點進去後面什麼都沒有。與 S-06-12 同一個毛病：畫面承諾了產品沒有的東西。深色模式不在 Phase 1，編號保留'],
     ['S-07-6','登出','op','<b>改</b>：登出可復原（再登入即可）→ 用描邊不用實心填底，與刪除區隔。<br><b>改（#27-4c）</b>：文字色從 <code>--dg</code> 改 <code>--md</code> 中性色。#25-8 的指令把登出寫進「--dg 的使用範圍」是錯的——那條同時定調 --dg 只用於「會刪資料且無法還原」，登出不是。<code>.delrow</code> 維持 --dg 不動'],
     ['S-07-7','版本 footer','st','Slogan 收尾'],

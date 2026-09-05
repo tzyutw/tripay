@@ -158,7 +158,8 @@ const rgbLum = rgb => {
   console.log('   有匯率：「' + notes.有匯率 + '」\n   沒匯率：「' + notes.沒匯率 + '」');
   ok(notes.有匯率.includes('填一邊就好'), '有匯率時應出現「填一邊就好，另一邊會自動換算」');
   ok(!notes.有匯率.includes('還沒設這趟的匯率'), '有匯率時不該出現匯率警告');
-  ok(notes.沒匯率.includes('還沒設這趟的匯率'), '沒匯率時應出現 S-04-38 的警告');
+  // #30-5a 文案改成可行動的語氣：先說東西還在，再講解除條件
+  ok(notes.沒匯率.includes('設好這趟的現金匯率就會自動換算'), '沒匯率時應出現 S-04-38 的警告');
   ok(!notes.沒匯率.includes('填一邊就好'), '沒匯率時不該再多疊一句做不到的事');
 
   /* 6／7／8　視覺層級三階 */
@@ -270,7 +271,10 @@ const rgbLum = rgb => {
       w: x.getAttribute('width'), wrapped: !!x.closest('.ic2') }));
   });
   console.log('   ' + JSON.stringify(s07n));
-  ok(s07n.length === 3 && s07n.every(x => x.w === '16'), '列尾箭頭應為 16px');
+  // #30-4 之後 S-07 只剩帳號卡與登出，那三列 › 隨「我的資料」一起移除；
+  // 規格（16px、不加圓形容器）仍然有效，等批四畫 S-08～S-11 時會再用到。
+  console.log('   （#30-4 移除「我的資料」後，S-07 已無列尾箭頭）');
+  ok(s07n.every(x => x.w === '16'), '列尾箭頭應為 16px');
   ok(s07n.every(x => !x.wrapped), '列尾箭頭不該加圓形容器——可點的是整一列');
   const s07back = await page.evaluate(() => {
     const el = document.querySelector('#scr-s07 .ic2');

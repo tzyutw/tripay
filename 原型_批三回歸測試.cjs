@@ -85,7 +85,9 @@ ok(H('s06').includes('exprow pend'),'還沒填的列應有橘紅左邊框（讀�
 ok(!/外幣格|KRW<\/span>\s*<\/div>\s*<div><b class="money">—/.test(H('s06')),'廢版位的外幣格應已移除');
 
 console.log('\n=== S-07 設定是四個新畫面的入口 ===');
-['通訊錄','卡片管理','帳單週期'].forEach(x=>ok(H('s07').includes(x),`設定頁應有「${x}」入口`));
+// #30-4 S-07-4「我的資料」整段從稿上拿掉——Phase 1 不會出這一段，留著只會讓 Rozi
+// 每次檢視都要重新想一次「這個到底要不要」。Phase 2 的位置等批四畫 S-08～S-11 時再標。
+['通訊錄','卡片管理','帳單週期'].forEach(x=>ok(!H('s07').includes(x),`設定頁不該還有「${x}」`));
 E("store.s07dlg=false; renderS07()");
 ok(!d.querySelector('#scr-s07 .dlg'),'登出確認框預設不顯示');
 d.querySelector('#s07logout2').click();
