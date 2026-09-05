@@ -15,7 +15,8 @@
      跟字級當初一樣：沒有階梯，是各自決定出來的。全部收斂成四個變數，
      切換器只換這四個值。--r-icon 與 --r-chip 在 A～D 維持形狀（正圓／膠囊），
      E／F 才跟著 --r-base 走——否則看不出「全部都圓」是什麼樣子。 */
-  --r-base:3px; --r-panel:14px; --r-icon:50%; --r-chip:999px;
+  /* #32-3 Rozi 在真機上比過六版，選 C。切換器先不移除——她要再挑一次。 */
+  --r-base:10px; --r-panel:20px; --r-icon:50%; --r-chip:999px;
 }
 :root[data-theme="light"]{--pg:#E7E9E4;--pg2:#FFF;--pg3:#F2F3EF;--pgink:#151C21;
   --pgink2:#4C5B64;--pgink3:#78878F;--pgrule:#D5D9D3;--mark:#0F5E9E;--okd:#276E45;--nod:#B03A22}
@@ -49,7 +50,8 @@ html.dev .scr{display:none;padding:0;border-top:0;grid-template-columns:1fr;gap:
 html.dev .scr.devon{display:block}
 html.dev .phwrap{position:static}
 html.dev .ph{width:100%;border:0;border-radius:0;box-shadow:none}
-html.dev body{padding-bottom:54px}
+/* 切換器有三排，高度會變——量出來寫進變數，別讓它擋住被檢視畫面的底部按鈕 */
+html.dev body{padding-bottom:var(--devbar-h,54px)}
 #devbar{display:none}
 html.dev #devbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:300;
   background:rgba(255,255,255,.96);border-top:1px solid var(--ln);backdrop-filter:blur(8px)}
@@ -69,7 +71,7 @@ html.devmin #devbar .list,html.devmin #devbar .rr{display:none}
   border-radius:3px;color:var(--pgink2);background:var(--pg2)}
 #radiussw button.on{background:var(--mark);border-color:var(--mark);color:var(--pg)}
 #devbar .rr{display:flex;flex-wrap:wrap;gap:5px;padding:0 12px 10px;align-items:center}
-#devbar .rr span{font-size:11px;color:var(--gr)}
+#devbar .rr span{font-size:11px;color:var(--gr);flex:none}
 #devbar .rr button{font-size:12px;font-weight:600;padding:5px 9px;border:1px solid var(--ln);
   border-radius:999px;background:#fff;color:#4C5B64}
 #devbar .rr button.on{background:#1276C4;border-color:#1276C4;color:#fff}
@@ -227,9 +229,23 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .chip.alt{border-radius:var(--r-base);border-style:dashed}
 .ui .chip.alt.on{border-style:solid;background:var(--md);border-color:var(--md)}
 .ui .gap{display:flex;flex-direction:column;gap:6px}
+/* #32-4 圓角越大，角落的曲線越往內吃。內距沒跟著加，文字與 emoji 就會壓在曲線上。
+   規則：**有圓角的內容容器，左右內距至少要比圓角多 4px**（圓角 10 → 內距 14）。
+   14 也正好與全站既有的模組尺寸一致（卡片距畫面邊緣、.sec 的內距都是 14）。
+   上下內距、卡片距畫面邊緣的 14、.seg 的 2px 間隙一律不動。 */
 .ui .rowb{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
-  border-radius:var(--r-base);padding:8px 10px;width:100%;text-align:left}
+  border-radius:var(--r-base);padding:8px 14px;width:100%;text-align:left}
 .ui .rowb.on{border-color:var(--w);background:#F2F8FD}
+/* #32-8 那個 ⠿ 原本是純文字，看起來可以拖、按了完全沒反應——假的操作暗示比沒有更糟。
+   只能從把手起拖（整列起拖會跟畫面的垂直捲動打架，把手存在的理由就是這個）。
+   touch-action:none 只給把手，列本身仍然捲得動。 */
+.ui .grip{color:var(--gr);font-size:var(--fs-body);cursor:grab;touch-action:none;
+  padding:4px 2px;margin:-4px -2px;user-select:none}
+.ui .grip:active{cursor:grabbing}
+.ui .rowb.dragging{box-shadow:0 6px 18px rgba(0,0,0,.18);transform:scale(1.03);
+  border-color:var(--w);position:relative;z-index:2}
+.ui .rowb.dropped{animation:dropback .28s ease-out}
+@keyframes dropback{0%{transform:scale(1.03)}60%{transform:scale(.99)}100%{transform:scale(1)}}
 /* flex 子元素預設 min-width:auto，長字串（例如 email）會把整列撐爆 */
 .ui .rowb>*{min-width:0}
 .ui .trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
@@ -244,7 +260,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
    #30-5c 改用 <label for>，點左側幣別文字也能聚焦，可點範圍變成整列，不需要任何 JS。 */
 .ui .amtstack{display:flex;flex-direction:column;gap:10px}
 .ui .amtline{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
-  border-radius:var(--r-base);padding:12px 10px;cursor:text}
+  border-radius:var(--r-base);padding:12px 14px;cursor:text}
 .ui .amtline.needfill{border-color:var(--out);background:#FBF0EC}
 .ui .amtline .cur{width:58px;flex:none;font-size:var(--fs-body);font-weight:600;color:var(--md)}
 .ui .amtline input{flex:1;min-width:0;border:0;background:transparent;padding:2px 0;
@@ -253,15 +269,18 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 /* #22-9：各自金額一列一人——emoji 名字靠左、輸入框靠右。
    先前漏掉這條 CSS，div 退回 block，名字與輸入框才會堆成兩行。 */
 .ui .amtrow{display:flex;align-items:center;gap:9px;cursor:text;background:#fff;border:1px solid var(--ln);
-  border-radius:var(--r-base);padding:7px 10px}
+  border-radius:var(--r-base);padding:7px 14px}
 .ui .amtrow input{width:96px;flex:none;text-align:right;background:#F4F5F1;padding:5px 8px;
   border:1px solid transparent;font-size:var(--fs-input);font-variant-numeric:tabular-nums}
 .ui .amtrow input:focus{border-color:var(--w);background:#fff}
 .ui .amtrow input.auto{color:#9AA5AB}
 /* #22-10-1：表單欄位的標籤與輸入框同列 */
 .ui .fieldrow{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
-  border-radius:var(--r-base);padding:7px 10px}
-.ui .fieldrow>.lbl{display:block;width:58px;flex:none;margin:0;font-size:var(--fs-body)}
+  border-radius:var(--r-base);padding:7px 14px}
+/* #32-6 #29 把字級放大到 15px 之後，「當地幣別」四個字要 60px，58px 的固定寬度裝不下就折行，
+   把下面那一列往上擠，看起來像日期框跑版。加寬到 68 並禁止折行——
+   寬度不足時寧可擠壓輸入框，也不要把標籤折斷。各列標籤仍等寬對齊。 */
+.ui .fieldrow>.lbl{display:block;width:68px;flex:none;margin:0;font-size:var(--fs-body);white-space:nowrap}
 .ui .fieldrow>input{flex:1;min-width:0;border:0;background:transparent;padding:2px 0;font-size:var(--fs-input)}
 .ui .fieldrow>input:focus{border:0;outline:none}
 .ui .fieldrow.wide>.lbl{width:auto}
@@ -308,14 +327,16 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .hero .nb{font-size:var(--fs-body);font-weight:600;color:rgba(255,255,255,.92)}
 .ui .hero .icons{display:flex;gap:6px}
 /* #28-7 40×40 正圓＋一圈線＋20px icon，可點區靠外距撐到 44。
-   #31-5 容器永遠是「底下顏色的薄膜」——底暗就加亮、底亮就加暗，兩邊都半透明，
-   所以不管底下是漸層、表單底還是白卡片，都會透出底下的顏色。
-   之所以必須有兩個值，是因為底下的明暗相反，同一個半透明值在其中一邊一定會消失。 */
+   #31-5 容器永遠是「底下顏色的薄膜」，不是實色貼紙。
+   #32-1 兩套都用**半透明黑**：#31-5 把深色那套改成白膜是做反了——白膜會把底色提亮，
+   而 icon 本身就是白的，兩個都變亮，對比只會更差（5 個目的地色調因此不足 3:1）。
+   改回半透明黑之後填色的邏輯統一成同一個方向，差別只剩描邊：
+   底暗時用白線、底亮時用黑線。 */
 .ui .ic2{width:40px;height:40px;border-radius:var(--r-icon);box-sizing:border-box;
   display:flex;align-items:center;justify-content:center;position:relative;flex:none;
   background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.14);color:var(--md)}
 .ui .ic2::after{content:'';position:absolute;left:-2px;top:-2px;width:44px;height:44px}
-.ui .hero .ic2{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.38);color:#fff}
+.ui .hero .ic2{background:rgba(0,0,0,.28);border-color:rgba(255,255,255,.35);color:#fff}
 .ui .hero .tt{position:relative;font-size:var(--fs-title);font-weight:700;letter-spacing:-.01em}
 .ui .hero .dt{position:relative;font-size:var(--fs-sub);color:rgba(255,255,255,.86);margin-top:4px}
 .ui .statcard{background:#fff;border-bottom:1px solid var(--ln)}
@@ -335,7 +356,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .perrow{display:flex;align-items:center;gap:9px;padding:8px 14px;width:100%;text-align:left;
   border-bottom:1px solid #F5F6F3}
 .ui .perrow:last-child{border-bottom:0}
-.ui .perrow .av{font-size:var(--fs-title);width:20px;text-align:center;flex:none}
+.ui .perrow .av{font-size:var(--fs-title);width:24px;text-align:center;flex:none}
 .ui .perrow .nm{flex:1;font-size:var(--fs-body);font-weight:600}
 .ui .perrow .am{font-size:var(--fs-money);font-weight:600;display:flex;align-items:baseline;gap:3px}
 .ui .perrow .am.ap{color:var(--wi)}
@@ -423,7 +444,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   transform-box:view-box;transform-origin:50px 40px;stroke-dasharray:100;stroke-dashoffset:0}
 .ui .anim.fold .trail{clip-path:inset(-12% 0 -12% 0);opacity:.35}
 .ui .txrow{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--ln);
-  border-radius:var(--r-base);padding:9px 10px;margin:0 14px 6px}
+  border-radius:var(--r-base);padding:9px 14px;margin:0 14px 6px}
 .ui .txrow .who{font-size:var(--fs-body);font-weight:600}
 .ui .txrow .gv{font-size:var(--fs-sub);color:var(--gr)}
 .ui .txrow .amt{margin-left:auto;font-size:var(--fs-money);display:inline-flex;align-items:baseline}
@@ -442,6 +463,24 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .daterow svg{margin-left:auto;color:var(--gr)}
 .ui .daterow input[type=date]{position:absolute;inset:0;width:100%;height:100%;
   opacity:0;border:0;padding:0;font-size:var(--fs-input)}
+/* #32-5 原本容器寫死 min-height:520px，在 844px 的手機上根本沒撐滿——
+   內容只能待在上半部，這才是「整體偏上」的根因，不是對齊沒設好。
+   改成跟著可用高度走（100dvh 避開 iOS 網址列伸縮），三段 flex 分配：
+   上留白 1／品牌區／下留白 1.35／登入鈕貼底。品牌落在約 40% 高度＝光學中心，
+   人眼看幾何置中會覺得偏低。塞不下時退回自然排列並可捲動，不硬撐也不裁切。 */
+.ui .s00wrap{background:linear-gradient(158deg,#0B2233 0%,#0F5E9E 48%,#1276C4 100%);
+  padding:0 26px calc(32px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100dvh;box-sizing:border-box}
+/* 真機模式底部有畫面切換器，可用高度要扣掉它，否則登入鈕會被蓋住 */
+html.dev .ui .s00wrap{min-height:calc(100dvh - var(--devbar-h,54px))}
+.ui .s00pad{min-height:24px}
+.ui .s00brand{display:flex;flex-direction:column;align-items:center;flex:none;align-self:stretch}
+.ui .s00col{width:min(240px,100%);display:flex;flex-direction:column;align-items:stretch;align-self:center}
+.ui .s00act{flex:none}
+.ui .s00tag{color:rgba(255,255,255,.66);font-size:var(--fs-body);text-align:center;
+  margin-top:28px;white-space:nowrap}
+@supports not (height:100dvh){.ui .s00wrap{min-height:100vh}}
 .ui .sec{padding:10px 14px 5px;font-size:var(--fs-sub);font-weight:600;color:var(--gr)}
 /* 結算分頁是把 S-05 的輸出整段借過來的。S-05 自己帶著導覽列（‹ 結算），
    放進分頁裡就變成兩顆返回鍵疊在一起。用 CSS 收起來，**不動 S-05 的輸出**。 */
@@ -471,7 +510,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .bar .ttl{font-size:var(--fs-body);font-weight:600;color:var(--md)}
 
 /* 行程卡 */
-.ui .tcard{margin:11px 14px 0;background:#fff;padding:4px;border:1px solid var(--ln);border-radius:var(--r-base);
+.ui .tcard{margin:11px 14px 0;background:#fff;padding:14px;border:1px solid var(--ln);border-radius:var(--r-base);
   display:block;width:calc(100% - 28px);text-align:left}
 .ui .tcard .img{height:150px;position:relative;padding:10px;display:flex;flex-direction:column;
   justify-content:flex-end;border-radius:var(--r-base);overflow:hidden}
@@ -933,18 +972,21 @@ function b(id, html, cls) {
    ═══════════════════════════════════════════════════════════ */
 function renderS00() {
   $('#scr-s00').innerHTML = `
-    <div style="background:linear-gradient(158deg,#0B2233 0%,#0F5E9E 48%,#1276C4 100%);
-      padding:64px 26px 30px;display:flex;flex-direction:column;align-items:center;min-height:520px">
-      ${b('S-00-2', `<div style="color:#fff;font-size:var(--fs-logo);font-weight:700;letter-spacing:-.03em;line-height:1">Tripay</div>`)}
-      ${b('S-00-3', `<div style="color:rgba(255,255,255,.8);font-size:var(--fs-body);letter-spacing:.32em;margin-top:12px">每一趟，都記得</div>`)}
-      <!-- #28-3 標語與登入鈕共用一個 200px 的欄，兩者都填滿它。
-           只把按鈕設成 200px 不夠——標語會停在它自己的 189px，還是不齊。 -->
-      <div style="width:200px;display:flex;flex-direction:column;align-items:stretch">
-        ${b('S-00-4', `<div style="color:rgba(255,255,255,.66);font-size:var(--fs-body);text-align:center;margin-top:28px">大家一起出發，帳交給 Tripay。</div>`)}
-        <div style="height:34px"></div>
+    <div class="s00wrap">
+      <div class="s00pad" style="flex:1"></div>
+      <div class="s00brand">
+        ${b('S-00-2', `<div style="color:#fff;font-size:var(--fs-logo);font-weight:700;letter-spacing:-.03em;line-height:1">Tripay</div>`)}
+        ${b('S-00-3', `<div style="color:rgba(255,255,255,.8);font-size:var(--fs-body);letter-spacing:.32em;margin-top:12px">每一趟，都記得</div>`)}
+        <!-- #28-3 標語與登入鈕共用同一個欄，兩者都填滿它——只把按鈕設寬不夠，標語會停在自己的寬度。
+             #32-5 欄寬 200 → 240：標語 15px 單行需要 211px，200 會折行。 -->
+        <div class="s00col">
+          ${b('S-00-4', `<div class="s00tag">大家一起出發，帳交給 Tripay。</div>`)}
+        </div>
+      </div>
+      <div class="s00pad" style="flex:1.35"></div>
+      <div class="s00col s00act">
         ${b('S-00-5', `<button id="s00login" class="gbtn" style="width:100%">${GOOGLE_G} 用 Google 繼續</button>`)}
       </div>
-      <div style="flex:1;min-height:24px"></div>
     </div>`;
 }
 
@@ -1179,8 +1221,8 @@ function renderS02b() {
       ${b('S-02b-11', `<div class="fld"><span class="lbl" data-group="清單管理，非單一輸入欄">這趟的支付方式</span>
         <div class="gap">${fb.pays.map((p,i) => {
           const used = fb.usedPays[p] || 0;
-          return `<div class="rowb" style="padding:7px 10px">
-            <span style="color:var(--gr);font-size:var(--fs-body)">⠿</span>
+          return `<div class="rowb" data-payrow="${i}" style="padding:7px 14px">
+            <span class="grip" data-paygrip="${i}" role="button" aria-label="拖曳排序">⠿</span>
             <span style="flex:1;font-size:var(--fs-body);font-weight:600">${esc(p)}</span>
             <span style="font-size:var(--fs-sub);color:var(--gr)">${used ? used + ' 筆在用' : '還沒用到'}</span>
             <button data-rmpay="${i}" style="font-size:var(--fs-body);color:${used?'#CDD3D0':'var(--gr)'};width:20px">${ic('close',12)}</button>
@@ -1316,7 +1358,7 @@ const RADIUS_SETS = {
   E: { nm:'E · 膠囊',     v:'999 / 28', base:'999px', panel:'28px', icon:'999px', chip:'999px' },
   F: { nm:'F · 全圓 50%', v:'50% / 50%',base:'50%',   panel:'50%',  icon:'50%',   chip:'50%'  },
 };
-let radiusSet = 'A';
+let radiusSet = 'C';
 function applyRadius(k) {
   radiusSet = k;
   const r = RADIUS_SETS[k], st = document.documentElement.style;
@@ -1355,6 +1397,9 @@ function renderDevBar() {
      <div class="list">${DEV_SCREENS.map(([id,nm]) =>
        `<button data-dev="${id}" class="${id===devScreen?'on':''}">${nm}</button>`).join('')}</div>`;
   document.querySelectorAll('.scr').forEach(el => el.classList.toggle('devon', el.id === devScreen));
+  // 切換器的高度會隨「收起清單」與換行而變，量出來給版面用
+  const bar = $('#devbar');
+  if (bar) document.documentElement.style.setProperty('--devbar-h', bar.offsetHeight + 'px');
 }
 function setDev(on) {
   document.documentElement.classList.toggle('dev', on);
@@ -1529,6 +1574,40 @@ function createTrip() {
   toast('#s02toast', `「${t.name}」建立好了。往上看 S-01 的列表。`);
   document.getElementById('s01').scrollIntoView({ behavior:'smooth', block:'start' });
 }
+
+/* #32-8 支付方式拖曳排序。按下把手 → 浮起；跟手移動時其他列即時讓位；
+   放開落位並回彈。觸控與滑鼠共用 pointer 事件。順序存在前端狀態（fb.pays 的陣列順序）。 */
+let payDrag = null;
+document.addEventListener('pointerdown', ev => {
+  const g = ev.target.closest('[data-paygrip]');
+  if (!g) return;
+  ev.preventDefault();
+  payDrag = { from: +g.dataset.paygrip };
+  const row = g.closest('.rowb');
+  if (row) { row.classList.add('dragging'); try { g.setPointerCapture(ev.pointerId); } catch (e) {} }
+});
+document.addEventListener('pointermove', ev => {
+  if (!payDrag) return;
+  const rows = [...document.querySelectorAll('#scr-s02b [data-payrow]')];
+  const over = rows.find(r => { const b2 = r.getBoundingClientRect();
+    return ev.clientY >= b2.top && ev.clientY <= b2.bottom; });
+  if (!over) return;
+  const to = +over.dataset.payrow;
+  if (to === payDrag.from) return;
+  const arr = fb.pays;
+  arr.splice(to, 0, arr.splice(payDrag.from, 1)[0]);
+  payDrag.from = to;
+  renderS02b();
+  const row = document.querySelector(`#scr-s02b [data-payrow="${to}"]`);
+  if (row) row.classList.add('dragging');
+});
+document.addEventListener('pointerup', () => {
+  if (!payDrag) return;
+  const row = document.querySelector(`#scr-s02b [data-payrow="${payDrag.from}"]`);
+  if (row) { row.classList.remove('dragging'); row.classList.add('dropped');
+    setTimeout(() => row.classList.remove('dropped'), 300); }
+  payDrag = null;
+});
 
 /* 輸入：只寫 state，不重建正在輸入的欄位（避免游標錯亂／倒序） */
 document.addEventListener('input', ev => {
@@ -1766,8 +1845,28 @@ function dayLabel(t, d) {
   return `第 ${n} 天 · ${md(d)}（${wd}）`;
 }
 
-function expenseRow(e, c, S, forFilter) {
-  const t = S.t, payer = t.members.find(m => m.id === e.payer);
+/* #32-9 消費列與日期分組：S-03 與 S-06 共用同一套產生邏輯。
+   分享頁是唯讀——列渲染成 <div> 而不是 <button>，其餘結構完全相同。
+   兩處分開寫遲早會走鐘（理由同 statCard()／transferView()）。 */
+function expenseGroups(S, opts) {
+  const t = S.t, o = opts || {};
+  const groups = {};
+  [...S.list].sort((a, c2) => a.date.localeCompare(c2.date))
+    .forEach(e => { const k = dayLabel(t, e.date); (groups[k] = groups[k] || []).push(e); });
+  let h = '', first = true;
+  for (const [k, arr] of Object.entries(groups)) {
+    const hd = `<div class="sec">${k}</div>`;
+    h += (first && o.headId) ? b(o.headId, hd) : hd;
+    arr.forEach((e, i) => {
+      const row = expenseRow(e, calc(e, t), S, o);
+      h += (first && i === 0 && o.rowId) ? b(o.rowId, row) : row;
+    });
+    first = false;
+  }
+  return h;
+}
+function expenseRow(e, c, S, opts) {
+  const o = opts || {}, t = S.t, payer = t.members.find(m => m.id === e.payer);
   const badges = [];
   if (e.type === 'individual') badges.push(b('S-03-18','<span class="pill ind">各付各的</span>','inl'));
   if (e.type === 'single' && e.parts && e.parts[0])
@@ -1782,12 +1881,14 @@ function expenseRow(e, c, S, forFilter) {
     : e.sponsor
       ? `<span class="money" style="color:var(--in)">−${money(c.twdTotal).replace(/^[^\d]*/, m => m)}</span>`
       : `${approx ? '<i class="approx">約</i>' : ''}<span class="money">${money(c.twdTotal)}</span>`;
-  const rowHtml = `<button class="exprow${pend ? ' pend' : ''}" data-editexp="${e.id}">
+  const tag = o.readonly ? 'div' : 'button';
+  const attr = o.readonly ? '' : ` data-editexp="${e.id}"`;
+  const rowHtml = `<${tag} class="exprow${pend ? ' pend' : ''}"${attr}>
     <span class="ic">${e.emoji}</span>
     <span class="mid"><span class="t">${esc(e.title)}</span>
-      <span class="s">${payer ? esc(payer.emoji + ' ' + payer.name) : ''} ${badges.join(' ')}</span></span>
-    <span class="a">${amt}</span></button>`;
-  return pend ? b('S-03-17', rowHtml) : rowHtml;   // 整筆未定的列有自己的編號
+      <span class="s">${payer ? esc((payer.emoji || firstGrapheme(payer.name)) + ' ' + payer.name) : ''} ${badges.join(' ')}</span></span>
+    <span class="a">${amt}</span></${tag}>`;
+  return pend ? b(o.pendId || 'S-03-17', rowHtml) : rowHtml;   // 整筆未定的列有自己的編號
 }
 
 function renderS03() {
@@ -1861,19 +1962,7 @@ function renderS03() {
       </svg>
       <p style="margin-top:10px">第一筆從哪裡開始？</p><p>早餐、計程車、門票，都可以記</p></div>`);
   } else {
-    const groups = {};
-    [...S.list].sort((a,c2) => a.date.localeCompare(c2.date))
-      .forEach(e => { const k = dayLabel(t, e.date); (groups[k] = groups[k] || []).push(e); });
-    let first = true;
-    for (const [k, arr] of Object.entries(groups)) {
-      h += first ? b('S-03-15', `<div class="sec">${k}</div>`) : `<div class="sec">${k}</div>`;
-      arr.forEach((e, i) => {
-        const c = calc(e, t);
-        const row = expenseRow(e, c, S);
-        h += (first && i === 0) ? b('S-03-16', row) : row;
-      });
-      first = false;
-    }
+    h += expenseGroups(S, { headId: 'S-03-15', rowId: 'S-03-16' });
   }
 
   // #28-6b 底部只留一顆主鈕，且依狀態變。已結算態沒有主鈕——那時的主要動作是
@@ -1909,7 +1998,7 @@ function s03MoreSheet(st) {
   return b('S-03-32', `<div class="scrim" style="padding:22px 0 0" id="s03menuscrim">
       <div style="font-size:var(--fs-tag);color:rgba(255,255,255,.7);text-align:center;padding-bottom:12px">遮罩 · 點擊關閉</div></div>
     <div class="sheet"><div class="grab"></div><div style="padding:6px 14px 0">${body}</div>
-      <div style="padding:6px 14px 16px"><button class="btn qt" id="s03menux">取消</button></div></div>`);
+      <div style="padding:6px 14px 16px"><button class="btn qt" id="s03menux" style="min-height:44px">取消</button></div></div>`);
 }
 function syncSettlePane() {
   const pane = document.getElementById('s03settlepane'), src = document.getElementById('scr-s05');
@@ -2763,18 +2852,9 @@ function renderS06() {
   if (!list.length) {
     h += b('S-06-11', `<div class="empty"><p>還沒有消費紀錄。</p></div>`);
   } else {
-    h += list.map((e, i) => {
-      const c = calc(e, t), payer = t.members.find(m => m.id === e.payer);
-      const pend = c.twdPending;
-      const amt = pend ? '<span style="color:var(--out)">還沒填</span>'
-        : e.sponsor ? `<span class="money" style="color:var(--in)">−${money(c.twdTotal)}</span>`
-        : `<span class="money">${money(c.twdTotal)}</span>`;
-      const row = `<div class="exprow${pend ? ' pend' : ''}"><span class="ic">${e.emoji}</span>
-        <span class="mid"><span class="t">${esc(e.title)}</span>
-          <span class="s">${payer ? esc((payer.emoji||firstGrapheme(payer.name)) + ' ' + payer.name) : ''} · ${e.date}</span></span>
-        <span class="a">${amt}</span></div>`;
-      return pend ? b('S-06-10', row) : row;
-    }).join('');
+    // #32-9 與行程頁同一套：日期分組標頭＋列上只有付款人，不再把日期寫在付款人後面。
+    // 分享頁唯讀，列渲染成 <div>；結構其餘完全相同。
+    h += expenseGroups(S, { readonly: true, pendId: 'S-06-10' });
   }
 
   // #27-1 S-06-13「安裝」鈕整顆移除：它綁在 beforeinstallprompt 上，iOS Safari 不支援該事件，
