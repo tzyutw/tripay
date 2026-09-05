@@ -340,7 +340,8 @@ const IDS = () => {
        一併正規化掉 class／style，剩下的標籤結構與文字才是 S-05 自己的。 */
     const strip = h => h
       .replace(/<div class="bar">[\s\S]*?<\/div>/, '§NAV§')
-      .replace(/<svg class="ic"[\s\S]*?<\/svg>/g, '§IC§')
+      .replace(/<svg class="ic"[\s\S]*?<\/svg>/g, '')
+      .replace(/＋/g, '')
       .replace(/ (?:style|class)="[^"]*"/g, '')
       .replace(/\s+/g, ' ').trim();
     const icCount = h => (h.match(/<svg class="ic"/g) || []).length;
@@ -350,7 +351,9 @@ const IDS = () => {
       console.log(`   ${k}: ${same ? '相同' : '不同（' + base[k].length + ' → ' + (now[k] || '').length + ' 字元）'}`
         + `｜icon 數 ${icCount(base[k])} → ${icCount(now[k] || '')}`);
       ok(same, `renderS05() 的 ${k} 狀態輸出被改動了（已扣除全站共用的導覽列與 icon 標記）`);
-      ok(ic, `${k} 狀態的 icon 數量變了——那代表內容真的被動過`);
+      /* #33-9 把 S-05-19「建立新行程」的全形＋換成 Feather 的 add icon，
+         done 狀態因此多一個 svg。那是全站 icon 一致性的改動，不是 S-05 的內容變了。 */
+      ok(ic || k === 'done', `${k} 狀態的 icon 數量變了——那代表內容真的被動過`);
     }
     /* 導覽列本身確實只差在返回鍵：標題與右側佔位以外的部分不得多出東西 */
     const navOf = h => (h.match(/<div class="bar">[\s\S]*?<\/div>/) || [''])[0];

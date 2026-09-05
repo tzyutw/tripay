@@ -342,72 +342,40 @@ const cr = (a, b) => {
   console.log('   .ui CSS 內寫死的圓角:', hard.length ? hard.join(' ') : '（無）');
   ok(hard.length === 0, `還有寫死的圓角：${hard.join(' ')}`);
   const broken = []; let baseOver = new Set();
-  for (const k of ['A', 'B', 'C', 'D', 'E', 'F']) {
-    const r = await pg.evaluate((exp, ink, key) => {
-      applyRadius(key);
-      document.documentElement.classList.remove('dev', 'anno');
-      eval('(' + exp + ')()');
-      const vals = new Set();
-      document.querySelectorAll('.ui *').forEach(el => {
-        const br = getComputedStyle(el).borderRadius;
-        if (br && br !== '0px') vals.add(br);
-      });
-      /* 破版＝文字橫向溢出容器。這一項只看「與 A 版相比多出來的」——
-         A 版本來就有的（emoji 按鈕的行高之類）與圓角無關。 */
-      const over = [];
-      document.querySelectorAll('.ui button, .ui .btn, .ui input').forEach(el => {
-        if (el.scrollWidth > el.clientWidth + 2)
-          over.push((el.textContent || el.id || '?').trim().slice(0, 8));
-      });
-      return { vals: [...vals], ink: eval('(' + ink + ')()'),
-               sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth,
-               over: [...new Set(over)] };
-    }, EXPAND.toString(), INK.toString(), k);
-    if (k === 'A') baseOver = new Set(r.over);
-    const extra = r.over.filter(x => !baseOver.has(x));
-    console.log(`   ${k}：圓角值 ${r.vals.join(' / ')}｜${r.sw}/${r.cw}｜貼邊 ${r.ink.length}｜比 A 多出來的破版 ${extra.length ? extra.join('、') : '（無）'}`);
-    ok(r.sw <= r.cw, `${k} 有橫向捲動`);
-    ok(r.ink.length === 0, `${k} 有文字貼邊`);
-    if (extra.length) broken.push(`${k}：${extra.join('、')}`);
-  }
-  console.log('   破版彙總（F 允許破版，列出供 Rozi 判斷）:', broken.length ? broken.join(' ｜ ') : '（無）');
-  ok(broken.every(x => /^[EF]/.test(x)), `A～D 不該破版：${broken.filter(x => !/^[EF]/.test(x)).join(' ')}`);
-  await pg.evaluate(() => applyRadius('A'));
+  /* #33-7 圓角定案 C，六版切換器已移除——這一整段的六版比對隨之作廢，
+     改為只驗「圓角仍由變數控制、值就是定案的 10/20」。 */
+  /* #33-7 圓角定案 C，六版切換器已移除——原本的六版逐一比對隨之作廢。
+     改為只驗「圓角仍由變數控制、值就是定案的 10/20、沒有寫死的圓角」。 */
+  const one = await pg.evaluate((exp, ink) => {
+    document.documentElement.classList.remove('dev', 'anno');
+    eval('(' + exp + ')()');
+    const vals = new Set();
+    document.querySelectorAll('.ui *').forEach(el => {
+      const br = getComputedStyle(el).borderRadius;
+      if (br && br !== '0px') vals.add(br);
+    });
+    const cs = getComputedStyle(document.documentElement);
+    return { vals: [...vals], base: cs.getPropertyValue('--r-base').trim(),
+             panel: cs.getPropertyValue('--r-panel').trim(),
+             ink: eval('(' + ink + ')()'),
+             sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth };
+  }, EXPAND.toString(), INK.toString());
+  console.log(`   圓角值 ${one.vals.join(' / ')}｜--r-base ${one.base}／--r-panel ${one.panel}｜${one.sw}/${one.cw}｜貼邊 ${one.ink.length}`);
+  ok(one.base === '10px' && one.panel === '20px', `圓角應為定案的 10/20，實際 ${one.base}/${one.panel}`);
+  ok(one.sw <= one.cw && one.ink.length === 0, '有橫向捲動或文字貼邊');
+
 
   /* 9　切換器在桌機與真機模式都在 */
-  console.log('\n=== 9　圓角切換器的位置 ===');
-  const inDev = await pg.evaluate(() => {
-    setDev(true); renderDevBar();
-    const bar = document.getElementById('devbar');
-    const rr = bar.querySelector('.rr');
-    const main = document.querySelector('.scr.devon .ui .btnrow');
-    const r1 = rr ? rr.getBoundingClientRect() : null;
-    const r2 = main ? main.getBoundingClientRect() : null;
-    applyRadius('C');
-    const kept1 = radiusSet;
-    devScreen = 's04'; renderDevBar();
-    const kept2 = radiusSet;
-    applyRadius('A'); devScreen = 's03'; renderDevBar();
-    return { hasRR: !!rr, label: rr ? rr.textContent.slice(0, 12) : '',
-             overlap: r1 && r2 ? !(r1.top > r2.bottom || r1.bottom < r2.top) : false,
-             kept1, kept2 };
-  });
-  console.log('   ' + JSON.stringify(inDev));
-  ok(inDev.hasRR, '真機模式的底部列裡沒有圓角切換器');
-  ok(inDev.label.includes('圓角'), '切換器要標出目前的數值');
-  ok(inDev.kept1 === 'C' && inDev.kept2 === 'C', '換畫面之後版本設定不能跑掉');
-  const deskSw = await browser.newPage();
-  await deskSw.setViewport({ width: 1280, height: 900 });
-  await deskSw.goto('file://' + FILE, { waitUntil: 'load' });
-  const d = await deskSw.evaluate(() => ({
-    n: document.querySelectorAll('#radiussw button').length,
-    visible: getComputedStyle(document.getElementById('radiussw')).display !== 'none',
-    title: (document.querySelector('#radiussw button') || {}).title,
+  console.log('\n=== 9　圓角切換器已移除（#33-7）===');
+  const gone = await pg.evaluate(() => ({
+    box: !!document.getElementById('radiussw'),
+    btns: document.querySelectorAll('[data-radius]').length,
+    inBar: !!document.querySelector('#devbar .rr'),
   }));
-  console.log('   桌機:', JSON.stringify(d));
-  ok(d.n === 6 && d.visible, '桌機的稿頭要有六個版本可按');
-  ok(d.title && /\d/.test(d.title), '按鈕要標出實際數值');
-  await deskSw.close();
+  console.log('   ' + JSON.stringify(gone));
+  ok(!gone.box && gone.btns === 0 && !gone.inBar, '圓角切換器應已移除（拋棄式工具，挑完就收）');
+  ok(!/RADIUS_SETS/.test(SRC), 'RADIUS_SETS 應已刪除');
+
   await pg.close();
 
   console.log('\n============================');

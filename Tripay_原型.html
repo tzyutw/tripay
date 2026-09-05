@@ -15,7 +15,7 @@
      跟字級當初一樣：沒有階梯，是各自決定出來的。全部收斂成四個變數，
      切換器只換這四個值。--r-icon 與 --r-chip 在 A～D 維持形狀（正圓／膠囊），
      E／F 才跟著 --r-base 走——否則看不出「全部都圓」是什麼樣子。 */
-  /* #32-3 Rozi 在真機上比過六版，選 C。切換器先不移除——她要再挑一次。 */
+  /* #33-7 圓角定案 C，Rozi 二次確認。切換器已移除。 */
   --r-base:10px; --r-panel:20px; --r-icon:50%; --r-chip:999px;
 }
 :root[data-theme="light"]{--pg:#E7E9E4;--pg2:#FFF;--pg3:#F2F3EF;--pgink:#151C21;
@@ -62,19 +62,9 @@ html.dev #devbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:30
 #devbar .list button{font-size:13px;padding:6px 11px;border:1px solid var(--ln);
   border-radius:999px;background:#fff;color:#4C5B64}
 #devbar .list button.on{background:#1276C4;border-color:#1276C4;color:#fff;font-weight:600}
-html.devmin #devbar .list,html.devmin #devbar .rr{display:none}
-/* #31-9 圓角版本切換器。**這是拋棄式工具**——Rozi 選定後把它整段移除，
-   把選中的值寫死成 :root 的預設。 */
-#radiussw{display:flex;align-items:center;gap:4px;margin-left:8px}
-#radiussw span{font-size:10.5px;letter-spacing:.1em;color:var(--pgink3)}
-#radiussw button{font-size:11px;font-weight:600;padding:5px 8px;border:1px solid var(--pgrule);
-  border-radius:3px;color:var(--pgink2);background:var(--pg2)}
-#radiussw button.on{background:var(--mark);border-color:var(--mark);color:var(--pg)}
-#devbar .rr{display:flex;flex-wrap:wrap;gap:5px;padding:0 12px 10px;align-items:center}
-#devbar .rr span{font-size:11px;color:var(--gr);flex:none}
-#devbar .rr button{font-size:12px;font-weight:600;padding:5px 9px;border:1px solid var(--ln);
-  border-radius:999px;background:#fff;color:#4C5B64}
-#devbar .rr button.on{background:#1276C4;border-color:#1276C4;color:#fff}
+html.devmin #devbar .list{display:none}
+/* #33-7 圓角定案 C（10 / 20），Rozi 二次確認。#31-9 的六版切換器已移除——
+   那是拋棄式工具，挑完就該收掉。值寫死在 :root 的 --r-base／--r-panel。 */
 #devtoggle{display:none;margin-left:8px;font-size:12.5px;font-weight:600;padding:7px 12px;
   border:1px solid var(--pgrule);border-radius:3px;color:var(--pgink2);background:var(--pg2)}
 @media(pointer:fine){#devtoggle{display:inline-flex}}
@@ -200,6 +190,18 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;
   background:#fff;border-bottom:1px solid var(--ln)}
 .ui .lbl{display:block;font-size:var(--fs-body);font-weight:600;color:var(--md);margin-bottom:6px}
+/* #33-2 iOS 的原生 date input **讓內容決定寬度**，不照我們給的欄寬；
+   空值時渲染「年/月/日」，寬度又跟有值時不同——所以在 iPhone 上兩個框不一樣大、
+   中文日期還會撐爆。無頭 Chrome 量不出這件事（那裡兩框都是 176px）。
+   關掉系統外觀、由欄位分配寬度、min-width:0（flex 子元素預設 auto 會拒絕被壓縮，
+   那是溢出的直接原因）；系統外觀關掉之後日曆圖示要自己補回去，
+   否則使用者看不出這是日期欄位。點擊仍會叫出原生的日期選擇器。 */
+.ui .datefield{position:relative;display:flex;align-items:center;width:100%;min-width:0}
+.ui .datefield input[type=date]{-webkit-appearance:none;appearance:none;
+  flex:1;width:100%;min-width:0;padding-right:32px}
+.ui .datefield input[type=date]::-webkit-calendar-picker-indicator{opacity:0;position:absolute;
+  right:0;top:0;width:100%;height:100%;cursor:pointer}
+.ui .datefield>svg{position:absolute;right:10px;color:var(--gr);pointer-events:none}
 .ui .hint{font-size:var(--fs-sub);color:var(--gr);margin:5px 0 0;line-height:1.45}
 .ui .err{font-size:var(--fs-sub);color:var(--out);margin:5px 0 0}
 .ui .fld{padding:0 14px 14px}
@@ -251,9 +253,14 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 /* 全站唯一的「選取／未選取」語彙：未選＝描邊、選了＝填實工作色。
    S-04 的分給誰／贊助／大家各付各的都用同一個。 */
-.ui .selchip{font-size:var(--fs-tag);font-weight:600;padding:3px 9px;border-radius:var(--r-chip);flex:none;
-  border:1px solid var(--ln);color:#A9B2B7;background:#fff;display:inline-flex;align-items:center;gap:3px}
-.ui .selchip.on{border-color:var(--w);background:var(--w);color:#fff}
+/* #33-6 原本是一個 32×25 的 chip，裡面印著一個「選」字——兩顆都寫「選」，
+   要靠顏色才分得出哪個被選中，既不是單選鈕該有的樣子，也沒有傳達任何資訊。
+   改成標準形狀：未選空心圓、選中圓內實心點，裡面不放任何文字。 */
+.ui .selchip{width:20px;height:20px;border-radius:50%;flex:none;box-sizing:border-box;
+  border:1.5px solid #B9C1BB;background:#fff;display:inline-flex;align-items:center;
+  justify-content:center;font-size:0}
+.ui .selchip.on{border-color:var(--w)}
+.ui .selchip.on::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--w)}
 /* #20-1 金額欄一行：幣別標籤固定寬靠左，輸入框吃剩餘寬度。
    輸入的數字字級刻意小於區塊標題——表單裡的數字是輸入不是展示。 */
 /* #30-5b 原本 .amtline 只有 39px，低於 44 的最小觸控標準——而金額是整張表單最重要的輸入。
@@ -291,7 +298,13 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
   font-variant-numeric:tabular-nums}
 .ui .cmp .d{font-weight:600;display:inline-flex;align-items:center}
-.ui .cmp .sub2{width:100%;font-weight:400;margin-top:2px}
+/* #33-3 提示句原本有兩種字級：.hint／.txsub 是 13，但 .note 從來沒有樣式定義，
+   繼承 .ui 的 15px（跟 .sec／.stats 是同一個家族的問題）。全部收斂成 13。
+   警示的份量由 icon 撐，不再靠字級——一件事用一種手段表達就好。 */
+/* 只改字級。33-3 明講「不要自己加粗或改色補償」——所以顏色、粗細、版面一律不動，
+   警示的份量還是只有 icon 在撐。這一條在停點報告裡回報給 Rozi 判斷。 */
+.ui .note{font-size:var(--fs-sub)}
+.ui .cmp .sub2{width:100%;font-weight:400;margin-top:2px;font-size:var(--fs-sub)}
 .ui .cmp.ok{background:#EAF3E9;border:1px solid #C9DFC8;color:var(--in)}
 .ui .cmp.soft{background:#F4F5F1;border:1px solid var(--ln);color:var(--md)}
 .ui .cmp.bad{background:#FBF0EC;border:1px solid #E8C4B8;color:var(--out)}
@@ -382,7 +395,11 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .mrule{height:1px;background:var(--ln);margin:0 -14px}
 /* #31-6 選單項目整列可點：撐滿面板、至少 44 高、線由 .mrule 負責 */
 .ui .shopt.mi{width:100%;min-height:44px;border-bottom:0}
-.ui .shopt{display:flex;align-items:center;gap:10px}
+/* #33-5 原本 .shopt 是橫向 flex，標題與灰字的頂端只差 3px——在同一行，
+   讀起來「複製分享連結　不用登入就看得到消費明細」黏成一句。
+   灰字改放標題下方；⋯ 選單那一種（.mi，只有一行文字＋icon）維持橫向。 */
+.ui .shopt{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.ui .shopt.mi{flex-direction:row;align-items:center;gap:10px}
 .ui .shopt svg{color:var(--md);flex:none}
 /* ⋯ 選單的項目是「可點的選項」＝二階（--md），與 chip／seg 未選同一階。
    S-03b 分享選單的 .shopt 不受影響——那裡的標題是內容本身。 */
@@ -559,7 +576,6 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
     <button data-m="anno">標註模式</button>
     <button data-m="op">操作模式</button>
   </div>
-  <div id="radiussw"></div>
   <button id="devtoggle">真機模式</button>
 </div>
 
@@ -824,6 +840,8 @@ const ICON = {
   close:   '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
   more:    '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
   archive: '<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  menu:    '<line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>',
 };
 const ICON_STROKE = 1.7;   /* 全站唯一線寬，在 24 格上量 */
 function ic(name, size) {
@@ -997,7 +1015,7 @@ function renderS01() {
   const head = `${b('S-01-1', `<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 11px;border-bottom:1px solid var(--ln)">
       <span style="font-size:var(--fs-title);font-weight:700;letter-spacing:-.02em;color:var(--wi)">Tripay</span>
       <span style="display:flex;align-items:center;gap:8px">
-        ${b('S-01-2', `<button id="s01new" style="background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:7px 12px;border-radius:var(--r-base)">＋ 新增行程</button>`)}
+        ${b('S-01-2', `<button id="s01new" style="background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:7px 12px;border-radius:var(--r-base)">${ic('add',16)} 新增行程</button>`)}
         ${b('S-01-15', `<button class="ic2" aria-label="設定">${ic('settings',20)}</button>`)}
       </span>
     </div>`)}`;
@@ -1007,7 +1025,7 @@ function renderS01() {
     body = b('S-01-3', `<div class="spin"><i></i><div style="font-size:var(--fs-sub);color:var(--gr);margin-top:8px">載入中</div></div>`);
   } else if (store.s01 === 'empty') {
     body = b('S-01-4', `<div class="empty"><p>還沒有行程。</p><p>第一趟要去哪？</p>
-      <button id="s01empty" class="btn" style="width:auto;padding:9px 18px;margin-top:14px;display:inline-block">＋ 建立第一趟</button></div>`);
+      <button id="s01empty" class="btn" style="width:auto;padding:9px 18px;margin-top:14px;display:inline-block">${ic('add',16)} 建立第一趟</button></div>`);
   } else {
     // 排序：出發日新→舊（S-01-11，隱形行為）
     const list = [...store.trips].sort((a,c) => c.start.localeCompare(a.start));
@@ -1116,8 +1134,10 @@ function renderS02() {
       ${currencyBlock(f, 'f')}
 
       ${b('S-02-9', `<div class="fld"><div style="display:flex;gap:9px">
-        <div style="flex:1;min-width:0"><span class="lbl" data-group="兩欄並排，320px 下標籤同列會過窄">出發</span><input type="date" id="s02start" value="${f.start}"></div>
-        <div style="flex:1;min-width:0"><span class="lbl" data-group="兩欄並排，320px 下標籤同列會過窄">回程</span><input type="date" id="s02end" value="${f.end}" min="${f.start}">
+        <div style="flex:1;min-width:0"><span class="lbl" data-group="兩欄並排，320px 下標籤同列會過窄">出發</span>
+          <span class="datefield"><input type="date" id="s02start" value="${f.start}">${ic('calendar',16)}</span></div>
+        <div style="flex:1;min-width:0"><span class="lbl" data-group="兩欄並排，320px 下標籤同列會過窄">回程</span>
+          <span class="datefield"><input type="date" id="s02end" value="${f.end}" min="${f.start}">${ic('calendar',16)}</span>
           <p class="hint">不填就是當天來回</p></div>
       </div>${f.errs.start ? `<p class="err">${f.errs.start}</p>` : ''}</div>`)}
 
@@ -1131,7 +1151,7 @@ function renderS02() {
               <div style="height:8px"></div>
               <div class="flexrow" style="display:flex;gap:7px"><button class="btn qt" id="s02addcancel">取消</button><button class="btn" id="s02adddo" ${f.newName.trim() ? '' : 'disabled'}>加進來</button></div>
             </div>`)
-          : b('S-02-16', `<button id="s02add" style="margin-top:9px;width:100%;border:1px dashed #B9C1BB;border-radius:var(--r-base);padding:9px;font-size:var(--fs-body);color:var(--md);font-weight:600">＋ 新增成員</button>`)}
+          : b('S-02-16', `<button id="s02add" style="margin-top:9px;width:100%;border:1px dashed #B9C1BB;border-radius:var(--r-base);padding:9px;font-size:var(--fs-body);color:var(--md);font-weight:600">${ic('add',16)} 新增成員</button>`)}
       </div>`)}
 
       ${b('S-02-18', `<div class="btnrow"><button class="btn gh" id="s02cancel">取消</button><button class="btn" id="s02go">出發！</button></div>`)}
@@ -1207,10 +1227,10 @@ function renderS02b() {
       ${b('S-02b-13', `<div class="fld"><span class="lbl" data-group="兩種模式二選一，非單一輸入欄">這趟怎麼結算？</span>
         <div class="gap">
           <button class="rowb${fb.settleMode !== 'hub' ? ' on' : ''}" data-smode="direct">
-            <span class="selchip ${fb.settleMode !== 'hub' ? 'on' : ''}">選</span>
+            <span class="selchip ${fb.settleMode !== 'hub' ? 'on' : ''}" aria-hidden="true"></span>
             <span style="flex:1;font-weight:600">誰欠誰就轉給誰</span></button>
           <button class="rowb${fb.settleMode === 'hub' ? ' on' : ''}" data-smode="hub">
-            <span class="selchip ${fb.settleMode === 'hub' ? 'on' : ''}">選</span>
+            <span class="selchip ${fb.settleMode === 'hub' ? 'on' : ''}" aria-hidden="true"></span>
             <span style="flex:1;font-weight:600">都轉給同一個人</span></button>
         </div>
         ${fb.settleMode === 'hub' ? `<div class="chips" style="margin-top:8px">${
@@ -1222,7 +1242,7 @@ function renderS02b() {
         <div class="gap">${fb.pays.map((p,i) => {
           const used = fb.usedPays[p] || 0;
           return `<div class="rowb" data-payrow="${i}" style="padding:7px 14px">
-            <span class="grip" data-paygrip="${i}" role="button" aria-label="拖曳排序">⠿</span>
+            <span class="grip" data-paygrip="${i}" role="button" aria-label="拖曳排序">${ic('menu',16)}</span>
             <span style="flex:1;font-size:var(--fs-body);font-weight:600">${esc(p)}</span>
             <span style="font-size:var(--fs-sub);color:var(--gr)">${used ? used + ' 筆在用' : '還沒用到'}</span>
             <button data-rmpay="${i}" style="font-size:var(--fs-body);color:${used?'#CDD3D0':'var(--gr)'};width:20px">${ic('close',12)}</button>
@@ -1273,7 +1293,7 @@ const INDEX = {
   ],
   s01: [
     ['S-01-1','標題列','st','Tripay 字標，不吸頂'],
-    ['S-01-2','＋ 新增行程','op','開 S-02 建立表單'],
+    ['S-01-2','新增行程','op','開 S-02 建立表單。<b>改（#33-9）</b>：全形「＋」改用 Feather 的 <code>add</code>——同一個動作全站原本有兩種畫法'],
     ['S-01-3','載入中','st','置中轉圈（用右側原型控制切換）'],
     ['S-01-4','空狀態','op','「還沒有行程」＋<b>已補上 CTA</b>（讀碼發現 #11）'],
     ['S-01-5','行程卡','op','目的地色調＋壓暗遮罩，整張可點；<b>無金額、無成員、無 emoji</b>'],
@@ -1286,7 +1306,7 @@ const INDEX = {
     ['S-01-12','列表過濾','inv','只顯示 kind=trip，帳單週期不混進來'],
     ['S-01-13','成員識別的適用範圍','inv','僅首頁不顯示成員；其他頁照常'],
     ['S-01-14','行程 emoji 全站退場','inv','卡片右上角 emoji 已拿掉，欄位保留'],
-    ['S-01-15','設定入口','op','<b>新（#28-6c）</b>：從 S-03 行程頁移過來。那是 <b>App 設定</b>（登入帳號、我的資料），不是這趟行程的設定，掛在行程頁是層級錯位。放標題列右上、「＋ 新增行程」之後——設定的使用頻率比新增行程低'],
+    ['S-01-15','設定入口','op','<b>新（#28-6c）</b>：從 S-03 行程頁移過來。那是 <b>App 設定</b>（登入帳號、我的資料），不是這趟行程的設定，掛在行程頁是層級錯位。放標題列右上、「新增行程」之後——設定的使用頻率比新增行程低'],
   ],
   s02: [
     ['S-02-1','遮罩','st','黑 45%，點擊關閉'],
@@ -1304,7 +1324,7 @@ const INDEX = {
     ['S-02-13','成員識別圓圈','op','<b>就地編輯</b>：點圓圈變單字輸入，輸入即存、收合'],
     ['S-02-14','移除成員 ✕','op','建立模式一律可移除'],
     ['S-02-15','新增成員展開表單','op','只要名字。超過 10 字才提示，不預先說'],
-    ['S-02-16','＋ 新增成員','op','展開上一項'],
+    ['S-02-16','新增成員','op','展開上一項。<b>改（#33-9）</b>：全形「＋」改用 Feather 的 <code>add</code>'],
     ['S-02-17','說明文','del','已移除：在推銷功能好處。<b>功能本身未動</b>，存廢批二再談'],
     ['S-02-18','取消／出發！','op','<b>真的會建立</b>，S-01 立刻多一張卡'],
     ['S-02-19','封面說明句','del','已移除：建立行程不提供調色調，就不該顯示色調'],
@@ -1346,36 +1366,6 @@ function renderIndex() {
 let mode = 'anno';
 /* #29-9 真機模式：一次只顯示一個畫面，底部一條可收起的切換器。
    互動照常，只是把稿件元素（徽章、右側清單、稿頭、章節標題）全部藏起來。 */
-/* #31-9 六個圓角版本。A～D 之下 .ic2 維持正圓、chip 維持膠囊（那是形狀不是圓角）；
-   E／F 連它們也跟著 --r-base 走，否則看不出「全部都圓」是什麼樣子。
-   F 的 50% 用在非正方形元素上會變成橢圓——那是 border-radius:50% 的正常行為，
-   不是 bug，Rozi 要看的就是它真實的樣子，所以不加任何限制。 */
-const RADIUS_SETS = {
-  A: { nm:'A · 現況收斂', v:'3 / 14',   base:'3px',   panel:'14px', icon:'50%',   chip:'999px' },
-  B: { nm:'B · 微圓',     v:'6 / 16',   base:'6px',   panel:'16px', icon:'50%',   chip:'999px' },
-  C: { nm:'C · iOS 原生', v:'10 / 20',  base:'10px',  panel:'20px', icon:'50%',   chip:'999px' },
-  D: { nm:'D · 圓潤',     v:'14 / 24',  base:'14px',  panel:'24px', icon:'50%',   chip:'999px' },
-  E: { nm:'E · 膠囊',     v:'999 / 28', base:'999px', panel:'28px', icon:'999px', chip:'999px' },
-  F: { nm:'F · 全圓 50%', v:'50% / 50%',base:'50%',   panel:'50%',  icon:'50%',   chip:'50%'  },
-};
-let radiusSet = 'C';
-function applyRadius(k) {
-  radiusSet = k;
-  const r = RADIUS_SETS[k], st = document.documentElement.style;
-  st.setProperty('--r-base', r.base);  st.setProperty('--r-panel', r.panel);
-  st.setProperty('--r-icon', r.icon);  st.setProperty('--r-chip', r.chip);
-  renderRadiusSw(); renderDevBar();
-}
-function renderRadiusSw() {
-  const el = $('#radiussw'); if (!el) return;
-  el.innerHTML = `<span>圓角</span>` + Object.entries(RADIUS_SETS).map(([k, r]) =>
-    `<button data-radius="${k}" class="${k === radiusSet ? 'on' : ''}" title="${r.nm}｜${r.v}">${k}</button>`).join('');
-}
-document.addEventListener('click', ev => {
-  const r = ev.target.closest('[data-radius]');
-  if (r) { applyRadius(r.dataset.radius); return; }
-});
-
 const DEV_SCREENS = [['s00','登入'],['s01','首頁'],['s02','建立行程'],['s02b','編輯行程'],
   ['s02c','成員識別'],['s03','行程頁'],['s03b','分享／刪除'],['s03d','篩選'],
   ['s04','記一筆'],['s05','結算'],['s06','分享頁'],['s07','設定']];
@@ -1391,9 +1381,6 @@ function renderDevBar() {
     `<div class="hd"><b>真機模式</b>
       <button id="devmin">${document.documentElement.classList.contains('devmin') ? '展開清單' : '收起清單'}</button>
      </div>
-     <div class="rr"><span>圓角 ${RADIUS_SETS[radiusSet].v}</span>${
-       Object.entries(RADIUS_SETS).map(([k, r]) =>
-         `<button data-radius="${k}" class="${k === radiusSet ? 'on' : ''}">${k}</button>`).join('')}</div>
      <div class="list">${DEV_SCREENS.map(([id,nm]) =>
        `<button data-dev="${id}" class="${id===devScreen?'on':''}">${nm}</button>`).join('')}</div>`;
   document.querySelectorAll('.scr').forEach(el => el.classList.toggle('devon', el.id === devScreen));
@@ -1657,7 +1644,6 @@ document.addEventListener('keydown', ev => {
 
 /* 啟動 */
 setMode('anno');
-renderRadiusSw();
 if (DEV_MQ.matches) setDev(true);
 renderAll();
 renderIndex();
@@ -1667,11 +1653,17 @@ renderIndex();
 /* ═══════════════════════════════════════════════════════════
    批二：消費資料與判定引擎（規格_金額未定案與幣別.md）
    ═══════════════════════════════════════════════════════════ */
-const PAY = { cash:'現金', card:'信用卡', stored:'儲值卡' };
+/* #33-4 這裡原本是全域常數 PAY（固定現金／信用卡／儲值卡），而 S-02b-11 讀的是
+   這一趟自己的 t.pays——兩處從來沒有接起來過。用「儲值卡」記了一筆之後，
+   那筆的支付方式在行程清單裡不存在，編輯頁看不到、刪不掉、統計歸不了類。
+   改成一律讀該行程的清單，`e.pay` 直接存名稱。 */
 
+let expSeq = 0;
 function exp(o) {
-  return Object.assign({ id:nid(), title:'', emoji:'➕', date:'2026-03-14',
-    forAmt:'', twdAmt:'', pay:'cash', type:'shared', parts:null, indiv:{},
+  // #33-1 記錄的先後（created）與消費日期是兩件事：同一天記了三筆，
+  // 剛記完的那一筆要出現在最上面，不是照日期排就好。
+  return Object.assign({ id:nid(), created:++expSeq, title:'', emoji:'➕', date:'2026-03-14',
+    forAmt:'', twdAmt:'', pay:'現金', type:'shared', parts:null, indiv:{},
     onSpot:false, sponsor:false, payer:null, rateOverride:null }, o);
 }
 
@@ -1679,22 +1671,22 @@ function exp(o) {
 function demoExpenses() {
   const t = store.trips.find(x => x.id === 't1'), M = t.members.map(x => x.id);
   return [
-    exp({ title:'機票 ×4', emoji:'✈️', date:'2026-02-10', twdAmt:'28400', pay:'card',
+    exp({ title:'機票 ×4', emoji:'✈️', date:'2026-02-10', twdAmt:'28400', pay:'信用卡',
           type:'shared', parts:M, payer:M[0] }),
     exp({ title:'黑豬肉晚餐', emoji:'🍜', date:'2026-03-14', forAmt:'108000', twdAmt:'2480',
-          pay:'card', type:'shared', parts:M, payer:M[2] }),
+          pay:'信用卡', type:'shared', parts:M, payer:M[2] }),
     exp({ title:'藥妝店', emoji:'🛍️', date:'2026-03-15', forAmt:'45000', twdAmt:'1035',
-          pay:'card', type:'individual', parts:M,
+          pay:'信用卡', type:'individual', parts:M,
           indiv:{ [M[0]]:'12000', [M[1]]:'18000' }, payer:M[1] }),      // 2 人沒填 → 未定案
     exp({ title:'城山日出峰門票', emoji:'🎡', date:'2026-03-15', forAmt:'20000',
-          pay:'cash', type:'shared', parts:M, payer:M[3] }),            // 現金、沒台幣 → 看匯率
-    exp({ title:'紀念品', emoji:'🛍️', date:'2026-03-16', twdAmt:'860', pay:'cash',
+          pay:'現金', type:'shared', parts:M, payer:M[3] }),            // 現金、沒台幣 → 看匯率
+    exp({ title:'紀念品', emoji:'🛍️', date:'2026-03-16', twdAmt:'860', pay:'現金',
           type:'single', parts:[M[1]], payer:M[1] }),
-    exp({ title:'機場接送', emoji:'🚌', date:'2026-03-18', twdAmt:'1600', pay:'cash',
+    exp({ title:'機場接送', emoji:'🚌', date:'2026-03-18', twdAmt:'1600', pay:'現金',
           type:'shared', parts:M, payer:M[0], onSpot:true }),
-    exp({ title:'計程車', emoji:'🚕', date:'2026-03-16', pay:'cash',
+    exp({ title:'計程車', emoji:'🚕', date:'2026-03-16', pay:'現金',
           type:'shared', parts:M, payer:M[0] }),                        // 整筆沒金額 → twd_pending
-    exp({ title:'爸爸贊助', emoji:'💝', date:'2026-03-14', twdAmt:'50000', pay:'cash',
+    exp({ title:'爸爸贊助', emoji:'💝', date:'2026-03-14', twdAmt:'50000', pay:'現金',
           type:'shared', parts:M, payer:M[0], sponsor:true }),          // 負額共同項
   ];
 }
@@ -1850,8 +1842,12 @@ function dayLabel(t, d) {
    兩處分開寫遲早會走鐘（理由同 statCard()／transferView()）。 */
 function expenseGroups(S, opts) {
   const t = S.t, o = opts || {};
+  // #33-1 由新到舊：最後一天在最上、「出發前」沉到最底；
+  // 同一天之內依「記錄的時間」由新到舊——不然今天剛記的那一筆要滑到最下面才看得到。
+  // 只改顯示順序，不動任何計算。
   const groups = {};
-  [...S.list].sort((a, c2) => a.date.localeCompare(c2.date))
+  [...S.list]
+    .sort((a, c2) => c2.date.localeCompare(a.date) || (c2.created || 0) - (a.created || 0))
     .forEach(e => { const k = dayLabel(t, e.date); (groups[k] = groups[k] || []).push(e); });
   let h = '', first = true;
   for (const [k, arr] of Object.entries(groups)) {
@@ -2069,7 +2065,9 @@ function emojiForTitle(title) {
 }
 function blankExp() {
   const t = tripOf(store.s03Trip);
-  return exp({ date: t.start, parts: t.members.map(m => m.id), payer: null });
+  // #33-4 預設是清單的第一項，不寫死「現金」——使用者可能把清單改成只有信用卡
+  return exp({ date: t.start, parts: t.members.map(m => m.id), payer: null,
+               pay: (t.pays || [])[0] || '' });
 }
 function loadExp(id) {
   const e = expsOf(store.s03Trip).find(x => x.id === id);
@@ -2114,8 +2112,8 @@ function renderS04() {
     <div id="amtnote"></div></div>`);
 
   h += b('S-04-9', `<div class="fld"><span class="lbl" data-group="chips 多選一，非單一輸入欄">怎麼付的？</span>
-    <div class="chips">${Object.entries(PAY).map(([k,v]) =>
-      `<button class="chip${g.pay===k?' on':''}" data-pay="${k}">${v}</button>`).join('')}</div>
+    <div class="chips">${(t.pays || []).map(v =>
+      `<button class="chip${g.pay===v?' on':''}" data-pay="${esc(v)}">${esc(v)}</button>`).join('')}</div>
     </div>`);
 
   h += b('S-04-21', `<div class="fld"><span class="lbl" data-group="chips 多選一，非單一輸入欄">誰付的？</span>
@@ -2375,7 +2373,7 @@ function renderS05() {
         <span class="money" style="font-weight:600">${money(x.amount)}</span></div>`).join('') || '<div class="empty"><p>沒有人欠誰。</p></div>'}</div>`)
       + b('S-05-29', `<div class="fld"><button class="btn">把結果傳給大家</button>
         <p class="hint" style="text-align:center">任何人免登入可看</p></div>`)
-      + b('S-05-19', `<div class="btnrow"><span class="btn qt">＋ 建立新行程</span><span class="btn qt">封存行程</span></div>`);
+      + b('S-05-19', `<div class="btnrow"><span class="btn qt">${ic('add',16)} 建立新行程</span><span class="btn qt">封存行程</span></div>`);
   }
   h += `<div id="s05toast"></div>`;
   $('#scr-s05').innerHTML = h;
@@ -2580,9 +2578,9 @@ document.addEventListener('click', ev => {
     const v = rg4.dataset.d, tr = tripOf(store.s03Trip), M = tr.members.map(m => m.id);
     if (v === 'blank') g = blankExp();
     else if (v === 'drug') g = exp({ title:'藥妝店', emoji:'🛍️', date:'2026-03-15', forAmt:'45000',
-      twdAmt:'1035', pay:'card', type:'individual', parts:M, indiv:{[M[0]]:'12000',[M[1]]:'18000'}, payer:M[1] });
+      twdAmt:'1035', pay:'信用卡', type:'individual', parts:M, indiv:{[M[0]]:'12000',[M[1]]:'18000'}, payer:M[1] });
     else if (v === 'cash') { tr.rateTwd = undefined; tr.rateFor = undefined;
-      g = exp({ title:'城山日出峰門票', emoji:'🎡', date:'2026-03-15', forAmt:'20000', pay:'cash',
+      g = exp({ title:'城山日出峰門票', emoji:'🎡', date:'2026-03-15', forAmt:'20000', pay:'現金',
                 type:'shared', parts:M, payer:M[3] }); }
     else if (v === 'clearrate') { tr.rateTwd = undefined; tr.rateFor = undefined; fb = null; renderS02b(); }
     renderS04(); renderS03(); return;

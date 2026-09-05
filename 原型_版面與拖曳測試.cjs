@@ -149,24 +149,16 @@ const cr = (a, b) => {
   console.log('   ' + menuH.map(x => `${x.t} ${x.h}`).join('｜'));
   ok(menuH.every(x => x.h >= 44), `有按鈕不足 44：${menuH.filter(x => x.h < 44).map(x => x.t).join('、')}`);
 
-  /* 4　圓角預設 C，切換器仍在 */
+  /* 4　圓角定案 C。#33-7 之後切換器已移除（拋棄式工具，挑完就收）， */
   console.log('\n=== 4　圓角定案 C ===');
   const rad = await pg.evaluate(() => {
     const cs = getComputedStyle(document.documentElement);
     return { base: cs.getPropertyValue('--r-base').trim(), panel: cs.getPropertyValue('--r-panel').trim(),
-             sets: Object.keys(RADIUS_SETS).length, cur: radiusSet };
+             sw: document.querySelectorAll('[data-radius]').length };
   });
   console.log('   ' + JSON.stringify(rad));
   ok(rad.base === '10px' && rad.panel === '20px', `預設應為 10/20，實際 ${rad.base}/${rad.panel}`);
-  ok(rad.sets === 6, '六個版本都要留著');
-  const swOk = await pg.evaluate(() => {
-    setDev(true); renderDevBar();
-    const inDev = document.querySelectorAll('#devbar [data-radius]').length;
-    setDev(false);
-    return { inDev, onDesk: document.querySelectorAll('#radiussw [data-radius]').length };
-  });
-  console.log('   切換器：真機 ' + swOk.inDev + ' 顆｜桌機 ' + swOk.onDesk + ' 顆');
-  ok(swOk.inDev === 6 && swOk.onDesk === 6, '兩邊的切換器都要有六顆');
+  ok(rad.sw === 0, '#33-7 之後圓角切換器應已移除');
 
   /* 5　內距 14px、且 ≥ 圓角 + 4 */
   console.log('\n=== 5　有圓角的內容容器左右內距 ===');

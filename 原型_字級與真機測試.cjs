@@ -510,7 +510,8 @@ const rgbLum = rgb => {
     /* 條件 26 允許 class／style 的字級差異，所以兩者都正規化掉，
        剩下的標籤結構與文字內容必須完全一樣 */
     const shape = h => h
-      .replace(/<svg[\s\S]*?<\/svg>/g, '§IC§')
+      .replace(/<svg[\s\S]*?<\/svg>/g, '')
+      .replace(/＋/g, '')
       .replace(/ (?:style|class)="[^"]*"/g, '')
       .replace(/\s+/g, ' ').trim();
     for (const k of Object.keys(base)) {
