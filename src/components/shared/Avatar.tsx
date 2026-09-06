@@ -55,3 +55,27 @@ export default function Avatar({
 
   return <Tag className={cls()} {...common}>🙂</Tag>;
 }
+
+
+/**
+ * 識別位：**圓底 ＋ 名字**並排。
+ *
+ * 與 `memberLabel()` 的分野是「這是不是一句話」：
+ *   識別位（消費列付款人、轉帳列的兩端、chip）→ 用這個，圓底看得見
+ *   句子（「給 ○○○ $1,234」「這趟有 87% 是 ○○○ 先付的」）→ 用 `memberLabel()` 純文字
+ * 句子裡長出圓底會把整句拆散，讀起來像兩個東西。
+ *
+ * `inline-flex` 不能省——圓底與名字在窄螢幕上不可以被拆到兩行。
+ */
+export function MemberTag({ m, index = 0 }: {
+  m: { id?: string; name: string; emoji?: string | null } | undefined;
+  index?: number;
+}) {
+  if (!m) return null;
+  return (
+    <span className="mtag">
+      <Avatar emoji={m.emoji} name={m.name} index={index} size={20} />
+      <span className="trunc">{m.name}</span>
+    </span>
+  );
+}

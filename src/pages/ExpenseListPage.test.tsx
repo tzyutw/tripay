@@ -114,7 +114,8 @@ describe('B-3　S-03 行程頁', () => {
     await show();
     fireEvent.click(screen.getByText('總花費'));          // #17-2 每人分擔預設收合，要展開才掃得到
 
-    expect(want('s03').list.length).toBe(73);             // 基準本身要有東西
+    /* 實作-J 之後每個成員識別自成節點（圓底與名字各一個 span），段數因此變多 */
+    expect(want('s03').list.length).toBe(81);             // 基準本身要有東西
     const got = flat();
     const missing = want('s03').list.filter(t => !got.includes(t.replace(/\s+/g, '')));
     expect(missing, `原型有、App 沒有：${missing.join(' ｜ ')}`).toEqual([]);
@@ -213,7 +214,7 @@ describe('B-3　S-03d 未定案清單', () => {
   it('從列表上方入口進來：標題與筆數照原型', async () => {
     await show();
     fireEvent.click(document.querySelector('.unsettled')!);
-    expect(want('s03d').list.length).toBe(16);
+    expect(want('s03d').list.length).toBe(19);
     const got = flat();
     const missing = want('s03d').list.filter(t => !got.includes(t.replace(/\s+/g, '')));
     expect(missing, `原型有、App 沒有：${missing.join(' ｜ ')}`).toEqual([]);
@@ -222,7 +223,11 @@ describe('B-3　S-03d 未定案清單', () => {
   it('從統計卡的人進來：同一個畫面，只有標題與範圍不同', async () => {
     await show();
     fireEvent.click(screen.getByText('總花費'));
-    fireEvent.click(screen.getByText('小美'));
+    /* 實作-J 之後消費列的付款人也會出現「小美」，要指定是統計卡那一列 */
+    const row = [...document.querySelectorAll('.perrow')]
+      .find(r => (r.textContent ?? '').includes('小美'))!;
+    expect(row, '統計卡裡找不到小美那一列').toBeTruthy();
+    fireEvent.click(row);
     expect(screen.getByText(/影響 小美 的 · \d+ 筆/)).toBeInTheDocument();
   });
 

@@ -4,8 +4,9 @@
    同一天之內依「記錄的時間」由新到舊——不然今天剛記的那一筆要滑到最下面才看得到。
    **只改顯示順序，不動任何計算。**
    逐字對齊 Tripay_原型.html 的 expenseGroups()／expenseRow()。 */
-import { money, dayLabel, memberLabel } from '@/lib/format';
+import { money, dayLabel } from '@/lib/format';
 import type { SharedSummary, SharedExpense, SharedCalc, MoneyOpts } from './types';
+import { MemberTag } from './Avatar';
 
 export interface ExpenseRowProps {
   e: SharedExpense;
@@ -45,7 +46,11 @@ export function ExpenseRow({ e, c, S, readonly, money: mo, onEdit }: ExpenseRowP
       <span className="ic">{e.emoji}</span>
       <span className="mid">
         <span className="t">{e.title}</span>
-        <span className="s">{payer ? memberLabel(payer) : ''} {badges}</span>
+        <span className="s">
+          {/* 識別位，不是句子——圓底要看得見 */}
+          <MemberTag m={payer} index={t.members.findIndex(m => m.id === e.payer)} />
+          {badges}
+        </span>
       </span>
       <span className="a">{amt}</span>
     </>

@@ -5,9 +5,14 @@ import { trip, expenses, members, settlementItems } from './fixtures';
 /* `?state=settled`：讓 S-05 走到「已結算、逐筆標記付清」那一態，
    才畫得出「查看計算依據」的逐人列。預設維持 active，不動既有版面基準。 */
 const settled = new URLSearchParams(location.search).get('state') === 'settled';
+/* `?expenses=none`：一趟**還沒記過帳**的行程。分享出去時旅伴看到的就是這個狀態，
+   而「這趟旅程還沒結算。」那一列先前會把畫面撐出 14px。 */
+const noExpenses = new URLSearchParams(location.search).get('expenses') === 'none';
+const expenses2 = noExpenses ? [] : expenses;
 const rows: Record<string, unknown[]> = {
-  trips: [settled ? { ...trip, status: 'settled' } : trip], expenses, trip_members: members,
-  settlements: [{ id: 's1', trip_id: 't1', status: 'confirmed',
+  trips: [settled ? { ...trip, status: 'settled' } : trip],
+  expenses: expenses2, trip_members: members,
+  settlements: noExpenses ? [] : [{ id: 's1', trip_id: 't1', status: 'confirmed',
                   created_at: '2026-03-20', settlement_items: settlementItems }],
 };
 function chain(table: string) {
@@ -29,9 +34,9 @@ const stub = {
   rpc: (_fn: string) => Promise.resolve({
     data: {
       trip, members,
-      expenses: expenses.map(({ expense_splits: _s, ...e }) => e),
-      splits: expenses.flatMap(e => e.expense_splits),
-      settlement_items: settlementItems,
+      expenses: expenses2.map(({ expense_splits: _s, ...e }) => e),
+      splits: expenses2.flatMap(e => e.expense_splits),
+      settlement_items: noExpenses ? [] : settlementItems,
     },
     error: null,
   }),

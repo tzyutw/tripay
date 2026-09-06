@@ -162,7 +162,7 @@ describe('B-5　S-05 已結算：逐筆標記付清', () => {
     fireEvent.click(screen.getByText(/查看計算依據/));
 
     /* 實作-J 之後成員識別自成節點，段數從 67 變 71 */
-    expect((screens as Record<string, { list: string[] }>).s05.list.length).toBe(71);
+    expect((screens as Record<string, { list: string[] }>).s05.list.length).toBe(77);
     const got = flat();
     const missing = (screens as Record<string, { list: string[] }>).s05.list
       .filter(t => !got.includes(t.replace(/\s+/g, '')));

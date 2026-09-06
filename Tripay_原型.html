@@ -583,6 +583,9 @@ html.dev .ui .s00wrap{min-height:calc(100dvh - var(--devbar-h,54px))}
 .ui .avatar.letter{color:#fff;font-size:var(--fs-body);font-weight:700;border-color:transparent}
 .ui .avatar.sm{width:20px;height:20px;font-size:var(--fs-sub);display:inline-flex}
 .ui .avatar.sm.letter{font-size:var(--fs-tag)}
+/* 識別位：圓底 ＋ 名字。inline-flex 讓兩者在窄螢幕上不會被拆到兩行 */
+.ui .mtag{display:inline-flex;align-items:center;gap:4px;min-width:0;vertical-align:middle}
+.ui .mtag>.trunc{min-width:0}
 .ui .avatar input{width:100%;height:100%;text-align:center;padding:0;border:0;background:#fff;font-size:var(--fs-input)}
 .ui .ratebox{background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden}
 .ui .raterow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #F1F2EE}
@@ -1957,7 +1960,7 @@ function expenseRow(e, c, S, opts) {
   const rowHtml = `<${tag} class="exprow${pend ? ' pend' : ''}"${attr}>
     <span class="ic">${e.emoji}</span>
     <span class="mid"><span class="t">${esc(e.title)}</span>
-      <span class="s">${payer ? esc((payer.emoji || firstGrapheme(payer.name)) + ' ' + payer.name) : ''} ${badges.join(' ')}</span></span>
+      <span class="s">${payer ? `<span class="mtag">${avatarHTML(payer, t.members.indexOf(payer), 20)}<span class="trunc">${esc(payer.name)}</span></span>` : ''} ${badges.join(' ')}</span></span>
     <span class="a">${amt}</span></${tag}>`;
   return pend ? b(o.pendId || 'S-03-17', rowHtml) : rowHtml;   // 整筆未定的列有自己的編號
 }
@@ -2392,7 +2395,7 @@ function renderS05() {
         </div>`)
       + (suggestHub(t, S) ? b('S-05-31', `<div class="fld" style="padding-top:10px"><div class="note calm">
           ${ic('warn',14)} 這趟有 ${Math.round(prepaidShare(store.s03Trip).ratio*100)}% 是
-          ${nm2(t, prepaidShare(store.s03Trip).top)} 先付的。改成「都轉給同一個人」的話，每個人只要轉一次。
+          ${nmText(t, prepaidShare(store.s03Trip).top)} 先付的。改成「都轉給同一個人」的話，每個人只要轉一次。
           <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div></div>`) : '')
       + b('S-05-3', `<div class="btnrow" style="flex-direction:column;gap:6px">
           <button class="btn" id="s05go">結算行程</button>
@@ -2403,7 +2406,7 @@ function renderS05() {
     const suggest = t.settleMode !== 'hub' && ps.top && ps.ratio > 0.7;
     h = nav
       + (suggest ? b('S-05-31', `<div class="fld" style="padding-top:12px"><div class="note calm">
-          ${ic('warn',14)} 這趟有 ${Math.round(ps.ratio*100)}% 是 ${nm2(t, ps.top)} 先付的。
+          ${ic('warn',14)} 這趟有 ${Math.round(ps.ratio*100)}% 是 ${nmText(t, ps.top)} 先付的。
           改成「都轉給同一個人」的話，每個人只要轉一次。
           <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div></div>`) : '') + b('S-05-6', `<div class="fld" style="padding-top:12px"><div style="background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);padding:11px">
       <div style="font-size:var(--fs-body);font-weight:600;color:var(--md);margin-bottom:6px">1 / ${Math.max(1,tx.length)} 筆已確認</div>
@@ -2422,8 +2425,8 @@ function renderS05() {
                   v>0?`可以拿回 ${money(v)}`:v<0?`要給出 ${money(-v)}`:'剛好打平'}</span></div>
               ${mine.length ? `<div style="margin-top:5px;font-size:var(--fs-sub);color:var(--gr);line-height:1.7">${
                 mine.map(x => x.from === m.id
-                  ? `給 ${nm2(t, x.to)} <span class="money inline">${money(x.amount)}</span>`
-                  : `${nm2(t, x.from)} 給你 <span class="money inline">${money(x.amount)}</span>`).join('<br>')}</div>` : ''}
+                  ? `給 ${nmText(t, x.to)} <span class="money inline">${money(x.amount)}</span>`
+                  : `${nmText(t, x.from)} 給你 <span class="money inline">${money(x.amount)}</span>`).join('<br>')}</div>` : ''}
             </div>`; }).join('')}</div>`)}
           ${b('S-05-13', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden">
             <div class="detailhd"><span>成員</span><span>實際付出</span><span>應分攤</span><span>差額</span></div>
@@ -2518,7 +2521,15 @@ function suggestHub(t, S) {
   const ps = prepaidShare(store.s03Trip);
   return t.settleMode !== 'hub' && ps.top && ps.ratio > 0.7;
 }
-function nm2(t, id) { const m = t.members.find(x => x.id === id) || {}; return (m.emoji || firstGrapheme(m.name||'')) + ' ' + esc(m.name||''); }
+/* 轉帳列兩端是**識別位**，不是句子——圓底要看得見（實作-J 第一輪）。
+   真正的句子（「給 ○○○ $1,234」）另外用 nmText()。 */
+function nm2(t, id) {
+  const i = t.members.findIndex(x => x.id === id);
+  const m = t.members[i] || {};
+  return `<span class="mtag">${avatarHTML(m, i < 0 ? 0 : i, 20)}<span class="trunc">${esc(m.name||'')}</span></span>`;
+}
+/** 句子裡用的純文字版 */
+function nmText(t, id) { const m = t.members.find(x => x.id === id) || {}; return (m.emoji || firstGrapheme(m.name||'')) + ' ' + esc(m.name||''); }
 </script>
 
 <script>
@@ -2932,7 +2943,7 @@ function renderS06() {
     ? `<div style="margin:0 14px">${tx.map(x => `<div class="rowb" style="margin-bottom:6px">
         <span style="flex:1;font-size:var(--fs-body)">${nm2(t,x.from)} <span style="color:var(--gr)">→</span> ${nm2(t,x.to)}</span>
         <span class="money">${money(x.amount)}</span></div>`).join('')}</div>`
-    : b('S-06-8', `<div style="margin:0 14px" class="rowb"><span style="flex:1;font-size:var(--fs-body);color:var(--gr)">這趟旅程還沒結算。</span></div>`);
+    : b('S-06-8', `<div style="margin:0 14px;width:calc(100% - 28px)" class="rowb"><span style="flex:1;font-size:var(--fs-body);color:var(--gr)">這趟旅程還沒結算。</span></div>`);
 
   h += b('S-06-9', `<div class="sec">消費明細</div>`);
   if (!list.length) {

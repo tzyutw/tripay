@@ -204,6 +204,11 @@ input, textarea, select { font-size: var(--fs-input); }
    放進 chip 的**行內**文字流會自己佔一行，量到 54px。改成 inline-flex 之後回到 34.5px。 */
 .avatar.sm { width: 20px; height: 20px; font-size: var(--fs-sub); display: inline-flex; }
 .avatar.sm.letter { font-size: var(--fs-tag); }
+/* 識別位：圓底 ＋ 名字。inline-flex 讓兩者在窄螢幕上不會被拆到兩行 */
+.mtag { display: inline-flex; align-items: center; gap: 4px; min-width: 0; vertical-align: middle; }
+.mtag > .trunc { min-width: 0; }
+/* 「A → B」那一列：三個元素排成一列，窄螢幕不換行 */
+.arrowrow { display: flex; align-items: center; gap: 4px; min-width: 0; }
 
 /* 原型第 183 行的全域 `.ic`。**它沒有 `.ui ` 前綴，所以 CSS 移植腳本抓不到**
    （腳本只收 `.ui …` 開頭的規則，那是為了把原型自己的檢視器外框排除掉）。

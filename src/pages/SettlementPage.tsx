@@ -15,6 +15,7 @@ import { Icon } from '@/components/Icon';
 import TransferView from '@/components/shared/TransferView';
 import type { TripWithMembers, SettlementItem, ExpenseWithSplits } from '@/types/database';
 import Avatar from '@/components/shared/Avatar';
+import { MemberTag } from '@/components/shared/Avatar';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -357,10 +358,12 @@ export default function SettlementPage() {
           <span className="lbl">誰付給誰</span>
           {tx.map(x => (
             <div className="rowb" key={`${x.from}>${x.to}`} style={{ marginBottom: 6 }}>
-              <span className="flex-1 text-body">
-                {memberLabel(t.members.find(m => m.id === x.from)!)}
-                {' '}<span className="text-gr">→</span>{' '}
-                {memberLabel(t.members.find(m => m.id === x.to)!)}
+              <span className="flex-1 text-body arrowrow">
+                <MemberTag m={t.members.find(m => m.id === x.from)}
+                  index={t.members.findIndex(m => m.id === x.from)} />
+                <span className="text-gr">→</span>
+                <MemberTag m={t.members.find(m => m.id === x.to)}
+                  index={t.members.findIndex(m => m.id === x.to)} />
               </span>
               <span className="money">{money(x.amount)}</span>
             </div>

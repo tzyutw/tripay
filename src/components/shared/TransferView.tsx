@@ -3,7 +3,8 @@
    同一列只顯示需要的那一半名字——重複印中心人的名字會讓人以為是兩筆不同的帳。
    逐字對齊 Tripay_原型.html 的 transferView()。 */
 import { Icon } from '@/components/Icon';
-import { money, memberLabel } from '@/lib/format';
+import { money } from '@/lib/format';
+import { MemberTag } from './Avatar';
 import type { SharedTrip, Transfer, MoneyOpts } from './types';
 
 export interface TransferViewProps {
@@ -24,9 +25,11 @@ export interface TransferViewProps {
   variant?: 'rows' | 'arrows';
 }
 
+/** 轉帳列兩端的識別位。**回傳 JSX**——這裡是識別位不是句子，圓底要看得見。
+ *  （`memberLabel()` 仍保留給真正的句子用，例如「給 ○○○ $1,234」。） */
 function nm2(t: SharedTrip, id: string) {
-  const m = t.members.find(x => x.id === id);
-  return m ? memberLabel(m) : ' ';
+  const i = t.members.findIndex(x => x.id === id);
+  return <MemberTag m={t.members[i]} index={i < 0 ? 0 : i} />;
 }
 
 function Row({ t, x, showFrom, showTo, approx, withClear, cleared, mo, onClear }: {
@@ -60,7 +63,10 @@ export default function TransferView({
   if (variant === 'arrows') {
     if (!tx.length) {
       return (
-        <div className="rowb" style={{ margin: '0 14px' }}>
+        /* `.rowb` 是 `width:100%`，再加 `margin:0 14px` 就變成 344+28 → 整頁橫向捲。
+           同類的 `.exprow`／`.tcard` 都是 `calc(100% - 28px)`，這裡照同一套。
+           影響：分享一趟還沒記帳的行程，旅伴的畫面會左右滑動。 */
+        <div className="rowb" style={{ margin: '0 14px', width: 'calc(100% - 28px)' }}>
           <span className="flex-1 text-body text-gr">這趟旅程還沒結算。</span>
         </div>
       );

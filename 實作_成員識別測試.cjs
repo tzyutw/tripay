@@ -41,6 +41,13 @@ const CASES = [
   { id: 's05',  expand: ['查看計算依據'], min: 4, what: '人話淨額', zone: '.gap', extra: '&state=settled' },
   { id: 's05',  expand: ['查看計算依據'], min: 4, what: '對帳表逐人列', zone: '.detailtable',
     extra: '&state=settled', tag: 'table' },
+
+  /* ── 實作-J 第一輪退回：Rozi 最常看的三個畫面，先前還是裸字母 ── */
+  { id: 's03',  expand: [], min: 5, what: '消費列的付款人（預設狀態）', zone: 'body',
+    tag: 'payer', not: '.perlist' },
+  { id: 's05',  expand: [], min: 6, what: '誰付給誰（預設狀態，3 條轉帳 × 2 人）', zone: 'body',
+    tag: 'tx' },
+  { id: 's06',  expand: [], min: 6, what: '分享頁轉帳列', zone: 'body', tag: 'tx' },
 ];
 
 (async () => {
@@ -76,7 +83,11 @@ const CASES = [
       } else if (c.zone && c.zone !== 'body') {
         root = document.querySelector(c.zone) || document.createElement('div');
       }
-      const letters = [...root.querySelectorAll('.avatar.letter')];
+      let letters = [...root.querySelectorAll('.avatar.letter')];
+      if (c.not) {
+        const skip = [...document.querySelectorAll(c.not)];
+        letters = letters.filter(e => !skip.some(z => z.contains(e)));
+      }
       return {
         count: letters.length,
         colors: [...new Set(letters.map(e => getComputedStyle(e).backgroundColor))],
@@ -99,6 +110,78 @@ const CASES = [
     ok(m.bad.length === 0, `${label} 有 ${m.bad.length} 顆圓底是白色或透明：${m.bad.join('、')}`);
     ok(!m.text.includes('🙂'), `${label} 出現了 🙂——第三層只該在「沒 emoji 也沒名字」時出現`);
   }
+
+  /* 停止條件 4：三處**句子**裡不准長出圓底 */
+  await page.goto(`${BASE}/harness.html?screen=s05&members=noemoji&state=settled`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 250));
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find(x => x.textContent.includes('查看計算依據'));
+    if (b) b.click();
+  });
+  await new Promise(r => setTimeout(r, 250));
+  const sentences = await page.evaluate(() => {
+    const out = [];
+    for (const el of document.querySelectorAll('.netwho div, .note.calm')) {
+      const t = (el.textContent || '').trim();
+      if (!/給你|^給 |先付的/.test(t)) continue;
+      out.push({ t: t.slice(0, 22), avatars: el.querySelectorAll('.avatar').length });
+    }
+    return out;
+  });
+  console.log(`\n   句子 ${sentences.length} 句：` +
+              sentences.map(x => `「${x.t}」圓底 ${x.avatars}`).join('；'));
+  ok(sentences.length >= 2, `只掃到 ${sentences.length} 句，這條等於沒驗`);
+  ok(sentences.every(x => x.avatars === 0),
+    `句子裡長出圓底：${sentences.filter(x => x.avatars).map(x => x.t).join('、')}`);
+
+  /* 停止條件 6：s06 在「沒有任何消費」時不得橫向溢出 */
+  await page.goto(`${BASE}/harness.html?screen=s06&members=noemoji&expenses=none`, { waitUntil: 'networkidle0' });
+  await new Promise(r => setTimeout(r, 300));
+  const empty = await page.evaluate(() => {
+    const de = document.documentElement;
+    const over = [];
+    for (const el of document.querySelectorAll('body *')) {
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || el.clientWidth === 0) continue;
+      const r = el.getBoundingClientRect();
+      if (r.right > de.clientWidth + 1)
+        over.push(`${el.tagName}.${(typeof el.className === 'string' ? el.className : '').slice(0, 20)} right=${Math.round(r.right)}`);
+    }
+    return {
+      hasMsg: (document.body.textContent || '').includes('這趟旅程還沒結算。'),
+      bodyOver: document.body.scrollWidth - document.body.clientWidth,
+      over: over.slice(0, 3), n: over.length,
+    };
+  });
+  console.log(`   s06（沒有消費）：訊息 ${empty.hasMsg ? '有' : '沒有'}｜` +
+              `body 溢出 ${empty.bodyOver}px｜超出右緣 ${empty.n} 個 ${empty.over.join('；')}`);
+  ok(empty.hasMsg, '「這趟旅程還沒結算。」沒出現，這條等於沒驗');
+  ok(empty.bodyOver <= 0, `s06 沒有消費時 body 溢出 ${empty.bodyOver}px`);
+  ok(empty.n === 0, `s06 沒有消費時有 ${empty.n} 個元素超出右緣：${empty.over.join('；')}`);
+
+  /* 停止條件 5：三個畫面在三個寬度下，會捲的容器都不得橫向溢出 */
+  for (const id of ['s03', 's05', 's06']) {
+    for (const w of [320, 390, 414]) {
+      await page.setViewport({ width: w, height: 844, isMobile: true, hasTouch: true });
+      await page.goto(`${BASE}/harness.html?screen=${id}&members=noemoji`, { waitUntil: 'networkidle0' });
+      await new Promise(r => setTimeout(r, 220));
+      const o = await page.evaluate(() => {
+        const bad = [];
+        let n = 0;
+        for (const el of document.querySelectorAll('body *')) {
+          const cs = getComputedStyle(el);
+          if (cs.display === 'none' || cs.overflowX === 'visible' || el.clientWidth === 0) continue;
+          n++;
+          if (el.scrollWidth > el.clientWidth + 1)
+            bad.push(`${el.tagName}.${(typeof el.className === 'string' ? el.className : '').slice(0, 20)} ${el.scrollWidth}>${el.clientWidth}`);
+        }
+        return { n, bad: bad.slice(0, 3), total: bad.length };
+      });
+      ok(o.n >= 1, `${id} @${w} 一個捲動容器都沒掃到，這條等於沒驗`);
+      ok(o.total === 0, `${id} @${w} 容器橫向溢出 ${o.total} 處：${o.bad.join('；')}`);
+    }
+  }
+  await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
 
   /* 停止條件 3：誰付的 chip 不得撐高，且該區塊自己不橫向捲 */
   await page.goto(`${BASE}/harness.html?screen=s04&members=noemoji`, { waitUntil: 'networkidle0' });

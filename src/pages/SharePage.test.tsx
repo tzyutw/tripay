@@ -109,7 +109,7 @@ describe('B-6　S-06 分享頁', () => {
     fireEvent.click(screen.getByText('總花費'));
 
     const list = (screens as Record<string, { list: string[] }>).s06.list;
-    expect(list.length).toBe(81);
+    expect(list.length).toBe(95);
     /* 原型已同步：基準裡**不該**再有那串 emoji */
     expect(list, '原型的 hero 又帶回成員 emoji 了').not.toContain(KNOWN_DIVERGENCE);
 
