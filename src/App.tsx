@@ -52,6 +52,15 @@ export default function App() {
               <Route path="/trips/:id/edit"       element={<ExpenseListPage />} />
               {/* S-03-31 的「⋯」改成獨立頁面（Rozi 2026-09-06） */}
               <Route path="/trips/:id/more"       element={<ExpenseListPage />} />
+              {/* ⋯ 裡的三個入口也走 route，**不要用 state**。
+                  `/trips/:id` 與 `/trips/:id/more` 是兩個各自帶 element 的 sibling Route，
+                  React Router 會卸載一個、掛載另一個新的實例（即使元件型別相同）——
+                  所以 `back(); setXxxOpen(true)` 是設在一個正要被卸載的實例上，
+                  新實例起來時全部回到 false，按了完全沒反應。
+                  「編輯行程」之所以一直是好的，正因為它走 route 不走 state。 */}
+              <Route path="/trips/:id/share"      element={<ExpenseListPage />} />
+              <Route path="/trips/:id/copy"       element={<ExpenseListPage />} />
+              <Route path="/trips/:id/delete"     element={<ExpenseListPage />} />
               <Route path="/trips/:id/settlement" element={<SettlementPage />} />
               <Route path="/settings"             element={<SettingsPage />} />
             </Route>

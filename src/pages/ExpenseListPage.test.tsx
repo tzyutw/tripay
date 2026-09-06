@@ -108,8 +108,14 @@ beforeEach(() => {
 const want = (id: 's03' | 's03d') =>
   (screens as Record<string, { list: string[]; text: string }>)[id];
 const flat = () => (document.body.textContent ?? '').replace(/\s+/g, '');
+/* 實作-O-8：「分享」「複製」「刪除」也改走 route 了（原本用 state，
+   而 `/trips/:id` 與 `/trips/:id/more` 是兩個 sibling Route——
+   React Router 會卸載一個掛另一個，state 就被丟掉）。
+   路徑沒註冊在這裡的話，導過去只會是空白畫面，測試看起來像功能壞了。 */
+const TRIP_PATHS = ['/trips/:id', '/trips/:id/more',
+                    '/trips/:id/share', '/trips/:id/copy', '/trips/:id/delete'];
 const show = async () => {
-  render(<Page />, { route: '/trips/t1', path: ['/trips/:id', '/trips/:id/more'] });
+  render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
   await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 };
 
@@ -247,7 +253,7 @@ describe('B-3　S-03d 未定案清單', () => {
 describe('B-3　既有 bug：封存／已結算不得點進編輯', () => {
   it('封存的行程點消費列不會開表單', async () => {
     state.trips = [{ ...trip, status: 'archived' }];
-    render(<Page />, { route: '/trips/t1', path: ['/trips/:id', '/trips/:id/more'] });
+    render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
     await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 
     /* 唯讀態的列本來就渲染成 div——先確認真的有列，否則這條會在「沒有列」時假通過 */
@@ -260,7 +266,7 @@ describe('B-3　既有 bug：封存／已結算不得點進編輯', () => {
 
   it('已結算的行程也一樣：列不可點，且底部沒有主鈕', async () => {
     state.trips = [{ ...trip, status: 'settled' }];
-    render(<Page />, { route: '/trips/t1', path: ['/trips/:id', '/trips/:id/more'] });
+    render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
     await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 
     const rows = [...document.querySelectorAll('.exprow')];

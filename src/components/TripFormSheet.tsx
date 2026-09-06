@@ -4,7 +4,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { searchCurrencies } from '@/lib/currencies';
 import { Icon } from '@/components/Icon';
-import { oneSideOf } from '@/lib/currencyTable';
+import { calc, tripRate } from '@/lib/summary';
 import PaymentMethods from '@/components/shared/PaymentMethods';
 import CashRate from '@/components/shared/CashRate';
 import SettleMode from '@/components/shared/SettleMode';
@@ -13,23 +13,59 @@ import Avatar from '@/components/shared/Avatar';
 import { nextToneSeq } from '@/lib/tones';
 import type { TripWithMembers, SettlementMode } from '@/types/database';
 
-/** id 存在＝資料庫既有成員；不存在＝本次新加的 */
-interface MemberEntry { id?: string; emoji: string; name: string; }
+/** id 存在＝資料庫既有成員；不存在＝本次新加的。
+ *  `key` 是**畫面用的穩定識別**：新成員還沒有資料庫 id，但「都轉給同一個人」
+ *  要指得出是哪一位——不能用會隨移除而位移的陣列索引。既有成員的 key 就是 id。 */
+interface MemberEntry { id?: string; key: string; emoji: string; name: string; }
+let memberKeySeq = 0;
+const newKey = () => `new-${++memberKeySeq}`;
 
 /**
- * 現金匯率的預設值：**`oneSideOf()` 指到的那一欄自動帶「1」**，另一欄留空。
+ * 現金匯率：**填了一邊，另一邊自動帶「1」**（Rozi 2026-09-06 裁示）。
  *
- * 沒有這個預設值，兩欄都是空的，而另一欄的 placeholder 是灰色的「1」——
- * 看起來像「那一欄已經是 1 了」。Rozi 因此只在 JPY 欄填了 0.19，
- * `tripRate()` 拿 `Number(null)=0` 判 `<=0` 回 null，**全程沒有任何警告**，
- * 記的帳一直顯示「還沒填」。原型（`tripToForm`）本來就會帶，是實作漏了。
+ * 先前的做法是「進畫面時依幣別（`oneSideOf()`）預先在某一欄帶 1」。
+ * 那個規則算得出正確結果，但**要求使用者先接受系統挑好的那一邊**；
+ * 她要的是「我填哪一邊都行，另一邊自己補」。
+ *
+ * `auto` 記住那個「1」是系統填的：來源欄被清空時它要跟著消失（不留殘值），
+ * 使用者自己動過它就不再是自動的。
+ * `oneSideOf()` 只剩下決定 placeholder 與小數位數，不再決定「1」放哪一欄。
  */
-function defaultRates(currency: string, twd?: string | null, forr?: string | null) {
-  const one = oneSideOf(currency);
-  return {
-    rateTwd: twd != null && twd !== '' ? String(twd) : (one === 'twd' ? '1' : ''),
-    rateFor: forr != null && forr !== '' ? String(forr) : (one === 'for' ? '1' : ''),
-  };
+export function nextRate(
+  cur: { twd: string; for: string; auto: 'twd' | 'for' | null },
+  side: 'twd' | 'for', v: string,
+): { twd: string; for: string; auto: 'twd' | 'for' | null } {
+  const other = side === 'twd' ? 'for' : 'twd';
+  const next = { ...cur, [side]: v };
+  if (cur.auto === side) next.auto = null;              // 動到那個 1 → 它不再是自動的
+  if (v.trim() !== '' && next[other].trim() === '') { next[other] = '1'; next.auto = other; }
+  else if (v.trim() === '' && cur.auto === other) { next[other] = ''; next.auto = null; }
+  return next;
+}
+
+/**
+ * 🔴 規格 §2A.4　設定匯率的當下要補算哪些消費、補成什麼樣子。
+ *
+ * 抽成純函式，因為「**只有第一種會被改到**」這件事必須能直接斷言：
+ * 有外幣沒台幣 → 補；已經有台幣 → **一個欄位都不准動**（不追溯、不重算）；
+ * 兩者都空 → 補不了，維持原狀。
+ * 匯率算不出來（只填一欄或兩欄都空）→ 回空陣列，什麼都不做。
+ */
+export function backfillRows<T extends { foreign_amount: number | null; twd_amount: number | null }>(
+  rows: T[], rates: { cash_rate_twd: number | null; cash_rate_foreign: number | null },
+): T[] {
+  const r = tripRate(rates as never);
+  if (!r) return [];
+  return rows
+    .filter(e => e.twd_amount == null && e.foreign_amount != null)
+    .map(e => {
+      /* 換算走 `calc()`——**不在這裡另寫一套除法**。畫面顯示的數字與存進去的數字
+         若不是同一段程式算的，早晚會差一塊錢而沒人發現。 */
+      const c = calc({ ...e, expense_splits: [] } as never, rates as never, []);
+      const f = Number(e.foreign_amount);
+      return { ...e, twd_amount: c.twdTotal, twd_pending: false,
+               exchange_rate: f ? Math.abs(c.twdTotal / f) : null };
+    });
 }
 
 interface Props {
@@ -65,7 +101,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
   // ── Form state ───────────────────────────────────────────────────────────────
   // Bug 2 fix: default to empty array — no pre-filled blank member
   const initialMembers: MemberEntry[] = existingTrip
-    ? existingTrip.trip_members.sort((a, b) => a.sort_order - b.sort_order).map(m => ({ id: m.id, emoji: m.emoji, name: m.name }))
+    ? existingTrip.trip_members.sort((a, b) => a.sort_order - b.sort_order).map(m => ({ id: m.id, key: m.id, emoji: m.emoji, name: m.name }))
     : [];
 
   const [name,          setName]          = useState(existingTrip?.name ?? '');
@@ -79,9 +115,13 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
       : null
   );
   /* B-1 的三段新區塊：支付方式、現金匯率、結算模式。都存在 trips 上 */
-  const [pays, setPays] = useState<string[]>([]);
-  const [rateTwd, setRateTwd] = useState(() => defaultRates(existingTrip?.currency ?? 'JPY').rateTwd);
-  const [rateFor, setRateFor] = useState(() => defaultRates(existingTrip?.currency ?? 'JPY').rateFor);
+  /* 建立行程也要能設支付方式（Rozi 2026-09-06：兩頁欄位一致），
+     預設清單與先前 insert 時寫死的那一組相同 */
+  const [pays, setPays] = useState<string[]>(['現金', '信用卡']);
+  /* 兩欄一開始都空——不預先帶「1」。填了一邊，另一邊才自動帶。 */
+  const [rate, setRate] = useState<{ twd: string; for: string; auto: 'twd' | 'for' | null }>(
+    { twd: '', for: '', auto: null });
+  const rateTwd = rate.twd, rateFor = rate.for;
   const [settleMode, setSettleMode] = useState<SettlementMode>('direct');
   const [hubMember, setHubMember] = useState<string | null>(null);
   const [payBlocked, setPayBlocked] = useState('');
@@ -97,6 +137,11 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
   const addMemberInputRef = useRef<HTMLInputElement>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  /* 必填沒填時要捲過去並聚焦——所以四個欄位各留一個 ref */
+  const nameRef      = useRef<HTMLInputElement | null>(null);
+  const currencyBtnRef = useRef<HTMLButtonElement | null>(null);
+  const startRef     = useRef<HTMLInputElement | null>(null);
+  const memberAddRef = useRef<HTMLButtonElement | null>(null);
   /* emoji 就地編輯（A-4 共用元件）。key 是 `m:<index>` 或 'new' */
   const inline = useInlineEdit((key, one) => {
     if (key === 'new') { setNewMemberEmoji(one); return; }
@@ -114,16 +159,20 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
     setStartDate(existingTrip.start_date);
     setEndDate(existingTrip.end_date);
     const ms = [...existingTrip.trip_members].sort((a, b) => a.sort_order - b.sort_order);
-    setMembers(ms.map(m => ({ id: m.id, emoji: m.emoji, name: m.name })));
+    setMembers(ms.map(m => ({ id: m.id, key: m.id, emoji: m.emoji, name: m.name })));
     const oi = ms.findIndex(m => m.id === existingTrip.owner_member_id);
     setMyMemberIdx(oi >= 0 ? oi : null);
     setPays(Array.isArray(existingTrip.payment_methods)
       ? (existingTrip.payment_methods as string[]) : ['現金', '信用卡']);
-    /* 舊資料只填了一邊時，另一邊也要把「1」帶回來，否則換算不出來 */
-    const r = defaultRates(existingTrip.currency,
-      existingTrip.cash_rate_twd as never, existingTrip.cash_rate_foreign as never);
-    setRateTwd(r.rateTwd);
-    setRateFor(r.rateFor);
+    /* 既有資料**照原樣載入，不自動補 1**。
+       只填了一邊的舊資料，補 1 等於替使用者猜一個方向——猜錯就是靜默錯帳
+       （她把 0.19 填在外幣欄，補 1 之後 rate 會變成 0.19 而不是 1/0.19，差 25 倍）。
+       維持半填狀態，讓「還差一欄」那句提示出來，由她自己補。 */
+    setRate({
+      twd: existingTrip.cash_rate_twd != null ? String(existingTrip.cash_rate_twd) : '',
+      for: existingTrip.cash_rate_foreign != null ? String(existingTrip.cash_rate_foreign) : '',
+      auto: null,
+    });
     setSettleMode(existingTrip.settlement_mode);
     setHubMember(existingTrip.hub_member_id);
     setHydrated(true);
@@ -148,7 +197,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
   useEffect(() => {
     if (isEdit || !prefill || !prefillTrip || hydrated) return;
     const ms = [...prefillTrip.trip_members].sort((a, b) => a.sort_order - b.sort_order);
-    setMembers(ms.map(m => ({ emoji: m.emoji, name: m.name })));   // 不帶 id＝一律新建
+    setMembers(ms.map(m => ({ key: newKey(), emoji: m.emoji, name: m.name })));   // 不帶 id＝一律新建
     const oi = ms.findIndex(m => m.id === prefillTrip.owner_member_id);
     if (oi >= 0) setMyMemberIdx(oi);
     if (prefill.mode === 'full') {
@@ -234,6 +283,50 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
     enabled: isEdit,
   });
 
+  /** 「都轉給同一個人」選的可能是**還沒有 id 的新成員**——
+   *  成員插入之後才把畫面用的 key 換成真正的資料庫 id。 */
+  function resolveHub(kept: MemberEntry[], created: { id: string }[]): string | null {
+    if (settleMode !== 'hub' || !hubMember) return null;
+    const hit = kept.find(m => m.key === hubMember);
+    if (!hit) return null;
+    if (hit.id) return hit.id;
+    const i = kept.filter(m => !m.id).indexOf(hit);
+    return created[i]?.id ?? null;
+  }
+
+  /**
+   * 🔴 規格 §2A.4　**設定匯率的當下**，把這趟「有外幣金額、但沒有台幣金額」的消費
+   * 自動補上換算後的台幣。**已經有台幣金額的一律不動**（不追溯、不重算）。
+   *
+   * 沒有這一段的後果：畫面上那一筆用行程匯率推算得好好的，
+   * 但存進去的是 `twd_amount=null`＋`twd_pending=true`，
+   * 而結算引擎 `.eq("twd_pending", false)` **整筆跳過**——總額對不起來，
+   * 而且畫面上不會有任何一句話說它被跳過。
+   *
+   * 匯率被清空時什麼都不做（`rate` 為 null 就直接返回）：§2A.4 明講不追溯，
+   * 已經算出台幣的消費維持原狀。
+   */
+  async function backfillTwd(
+    id: string, rates: { cash_rate_twd: number | null; cash_rate_foreign: number | null },
+  ) {
+    const r = tripRate(rates as never);
+    if (!r) return;
+    const { data: pend, error: sErr } = await supabase
+      .from('expenses').select('*')
+      .eq('trip_id', id).is('deleted_at', null)
+      .is('twd_amount', null).not('foreign_amount', 'is', null);
+    if (sErr) throw sErr;
+    if (!pend?.length) return;
+    const rows = backfillRows(pend, rates);
+    if (!rows.length) return;
+    /* **一次 upsert 送出＝單一敘述**，要嘛全部成功要嘛全部不做，不會補一半。
+       逐筆 update 在中途失敗時會留下一半補好一半沒補的狀態。 */
+    const { data: done, error: uErr } = await supabase.from('expenses').upsert(rows).select();
+    if (uErr) throw uErr;
+    if ((done ?? []).length !== rows.length)
+      throw new Error(`匯率補算沒有全部生效（要補 ${rows.length} 筆，實際 ${(done ?? []).length} 筆）`);
+  }
+
   // ── Mutations ─────────────────────────────────────────────────────────────────
   const mutation = useMutation({
     mutationFn: async (submitMembers: MemberEntry[] = members) => {
@@ -241,18 +334,23 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
       if (!user) throw new Error('未登入');
 
       if (isEdit && tripId) {
+        const nextRates = {
+          cash_rate_twd: rateTwd.trim() === '' ? null : Number(rateTwd),
+          cash_rate_foreign: rateFor.trim() === '' ? null : Number(rateFor),
+        };
         const { error } = await supabase
           .from('trips')
           .update({
             name, currency, start_date: startDate, end_date: endDate || startDate,
             payment_methods: pays,
-            cash_rate_twd: rateTwd.trim() === '' ? null : Number(rateTwd),
-            cash_rate_foreign: rateFor.trim() === '' ? null : Number(rateFor),
+            ...nextRates,
             settlement_mode: settleMode,
-            hub_member_id: settleMode === 'hub' ? hubMember : null,
+            hub_member_id: settleMode === 'hub' ? resolveHub(submitMembers, []) : null,
           })
           .eq('id', tripId);
         if (error) throw error;
+
+        await backfillTwd(tripId, nextRates);
 
         // 成員異動：更新既有、新增、刪除（刪除前擋掉已有紀錄者）
         const kept = submitMembers.filter(m => m.name.trim());
@@ -286,6 +384,9 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
             .select();
           if (iErr) throw iErr;
           addedIds = (created ?? []).map(c => c.id);
+          /* 中心人選的是這次才新增的成員時，第一次 update 解不出 id（那時還沒插入）*/
+          const hubId = resolveHub(kept, created ?? []);
+          if (hubId) await supabase.from('trips').update({ hub_member_id: hubId }).eq('id', tripId);
         }
 
         if (removed.length) {
@@ -323,7 +424,12 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
           /* 循環色號在建立當下就決定並存起來——用「清單第幾筆」算的話，
              刪掉一趟，後面所有行程的顏色會集體位移 */
           tone_seq:    nextToneSeq(tripCount),
-          payment_methods: ['現金', '信用卡'],
+          /* 建立頁現在也有這三塊（Rozi 2026-09-06：兩頁欄位一致）。
+             都不是必填——沒填就是沒填，支付方式沿用預設清單、匯率兩欄留空。 */
+          payment_methods: pays,
+          cash_rate_twd: rateTwd.trim() === '' ? null : Number(rateTwd),
+          cash_rate_foreign: rateFor.trim() === '' ? null : Number(rateFor),
+          settlement_mode: settleMode,
         })
         .select()
         .single();
@@ -349,6 +455,12 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
         if (myMemberIdx !== null && createdMembers && createdMembers[myMemberIdx]) {
           ownerMemberId = createdMembers[myMemberIdx].id;
         }
+        /* 「都轉給同一個人」在建立頁選的是還沒有 id 的成員——
+           成員插入之後才把 key 換成真正的 id。 */
+        const hubId = settleMode === 'hub'
+          ? resolveHub(submitMembers.filter(m => m.name.trim()), createdMembers ?? [])
+          : null;
+        if (hubId) await supabase.from('trips').update({ hub_member_id: hubId }).eq('id', trip.id);
       }
 
       if (ownerMemberId) {
@@ -370,12 +482,26 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
   });
 
   // ── Validation & submit ───────────────────────────────────────────────────────
+  /* 必填四項（Rozi 2026-09-06 指定，只有這四個）：
+     這趟叫什麼？／誰一起去？／當地幣別／出發。
+     「回程」不擋（不填就是當天來回），「這趟怎麼結算？」也不擋（預設誰欠誰就轉給誰）。
+     **一次只跳第一個**，不要同時把四個欄位都標紅。 */
   function validate(list: MemberEntry[]) {
     const errs: Record<string, string> = {};
     if (!name.trim())      errs.name      = '這欄還沒填喔';
+    if (!currency)         errs.currency  = '這欄還沒填喔';
     if (!startDate)        errs.startDate = '這欄還沒填喔';
     if (list.filter(m => m.name.trim()).length === 0) errs.members = '至少要有一位成員';
     setErrors(errs);
+    /* 捲到第一個沒填的欄位並把焦點放進去——不然按了「出發！」什麼都不會發生，
+       而沒填的那一欄可能在摺線以下，使用者根本看不到紅字。
+       順序照畫面由上到下。jsdom 沒實作 scrollIntoView，多一個 ?. 讓測試不要噴。 */
+    const first = (['name', 'currency', 'startDate', 'members'] as const).find(k => errs[k]);
+    if (first) {
+      const el = { name: nameRef, currency: currencyBtnRef, startDate: startRef, members: memberAddRef }[first].current;
+      el?.scrollIntoView?.({ block: 'center' });
+      el?.focus?.();
+    }
     return Object.keys(errs).length === 0;
   }
 
@@ -385,7 +511,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
        （「加進來」那顆在摺線以下，要捲才看得到，使用者不會知道要按。） */
     const pending = newMemberName.trim();
     const list = pending
-      ? [...members, { emoji: newMemberEmoji, name: pending.slice(0, 10) }]
+      ? [...members, { key: newKey(), emoji: newMemberEmoji, name: pending.slice(0, 10) }]
       : members;
     if (pending) {
       setMembers(list);
@@ -399,7 +525,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
   // ── Member helpers ────────────────────────────────────────────────────────────
   function addMember() {
     if (!newMemberName.trim()) return;
-    setMembers(prev => [...prev, { emoji: newMemberEmoji, name: newMemberName.trim().slice(0, 10) }]);
+    setMembers(prev => [...prev, { key: newKey(), emoji: newMemberEmoji, name: newMemberName.trim().slice(0, 10) }]);
     /* 加進來了就把「至少要有一位成員」清掉——跟其他欄位一樣在 onChange 時清，
        不然人已經在畫面上了紅字還掛著。 */
     setErrors(e => ({ ...e, members: '' }));
@@ -454,14 +580,16 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
           <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pt-4 pb-0">
 
 
-            {/* S-02b-14　行程名稱：**編輯模式也要有**（Rozi 2026-09-06 新增需求）。
-                與 S-02「去哪？」是同一款欄位、同一套驗證，不另寫一份。
-                幣別與出發／回程日**不加**——Rozi 沒要求，而且改幣別會影響既有消費的換算。 */}
+            {/* S-02b-14　行程名稱。**兩頁同一個名字**「這趟叫什麼？」
+                （Rozi 2026-09-06：「編輯行程的介面應該跟建立新行程的欄位一致」——
+                同一個欄位在兩頁叫兩個名字，是最容易讓人以為在改不同東西的寫法）。
+                頁面標題不動：建立頁維持「這趟去哪？」、編輯頁維持「編輯行程」。 */}
             <div className="mb-5">
-              <label className="block text-sub font-bold text-md tracking-wide mb-2">
-                {isEdit ? '這趟叫什麼？' : '去哪？'}
+              <label className="block text-sub font-bold text-md tracking-wide mb-2 req">
+                這趟叫什麼？
               </label>
               <input
+                ref={nameRef}
                 type="text"
                 value={name}
                 onChange={e => { setName(e.target.value); setErrors(ev => ({ ...ev, name: '' })); }}
@@ -471,14 +599,15 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
               {errors.name && <p className="text-tag text-out mt-1">{errors.name}</p>}
             </div>
 
-            {/* 編輯模式沒有幣別／日期——那些在建立時就定了，
-                這一頁管的是「這趟怎麼記帳」。照原型 S-02b。 */}
-            {!isEdit && <>
+            {/* 幣別與出發／回程**編輯頁也要有**（Rozi 2026-09-06）——
+                「我就是要修改在這個行程設定上的欄位」。兩頁共用同一段 JSX，
+                不是各寫一份：日期欄的 iOS 塌陷已經修過三次，分成兩份就是第四次。 */}
 
             {/* Currency */}
             <div className="mb-5">
-              <label className="block text-sub font-bold text-md tracking-wide mb-2">當地幣別</label>
+              <label className="block text-sub font-bold text-md tracking-wide mb-2 req">當地幣別</label>
               <button
+                ref={currencyBtnRef}
                 onClick={() => setShowCurrency(v => {
                   /* 使用者真的要搜尋時才聚焦——不用 autofocus */
                   if (!v) requestAnimationFrame(() => currencyInputRef.current?.focus());
@@ -489,6 +618,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                 <span>{currency}</span>
                 <span className="text-gr text-sm">▾</span>
               </button>
+              {errors.currency && <p className="text-tag text-out mt-1">{errors.currency}</p>}
               {showCurrency && (
                 <div className="mt-2 bg-white rounded-base border border-[#E4DFD9] max-h-52 overflow-y-auto scrollbar-hide">
                   <div className="p-3 border-b border-[#E4DFD9]">
@@ -509,10 +639,9 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                       key={c.code}
                       onClick={() => {
                         setCurrency(c.code);
-                        /* 換幣別時「1」要換邊：JPY 是 1 外幣 = N 台幣，
-                           KRW 反過來（1 台幣 = N 韓元）。不重算的話「1」會留在錯的欄。 */
-                        const r = defaultRates(c.code);
-                        setRateTwd(r.rateTwd); setRateFor(r.rateFor);
+                        setErrors(ev => ({ ...ev, currency: '' }));
+                        /* 換幣別**不再動那兩欄**——「1」現在是跟著使用者輸入自動補的，
+                           不是依幣別預先擺好的，所以沒有「換邊」這回事。 */
                         setShowCurrency(false); setCurrencySearch('');
                       }}
                       className={`w-full px-4 py-[11px] text-left text-body flex items-center justify-between hover:bg-[#F5F4F2] ${c.code === currency ? 'text-w font-bold' : 'text-ink'}`}
@@ -534,9 +663,10 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                 那一行會塌成 0，變成「回程比出發矮一截」。 */}
             <div className="mb-5 flex" style={{ gap: 9 }}>
               <div className="flex-1 min-w-0">
-                <label className="lbl">出發</label>
+                <label className="lbl req">出發</label>
                 <span className="datefield">
                   <input
+                    ref={startRef}
                     type="date"
                     aria-label="出發"
                     value={startDate}
@@ -562,11 +692,9 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
               </div>
             </div>
 
-            </>}
-
             {/* Members */}
             <div className="mb-5">
-              <label className="block text-sub font-bold text-md tracking-wide mb-1">誰一起去？</label>
+              <label className="block text-sub font-bold text-md tracking-wide mb-1 req">誰一起去？</label>
               {!isEdit && prefill && members.length > 0 && (
                 <p className="text-tag text-w mb-3 -mt-2">
                   已帶入原本那趟的成員與幣別，可以改
@@ -577,7 +705,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                 {members.map((m, i) => {
                   const used = m.id ? (memberUsage[m.id] ?? 0) : 0;
                   return (
-                  <div key={m.id ?? `new-${i}`} className="rowb">
+                  <div key={m.key} className="rowb">
                     {/* emoji 就地編輯：不開第二個畫面，點了直接在原位改（B-1 共用元件）*/}
                     {inline.editing === `m:${i}` ? (
                       <input
@@ -660,6 +788,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                 </div>
               ) : (
                 <button
+                  ref={memberAddRef}
                   onClick={() => setAddingMember(true)}
                   className="mt-3 w-full h-11 rounded-base border-[1.5px] border-dashed border-[#C8BFB8] text-md text-sm font-semibold flex items-center justify-center gap-2"
                 >
@@ -668,11 +797,14 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
               )}
             </div>
 
-            {isEdit && <>
+            {/* 這三塊**建立頁也要有**（Rozi 2026-09-06 裁示，三塊都顯示、都不是必填）。
+                版位照依賴關係：選中心人要先有成員，所以排在「誰一起去？」之後。 */}
+            <>
               <SettleMode
                 mode={settleMode}
                 hubMember={hubMember}
-                members={members.filter(m => m.id).map(m => ({ id: m.id!, name: m.name, emoji: m.emoji }))}
+                /* 建立頁的成員還沒有資料庫 id，用畫面 key 當識別，存檔時再換成真 id */
+                members={members.filter(m => m.name.trim()).map(m => ({ id: m.key, name: m.name, emoji: m.emoji }))}
                 onMode={setSettleMode}
                 onHub={setHubMember}
               />
@@ -687,9 +819,9 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                 currency={currency}
                 rateTwd={rateTwd}
                 rateFor={rateFor}
-                onChange={(side, v) => (side === 'twd' ? setRateTwd(v) : setRateFor(v))}
+                onChange={(side, v) => setRate(r => nextRate(r, side, v))}
               />
-            </>}
+            </>
           </div>
 
           {/* Action buttons */}

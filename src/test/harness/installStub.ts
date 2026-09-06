@@ -1,6 +1,7 @@
 /* 實作-C-3　量測靶的 supabase 樁：量版面不連網路，回傳形狀與真實查詢一致。
    這個檔要在任何畫面模組 evaluate 之前跑完，所以獨立成一個 import。 */
-import { trip, expenses, members, settlementItems, noExpenses, tripMissing } from './fixtures';
+import { trip, expenses, members, settlementItems, allSettlementItems, settlements,
+         CONFIRMED_ID, noExpenses, tripMissing } from './fixtures';
 
 /* `?state=settled`：讓 S-05 走到「已結算、逐筆標記付清」那一態，
    才畫得出「查看計算依據」的逐人列。預設維持 active，不動既有版面基準。 */
@@ -11,9 +12,15 @@ const rows: Record<string, unknown[]> = {
   /* `?trip=missing`：查不到任何列——`.maybeSingle()` 會回 null，畫面要走「找不到」 */
   trips: tripMissing ? [] : [settled ? { ...trip, status: 'settled' } : trip],
   expenses: tripMissing ? [] : expenses2, trip_members: tripMissing ? [] : members,
-  settlements: noExpenses ? [] : [{ id: 's1', trip_id: 't1', status: 'confirmed',
+  /* 直接查表的路徑（S-05／ShareSheet）只會拿 confirmed 那一筆 */
+  settlements: noExpenses ? [] : [{ id: CONFIRMED_ID, trip_id: 't1', status: 'confirmed',
                   created_at: '2026-03-20', settlement_items: settlementItems }],
 };
+/* 記下有沒有真的送出寫入。「必填沒填就不該送出」這種斷言，
+   光看畫面沒變是不夠的——畫面沒變也可能是送出了但回來的資料一樣。 */
+const writes: string[] = [];
+(window as unknown as { __WRITES__: string[] }).__WRITES__ = writes;
+
 function chain(table: string) {
   const data = rows[table] ?? [];
   const result = { data, error: null, count: data.length };
@@ -23,9 +30,10 @@ function chain(table: string) {
     maybeSingle: () => Promise.resolve({ data: data[0] ?? null, error: null }),
   };
   for (const m of ['select', 'eq', 'neq', 'in', 'is', 'not', 'order', 'limit', 'range',
-                   'filter', 'gte', 'lte', 'match', 'or', 'insert', 'update', 'upsert',
-                   'delete', 'returns', 'abortSignal'])
+                   'filter', 'gte', 'lte', 'match', 'or', 'returns', 'abortSignal'])
     c[m] = () => c;
+  for (const m of ['insert', 'update', 'upsert', 'delete'])
+    c[m] = () => { writes.push(`${m}:${table}`); return c; };
   return c;
 }
 const stub = {
@@ -36,7 +44,9 @@ const stub = {
       trip, members,
       expenses: expenses2.map(({ expense_splits: _s, ...e }) => e),
       splits: expenses2.flatMap(e => e.expense_splits),
-      settlement_items: noExpenses ? [] : settlementItems,
+      /* RPC 回的是這趟**所有**結算與**所有** items——分享頁自己挑 */
+      settlements: noExpenses ? [] : settlements,
+      settlement_items: noExpenses ? [] : allSettlementItems,
     },
     error: null,
   }),

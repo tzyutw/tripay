@@ -54,6 +54,15 @@ export const fullRate = Q.get('rate') === 'full';
  *  預設的 KRW 剛好 `oneSideOf === 'twd'`，與寫死 `isTwd` 的結果一樣——
  *  不換一個幣別，「placeholder 依 oneSideOf 走」那條斷言驗不出東西。 */
 export const currencyOverride = Q.get('cur');
+/** `?fill=for`：一筆「各自付各的」＋**各人只填了外幣**。
+ *  這條路徑在原型與 harness 上**從來沒被畫過**——而它會讓結算把整筆算到付款人頭上。 */
+export const fillFor = Q.get('fill') === 'for';
+/** `?forOnly=1`：只有一筆 shared 消費、只有外幣沒有台幣。
+ *  單獨掛這一筆，總額與分擔就只反映它，量得出「有沒有被結算跳過」。 */
+export const forOnly = Q.get('forOnly') === '1';
+/** `?settlements=many`：**Rozi 真實資料的形狀**——一趟有十幾次結算，
+ *  只有一次是 confirmed。不挑就會把同樣三筆轉帳畫十二遍（實作-G 咬過一次）。 */
+export const settlementsMany = Q.get('settlements') === 'many';
 
 export const members: TripMember[] = mkMembers(membersHaveEmoji);
 
@@ -75,6 +84,8 @@ function mk(o: Record<string, unknown>): ExpenseWithSplits {
   seq += 1;
   const parts = (o.parts as string[]) ?? M;
   const indiv = (o.indiv as Record<string, number>) ?? {};
+  /* 各人只填外幣時走這一袋——`calc()` 讀的是 `split_amount_foreign` */
+  const indivFor = (o.indivFor as Record<string, number>) ?? {};
   return {
     id: `e${seq}`, trip_id: 't1', created_by: 'u1', title: '', category_emoji: '➕',
     expense_date: '2026-03-14', foreign_amount: null, twd_amount: null, exchange_rate: null,
@@ -86,13 +97,29 @@ function mk(o: Record<string, unknown>): ExpenseWithSplits {
     ...o,
     expense_splits: parts.map(id => ({
       id: `s${seq}-${id}`, expense_id: `e${seq}`, member_id: id, is_participating: true,
-      split_amount: indiv[id] ?? null, split_amount_foreign: null,
-      split_pending: !(id in indiv), created_at: '2026-03-01',
+      split_amount: indiv[id] ?? null, split_amount_foreign: indivFor[id] ?? null,
+      split_pending: !(id in indiv) && !(id in indivFor), created_at: '2026-03-01',
     })),
   } as unknown as ExpenseWithSplits;
 }
 
-export const expenses: ExpenseWithSplits[] = [
+/** `?fill=for` 專用：各人只有外幣金額的「各自付各的」。
+ *  整筆台幣 690、外幣總額 30000 → 比例回推（§2.2，不用匯率）：
+ *  12000→276、18000→414，加起來剛好 690（差額歸付款人）。 */
+const fillForExpense = mk({
+  title: '各自付各的（只填外幣）', category_emoji: '🛍️', expense_date: '2026-03-16',
+  foreign_amount: 30000, twd_amount: 690, expense_type: 'individual',
+  split_fill_currency: 'FOR', parts: [M[0], M[1]],
+  indivFor: { [M[0]]: 12000, [M[1]]: 18000 }, payer_member_id: M[0],
+});
+
+/** `?forOnly=1` 專用：只有外幣、沒有台幣的一筆 shared 消費。 */
+const forOnlyExpense = mk({
+  title: '只有外幣沒有台幣', category_emoji: '🛍️', expense_date: '2026-03-15',
+  foreign_amount: 12000, payer_member_id: M[0],
+});
+
+const baseExpenses: ExpenseWithSplits[] = [
   mk({ title: '機票 ×4', category_emoji: '✈️', expense_date: '2026-02-10',
        twd_amount: 28400, payment_method: 'credit_card', payer_member_id: M[0] }),
   mk({ title: '黑豬肉晚餐', category_emoji: '🍜', expense_date: '2026-03-14',
@@ -120,8 +147,41 @@ export const expenses: ExpenseWithSplits[] = [
        twd_amount: 50000, payer_member_id: M[0], is_sponsor: true }),
 ];
 
+/* 兩個新模式各自**只掛那一筆**——總額與每人分擔就只反映它，
+   量得出「這一筆有沒有被結算跳過／有沒有整筆算到付款人頭上」。 */
+export const expenses: ExpenseWithSplits[] =
+  fillFor ? [fillForExpense] : forOnly ? [forOnlyExpense] : baseExpenses;
+
+/** 這一趟被 confirmed 的那一次結算的 id */
+export const CONFIRMED_ID = 'stl-confirmed';
+
+/**
+ * `?settlements=many`：**10 筆 superseded ＋ 1 筆 confirmed ＋ 1 筆 draft**。
+ * Rozi 的真實資料就是這個形狀（福岡／東京／北海道各 12 筆、濟州島 7 筆），
+ * 而 harness 原本只有一組——`pickConfirmed()` 挑得對不對根本量不到。
+ */
+export const settlements = settlementsMany
+  ? [
+      ...Array.from({ length: 10 }, (_, i) => ({
+        id: `stl-old-${i}`, trip_id: 't1', status: 'superseded',
+        settled_at: `2026-03-${String(19 - i).padStart(2, '0')}`,
+      })),
+      { id: CONFIRMED_ID, trip_id: 't1', status: 'confirmed', settled_at: '2026-03-20' },
+      { id: 'stl-draft', trip_id: 't1', status: 'draft', settled_at: null },
+    ]
+  : [{ id: CONFIRMED_ID, trip_id: 't1', status: 'confirmed', settled_at: '2026-03-20' }];
+
+/** confirmed 那一次的轉帳（分享頁只該畫這三筆） */
 export const settlementItems = [
-  { id: 'i1', from_member_id: M[3], to_member_id: M[0], amount: 20220, is_cleared: true },
-  { id: 'i2', from_member_id: M[2], to_member_id: M[0], amount: 17740, is_cleared: false },
-  { id: 'i3', from_member_id: M[1], to_member_id: M[0], amount: 8220,  is_cleared: false },
+  { id: 'i1', settlement_id: CONFIRMED_ID, from_member_id: M[3], to_member_id: M[0], amount: 20220, is_cleared: true },
+  { id: 'i2', settlement_id: CONFIRMED_ID, from_member_id: M[2], to_member_id: M[0], amount: 17740, is_cleared: false },
+  { id: 'i3', settlement_id: CONFIRMED_ID, from_member_id: M[1], to_member_id: M[0], amount: 8220,  is_cleared: false },
 ];
+
+/** **每一次結算都帶自己的 items**——不然「有沒有挑對」與「只有一組資料」長得一樣 */
+export const allSettlementItems = settlements.flatMap(st =>
+  st.id === CONFIRMED_ID
+    ? settlementItems
+    : settlementItems.map((it, k) => ({
+        ...it, id: `${st.id}-${k}`, settlement_id: st.id, amount: it.amount + k + 1,
+      })));

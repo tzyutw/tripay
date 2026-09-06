@@ -125,9 +125,6 @@ export default function ExpenseListPage() {
   const [formOpen,        setFormOpen]        = useState(false);
   const [editExpenseId,   setEditExpenseId]   = useState<string | undefined>();
   const [currencyMode,    setCurrencyMode]    = useState<'TWD' | 'FOR'>('TWD');
-  const [shareSheetOpen,  setShareSheetOpen]  = useState(false);
-  const [copyOpen,        setCopyOpen]        = useState(false);
-  const [deleteOpen,      setDeleteOpen]      = useState(false);
   const [deleteConfirm,   setDeleteConfirm]   = useState('');
   /* S-03-33 分段控制：切換檢視不是動作。「結算」分頁的內容就是 S-05 整頁 */
   const [tab,             setTab]             = useState<'exp' | 'settle'>('exp');
@@ -262,6 +259,16 @@ export default function ExpenseListPage() {
 
   // /trips/:id/edit → 開啟行程編輯
   const tripFormOpen = location.pathname.endsWith('/edit');
+  /* 🔴「分享」「複製成新的一趟」「刪除行程」按了完全沒反應的根因：
+     它們原本是 `back(); setXxxOpen(true)`，而 `/trips/:id` 與 `/trips/:id/more`
+     是兩個各自帶 element 的 sibling `<Route>`——React Router 會**卸載一個、
+     掛載另一個新的實例**，即使是同一個元件型別。state 設在正要被卸載的實例上，
+     新實例起來時全部回到 false。
+     一律改走 route：裝置的返回鍵也才會如預期。 */
+  const shareSheetOpen = location.pathname.endsWith('/share');
+  const copyOpen       = location.pathname.endsWith('/copy');
+  const deleteOpen     = location.pathname.endsWith('/delete');
+  const backToTrip = () => navigate(`/trips/${tripId}`, { replace: true });
   /* S-03-31「⋯」是**獨立頁面**（Rozi 2026-09-06），不是彈層——所以看 route 不看 state。
      按裝置返回鍵也就自然回到 S-03。 */
   const menuOpen = location.pathname.endsWith('/more');
@@ -281,15 +288,16 @@ export default function ExpenseListPage() {
      原本是底部彈層，改成整頁之後左上有返回鍵、底部不再有「取消」。
      用 route 而不是 state，所以裝置的返回鍵也會回到 S-03。 */
   if (menuOpen) {
-    const back = () => navigate(`/trips/${tripId}`, { replace: true });
+    const back = backToTrip;
     return (
       <MoreSheet
         status={display as 'planned' | 'active' | 'settled' | 'archived'}
         onEdit={openTripEdit}
-        onShare={() => { back(); setShareSheetOpen(true); }}
-        onCopy={() => { back(); setCopyOpen(true); }}
+        onShare={() => navigate(`/trips/${tripId}/share`)}
+        onCopy={() => navigate(`/trips/${tripId}/copy`)}
+        /* 封存走的是 mutation 不是彈層，本來就會動——不要跟著改成 route */
         onArchive={() => { back(); archiveMutation.mutate(); }}
-        onDelete={() => { back(); setDeleteConfirm(''); setDeleteOpen(true); }}
+        onDelete={() => { setDeleteConfirm(''); navigate(`/trips/${tripId}/delete`); }}
         onClose={back}
       />
     );
@@ -440,7 +448,7 @@ export default function ExpenseListPage() {
           全站只有這裡用 --dg 實心——刪除是不可逆的，語彙不與其他動作共用。 */}
       {deleteOpen && (
         <>
-          <div className="scrim" onClick={() => setDeleteOpen(false)} />
+          <div className="scrim" onClick={backToTrip} />
           <div className="dlgwrap">
             <div className="dlg">
               <p className="dlgt">刪除「{trip.name}」？</p>
@@ -458,7 +466,7 @@ export default function ExpenseListPage() {
                 onChange={e => setDeleteConfirm(e.target.value)}
               />
               <div className="dlgrow">
-                <button className="btn qt" onClick={() => setDeleteOpen(false)}>算了，留著</button>
+                <button className="btn qt" onClick={backToTrip}>算了，留著</button>
                 <button
                   className="btn dg"
                   disabled={deleteConfirm.trim() !== '刪除' || deleteTripMutation.isPending}
@@ -485,8 +493,8 @@ export default function ExpenseListPage() {
       {copyOpen && (
         <TripFormSheet
           prefill={{ tripId: tripId!, mode: 'full' }}
-          onClose={() => setCopyOpen(false)}
-          onCreated={(id) => { setCopyOpen(false); navigate(`/trips/${id}`); }}
+          onClose={backToTrip}
+          onCreated={(id) => navigate(`/trips/${id}`)}
         />
       )}
 
@@ -504,7 +512,7 @@ export default function ExpenseListPage() {
         <ShareSheet
           trip={trip}
           members={trip.trip_members.sort((a, b) => a.sort_order - b.sort_order)}
-          onClose={() => setShareSheetOpen(false)}
+          onClose={backToTrip}
           onToast={showToast}
         />
       )}

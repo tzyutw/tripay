@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { getCurrencySymbol } from '@/lib/currencies';
 import { md, weekday, firstGrapheme } from '@/lib/format';
 import { calc, tripRate } from '@/lib/summary';
+import type { ExpenseCalc } from '@/lib/summary';
 import { MSG_NO_RATE, MSG_TWD_PENDING, MSG_FILL_ONE } from '@/lib/messages';
 import { useToast } from '@/contexts/ToastContext';
 import { Icon } from '@/components/Icon';
@@ -94,7 +95,7 @@ interface Props {
 
 type SplitKind = 'shared' | 'individual' | 'single';
 
-interface FormState {
+export interface FormState {
   title: string;
   emoji: string;
   emojiManual: boolean;
@@ -111,6 +112,114 @@ interface FormState {
   partsOpen: boolean;           // 「要排除誰？」是否展開
   onSpot: boolean;
   sponsor: boolean;
+}
+
+/** 這一筆有誰參與。`single`（只算一個人）就是那一位。 */
+export function partsOfForm(f: FormState): string[] {
+  return f.kind === 'single' ? (f.single ? [f.single] : []) : f.parts;
+}
+
+/** 表單狀態換成 `calc()` 吃的形狀。金額一律用未帶正負號的原值，符號在 row 那層才套。 */
+export function formToExpense(f: FormState, parts: string[]) {
+  return {
+    expense_type: f.kind === 'individual' ? 'individual' : 'shared',
+    individual_member_id: f.kind === 'single' ? f.single : null,
+    foreign_amount: f.forAmt.trim() === '' ? null : Number(f.forAmt),
+    twd_amount:     f.twdAmt.trim() === '' ? null : Number(f.twdAmt),
+    split_fill_currency: f.fillCur,
+    payer_member_id: f.payer,
+    is_sponsor: f.sponsor,
+    expense_splits: parts.map(id => ({
+      member_id: id, is_participating: true,
+      split_amount:         f.fillCur === 'FOR' ? null : (f.indiv[id]?.trim() ? Number(f.indiv[id]) : null),
+      split_amount_foreign: f.fillCur === 'FOR' ? (f.indiv[id]?.trim() ? Number(f.indiv[id]) : null) : null,
+    })),
+  };
+}
+
+/**
+ * 表單狀態 → **要寫進資料庫的兩組 row**。抽成純函式，因為存出去的形狀
+ * 必須能被單元測試直接斷言——只驗畫面文字驗不到「存進去的是什麼」，
+ * 而這一輪兩條會算錯帳的路徑，錯的都是存進去的東西，畫面上完全正常。
+ *
+ * 🔴 兩條路徑的共同根因：**前端把外幣當成「之後再換算」的東西，
+ * 後端結算只認台幣欄位，中間沒有任何一段負責把外幣變成台幣。**
+ * 這個函式就是那一段。算式一律取自 `calc()`，**不在這裡另寫一套**——
+ * 畫面顯示的數字與存進去的數字若不是同一段程式算的，早晚會差一塊錢而沒人發現。
+ */
+export function buildRows(
+  f: FormState,
+  trip: TripWithMembers,
+  members: TripWithMembers['trip_members'],
+  ctx: { tripId: string; userId: string },
+): {
+  row: Record<string, unknown>;
+  splitRows: Record<string, unknown>[];
+  c: ExpenseCalc;
+} {
+  const parts = partsOfForm(f);
+  const c = calc(formToExpense(f, parts) as never, trip, members);
+  const sign = f.sponsor ? -1 : 1;
+  const forNum = f.forAmt.trim() === '' ? null : sign * Number(f.forAmt);
+  /* 🔴 只填外幣、而這趟的匯率算得出台幣 → **存檔當下就換算**。
+     留 `twd_amount=null`＋`twd_pending=true` 的後果：畫面用行程匯率推算得好好的、
+     金額也對，但結算引擎 `.eq("twd_pending", false)` **整筆跳過**——
+     總額對不起來，而畫面上不會有任何一句話說它被跳過。
+     `c.twdFromRate` 就是 `calc()` 說「這個台幣是我用匯率推出來的」。 */
+  const twdNum = f.twdAmt.trim() !== '' ? sign * Number(f.twdAmt)
+               : c.twdFromRate ? sign * c.twdTotal
+               : null;
+
+  const row: Record<string, unknown> = {
+    trip_id: ctx.tripId, created_by: ctx.userId,
+    payer_member_id: f.payer,
+    title: f.title.trim(), category_emoji: f.emoji,
+    category_emoji_manual: f.emojiManual,
+    expense_date: f.date,
+    foreign_amount: forNum, twd_amount: twdNum,
+    /* 🔴 S-04-29　空欄就自動寫 pending。沒有這一段，S-04-8 拿掉 toggle 之後
+       會存出「金額 null 但 pending false」的列，結算整趟回 422。 */
+    foreign_pending: forNum == null, twd_pending: twdNum == null,
+    exchange_rate: forNum && twdNum ? Math.abs(twdNum / forNum) : null,
+    /* 支付方式是這趟自訂的清單，enum 塞不下 → 走 payment_label */
+    payment_method: (['cash', 'credit_card', 'stored_value'].includes(f.pay)
+      ? f.pay : 'cash') as PaymentMethod,
+    payment_label: f.pay,
+    expense_type: (f.sponsor ? 'shared'
+      : f.kind === 'individual' ? 'individual' : 'shared') as ExpenseType,
+    individual_member_id: f.kind === 'single' ? f.single : null,
+    split_fill_currency: f.fillCur,
+    settled_on_spot: f.sponsor ? false : f.onSpot,
+    is_sponsor: f.sponsor,
+  };
+
+  const splitRows = parts.map(id => {
+    const raw = f.indiv[id]?.trim();
+    const v   = raw ? Number(raw) : null;
+    /* 「各自付各的」＋填的是外幣，才需要回推台幣。其餘情形照舊。 */
+    const isFor = f.kind === 'individual' && f.fillCur === 'FOR';
+    /* 🔴 填外幣時 `split_amount` **一定要算出來**。
+       引擎的條件是 `if (!s.split_pending && s.split_amount !== null)`，
+       兩個缺一該成員這一筆就是 0，差額全歸付款人——
+       一筆「各自付各的」變成**其他人 0 元、付款人一個人扛整筆**。
+       金額看起來是合的（總額對得上），所以對帳時很難發現。
+       引擎全檔**沒有任何一處讀 `split_amount_foreign`**。
+       台幣值取 `c.shares[id]`：§2.2 的比例回推（不用匯率），
+       而且四捨五入的差額已經在 `shares` 裡歸給付款人了。 */
+    const twdShare = isFor ? (c.shares[id] ?? null) : v;
+    return {
+      member_id: id, is_participating: true,
+      /* P1-0：填的是外幣就存進 `split_amount_foreign`，那是使用者輸入的原始值 */
+      split_amount:         twdShare,
+      split_amount_foreign: isFor ? v : null,
+      /* 只看「使用者填沒填」是不夠的——填了外幣但整筆台幣算不出來時，
+         `split_amount` 是 null 而 pending 卻是 false，引擎就靜默算成 0。
+         要看的是**台幣算不算得出來**。 */
+      split_pending: f.kind === 'individual' ? twdShare == null : false,
+    };
+  });
+
+  return { row, splitRows, c };
 }
 
 function blank(trip: TripWithMembers, members: TripWithMembers['trip_members']): FormState {
@@ -198,25 +307,12 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
     setF(s => ({ ...s, title: v, emoji: s.emojiManual ? s.emoji : emojiForTitle(v) }));
   }
 
-  /* 用同一支 calc() 算——表單看到的數字與 S-03 列表看到的必須是同一套邏輯 */
-  const parts = f.kind === 'single' ? (f.single ? [f.single] : []) : f.parts;
-  const c = useMemo(() => calc(
-    {
-      expense_type: f.kind === 'individual' ? 'individual' : 'shared',
-      individual_member_id: f.kind === 'single' ? f.single : null,
-      foreign_amount: f.forAmt.trim() === '' ? null : Number(f.forAmt),
-      twd_amount:     f.twdAmt.trim() === '' ? null : Number(f.twdAmt),
-      split_fill_currency: f.fillCur,
-      payer_member_id: f.payer,
-      is_sponsor: f.sponsor,
-      expense_splits: parts.map(id => ({
-        member_id: id, is_participating: true,
-        split_amount:         f.fillCur === 'FOR' ? null : (f.indiv[id]?.trim() ? Number(f.indiv[id]) : null),
-        split_amount_foreign: f.fillCur === 'FOR' ? (f.indiv[id]?.trim() ? Number(f.indiv[id]) : null) : null,
-      })),
-    } as never,
-    trip, members,
-  ), [f, parts, trip, members]);
+  /* 用同一支 calc() 算——表單看到的數字與 S-03 列表看到的必須是同一套邏輯，
+     而且**與存進去的數字也是同一套**（`buildRows()` 走的是同一個 `formToExpense`）。 */
+  const parts = partsOfForm(f);
+  const c = useMemo(
+    () => calc(formToExpense(f, parts) as never, trip, members),
+    [f, parts, trip, members]);
 
   const rate = tripRate(trip);
 
@@ -226,31 +322,8 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('未登入');
 
-      const sign   = f.sponsor ? -1 : 1;
-      const forNum = f.forAmt.trim() === '' ? null : sign * Number(f.forAmt);
-      const twdNum = f.twdAmt.trim() === '' ? null : sign * Number(f.twdAmt);
-      /* 🔴 S-04-29　空欄就自動寫 pending。沒有這一段，S-04-8 拿掉 toggle 之後
-         會存出「金額 null 但 pending false」的列，結算整趟回 422。 */
-      const row = {
-        trip_id: tripId, created_by: user.id,
-        payer_member_id: f.payer,
-        title: f.title.trim(), category_emoji: f.emoji,
-        category_emoji_manual: f.emojiManual,
-        expense_date: f.date,
-        foreign_amount: forNum, twd_amount: twdNum,
-        foreign_pending: forNum == null, twd_pending: twdNum == null,
-        exchange_rate: forNum && twdNum ? Math.abs(twdNum / forNum) : null,
-        /* 支付方式是這趟自訂的清單，enum 塞不下 → 走 payment_label */
-        payment_method: (['cash', 'credit_card', 'stored_value'].includes(f.pay)
-          ? f.pay : 'cash') as PaymentMethod,
-        payment_label: f.pay,
-        expense_type: (f.sponsor ? 'shared'
-          : f.kind === 'individual' ? 'individual' : 'shared') as ExpenseType,
-        individual_member_id: f.kind === 'single' ? f.single : null,
-        split_fill_currency: f.fillCur,
-        settled_on_spot: f.sponsor ? false : f.onSpot,
-        is_sponsor: f.sponsor,
-      };
+      const { row, splitRows: pending } = buildRows(f, trip, members,
+        { tripId, userId: user.id });
 
       let eid = expenseId;
       if (isEdit && eid) {
@@ -267,18 +340,8 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
         eid = data.id;
       }
 
-      const splitRows = parts.map(id => {
-        const raw = f.indiv[id]?.trim();
-        const v   = raw ? Number(raw) : null;
-        return {
-          expense_id: eid, member_id: id, is_participating: true,
-          /* P1-0：填的是外幣就存進 split_amount_foreign，**不要塞進 split_amount**。
-             那是唯一一條會靜默算錯帳的路徑。 */
-          split_amount:         f.fillCur === 'FOR' ? null : v,
-          split_amount_foreign: f.fillCur === 'FOR' ? v : null,
-          split_pending: f.kind === 'individual' ? v == null : false,
-        };
-      });
+      /* 編輯時是「delete 全部 splits 再 insert」，所以重算也走同一條路徑 */
+      const splitRows = pending.map(r => ({ ...r, expense_id: eid }));
       if (splitRows.length) {
         const { error } = await supabase.from('expense_splits').insert(splitRows);
         if (error) throw error;

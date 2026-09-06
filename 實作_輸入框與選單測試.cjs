@@ -103,46 +103,76 @@ function serve(dir) {
   ok(nameField && nameField.value.length > 0, '行程名欄位沒有帶入現有的行程名');
   ok(nameField && Math.abs(nameField.h - 46) <= 1, `行程名欄高 ${nameField && nameField.h}px，應為 46`);
 
-  /* ── 實作-N-1　匯率的「1」自動帶值 ＋ 端到端換算 ─────────────────────── */
+  /* ── 實作-O-7　匯率「填了一邊，另一邊自動帶 1」（Rozi 2026-09-06 覆蓋實作-N）──
+     實作-N 是「進畫面就依幣別預先在某一欄帶 1」。那算得出正確結果，
+     但要求使用者先接受系統挑好的那一邊。她要的是「我填哪一邊都行，另一邊自己補」。
+     `oneSideOf()` 只剩下決定 placeholder 與排序。 */
   await go('screen=s02b');
-  const rate = await p.evaluate(() => {
-    const t = document.getElementById('rate-twd'), f = document.getElementById('rate-for');
-    const rows = [...document.querySelectorAll('.raterow')].map(r => r.dataset.side);
-    return t && f ? {
-      order: rows,
-      twd: { v: t.value, ph: t.placeholder }, for: { v: f.value, ph: f.placeholder },
-      hint: (document.body.textContent || '').includes('還差一欄，兩邊都填才換算得出來'),
-    } : null;
-  });
-  console.log(`\n   匯率（KRW）：順序 ${rate.order}｜TWD v="${rate.twd.v}" ph="${rate.twd.ph}"｜` +
-              `KRW v="${rate.for.v}" ph="${rate.for.ph}"｜只填一欄提示 ${rate.hint}`);
-  ok(rate !== null, '找不到匯率欄，這條等於沒驗');
-  /* fixture 是 KRW，oneSideOf('KRW')==='twd' → 1 在台幣那一欄、且排第一 */
-  ok(rate.order[0] === 'twd', `第一列應是台幣（KRW 的「1」在台幣側），實際 ${rate.order[0]}`);
-  ok(rate.twd.v === '1', `台幣欄應自動帶 1，實際 "${rate.twd.v}"`);
-  ok(rate.for.v === '', `外幣欄應留空，實際 "${rate.for.v}"`);
-  ok(rate.twd.ph === '1', `台幣欄 placeholder 應為 1，實際 "${rate.twd.ph}"`);
-  ok(rate.for.ph !== '1', `外幣欄 placeholder 不該是 1，實際 "${rate.for.ph}"`);
-  ok(rate.hint, '只填一欄時沒有出提示——這正是 Rozi 靜默算不出來的原因');
-
-  /* 換一個「1」在外幣側的幣別（JPY）——KRW 剛好與寫死 `isTwd` 同結果，驗不出差別 */
-  await go('screen=s02b&cur=JPY');
-  const jpy = await p.evaluate(() => {
+  const readRate = () => p.evaluate(() => {
     const t = document.getElementById('rate-twd'), f = document.getElementById('rate-for');
     return t && f ? {
       order: [...document.querySelectorAll('.raterow')].map(r => r.dataset.side),
       twd: { v: t.value, ph: t.placeholder }, for: { v: f.value, ph: f.placeholder },
+      hint: (document.body.textContent || '').includes('還差一欄，兩邊都填才換算得出來'),
     } : null;
   });
-  console.log(`   匯率（JPY）：順序 ${jpy.order}｜TWD v="${jpy.twd.v}" ph="${jpy.twd.ph}"｜` +
-              `JPY v="${jpy.for.v}" ph="${jpy.for.ph}"`);
-  ok(jpy !== null, 'JPY 模式找不到匯率欄，這條等於沒驗');
-  ok(jpy.order[0] === 'for', `JPY 的「1」在外幣側，第一列應是 for，實際 ${jpy.order[0]}`);
-  ok(jpy.for.v === '1', `JPY 欄應自動帶 1，實際 "${jpy.for.v}"`);
-  ok(jpy.twd.v === '', `台幣欄應留空，實際 "${jpy.twd.v}"`);
+  /* 真的用鍵盤打，不要用 el.value=…——那不會觸發 React 的 onChange */
+  const typeRate = async (side, v) => {
+    await p.click(`#rate-${side}`);
+    await p.keyboard.press('End');
+    /* 一次一個字元刪乾淨——三連點選取在 React 受控欄位上不一定生效，
+       只刪掉一個字元的話後面兩條會拿到 "0.2" 而不是 ""，看起來像功能沒做 */
+    for (let i = 0; i < 14; i++) await p.keyboard.press('Backspace');
+    if (v) await p.type(`#rate-${side}`, v, { delay: 8 });
+    await new Promise(r => setTimeout(r, 150));
+  };
+
+  const r0 = await readRate();
+  console.log(`\n   匯率（KRW）一開始：TWD v="${r0.twd.v}" ph="${r0.twd.ph}"｜` +
+              `KRW v="${r0.for.v}" ph="${r0.for.ph}"｜順序 ${r0.order}`);
+  ok(r0 !== null, '找不到匯率欄，這條等於沒驗');
+  ok(r0.twd.v === '' && r0.for.v === '', `兩欄一開始都要空，實際 TWD="${r0.twd.v}" FOR="${r0.for.v}"`);
+  /* placeholder 與排序仍照 oneSideOf 走：KRW 的「1」在台幣側 */
+  ok(r0.order[0] === 'twd', `KRW 第一列應是台幣，實際 ${r0.order[0]}`);
+  ok(r0.twd.ph === '1' && r0.for.ph !== '1',
+    `placeholder 沒跟著 oneSideOf：TWD="${r0.twd.ph}" FOR="${r0.for.ph}"`);
+
+  /* ① 在台幣欄輸入 0.21 → 外幣欄自動變 1 */
+  await typeRate('twd', '0.21');
+  const r1 = await readRate();
+  console.log(`   在台幣欄打 0.21 → TWD="${r1.twd.v}" FOR="${r1.for.v}"｜提示 ${r1.hint}`);
+  ok(r1.twd.v === '0.21', `台幣欄應為 0.21，實際 "${r1.twd.v}"`);
+  ok(r1.for.v === '1', `另一欄應自動帶 1，實際 "${r1.for.v}"`);
+  ok(!r1.hint, '兩欄都有值了還在提示「還差一欄」');
+
+  /* ② 把來源欄清空 → 自動的 1 也要跟著消失，不留殘值 */
+  await typeRate('twd', '');
+  const r2 = await readRate();
+  console.log(`   清空台幣欄 → TWD="${r2.twd.v}" FOR="${r2.for.v}"`);
+  ok(r2.twd.v === '' && r2.for.v === '',
+    `來源清空後自動的 1 要跟著清掉，實際 TWD="${r2.twd.v}" FOR="${r2.for.v}"`);
+
+  /* ③ 改在外幣欄輸入 → 台幣欄自動變 1（哪一邊都行） */
+  await typeRate('for', '45');
+  const r3 = await readRate();
+  console.log(`   改在外幣欄打 45 → TWD="${r3.twd.v}" FOR="${r3.for.v}"`);
+  ok(r3.for.v === '45', `外幣欄應為 45，實際 "${r3.for.v}"`);
+  ok(r3.twd.v === '1', `台幣欄應自動帶 1，實際 "${r3.twd.v}"`);
+
+  /* JPY：placeholder 與排序換邊，但「1」一樣是跟著輸入自動補的 */
+  await go('screen=s02b&cur=JPY');
+  const j0 = await readRate();
+  console.log(`   匯率（JPY）一開始：順序 ${j0.order}｜TWD ph="${j0.twd.ph}"｜JPY ph="${j0.for.ph}"`);
+  ok(j0 !== null, 'JPY 模式找不到匯率欄，這條等於沒驗');
+  ok(j0.order[0] === 'for', `JPY 的「1」在外幣側，第一列應是 for，實際 ${j0.order[0]}`);
+  ok(j0.twd.v === '' && j0.for.v === '', 'JPY 模式兩欄一開始也要空');
   /* **與寫死 isTwd 相反**：JPY 行程時 placeholder 的 1 在 JPY 那欄，不在台幣欄 */
-  ok(jpy.for.ph === '1', `JPY 欄 placeholder 應為 1，實際 "${jpy.for.ph}"`);
-  ok(jpy.twd.ph !== '1', `台幣欄 placeholder 不該是 1（那正是誤導 Rozi 的地方），實際 "${jpy.twd.ph}"`);
+  ok(j0.for.ph === '1', `JPY 欄 placeholder 應為 1，實際 "${j0.for.ph}"`);
+  ok(j0.twd.ph !== '1', `台幣欄 placeholder 不該是 1（那正是誤導 Rozi 的地方），實際 "${j0.twd.ph}"`);
+  await typeRate('twd', '0.21');
+  const j1 = await readRate();
+  console.log(`   JPY 在台幣欄打 0.21 → TWD="${j1.twd.v}" JPY="${j1.for.v}"`);
+  ok(j1.for.v === '1', `JPY 欄應自動帶 1，實際 "${j1.for.v}"`);
 
   /* 兩欄都填好時不再提示 */
   await go('screen=s02b&rate=full');

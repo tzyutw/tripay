@@ -1,9 +1,19 @@
 import path from 'path';
+import { execSync } from 'node:child_process';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+/* 畫面上要看得到自己在跑哪一版。沒有這一行，「部署成功了但使用者拿到舊 bundle」
+   這件事下一次又要花一輪才查得出來（Rozi 2026-09-06 連續兩輪被它誤導）。 */
+const BUILD_SHA = (() => {
+  try { return execSync('git rev-parse --short HEAD').toString().trim(); }
+  catch { return 'dev'; }
+})();
+
 export default defineConfig(({ mode }) => ({
+  define: { __BUILD_SHA__: JSON.stringify(BUILD_SHA) },
+
   // '/tripay/' in production (GitHub Pages); '/' in development
   base: mode === 'production' ? '/tripay/' : '/',
 
@@ -40,7 +50,7 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: 'Tripay',
         short_name: 'Tripay',
-        theme_color: '#7C2D12',
+        theme_color: '#1276C4',
         background_color: '#FEF9EE',
         display: 'standalone',
         start_url: mode === 'production' ? '/tripay/' : '/',

@@ -20,6 +20,9 @@ export default defineConfig({
       {
         plugins: [react()],
         resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
+        /* 正式建置由 vite.config.ts 注入 commit 短碼；測試環境給一個固定值，
+           不然引用它的元件在 jsdom 裡會 ReferenceError。 */
+        define: { __BUILD_SHA__: '"testsha"' },
         test: {
           name: "ui",
           include: ["src/**/*.test.tsx", "src/**/*.test.ts"],

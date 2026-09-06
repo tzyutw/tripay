@@ -75,10 +75,15 @@ describe('B-7　S-07 設定', () => {
     expect(confirm.className).not.toContain('dg');
   });
 
-  it('S-07-7　版本 footer 沒有版本號', async () => {
+  /* 實作-O-4c：版本號是 Rozi 2026-09-06 要求加的（原型沒有）。
+     「部署成功了但使用者拿到舊 bundle」光看畫面分不出來——她因此連續兩輪
+     把「拿到舊版」誤報成「功能壞掉」。仍**不是語意化版號**，是 commit 短碼。 */
+  it('S-07-7　版本 footer 帶 build 短碼，而且不是語意化版號', async () => {
     await show();
     const foot = document.querySelector('.verfoot')!;
-    expect(foot.textContent).toBe('Tripay · 每一趟，都記得');
+    expect(foot.textContent).toContain('Tripay · 每一趟，都記得');
+    expect(foot.textContent).toContain(__BUILD_SHA__);
+    expect(__BUILD_SHA__.length).toBeGreaterThan(0);
     expect(flat()).not.toMatch(/v?\d+\.\d+\.\d+/);
   });
 

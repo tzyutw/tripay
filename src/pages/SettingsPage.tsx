@@ -66,8 +66,10 @@ export default function SettingsPage() {
           onClick={() => setShowDialog(true)}>登出</button>
       </div>
 
-      {/* S-07-7　照原型沒有版本號，不要自己加 */}
-      <div className="verfoot">Tripay · 每一趟，都記得</div>
+      {/* S-07-7　版本號是 Rozi 2026-09-06 要求加的（原型沒有）：
+          「部署成功了但使用者拿到舊 bundle」這件事光看畫面分不出來，
+          沒有這一行，下一次同樣的事又要花一輪才查得出來。 */}
+      <div className="verfoot">Tripay · 每一趟，都記得<br />{__BUILD_SHA__}</div>
 
       {/* S-07-8　確認框也是描邊 */}
       {showDialog && (

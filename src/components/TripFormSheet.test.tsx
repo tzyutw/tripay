@@ -24,7 +24,9 @@ const trip = {
   start_date: '2026-03-14', end_date: '2026-03-18', status: 'active', kind: 'trip',
   share_token: 'tok', owner_member_id: null, collab_enabled: false, card_id: null,
   cover_path: null, settlement_mode: 'direct', hub_member_id: null,
-  payment_methods: ['現金', '信用卡'], cash_rate_twd: null, cash_rate_foreign: null,
+  /* **只填了外幣那一邊**——這就是 Rozi 真實資料的形狀（她填了 0.19、另一欄空著）。
+     兩欄都空的話「還差一欄」那條路徑就沒有假資料走過，等於沒有人守著。 */
+  payment_methods: ['現金', '信用卡'], cash_rate_twd: null, cash_rate_foreign: 0.19,
   tone_seq: 1, created_at: '2026-03-01', updated_at: '2026-03-01',
   trip_members: members,
 };
@@ -119,8 +121,10 @@ describe('B-1　S-02b 編輯行程', () => {
   it('原型上的每一段文字都要出現（含成員與幣別，這一頁真的載得到）', async () => {
     open();
     /* 等 hydration 跑完再量——existingTrip 是非同步載入的，
-       太早量會量到還沒灌值的表單（幣別還停在預設 JPY） */
-    await waitFor(() => expect(screen.getByText('KRW')).toBeInTheDocument());
+       太早量會量到還沒灌值的表單（幣別還停在預設 JPY）。
+       實作-O-5 之後編輯頁也有幣別欄，所以 'KRW' 會出現兩次（幣別鈕＋匯率列的代碼）
+       ——用 getAllByText，getByText 撞到多個會直接拋錯。 */
+    await waitFor(() => expect(screen.getAllByText('KRW').length).toBeGreaterThan(0));
     const got = seen(document.body);
     const missing = want('s02b').list.filter(t => !got.includes(t.replace(/\s+/g, '')));
     expect(missing).toEqual([]);
@@ -166,7 +170,7 @@ describe('B-1　S-02b 編輯行程', () => {
 
   it('現金匯率只有兩個輸入框，「1」那一欄排在上面', async () => {
     open();
-    await waitFor(() => expect(screen.getByText('KRW')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText('KRW').length).toBeGreaterThan(0));
     const inputs = document.querySelectorAll('.ratebox .rateinput');
     expect(inputs).toHaveLength(2);
     /* KRW：1 韓元不到 0.1 台幣 → 講法是「1 台幣 = N 韓元」，所以 TWD 那欄在上 */
@@ -174,11 +178,20 @@ describe('B-1　S-02b 編輯行程', () => {
     expect((inputs[0] as HTMLInputElement).placeholder).toBe('1');
   });
 
-  it('編輯模式沒有名稱／幣別／日期——那些在建立時就定了', async () => {
+  /* 實作-O-5（Rozi 2026-09-06）：「按編輯行程的時候，我想到介面應該跟建立新行程的
+     欄位一致，因為我就是要修改在這個行程設定上的欄位」。
+     編輯頁補上當地幣別與出發／回程——**這條原本是反過來斷言的**，
+     方向由 Rozi 推翻，不是實作跑掉。 */
+  it('編輯模式也有幣別與出發／回程（與建立頁欄位一致）', async () => {
     open();
     await waitFor(() => expect(screen.getByText('這趟的支付方式')).toBeInTheDocument());
-    for (const s of ['這趟去哪？', '去哪？', '當地幣別', '出發', '回程'])
-      expect(document.body.textContent).not.toContain(s);
+    for (const s of ['這趟叫什麼？', '當地幣別', '出發', '回程', '誰一起去？',
+                     '這趟怎麼結算？', '這趟的支付方式', '這趟的現金匯率'])
+      expect(document.body.textContent, `編輯頁缺欄位：${s}`).toContain(s);
+    expect(document.querySelectorAll('input[type=date]').length,
+      '編輯頁要有出發／回程兩個日期欄').toBe(2);
+    /* 頁面標題不動：編輯頁是「編輯行程」，不是建立頁的「這趟去哪？」 */
+    expect(document.body.textContent).not.toContain('這趟去哪？');
   });
 });
 
@@ -361,39 +374,93 @@ describe('L-③　S-02b-14 行程名稱', () => {
     expect(src).toMatch(/\.from\('trips'\)[\s\S]{0,120}\.update\(\{[\s\S]{0,80}\bname\b/);
   });
 
-  it('**只加名稱**——幣別與出發／回程日不得出現在編輯模式', async () => {
-    const { container } = render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
-    await waitFor(() => expect(screen.getByText('編輯行程')).toBeInTheDocument());
-    void container;
-    /* 改幣別會影響既有消費的換算，Rozi 也沒要求 */
-    expect(seen(document.body)).not.toContain('哪一國');
-    expect(document.querySelectorAll('input[type=date]').length,
-      '編輯模式不該有日期欄位').toBe(0);
-  });
-
-  it('建立模式的標籤仍是「去哪？」，沒有被改掉', async () => {
+  /* O-5c：名稱欄位兩頁統一叫「這趟叫什麼？」（Rozi 指定的方向是把建立頁的
+     「去哪？」改掉，不是反過來）。同一個欄位在兩頁叫兩個名字，
+     是最容易讓人以為在改不同東西的寫法。 */
+  it('建立頁的名稱欄位改叫「這趟叫什麼？」，「去哪？」不再是欄位標題', async () => {
     render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
     await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
-    expect(screen.getByText('去哪？')).toBeInTheDocument();
-    expect(screen.queryByText('這趟叫什麼？')).toBeNull();
+    expect(screen.getByText('這趟叫什麼？')).toBeInTheDocument();
+    const labels = [...document.querySelectorAll('label')].map(l => l.textContent);
+    expect(labels, '「去哪？」不該再是欄位標題').not.toContain('去哪？');
+  });
+
+  /* O-9　兩頁的欄位標題集合完全相同（排掉各自的頁面標題） */
+  it('建立頁與編輯頁的欄位標題集合完全相同', async () => {
+    const labelsOf = () => [...document.querySelectorAll('label, .lbl')]
+      .map(l => (l.textContent ?? '').trim()).filter(Boolean).sort();
+    const a = render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+    const create = labelsOf();
+    a.unmount(); document.body.innerHTML = '';
+
+    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟的支付方式')).toBeInTheDocument());
+    const edit = labelsOf();
+    expect(edit).toEqual(create);
+    expect(create).toContain('這趟叫什麼？');
+    expect(create).toContain('當地幣別');
+  });
+
+  /* O-6　必填**恰好四個**，而且是這四個 */
+  it('必填標示恰好四個：這趟叫什麼？／當地幣別／出發／誰一起去？', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+    const req = [...document.querySelectorAll('.req')].map(l => (l.textContent ?? '').trim());
+    /* 先斷言「有東西」，不然一個都沒有時下面的比對會因為兩邊都空而假通過（#29 犯過） */
+    expect(req.length, `.req 有 ${req.length} 個`).toBe(4);
+    expect([...req].sort()).toEqual(['出發', '這趟叫什麼？', '當地幣別', '誰一起去？'].sort());
+    /* 反向：回程與結算模式都不得帶 .req */
+    for (const no of ['回程', '這趟怎麼結算？'])
+      expect(req, `${no} 不該是必填`).not.toContain(no);
   });
 });
 
 /* ══════════════════════════════════════════════════════════════
    實作-N-1　現金匯率的「1」要自動帶值（Rozi 填了 0.19 卻一直算不出來）
    ══════════════════════════════════════════════════════════════ */
-describe('N-①　匯率的「1」自動帶值', () => {
-  it('JPY：1 在 JPY 那欄，台幣欄留空', async () => {
+describe('O-⑦　匯率「填了一邊，另一邊自動帶 1」', () => {
+  /* Rozi 2026-09-06 覆蓋實作-N 的做法。
+     實作-N 是「進畫面就依幣別預先在某一欄帶 1」——算得出正確結果，
+     但要求使用者先接受系統挑好的那一邊。她要的是「我填哪一邊都行，另一邊自己補」。 */
+  it('既有資料照原樣載入，**不替使用者猜方向補 1**', async () => {
     render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
-    /* 行程是非同步載入的；載入前幣別還是預設的 JPY，要等它換成 KRW 之後再量 */
     await waitFor(() => expect(
-      (document.getElementById('rate-twd') as HTMLInputElement)?.value).toBe('1'));
+      (document.getElementById('rate-for') as HTMLInputElement)?.value).toBe('0.19'));
+    /* 她把 0.19 填在外幣欄。這裡若自動補台幣 = 1，rate 會變成 0.19 而不是 1/0.19
+       ——差 25 倍，而且完全靜默。半填就維持半填，讓提示出來由她自己補。 */
+    expect((document.getElementById('rate-twd') as HTMLInputElement).value).toBe('');
+    expect(screen.getByText('還差一欄，兩邊都填才換算得出來')).toBeInTheDocument();
+  });
 
+  it('填任一欄 → 另一欄自動變 1；清空來源 → 那個 1 也消失', async () => {
+    const { nextRate } = await import('./TripFormSheet');
+    let r = { twd: '', for: '', auto: null as 'twd' | 'for' | null };
+    /* ① 在台幣欄輸入 → 外幣欄自動帶 1 */
+    r = nextRate(r, 'twd', '0.21');
+    expect(r).toEqual({ twd: '0.21', for: '1', auto: 'for' });
+    /* ② 清空來源 → 自動的 1 跟著清掉，不留殘值 */
+    r = nextRate(r, 'twd', '');
+    expect(r).toEqual({ twd: '', for: '', auto: null });
+    /* ③ 改在外幣欄輸入 → 台幣欄自動帶 1（哪一邊都行） */
+    r = nextRate(r, 'for', '45');
+    expect(r).toEqual({ twd: '1', for: '45', auto: 'twd' });
+    /* ④ 使用者自己動過那個 1 → 它就不再是自動的，之後不會被清掉 */
+    r = nextRate(r, 'twd', '2');
+    expect(r.auto).toBeNull();
+    r = nextRate(r, 'for', '');
+    expect(r, '動過的值不該被當成自動值清掉').toEqual({ twd: '2', for: '', auto: null });
+  });
+
+  it('畫面上真的會自動帶：在台幣欄打字，外幣欄變 1', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
     const twd = document.getElementById('rate-twd') as HTMLInputElement;
     const forr = document.getElementById('rate-for') as HTMLInputElement;
-    /* fixture 的 t1 是 KRW；KRW 的 oneSideOf 是 twd → 1 在台幣欄 */
-    expect(twd.value).toBe('1');
+    expect(twd.value, '建立頁兩欄一開始都要空').toBe('');
     expect(forr.value).toBe('');
+    fireEvent.change(twd, { target: { value: '0.21' } });
+    expect((document.getElementById('rate-for') as HTMLInputElement).value).toBe('1');
   });
 
   it('placeholder 跟著 oneSideOf 走，不是寫死「台幣那欄是 1」', async () => {
@@ -410,30 +477,31 @@ describe('N-①　匯率的「1」自動帶值', () => {
   it('只填一欄時出提示；兩欄都有值或都空時不出', async () => {
     render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
     await waitFor(() => expect(
-      (document.getElementById('rate-twd') as HTMLInputElement)?.value).toBe('1'));
+      (document.getElementById('rate-for') as HTMLInputElement)?.value).toBe('0.19'));
 
-    /* 預設：台幣 1、外幣空 → 只填一欄 → 要有提示 */
+    /* 載入既有資料：外幣 0.19、台幣空 → 只填一欄 → 要有提示 */
     expect(screen.getByText('還差一欄，兩邊都填才換算得出來')).toBeInTheDocument();
 
+    /* 一動它，另一欄就自動補 1 → 提示消失 */
     fireEvent.change(document.getElementById('rate-for')!, { target: { value: '0.21' } });
     expect(screen.queryByText('還差一欄，兩邊都填才換算得出來'),
       '兩欄都有值就不該再提示').toBeNull();
 
-    fireEvent.change(document.getElementById('rate-twd')!, { target: { value: '' } });
-    expect(screen.getByText('還差一欄，兩邊都填才換算得出來')).toBeInTheDocument();
-
+    /* 兩欄都空是還沒開始填，不提示 */
     fireEvent.change(document.getElementById('rate-for')!, { target: { value: '' } });
-    expect(screen.queryByText('還差一欄，兩邊都填才換算得出來'),
-      '兩欄都空是還沒開始填，不該提示').toBeNull();
+    expect(screen.queryByText('還差一欄，兩邊都填才換算得出來')).toBeNull();
   });
 
-  it('切換幣別時「1」要換邊', async () => {
+  it('`oneSideOf` 只剩下決定 placeholder 與排序，不再決定「1」放哪一欄', async () => {
     render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
     await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
-    /* 建立表單預設 JPY：oneSideOf('JPY') === 'for' → 1 在外幣側。
-       這裡只驗 defaultRates 的邏輯本身，切幣別的 UI 在 s02b 之外。 */
     const { oneSideOf } = await import('@/lib/currencyTable');
     expect(oneSideOf('JPY')).toBe('for');
     expect(oneSideOf('KRW')).toBe('twd');
+    /* 建立頁預設 JPY：實作-N 會在外幣欄預先填 1，現在**兩欄都要空** */
+    expect((document.getElementById('rate-for') as HTMLInputElement).value).toBe('');
+    expect((document.getElementById('rate-twd') as HTMLInputElement).value).toBe('');
+    /* 但 placeholder 仍照 oneSideOf 走：JPY 的 1 在外幣側 */
+    expect((document.getElementById('rate-for') as HTMLInputElement).placeholder).toBe('1');
   });
 });
