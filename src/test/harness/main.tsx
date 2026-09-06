@@ -43,6 +43,8 @@ const SCREENS: Record<string, { route: string; path?: string; el: React.ReactNod
   s05:  { route: '/trips/t1/settlement', path: '/trips/:id/settlement', el: <SettlementPage /> },
   s06:  { route: '/share/tok', path: '/share/:token', el: <SharePage /> },
   s07:  { route: '/settings', el: <SettingsPage /> },
+  /* 實作-L-4　「⋯」改成獨立頁面之後要能單獨量它 */
+  s03more: { route: '/trips/t1/more', path: '/trips/:id/more', el: <ExpenseListPage /> },
 };
 
 const id = new URLSearchParams(location.search).get('screen') ?? 's01';

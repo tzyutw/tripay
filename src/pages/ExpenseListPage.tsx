@@ -131,7 +131,6 @@ export default function ExpenseListPage() {
   /* S-03-33 分段控制：切換檢視不是動作。「結算」分頁的內容就是 S-05 整頁 */
   const [tab,             setTab]             = useState<'exp' | 'settle'>('exp');
   const [statOpen,        setStatOpen]        = useState(false);   // #17-2 每人分擔預設收合
-  const [menuOpen,        setMenuOpen]        = useState(false);   // S-03-31 ⋯ 選單
   /* S-03d 未定案清單：null＝不在該畫面；'all'＝全部；否則是成員 id */
   const [unsettledView,   setUnsettledView]   = useState<string | null>(null);
   const { toast: showToast } = useToast();
@@ -257,6 +256,11 @@ export default function ExpenseListPage() {
 
   // /trips/:id/edit → 開啟行程編輯
   const tripFormOpen = location.pathname.endsWith('/edit');
+  /* S-03-31「⋯」是**獨立頁面**（Rozi 2026-09-06），不是彈層——所以看 route 不看 state。
+     按裝置返回鍵也就自然回到 S-03。 */
+  const menuOpen = location.pathname.endsWith('/more');
+  const setMenuOpen = (v: boolean) =>
+    v ? navigate(`/trips/${tripId}/more`) : navigate(`/trips/${tripId}`, { replace: true });
   function openTripEdit() { navigate(`/trips/${tripId}/edit`); }
   function closeTripEdit() { navigate(`/trips/${tripId}`, { replace: true }); }
 
@@ -265,6 +269,24 @@ export default function ExpenseListPage() {
   function openEdit(eid: string) {
     if (isArchived || isSettled) return;
     setEditExpenseId(eid); setFormOpen(true);
+  }
+
+  /* ── S-03-31／32　「⋯」是**獨立頁面**（Rozi 2026-09-06）──────────────────
+     原本是底部彈層，改成整頁之後左上有返回鍵、底部不再有「取消」。
+     用 route 而不是 state，所以裝置的返回鍵也會回到 S-03。 */
+  if (menuOpen) {
+    const back = () => navigate(`/trips/${tripId}`, { replace: true });
+    return (
+      <MoreSheet
+        status={display as 'planned' | 'active' | 'settled' | 'archived'}
+        onEdit={openTripEdit}
+        onShare={() => { back(); setShareSheetOpen(true); }}
+        onCopy={() => { back(); setCopyOpen(true); }}
+        onArchive={() => { back(); archiveMutation.mutate(); }}
+        onDelete={() => { back(); setDeleteConfirm(''); setDeleteOpen(true); }}
+        onClose={back}
+      />
+    );
   }
 
   /* ── S-03d 未定案清單 ──────────────────────────────────────────────────────
@@ -406,19 +428,6 @@ export default function ExpenseListPage() {
             </div>
           )}
         </>
-      )}
-
-      {/* S-03-31／32　⋯ 選單 */}
-      {menuOpen && (
-        <MoreSheet
-          status={display as 'planned' | 'active' | 'settled' | 'archived'}
-          onEdit={() => { setMenuOpen(false); openTripEdit(); }}
-          onShare={() => { setMenuOpen(false); setShareSheetOpen(true); }}
-          onCopy={() => { setMenuOpen(false); setCopyOpen(true); }}
-          onArchive={() => { setMenuOpen(false); archiveMutation.mutate(); }}
-          onDelete={() => { setMenuOpen(false); setDeleteConfirm(''); setDeleteOpen(true); }}
-          onClose={() => setMenuOpen(false)}
-        />
       )}
 
       {/* S-03-25　刪除確認：打「刪除」二字才 enable。

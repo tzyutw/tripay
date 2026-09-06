@@ -85,11 +85,16 @@ export function Providers({ children, route = '/' }: { children: ReactNode; rout
  */
 export function render(
   ui: ReactElement,
-  { route = '/', path }: { route?: string; path?: string } = {},
+  { route = '/', path }: { route?: string; path?: string | string[] } = {},
 ) {
+  /* path 可以給多條——畫面裡有 `navigate()` 的話，目的地那條 route 也要掛上，
+     否則導航過去只會渲染出空白，測試看起來像「元件壞了」。 */
+  const paths = path === undefined ? [] : Array.isArray(path) ? path : [path];
   return rtlRender(
     <Providers route={route}>
-      {path ? <Routes><Route path={path} element={ui} /></Routes> : ui}
+      {paths.length
+        ? <Routes>{paths.map(pt => <Route key={pt} path={pt} element={ui} />)}</Routes>
+        : ui}
     </Providers>,
   );
 }

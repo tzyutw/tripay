@@ -250,7 +250,31 @@ input, textarea, select { font-size: var(--fs-input); }
 .hint { font-size:var(--fs-sub);color:var(--gr);margin:5px 0 0;line-height:1.45 }
 .err { font-size:var(--fs-sub);color:var(--out);margin:5px 0 0 }
 .fld { padding:0 14px 14px }
-:where(input[type=text],input[type=number],input[type=date]) { width:100%;background:#fff; border:1px solid var(--ln);border-radius:var(--r-base);padding:9px 10px;font-size:var(--fs-input);color:#151C21;outline:none }
+/* ⚠️ 這條**拆成兩半**是有原因的（實作-L-1 的回歸）。
+   實作-J 把整條包進 `:where()` 把特異度降到 (0,0,0)，好讓元件上的 `w-8` 蓋得過；
+   但 Tailwind preflight 有 `input{padding:0}`，特異度 (0,0,1)——**比 0 高**，
+   於是 `padding:9px 10px` 被 preflight 蓋掉，所有沒有自己 class 的文字輸入框
+   從 39px 塌成 26px（受害的是「新增一種支付方式」那一個）。
+   **只有真的會跟 utility 打架的 `width` 需要降到 0**。
+
+   外觀那幾個寫成 `input:where([type=…])`＝**(0,0,1)**，不是 `input[type=…]`＝(0,1,1)：
+   - 贏得過 Tailwind preflight 的 `input{padding:0}`（同為 (0,0,1)，但我們排在後面）
+   - **輸給元件的 class**（`.rateinput` 是 (0,1,0)）
+   原型裡這條是 `.ui input[type=text]`＝(0,1,1)、`.ui .rateinput`＝(0,2,0)，
+   class 本來就贏。搬過來拿掉 `.ui` 之後兩者的大小關係**反過來了**——
+   寫成 (0,1,1) 會讓匯率欄從 38px 變成 44px。 */
+input:where([type=text],[type=number],[type=date]) {
+  background:#fff; border:1px solid var(--ln); border-radius:var(--r-base);
+  padding:9px 10px; font-size:var(--fs-input); color:#151C21; outline:none;
+}
+
+:where(input[type=text],input[type=number],input[type=date]) { width:100% }
+/* Tailwind preflight 給輸入框 `line-height: inherit`（body 1.5 → 內容 24px），
+   原型沒有 preflight，輸入框用的是瀏覽器預設的 `normal`（≈19px）——
+   差這 5px 就是「新增一種支付方式」欄 44px vs 原型 39px。
+   **只給沒有自己 class 的輸入框**：有 class 的（`.rateinput` 38px、
+   `.fieldrow>input` 與 `.amtline input` 28px）是設計上就該那樣，不要一起壓矮。 */
+input:where([type=text],[type=number],[type=date]):not([class]):not(.fieldrow *) { line-height: normal }
 input:focus { border-color:var(--w) }
 :where(input[type=date]) { min-width:0 }
 .btn { width:100%;background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:11px 0; border-radius:var(--r-base);text-align:center }

@@ -73,9 +73,27 @@ for (const [, selRaw, body] of rules) {
      reset 與繼承類（font-size／font-family／color…）維持原樣——
      `input{font-size:var(--fs-input)}` 那條是 iOS 的 16px 硬性下限，被蓋掉會整頁放大。 */
   const bareSel = sel.replace(/\.ui\s+/g, '');
-  const LAYOUT = /(^|[;\s])(width|height|min-[a-z]+|max-[a-z]+|padding|margin|flex|position|overflow|display)\s*:/;
-  const needsWhere = isBareElement && LAYOUT.test(body);
-  out.push(`${needsWhere ? `:where(${bareSel})` : bareSel} { ${body.trim().replace(/\s*\n\s*/g, ' ')} }`);
+  /* ⚠️ 只把**真的會跟 Tailwind utility 打架**的屬性降權重，而且是**拆出來**降，
+     不要整條包進 `:where()`。整條包會降到 (0,0,0)，連 Tailwind preflight 的
+     `input{padding:0}`（0,0,1）都蓋得過它——實作-L-1 就是這樣讓
+     「新增一種支付方式」的輸入框從 39px 塌成 26px 的。
+     `width`／`height` 是元件常用 `w-8`／`h-12` 覆寫的；
+     `padding`／`border` 這些 preflight 也 reset，留在 (0,1,1) 才壓得住。 */
+  const CLASH = /(^|[;\s])(width|height|min-width|max-width)\s*:/;
+  const decls = body.split(';').map(d => d.trim()).filter(Boolean);
+  const clash = decls.filter(d => CLASH.test(';' + d));
+  const rest  = decls.filter(d => !CLASH.test(';' + d));
+  if (isBareElement && clash.length) {
+    /* 外觀那半寫成 `input:where([type=…])`＝(0,0,1)：贏得過 Tailwind preflight
+       （同分但排在後面），**輸給元件的 class**。原型裡是 `.ui input[…]`＝(0,1,1)
+       對上 `.ui .rateinput`＝(0,2,0)，class 本來就贏；拿掉 `.ui` 之後
+       大小關係會反過來，寫成 (0,1,1) 會讓匯率欄從 38px 變 44px。 */
+    const lowered = bareSel.replace(/\b([a-z]+)\[([^\]]*)\]/g, '$1:where([$2])');
+    if (rest.length) out.push(`${lowered} { ${rest.join('; ')} }`);
+    out.push(`:where(${bareSel}) { ${clash.join('; ')} }`);
+  } else {
+    out.push(`${bareSel} { ${body.trim().replace(/\s*\n\s*/g, ' ')} }`);
+  }
   kept++;
 }
 

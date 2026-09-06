@@ -50,6 +50,8 @@ export default function App() {
               <Route path="/trips/new" element={<TripListPage />} />
               <Route path="/trips/:id"           element={<ExpenseListPage />} />
               <Route path="/trips/:id/edit"       element={<ExpenseListPage />} />
+              {/* S-03-31 的「⋯」改成獨立頁面（Rozi 2026-09-06） */}
+              <Route path="/trips/:id/more"       element={<ExpenseListPage />} />
               <Route path="/trips/:id/settlement" element={<SettlementPage />} />
               <Route path="/settings"             element={<SettingsPage />} />
             </Route>

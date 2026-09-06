@@ -731,6 +731,16 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
   <div><p class="cnt">編號清單 · 4 項（新畫面）</p><div class="idx" id="idx-s03d"></div></div>
 </section>
 
+<!-- ══════════ S-03more ══════════ -->
+<section class="scr" id="s03more">
+  <div class="scrhd"><span class="k">S-03-32</span><h2>這趟行程 · ⋯ 選單</h2>
+    <p>Rozi 2026-09-06 裁示：從底部彈層改成<b>獨立一頁</b>。左上返回鍵，底部不再有「取消」。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/trips/:id/more</p>
+    <div class="ph"><div class="ui" id="scr-s03more"></div></div>
+  </div>
+</section>
+
 <!-- ══════════ S-04 ══════════ -->
 <section class="scr" id="s04">
   <div class="scrhd"><span class="k">S-04</span><h2>記一筆 · 消費表單</h2>
@@ -1295,6 +1305,9 @@ function renderS02b() {
     <div class="sheet" style="border-radius:0">
       ${b('S-02b-1', `<div class="shd" style="padding-top:14px"><h3>編輯行程</h3><button class="ic2" aria-label="關閉">${ic('close',20)}</button></div>`)}
 
+      ${b('S-02b-14', `<div class="fld"><span class="lbl">這趟叫什麼？</span>
+        <input type="text" id="s02bname" value="${esc(fb.name || '')}" placeholder="例如：沖繩四人行 ☀️"></div>`)}
+
       ${!COVER_UI ? '' : b('S-02b-2', `<div class="fld"><span class="lbl" data-group="照片與色調兩個動作，非單一輸入欄">封面</span>
         <div style="border:1px solid var(--ln);border-radius:var(--r-base);background:#fff;padding:4px">
           <div style="height:104px;border-radius:var(--r-base);position:relative;overflow:hidden;
@@ -1441,6 +1454,7 @@ const INDEX = {
     ['S-02b-9','儲存','op','寫回 store，S-01 的卡片跟著變'],
     ['S-02b-10','色調預設盤','hid','8 種色票＋一個標著「自動」的選項。<b>暫時隱藏（#34-6）</b>：同 S-02b-2'],
     ['S-02b-13','這趟怎麼結算？','op','<b>新（#22-6a）</b>：誰欠誰就轉給誰（預設）／都轉給同一個人。選第二項要選人，<b>預設帶代墊最多的成員</b>。<b>唯一入口</b>，S-05 只有引導連結'],
+    ['S-02b-14','這趟叫什麼？','op','<b>新（Rozi 2026-09-06）</b>：編輯行程要能改行程名。與 S-02「去哪？」同一款欄位、同一套驗證。<b>只加名稱</b>——幣別與日期不加，改幣別會影響既有消費的換算'],
     ['S-02b-11','這趟的支付方式','op','可新增；已被使用的不可刪'],
     ['S-02b-12','這趟的現金匯率','op','<b>只有兩個輸入框</b>。「1」擺哪一欄依幣別決定（KRW 在台幣欄、JPY／THB／USD 在外幣欄），<b>「1」的那欄排在上面</b>，讀起來就是「1 X = N Y」'],
   ],
@@ -1468,14 +1482,14 @@ let mode = 'anno';
 /* #29-9 真機模式：一次只顯示一個畫面，底部一條可收起的切換器。
    互動照常，只是把稿件元素（徽章、右側清單、稿頭、章節標題）全部藏起來。 */
 const DEV_SCREENS = [['s00','登入'],['s01','首頁'],['s02','建立行程'],['s02b','編輯行程'],
-  ['s02c','成員識別'],['s03','行程頁'],['s03b','分享／刪除'],['s03d','篩選'],
+  ['s02c','成員識別'],['s03','行程頁'],['s03more','⋯ 選單'],['s03b','分享／刪除'],['s03d','篩選'],
   ['s04','記一筆'],['s05','結算'],['s06','分享頁'],['s07','設定']];
 let devScreen = 's03';
 /* #31-3 真機模式一次只顯示一個畫面，返回鍵原本點了完全沒反應——
    使用者點了沒反應就會再點幾次，這很可能就是「一直點」的來源。
    接上「產品上這一顆會去哪裡」，不是瀏覽器的上一頁：讓它看起來是產品的一部分，
    點下去就真的走得到。方案 B（做成明確不可點）會讓稿看起來像壞掉的，不採用。 */
-const DEV_BACK = { s02:'s01', s02b:'s01', s02c:'s02', s03:'s01', s03b:'s03',
+const DEV_BACK = { s02:'s01', s02b:'s01', s02c:'s02', s03:'s01', s03b:'s03', s03more:'s03',
                    s03d:'s03', s04:'s03', s05:'s03', s06:'s01', s07:'s01' };
 function renderDevBar() {
   $('#devbar').innerHTML =
@@ -1722,6 +1736,7 @@ document.addEventListener('input', ev => {
     const btn = document.getElementById('s02adddo');     // #25-4 只改 disabled，不重繪欄位（#13）
     if (btn) btn.disabled = !t.value.trim();
     return; }
+  if (t.id === 's02bname')   { fb.name = t.value; return; }   // S-02b-14 只寫 state，不重繪（#13）
   if (t.id === 's02bnewpay') { fb.newPay = t.value; return; }
   if (t.id === 'rate-twd' || t.id === 'rate-for') {
     // 兩欄都是自由輸入，它們本身就是匯率——不需要再算出第三個數字。
@@ -1811,7 +1826,6 @@ store.s03Trip = 't1';
 store.s03Filter = null;     // {kind:'all'|'member', memberId}
 store.s03StatOpen = false;  // #17-2 統計卡預設收合
 store.s03Tab = 'exp';       // #28-6a 消費／結算兩個分頁
-store.s03Menu = false;      // #28-6b ⋯ 選單
 store.s06StatOpen = false;  // #29-10 分享頁的統計卡，與 S-03 同一套
 store.s03Cur = 'TWD';       // #17-3 幣別切換
 
@@ -2083,16 +2097,16 @@ function renderS03() {
     h += b('S-03-24', `<div class="btnrow"><button class="btn gh">重新開啟行程</button></div>`);
   else if (st !== 'settled')
     h += b('S-03-22', `<div class="btnrow"><button class="btn" id="s03add">${ic('add',16)} 記一筆</button></div>`);
-  h += s03MoreSheet(st);
   h += `<div id="s03toast"></div>`;
   $('#scr-s03').innerHTML = h;
+  renderS03More();
   document.querySelectorAll('#s03rig button').forEach(x => x.classList.toggle('on', x.dataset.st === st));
 }
 /* #28-6b ⋯ 選單。沿用既有的 .sheet 底部彈層，不新造第三種。
    內容依行程狀態變：封存時不出現「編輯行程」（封存＝預設只讀）；
    「刪除行程」是選單裡唯一著色的一項。 */
 function s03MoreSheet(st) {
-  if (!store.s03Menu) return '';
+
   // #29-8c 每項配一個 16px 的 icon：刪除配上垃圾桶，危險訊號在按下去之前就看得到，
   // 不是等對話框跳出來才知道。只有「刪除行程」的 icon 與文字同時用 --dg。
   // #31-6 原本每顆按鈕只有內容寬（86／56／131／86px），自己帶 border-bottom，
@@ -2107,10 +2121,19 @@ function s03MoreSheet(st) {
   body += item('S-03-5', 'share', '分享') + rule + item('S-03-4', 'copy', '複製成新的一趟') + rule;
   if (st === 'settled') body += item(null, 'archive', '封存行程');
   body += item('S-03-25', 'del', '刪除行程', true);
-  return b('S-03-32', `<div class="scrim" style="padding:22px 0 0" id="s03menuscrim">
-      <div style="font-size:var(--fs-tag);color:rgba(255,255,255,.7);text-align:center;padding-bottom:12px">遮罩 · 點擊關閉</div></div>
-    <div class="sheet"><div class="grab"></div><div style="padding:6px 14px 0">${body}</div>
-      <div style="padding:6px 14px 16px"><button class="btn qt" id="s03menux" style="min-height:44px">取消</button></div></div>`);
+  /* Rozi 2026-09-06：「設定頁我不要顯示在最下方，請單獨一頁出來」——
+     從底部彈層改成**獨立畫面**（route `/trips/:id/more`）。
+     左上返回鍵（`.bar`，與 S-05 同款）＋標題「這趟行程」；
+     **底部不再有「取消」**——有返回鍵了，兩個做同一件事的東西不要並存。
+     四個項目的文字、`.shopt.mi` 樣式、`.mrule` 分隔線與編號都沒動。 */
+  return b('S-03-32', `<div class="bar"><button class="ic2" id="s03menux" aria-label="返回">${ic('back',20)}</button>
+      <span class="ttl">這趟行程</span><span style="width:40px"></span></div>
+    <div style="padding:6px 14px 0">${body}</div>`);
+}
+/** S-03-31／32 的獨立畫面。與 S-03 同一份 s03MoreSheet()，只是畫在自己的容器裡。 */
+function renderS03More() {
+  const el = $('#scr-s03more');
+  if (el) el.innerHTML = s03MoreSheet(statusOf(tripOf(store.s03Trip)));
 }
 function syncSettlePane() {
   const pane = document.getElementById('s03settlepane'), src = document.getElementById('scr-s05');
@@ -2745,8 +2768,9 @@ document.addEventListener('click', ev => {
     }
     renderS03(); return;
   }
-  if (t.closest('#s03more'))   { store.s03Menu = true;  renderS03(); return; }
-  if (t.closest('#s03menux') || t.closest('#s03menuscrim')) { store.s03Menu = false; renderS03(); return; }
+  /* ⋯ 現在是獨立畫面（route /trips/:id/more），不是彈層——在原型上就是切到 s03more 那一格 */
+  if (t.closest('#s03more'))   { devScreen = 's03more'; renderS03More(); renderDevBar(); window.scrollTo({ top: 0 }); return; }
+  if (t.closest('#s03menux'))  { devScreen = 's03'; renderDevBar(); window.scrollTo({ top: 0 }); return; }
   const sc = hit('data-s03cur');
   if (sc) { const tr = tripOf(store.s03Trip);
     if (sc.dataset.s03cur === 'FOR' && !tripRate(tr)) return;   // 沒設匯率就不能切

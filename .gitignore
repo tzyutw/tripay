@@ -48,3 +48,6 @@ MEMORY_*.md
 .claude/hooks/
 .claude/.keepgoing_count
 Claude outputs/_cowork暫存_可刪/
+
+# Cowork 複驗用的 harness 建置壓縮檔（暫存，可刪）
+Claude outputs/*.tgz

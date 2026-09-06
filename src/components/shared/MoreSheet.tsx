@@ -29,27 +29,35 @@ function Item({ icon, text, del, onClick }: {
   );
 }
 
+/**
+ * S-03 的「⋯」→ **獨立頁面**（Rozi 2026-09-06：「設定頁我不要顯示在最下方，請單獨一頁出來」）。
+ *
+ * 原本是底部彈層（`.scrim` ＋ `.sheet` ＋ 底部「取消」）。改成整頁之後：
+ * 左上角返回鍵（`.bar`，與 S-05 結算頁同款）、標題「這趟行程」、
+ * **底部不要「取消」**——有返回鍵了，兩個做同一件事的東西不要並存。
+ * 四個項目的文字、樣式（`.shopt.mi`）、分隔線（`.mrule`）與編號都沒動。
+ */
 export default function MoreSheet({ status, onEdit, onShare, onCopy, onArchive, onDelete, onClose }: MoreSheetProps) {
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <div className="sheet">
-        <div className="grab" />
-        <div style={{ padding: '6px 14px 0' }}>
-          {/* 封存＝預設只讀，所以封存態不出現「編輯行程」 */}
-          {status !== 'archived' && <Item icon="edit" text="編輯行程" onClick={onEdit} />}
-          <Item icon="share" text="分享" onClick={onShare} />
-          <div className="mrule" />
-          {/* 「複製成新的一趟」：它產出的是一趟新行程，屬於首頁層級 */}
-          <Item icon="copy" text="複製成新的一趟" onClick={onCopy} />
-          <div className="mrule" />
-          {status === 'settled' && <Item icon="archive" text="封存行程" onClick={onArchive} />}
-          <Item icon="del" text="刪除行程" del onClick={onDelete} />
-        </div>
-        <div style={{ padding: '6px 14px 16px' }}>
-          <button className="btn qt" style={{ minHeight: 44 }} onClick={onClose}>取消</button>
-        </div>
+    <div className="min-h-screen bg-bg flex flex-col">
+      <div className="bar">
+        <button className="ic2" aria-label="返回" onClick={onClose}>
+          <Icon name="back" size={20} />
+        </button>
+        <span className="ttl">這趟行程</span>
+        <span style={{ width: 40 }} />
       </div>
-    </>
+      <div style={{ padding: '6px 14px 0' }}>
+        {/* 封存＝預設只讀，所以封存態不出現「編輯行程」 */}
+        {status !== 'archived' && <Item icon="edit" text="編輯行程" onClick={onEdit} />}
+        <Item icon="share" text="分享" onClick={onShare} />
+        <div className="mrule" />
+        {/* 「複製成新的一趟」：它產出的是一趟新行程，屬於首頁層級 */}
+        <Item icon="copy" text="複製成新的一趟" onClick={onCopy} />
+        <div className="mrule" />
+        {status === 'settled' && <Item icon="archive" text="封存行程" onClick={onArchive} />}
+        <Item icon="del" text="刪除行程" del onClick={onDelete} />
+      </div>
+    </div>
   );
 }

@@ -434,12 +434,13 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
           <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pt-4 pb-0">
 
 
-            {/* 編輯模式沒有名稱／幣別／日期——那些在建立時就定了，
-                這一頁管的是「這趟怎麼記帳」。照原型 S-02b。 */}
-            {!isEdit && <>
-            {/* Trip name */}
+            {/* S-02b-14　行程名稱：**編輯模式也要有**（Rozi 2026-09-06 新增需求）。
+                與 S-02「去哪？」是同一款欄位、同一套驗證，不另寫一份。
+                幣別與出發／回程日**不加**——Rozi 沒要求，而且改幣別會影響既有消費的換算。 */}
             <div className="mb-5">
-              <label className="block text-sub font-bold text-md tracking-wide mb-2">去哪？</label>
+              <label className="block text-sub font-bold text-md tracking-wide mb-2">
+                {isEdit ? '這趟叫什麼？' : '去哪？'}
+              </label>
               <input
                 type="text"
                 value={name}
@@ -449,6 +450,10 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
               />
               {errors.name && <p className="text-tag text-out mt-1">{errors.name}</p>}
             </div>
+
+            {/* 編輯模式沒有幣別／日期——那些在建立時就定了，
+                這一頁管的是「這趟怎麼記帳」。照原型 S-02b。 */}
+            {!isEdit && <>
 
             {/* Currency */}
             <div className="mb-5">

@@ -739,3 +739,35 @@ Rozi 確認原型 OK 時看到的是「🐵 Rozi」，她自己的資料是沒 e
 
 原型加一組「什麼都沒填」的假行程，切過去就能看到全部 fallback，
 比在規格文件裡描述它長什麼樣有用得多。
+
+## `:where()` 降權重之前，先看 Tailwind preflight（2026-09-06）
+
+起因：實作-J 為了讓元件上的 `w-8` 蓋得過基礎樣式，把
+`input[type=text]{width:100%;…;padding:9px 10px;…}` **整條**包進 `:where()`。
+特異度降到 (0,0,0) 之後，**連 Tailwind preflight 的 `input{padding:0}`（0,0,1）都蓋得過它**
+——所有沒有自己 class 的文字輸入框從 39px 塌成 26px，Rozi 在手機上看到「新增一種支付方式」變扁。
+
+**規則：只降真的會跟 utility 打架的那幾個屬性，不要整條降。**
+- `width`／`height`／`min-width`／`max-width` → 元件常用 `w-8`／`h-12` 覆寫，降到 0
+- `padding`／`border`／`background` → **preflight 也 reset 這些**，降到 0 就輸給 preflight
+
+**還有一層**：從原型搬過來時 `.ui ` 前綴被拿掉，
+`.ui input[type=text]`（0,1,1）對上 `.ui .rateinput`（0,2,0）本來是 class 贏；
+拿掉前綴變成 `input[type=text]`（0,1,1）對上 `.rateinput`（0,1,0）——**大小關係反過來**。
+所以外觀那半要寫成 `input:where([type=…])`＝(0,0,1)：
+贏得過 preflight（同分但排在後面），輸給元件的 class。
+
+`實作_原型CSS移植.cjs` 已內建這個拆法，改原型後重跑會自動產生正確的兩條。
+
+## 不要在元件內部定義函式元件（2026-09-06）
+
+起因：`CashRate` 把 `Row` 定義在元件內部。每次父層 render，`Row` 都是一個**全新的函式參考**，
+React 視為不同的元件型別 → 卸載舊 DOM、掛新的 → `<input>` 被銷毀重建 → 焦點消失 →
+**iOS 鍵盤收起來**。打一個字收一次，「0.19」要點四次。
+
+原型第 2219 行早就寫過：「只更新衍生內容——**不重建任何 input**」。
+
+**規則：函式元件一律定義在模組層級。** 用 `useCallback` 包**沒有用**——
+那解決不了「元件型別每次都不同」這件事。
+判準：`function X()` 或 `const X = () => …` 且回傳 JSX、又寫在另一個元件的 body 裡 → 搬出去。
+（`const Nav = (<div>…</div>)` 這種**值**不算，它不是元件型別。）

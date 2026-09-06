@@ -326,3 +326,55 @@ describe('I-④　名字打了但沒按「加進來」就送出', () => {
     expect(seen(document.body)).toContain('阿明');
   });
 });
+
+/* ══════════════════════════════════════════════════════════════
+   實作-L-3　編輯行程要能改行程名稱（S-02b-14，Rozi 2026-09-06 新增需求）
+   ══════════════════════════════════════════════════════════════ */
+describe('L-③　S-02b-14 行程名稱', () => {
+  it('編輯模式有行程名欄位，初始值等於該趟的 name，高度與 S-02 同款', async () => {
+    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    /* 行程是非同步載入的，要等值真的帶進來——不等的話量到的是空字串 */
+    await waitFor(() => expect(
+      (screen.getByPlaceholderText('例如：沖繩四人行 ☀️') as HTMLInputElement).value,
+    ).toBe('2026 濟州島四寶團'));
+
+    const input = screen.getByPlaceholderText('例如：沖繩四人行 ☀️') as HTMLInputElement;
+    expect(input, '編輯行程沒有行程名欄位').toBeTruthy();
+    /* 與 S-02「去哪？」同一款：h-[46px] */
+    expect(input.className).toContain('h-[46px]');
+    expect(screen.getByText('這趟叫什麼？')).toBeInTheDocument();
+  });
+
+  it('改字之後 state 跟著變（存檔會寫進 trips.name）', async () => {
+    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(
+      (screen.getByPlaceholderText('例如：沖繩四人行 ☀️') as HTMLInputElement).value,
+    ).toBe('2026 濟州島四寶團'));
+
+    const input = screen.getByPlaceholderText('例如：沖繩四人行 ☀️') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'ZZ 改過的名字' } });
+    expect(input.value).toBe('ZZ 改過的名字');
+
+    /* 存檔的 payload 裡要有 name——不然改了也不會寫回去 */
+    const src = await import('fs').then(fs =>
+      fs.readFileSync('src/components/TripFormSheet.tsx', 'utf8'));
+    expect(src).toMatch(/\.from\('trips'\)[\s\S]{0,120}\.update\(\{[\s\S]{0,80}\bname\b/);
+  });
+
+  it('**只加名稱**——幣別與出發／回程日不得出現在編輯模式', async () => {
+    const { container } = render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('編輯行程')).toBeInTheDocument());
+    void container;
+    /* 改幣別會影響既有消費的換算，Rozi 也沒要求 */
+    expect(seen(document.body)).not.toContain('哪一國');
+    expect(document.querySelectorAll('input[type=date]').length,
+      '編輯模式不該有日期欄位').toBe(0);
+  });
+
+  it('建立模式的標籤仍是「去哪？」，沒有被改掉', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+    expect(screen.getByText('去哪？')).toBeInTheDocument();
+    expect(screen.queryByText('這趟叫什麼？')).toBeNull();
+  });
+});

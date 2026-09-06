@@ -105,7 +105,7 @@ const want = (id: 's03' | 's03d') =>
   (screens as Record<string, { list: string[]; text: string }>)[id];
 const flat = () => (document.body.textContent ?? '').replace(/\s+/g, '');
 const show = async () => {
-  render(<Page />, { route: '/trips/t1', path: '/trips/:id' });
+  render(<Page />, { route: '/trips/t1', path: ['/trips/:id', '/trips/:id/more'] });
   await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 };
 
@@ -243,7 +243,7 @@ describe('B-3　S-03d 未定案清單', () => {
 describe('B-3　既有 bug：封存／已結算不得點進編輯', () => {
   it('封存的行程點消費列不會開表單', async () => {
     state.trips = [{ ...trip, status: 'archived' }];
-    render(<Page />, { route: '/trips/t1', path: '/trips/:id' });
+    render(<Page />, { route: '/trips/t1', path: ['/trips/:id', '/trips/:id/more'] });
     await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 
     /* 唯讀態的列本來就渲染成 div——先確認真的有列，否則這條會在「沒有列」時假通過 */
@@ -256,7 +256,7 @@ describe('B-3　既有 bug：封存／已結算不得點進編輯', () => {
 
   it('已結算的行程也一樣：列不可點，且底部沒有主鈕', async () => {
     state.trips = [{ ...trip, status: 'settled' }];
-    render(<Page />, { route: '/trips/t1', path: '/trips/:id' });
+    render(<Page />, { route: '/trips/t1', path: ['/trips/:id', '/trips/:id/more'] });
     await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 
     const rows = [...document.querySelectorAll('.exprow')];
@@ -427,5 +427,50 @@ describe('D-②　S-03b 分享 sheet 對齊原型', () => {
       expect(subs.length, `${w.title} 的灰字數量不對`).toBe(w.sub ? 1 : 0);
       if (w.sub) expect(subs[0].textContent).toBe(w.sub);
     }
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════
+   實作-L-4　「⋯」改成獨立頁面（Rozi 2026-09-06）
+   ══════════════════════════════════════════════════════════════ */
+describe('L-④　⋯ 是獨立頁面，不是彈層', () => {
+  it('進去之後沒有遮罩、有返回鍵、標題是「這趟行程」', async () => {
+    await show();
+    fireEvent.click(document.querySelector('button[aria-label="更多"]')!);
+
+    expect(document.querySelector('.scrim'), '還是彈層——不該有遮罩').toBeNull();
+    expect(document.querySelector('.sheet'), '還是彈層——不該有 .sheet').toBeNull();
+    const back = document.querySelector('.bar button[aria-label="返回"]');
+    expect(back, '缺返回鍵').not.toBeNull();
+    expect(document.querySelector('.bar .ttl')!.textContent).toBe('這趟行程');
+    /* 有返回鍵了就不要再放「取消」——兩個做同一件事的東西不要並存 */
+    expect(flat()).not.toContain('取消');
+  });
+
+  it('四個項目的文字與 S-03 原本那份完全一致', async () => {
+    await show();
+    fireEvent.click(document.querySelector('button[aria-label="更多"]')!);
+    const items = [...document.querySelectorAll('.shopt.mi')].map(x => x.textContent?.trim());
+    expect(items).toEqual(['編輯行程', '分享', '複製成新的一趟', '刪除行程']);
+    const del = [...document.querySelectorAll('.shopt')].filter(x => x.className.includes('del'));
+    expect(del.length, '刪除仍是唯一著色的一項').toBe(1);
+  });
+
+  it('按返回回到 S-03', async () => {
+    await show();
+    fireEvent.click(document.querySelector('button[aria-label="更多"]')!);
+    expect(document.querySelector('.bar .ttl')).not.toBeNull();
+
+    fireEvent.click(document.querySelector('.bar button[aria-label="返回"]')!);
+    await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
+    expect(document.querySelector('.hero'), '沒有回到 S-03').not.toBeNull();
+  });
+
+  it('封存態沒有「編輯行程」，已結算態多一項「封存行程」', async () => {
+    state.trips = [{ ...trip, status: 'archived' }];
+    await show();
+    fireEvent.click(document.querySelector('button[aria-label="更多"]')!);
+    expect([...document.querySelectorAll('.shopt.mi')].map(x => x.textContent?.trim()))
+      .toEqual(['分享', '複製成新的一趟', '刪除行程']);
   });
 });
