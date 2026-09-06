@@ -170,7 +170,14 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   --fs-money-lg:26px; /* 統計卡主數字 */
   --fs-logo:44px;     /* 登入頁字標。這是圖形識別，不屬於文字階梯——唯一的例外 */
   --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#9B1B14;   /* #25-8 destructive 比提醒深一階；白字對比 7.7:1 */
-  --ln:#DFE1DA;--gr:#6A7980;--md:#4C5B64;position:relative}
+  --ln:#DFE1DA;--gr:#6A7980;--md:#4C5B64;
+  /* 實作-P　輸入框高度**只有兩階**。改前是五種（46／41／40／38／28），
+     沒有任何一種是刻意決定的——跟字級與圓角當初一樣，各處各自決定出來的。
+     階 1 取 40 而不是 44：日期欄已經是 40，而**那一處在 iOS 上塌掉修過三次**
+     （#32／#33-2／#34-4），取 40 就完全不必再碰它。 */
+  --h-field:40px;     /* 階 1 · 獨立欄位：自己佔一列的輸入框 */
+  --h-inline:28px;    /* 階 2 · 列內嵌入：跟標籤或金額並排的 */
+  position:relative}
 /* #29-3 placeholder 從來沒有被設定樣式，用的是瀏覽器預設的中性灰 #757575——
    它比「分帳方式」的未選項目還深，層級整個顛倒；而且 #757575 是純中性灰，
    與 Tripay 帶青藍調的 --gr 不同色系，等於脫離設計系統。
@@ -202,12 +209,11 @@ html.anno .b .bdg:hover{background:#0F5E9E}
    Chrome 空值仍會畫一行示意文字，行高在，所以量起來是 40px；
    iOS Safari 關掉系統外觀之後**空值裡面什麼都不畫**，那一行塌成 0，
    整個框只剩 9＋9 的內距——這就是「回程比出發矮一截」的原因。
-   ⚠️ 實測（Chrome 390×844）：這裡固定 40px；有外框的文字輸入框（S-02b 的匯率、
-   新增支付方式）是 41px；S-04 的行內輸入是無框的 25px，不同類不互比。
-   哪一天改了字級或內距，這個數字要重量一次再改。 */
+   實作-P 之後高度一律走 token：這裡與所有有外框的輸入框都是 --h-field，
+   S-04 的行內輸入是 --h-inline。**不要再寫高度字面值。** */
 .ui .datefield input[type=date]{-webkit-appearance:none;appearance:none;
   flex:1;width:100%;min-width:0;padding-right:32px;
-  height:40px;box-sizing:border-box}
+  height:var(--h-field);box-sizing:border-box}
 /* Safari 畫日期值用的內部元素，Chrome 上不存在，所以永遠測不到——
    不給它高度與行高，外框固定了裡面的字仍會偏上或偏下。 */
 .ui .datefield input[type=date]::-webkit-date-and-time-value{
@@ -218,8 +224,9 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .hint{font-size:var(--fs-sub);color:var(--gr);margin:5px 0 0;line-height:1.45}
 .ui .err{font-size:var(--fs-sub);color:var(--out);margin:5px 0 0}
 .ui .fld{padding:0 14px 14px}
-.ui input[type=text],.ui input[type=number],.ui input[type=date]{width:100%;background:#fff;
-  border:1px solid var(--ln);border-radius:var(--r-base);padding:9px 10px;font-size:var(--fs-input);color:#151C21;outline:none}
+.ui input[type=text],.ui input[type=number],.ui input[type=date]{width:100%;height:var(--h-field);
+  box-sizing:border-box;background:#fff;
+  border:1px solid var(--ln);border-radius:var(--r-base);padding:0 10px;font-size:var(--fs-input);color:#151C21;outline:none}
 .ui input:focus{border-color:var(--w)}
 .ui input[type=date]{min-width:0}   /* 原生 date 有內建最小寬，不設會撐爆窄螢幕 */
 .ui .btn{width:100%;background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:11px 0;
@@ -306,7 +313,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   border-radius:var(--r-base);padding:12px 14px;cursor:text}
 .ui .amtline.needfill{border-color:var(--out);background:#FBF0EC}
 .ui .amtline .cur{width:58px;flex:none;font-size:var(--fs-body);font-weight:600;color:var(--md)}
-.ui .amtline input{flex:1;min-width:0;border:0;background:transparent;padding:2px 0;
+.ui .amtline input{flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;
   font-size:var(--fs-input);font-weight:500;font-variant-numeric:tabular-nums;text-align:right}
 .ui .amtline input:focus{border:0;outline:none}
 /* #22-9：各自金額一列一人——emoji 名字靠左、輸入框靠右。
@@ -324,7 +331,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
    把下面那一列往上擠，看起來像日期框跑版。加寬到 68 並禁止折行——
    寬度不足時寧可擠壓輸入框，也不要把標籤折斷。各列標籤仍等寬對齊。 */
 .ui .fieldrow>.lbl{display:block;width:68px;flex:none;margin:0;font-size:var(--fs-body);white-space:nowrap}
-.ui .fieldrow>input{flex:1;min-width:0;border:0;background:transparent;padding:2px 0;font-size:var(--fs-input)}
+.ui .fieldrow>input{flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;font-size:var(--fs-input)}
 .ui .fieldrow>input:focus{border:0;outline:none}
 .ui .fieldrow.wide>.lbl{width:auto}
 .ui .autotag{font-size:var(--fs-tag);letter-spacing:.06em;color:var(--gr);
@@ -519,7 +526,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
    直接沿用 .datefield 那一條規則，兩處共用，不另寫一份。
    兩段文字字級不同（標籤 15、日期 16），靠明訂同一個 line-height 對齊，
    不是靠 align-items——字級不同時置中會讓兩者的頂端差 1px。 */
-.ui .fieldrow.datefield{height:40px;padding:0 14px}
+.ui .fieldrow.datefield{height:var(--h-field);padding:0 14px}
 .ui .fieldrow.datefield>.lbl,.ui .fieldrow.datefield>.v{line-height:22px;margin:0}
 .ui .fieldrow.datefield>.v{flex:1;min-width:0;font-size:var(--fs-input);
   font-weight:600;color:#151C21}
@@ -597,7 +604,7 @@ html.dev .ui .s00wrap{min-height:calc(100dvh - var(--devbar-h,54px))}
 .ui .raterow:last-child{border-bottom:0}
 .ui .raterow .flag{font-size:var(--fs-title);flex:none;line-height:1}
 .ui .raterow .code{font-size:var(--fs-body);font-weight:600;color:var(--gr);flex:none;width:34px;text-align:right}
-.ui .rateinput{flex:1;min-width:0;border:0;background:transparent;padding:4px 0;
+.ui .rateinput{flex:1;min-width:0;height:var(--h-field);box-sizing:border-box;border:0;background:transparent;padding:0;
   font-variant-numeric:tabular-nums;font-size:var(--fs-title);font-weight:600;
   color:#151C21;letter-spacing:-.02em}
 .ui .rateinput:focus{border:0;outline:none}

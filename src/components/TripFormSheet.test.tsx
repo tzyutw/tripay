@@ -353,8 +353,11 @@ describe('L-③　S-02b-14 行程名稱', () => {
 
     const input = screen.getByPlaceholderText('例如：沖繩四人行 ☀️') as HTMLInputElement;
     expect(input, '編輯行程沒有行程名欄位').toBeTruthy();
-    /* 與 S-02「去哪？」同一款：h-[46px] */
-    expect(input.className).toContain('h-[46px]');
+    /* 實作-P：高度改由 `--h-field` 決定，**元件上不得再有字面值**。
+       jsdom 量不到 computed height（沒有版面引擎），所以這裡只守
+       「不要又把字面值寫回元件」；真正的 40px 由
+       `實作_高度階梯與圖示測試.cjs` 在真實 Chrome 上量。 */
+    expect(input.className, '高度字面值又寫回元件了').not.toMatch(/h-\[\d+px\]/);
     expect(screen.getByText('這趟叫什麼？')).toBeInTheDocument();
   });
 

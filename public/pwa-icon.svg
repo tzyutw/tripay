@@ -1,5 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" rx="96" fill="#7C2D12"/>
+  <!-- 底色＝S-00 登入頁的漸層（Rozi 2026-09-06：「圖示底色要跟 S-00 一樣」）。
+       原本那個磚紅是改成富士青之前的舊視覺方向留下來的（連 theme_color 一起換掉了）。
+       角度與色停點逐字對齊 src/index.css 的 .s00wrap：
+       linear-gradient(158deg, #0B2233 0%, #0F5E9E 48%, #1276C4 100%)
+       158deg 換算成 objectBoundingBox 的座標（不是目測近似）：
+         d  = (sin158°, -cos158°) = (0.374607, 0.927184)
+         len= |W·sin| + |H·cos|   = 1.30179
+         起點 = 中心 - d·len/2，終點 = 中心 + d·len/2 -->
+  <defs>
+    <linearGradient id="g" x1="0.25617" y1="-0.1035" x2="0.74383" y2="1.1035">
+      <stop offset="0"    stop-color="#0B2233"/>
+      <stop offset="0.48" stop-color="#0F5E9E"/>
+      <stop offset="1"    stop-color="#1276C4"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#g)"/>
+  <!-- purpose="any maskable"：Android 的圓形遮罩會吃掉外圈，
+       「T」必須整個留在中央 80%（51.2 → 460.8）的安全區內。
+       260px 的字上緣約 y=320-190=130、下緣約 y=320，寬度約 ±80 → 都在安全區裡。 -->
   <text x="256" y="320" font-family="system-ui, sans-serif" font-size="260" font-weight="700"
         text-anchor="middle" fill="#FEF9EE">T</text>
 </svg>

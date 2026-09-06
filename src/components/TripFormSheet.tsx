@@ -594,7 +594,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                 value={name}
                 onChange={e => { setName(e.target.value); setErrors(ev => ({ ...ev, name: '' })); }}
                 placeholder="例如：沖繩四人行 ☀️"
-                className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-input text-ink placeholder-gr outline-none focus:border-w transition-colors"
+                className="w-full px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-input text-ink placeholder-gr outline-none focus:border-w transition-colors"
               />
               {errors.name && <p className="text-tag text-out mt-1">{errors.name}</p>}
             </div>
@@ -613,7 +613,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                   if (!v) requestAnimationFrame(() => currencyInputRef.current?.focus());
                   return !v;
                 })}
-                className="w-full h-[46px] px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-left text-input text-ink flex items-center justify-between"
+                className="fieldh w-full px-[14px] bg-white rounded-base border-[1.5px] border-[#E4DFD9] text-left text-input text-ink flex items-center justify-between"
               >
                 <span>{currency}</span>
                 <span className="text-gr text-sm">▾</span>
@@ -631,7 +631,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                       value={currencySearch}
                       onChange={e => setCurrencySearch(e.target.value)}
                       placeholder="搜尋幣別名稱或代碼"
-                      className="w-full h-9 px-3 bg-[#F5F4F2] rounded-base text-sm outline-none"
+                      className="w-full px-3 bg-[#F5F4F2] rounded-base text-sm outline-none"
                     />
                   </div>
                   {filteredCurrencies.map(c => (
@@ -768,7 +768,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                     onChange={e => setNewMemberName(e.target.value.slice(0, 10))}
                     onKeyDown={e => e.key === 'Enter' && addMember()}
                     placeholder="叫什麼名字？"
-                    className="w-full h-[42px] px-3 bg-[#F5F4F2] rounded-base text-body text-ink outline-none mb-3"
+                    className="w-full px-3 bg-[#F5F4F2] rounded-base text-body text-ink outline-none mb-3"
                   />
                   <div className="flex gap-2">
                     <button

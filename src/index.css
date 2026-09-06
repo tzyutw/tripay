@@ -122,14 +122,22 @@ input, textarea, select { font-size: var(--fs-input); }
 .shadow-fab   { box-shadow: 0 4px 20px rgba(124,45,18,.5), 0 1px 6px rgba(124,45,18,.25); }
 
 /* ══════════════════════════════════════════════════════════════
-   實作-A-3　輸入框高度階梯
-   改前全站三種高度（41／25／32px）各自決定出來，沒有階梯。
+   實作-P　輸入框高度**只有兩階**。
+   改前是五種（46／41／40／38／28），沒有任何一種是刻意決定的
+   ——跟字級與圓角當初一樣，各處各自決定出來的。
+   ⚠️ 這兩個值**與 `Tripay_原型.html` 的 `.ui` 同名 token 是同一份**，
+   要改就改原型再重跑 `node 實作_原型CSS移植.cjs`。這裡是給沒有從原型搬過來
+   的元件（Tailwind 那幾個）用的同名宣告。
    ══════════════════════════════════════════════════════════════ */
 :root {
-  --h-field: 40px;    /* 有外框的輸入框、日期欄、下拉：一律這一階 */
-  --h-inline: 25px;   /* 行內編輯（列上直接改，外框由該列提供）*/
+  --h-field: 40px;    /* 階 1 · 獨立欄位：行程名、新增成員、新增支付方式、日期、匯率 */
+  --h-inline: 28px;   /* 階 2 · 列內嵌入：S-04 的品項與兩個金額欄 */
   --h-tap: 44px;      /* 可點區下限，不是視覺尺寸 */
 }
+
+/* 不是 <input> 但長得像欄位的控制項（幣別下拉）也要對齊階 1。
+   寫成 class 而不是元件上的 `h-[40px]`——高度字面值散在元件裡就是階梯消失的起點。 */
+.fieldh { height: var(--h-field); box-sizing: border-box; }
 
 /* ══════════════════════════════════════════════════════════════
    實作-A-3　icon 按鈕的三個層級——Rozi 2026-09-05 明確裁示「層級不一樣，
@@ -272,15 +280,15 @@ input, textarea, select { font-size: var(--fs-input); }
 .bar { display:flex;align-items:center;justify-content:space-between;padding:12px 14px; background:#fff;border-bottom:1px solid var(--ln) }
 .lbl { display:block;font-size:var(--fs-body);font-weight:600;color:var(--md);margin-bottom:6px }
 .datefield { position:relative;display:flex;align-items:center;width:100%;min-width:0 }
-.datefield input[type=date] { -webkit-appearance:none;appearance:none; flex:1;width:100%;min-width:0;padding-right:32px; height:40px;box-sizing:border-box }
+.datefield input[type=date] { -webkit-appearance:none;appearance:none; flex:1;width:100%;min-width:0;padding-right:32px; height:var(--h-field);box-sizing:border-box }
 .datefield input[type=date]::-webkit-date-and-time-value { text-align:left;margin:0;height:20px;line-height:20px }
 .datefield input[type=date]::-webkit-calendar-picker-indicator { opacity:0;position:absolute; right:0;top:0;width:100%;height:100%;cursor:pointer }
 .datefield>svg { position:absolute;right:10px;color:var(--gr);pointer-events:none }
 .hint { font-size:var(--fs-sub);color:var(--gr);margin:5px 0 0;line-height:1.45 }
 .err { font-size:var(--fs-sub);color:var(--out);margin:5px 0 0 }
 .fld { padding:0 14px 14px }
-input:where([type=text]),input:where([type=number]),input:where([type=date]) { background:#fff; border:1px solid var(--ln); border-radius:var(--r-base); padding:9px 10px; font-size:var(--fs-input); color:#151C21; outline:none }
-:where(input[type=text],input[type=number],input[type=date]) { width:100% }
+input:where([type=text]),input:where([type=number]),input:where([type=date]) { box-sizing:border-box; background:#fff; border:1px solid var(--ln); border-radius:var(--r-base); padding:0 10px; font-size:var(--fs-input); color:#151C21; outline:none }
+:where(input[type=text],input[type=number],input[type=date]) { width:100%; height:var(--h-field) }
 input:focus { border-color:var(--w) }
 :where(input[type=date]) { min-width:0 }
 .btn { width:100%;background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:11px 0; border-radius:var(--r-base);text-align:center }
@@ -314,7 +322,7 @@ input:focus { border-color:var(--w) }
 .amtline { display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln); border-radius:var(--r-base);padding:12px 14px;cursor:text }
 .amtline.needfill { border-color:var(--out);background:#FBF0EC }
 .amtline .cur { width:58px;flex:none;font-size:var(--fs-body);font-weight:600;color:var(--md) }
-.amtline input { flex:1;min-width:0;border:0;background:transparent;padding:2px 0; font-size:var(--fs-input);font-weight:500;font-variant-numeric:tabular-nums;text-align:right }
+.amtline input { flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0; font-size:var(--fs-input);font-weight:500;font-variant-numeric:tabular-nums;text-align:right }
 .amtline input:focus { border:0;outline:none }
 .amtrow { display:flex;align-items:center;gap:9px;cursor:text;background:#fff;border:1px solid var(--ln); border-radius:var(--r-base);padding:7px 14px }
 .amtrow input { width:96px;flex:none;text-align:right;background:#F4F5F1;padding:5px 8px; border:1px solid transparent;font-size:var(--fs-input);font-variant-numeric:tabular-nums }
@@ -322,7 +330,7 @@ input:focus { border-color:var(--w) }
 .amtrow input.auto { color:#9AA5AB }
 .fieldrow { display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln); border-radius:var(--r-base);padding:7px 14px }
 .fieldrow>.lbl { display:block;width:68px;flex:none;margin:0;font-size:var(--fs-body);white-space:nowrap }
-.fieldrow>input { flex:1;min-width:0;border:0;background:transparent;padding:2px 0;font-size:var(--fs-input) }
+.fieldrow>input { flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;font-size:var(--fs-input) }
 .fieldrow>input:focus { border:0;outline:none }
 .fieldrow.wide>.lbl { width:auto }
 .autotag { font-size:var(--fs-tag);letter-spacing:.06em;color:var(--gr); border:1px solid var(--ln);border-radius:var(--r-base);padding:1px 4px;flex:none }
@@ -424,7 +432,7 @@ input.auto { color:#9AA5AB }
 .txhead { padding:12px 14px 4px;font-size:var(--fs-body);font-weight:600 }
 .txtitle { padding:0 14px 2px;font-size:var(--fs-strong);font-weight:700 }
 .txsub { padding:0 14px 10px;font-size:var(--fs-sub);color:var(--gr) }
-.fieldrow.datefield { height:40px;padding:0 14px }
+.fieldrow.datefield { height:var(--h-field);padding:0 14px }
 .fieldrow.datefield>.lbl,.fieldrow.datefield>.v { line-height:22px;margin:0 }
 .fieldrow.datefield>.v { flex:1;min-width:0;font-size:var(--fs-input); font-weight:600;color:#151C21 }
 .fieldrow.datefield>input[type=date] { position:absolute;inset:0;opacity:0;padding:0 }
@@ -470,7 +478,7 @@ input.auto { color:#9AA5AB }
 .raterow:last-child { border-bottom:0 }
 .raterow .flag { font-size:var(--fs-title);flex:none;line-height:1 }
 .raterow .code { font-size:var(--fs-body);font-weight:600;color:var(--gr);flex:none;width:34px;text-align:right }
-.rateinput { flex:1;min-width:0;border:0;background:transparent;padding:4px 0; font-variant-numeric:tabular-nums;font-size:var(--fs-title);font-weight:600; color:#151C21;letter-spacing:-.02em }
+.rateinput { flex:1;min-width:0;height:var(--h-field);box-sizing:border-box;border:0;background:transparent;padding:0; font-variant-numeric:tabular-nums;font-size:var(--fs-title);font-weight:600; color:#151C21;letter-spacing:-.02em }
 .rateinput:focus { border:0;outline:none }
 .ratebox.editing .rateinput { color:#A9B2B7 }
 .ratebox.editing .rateinput:focus { color:#151C21 }
@@ -482,6 +490,7 @@ input.auto { color:#9AA5AB }
 @keyframes dropback{0%{transform:scale(1.03)}60%{transform:scale(.99)}100%{transform:scale(1)}}
 @supports not (height:100dvh){.s00wrap{min-height:100vh}}
 
+
 /* S-05 自己帶著導覽列（‹ 結算）。放進 S-03 的「結算」分頁就變成兩顆返回鍵疊在一起，
    用 CSS 收起來——**不動 S-05 的輸出**（原型的做法一樣）。 */
 .settlepane > .bar, .settlepane > div > .bar { display: none; }
@@ -490,7 +499,7 @@ input.auto { color:#9AA5AB }
 .dlgwrap { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; }
 .dlgt { font-size: var(--fs-strong); font-weight: 700; margin-bottom: 8px; }
 .dlgs { font-size: var(--fs-sub); color: var(--md); line-height: 1.5; margin-bottom: 10px; }
-.dlginput { width: 100%; height: 42px; padding: 0 11px; background: #fff;
+.dlginput { width: 100%; height: var(--h-field); padding: 0 11px; background: #fff;
             border: 1px solid var(--ln); border-radius: var(--r-base); margin-bottom: 14px; }
 .dlgrow { display: flex; gap: 8px; }
 /* S-03c-3 影響清單：三個 <li>，數字即時帶入。數值照原型 2876–2877 的 inline style */
