@@ -48,3 +48,7 @@ MEMORY_*.md
 .claude/hooks/
 .claude/.keepgoing_count
 Claude outputs/_cowork暫存_可刪/
+# 原型是 Rozi 的內部設計稿，repo 是公開的——避免被誤 git add
+# ⚠️ 注意：這個檔**已經是 tracked 狀態**（自 750d857 起），.gitignore 對已追蹤檔案無效。
+#    要真的移出版控需要 git rm --cached，且歷史上已推出去的版本不會因此消失。
+Tripay_原型.html

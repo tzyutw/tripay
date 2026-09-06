@@ -5,7 +5,10 @@ import type { Trip, TripMember, ExpenseWithSplits } from '@/types/database';
 
 export const M = ['m0', 'm1', 'm2', 'm3'];
 
-const NAMES = ['Rozi', '小美', '阿明', '小魚'];
+/* ⚠️ 這個檔會被 push 到**公開的** GitHub，所以不放 Rozi 的真實成員名與真實金額。
+   用中性英文短名——**要對齊的是「狀態」，不是「名字」**；
+   名字只需維持「英文短名」這個字寬特性（中文名與英文名渲染寬度不同，會影響版面斷言）。 */
+const NAMES = ['Alex', 'Robin', 'Sam', 'Kai'];
 const EMOJI = ['🐵', '🐱', '🍋', '🐟'];
 
 function mkMembers(withEmoji: boolean): TripMember[] {
@@ -24,8 +27,25 @@ function mkMembers(withEmoji: boolean): TripMember[] {
  * Rozi 在手機上反覆回報「沒有填色圓底」，而版面回歸 263 條全綠。
  * 假資料只走 happy path，等於那條路沒有人守。
  */
-export const membersHaveEmoji =
-  new URLSearchParams(location.search).get('members') !== 'noemoji';
+const Q = new URLSearchParams(location.search);
+
+/**
+ * 實作-K　把假資料切成 Rozi 真實資料的**形狀**。
+ *
+ * 她每天會打開的三趟：成員全部沒有 emoji、0 筆消費、
+ * 其中一趟匯率只填了外幣那一邊、支付方式有自訂的第三項。
+ * **原本的假資料一項都不符合**——所以那些路徑從來沒被測到，
+ * 而她連續三批回報的問題，版面回歸 263 條全綠。
+ *
+ * 預設值一律維持現況，不影響既有斷言。
+ */
+export const membersHaveEmoji = Q.get('members') !== 'noemoji';
+/** `?expenses=none`：一趟還沒記過帳的行程 */
+export const noExpenses = Q.get('expenses') === 'none';
+/** `?rate=half`：匯率只填了外幣那一邊（換算不出台幣） */
+export const halfRate = Q.get('rate') === 'half';
+/** `?pays=none`：支付方式還沒設定 */
+export const noPays = Q.get('pays') === 'none';
 
 export const members: TripMember[] = mkMembers(membersHaveEmoji);
 
@@ -34,7 +54,9 @@ export const trip = {
   start_date: '2026-03-14', end_date: '2026-03-18', status: 'active', kind: 'trip',
   share_token: 'tok', owner_member_id: M[0], collab_enabled: false, card_id: null,
   cover_path: null, settlement_mode: 'direct', hub_member_id: null,
-  payment_methods: ['現金', '信用卡'], cash_rate_twd: null, cash_rate_foreign: null,
+  payment_methods: noPays ? null : ['現金', '信用卡', 'Linepay'],
+  cash_rate_twd: null,
+  cash_rate_foreign: halfRate ? 0.19 : null,
   tone_seq: 0, created_at: '2026-03-01', updated_at: '2026-03-01',
   trip_members: members,
 } as unknown as Trip & { trip_members: TripMember[] };

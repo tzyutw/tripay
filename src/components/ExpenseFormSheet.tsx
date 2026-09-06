@@ -165,7 +165,8 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
     /* 「當場就清了」＝沒有人代墊，本來就不需要付款人 */
     if (!f.onSpot && !f.payer) errs.payer = '先選這筆是誰付的';
     setErrors(errs);
-    if (errs.payer) payerRowRef.current?.scrollIntoView({ block: 'center' });
+    /* jsdom 沒實作 scrollIntoView，真實瀏覽器有——多一個 ?. 讓測試不要噴 unhandled error */
+    if (errs.payer) payerRowRef.current?.scrollIntoView?.({ block: 'center' });
     return Object.keys(errs).length === 0;
   }
 

@@ -663,6 +663,10 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
     <div class="rig"><div class="t">原型控制（不是產品的一部分）</div>
       <div class="row" id="s01state">
         <button data-s="list">有行程</button><button data-s="empty">空狀態</button><button data-s="loading">載入中</button>
+      </div>
+      <div class="t" style="margin-top:10px">示範資料的形狀</div>
+      <div class="row" id="s01dataset">
+        <button data-d="demo">打磨用（有 emoji · 8 筆）</button><button data-d="real">真實形狀（無 emoji · 0 筆）</button>
       </div></div>
   </div>
   <div><p class="cnt">編號清單 · 15 項（2 項已移除、2 項隱形）</p><div class="idx" id="idx-s01"></div></div>
@@ -980,8 +984,26 @@ const store = {
       currency:'JPY', members:[m('🐵','Rozi'),m('🐱','小美'),m('🍋','阿明')],
       toneSeq:2, pays:['現金'], usedPays:{} },
   ],
+  /* 實作-K　**真實形狀**的示範資料（Rozi 2026-09-06 裁示）。
+     上面三趟是打磨畫面用的 happy path：清一色有 emoji、八筆消費、金額都填好。
+     但 Rozi 每天真的會打開的三趟長得完全不同——成員全部沒有 emoji、0 筆消費、
+     其中一趟匯率只填了外幣那一邊。**她每天看的畫面，跟原型上驗收過的畫面，
+     從第一天就不是同一個。** 這兩趟就是那個形狀，用右側「原型控制」切過去。 */
+  realTrips: [
+    { id:'t4', name:'還沒開始記', start:'2026-05-01', end:'2026-05-05', status:'planned', tone:null,
+      currency:'JPY', members:[m('','Alex'),m('','Robin'),m('','Sam'),m('','Kai')],
+      toneSeq:3, pays:['現金','信用卡','Linepay'], usedPays:{},
+      rateTwd:'', rateFor:'0.19' },                       // 只填了外幣那一邊
+    { id:'t5', name:'兩個人剛開始', start:'2026-06-10', end:'2026-06-12', status:'planned', tone:null,
+      currency:'KRW', members:[m('','Alex'),m('','Robin')],
+      toneSeq:4, pays:['現金','信用卡'], usedPays:{} },   // 兩邊匯率都空
+  ],
   s01: 'list',
+  /* 'demo'＝上面那三趟；'real'＝真實形狀那兩趟 */
+  dataset: 'demo',
 };
+/** S-01 目前要顯示哪一組。切換只影響示範資料，不影響任何產品邏輯。 */
+function currentTrips() { return store.dataset === 'real' ? store.realTrips : store.trips; }
 function m(emoji, name, used) { return { id:nid(), emoji, name, used: used||0 }; }
 
 function statusOf(t) {
@@ -1104,7 +1126,7 @@ function renderS01() {
       <button id="s01empty" class="btn" style="width:auto;padding:9px 18px;margin-top:14px;display:inline-block">${ic('add',16)} 建立第一趟</button></div>`);
   } else {
     // 排序：出發日新→舊（S-01-11，隱形行為）
-    const list = [...store.trips].sort((a,c) => c.start.localeCompare(a.start));
+    const list = [...currentTrips()].sort((a,c) => c.start.localeCompare(a.start));
     body = list.map(t => {
       const st = statusOf(t);
       const dim = st === 'archived' ? 'filter:saturate(.5) brightness(.9);' : '';
@@ -1122,6 +1144,7 @@ function renderS01() {
   }
   $('#scr-s01').innerHTML = head + body + `<div id="s01sheet"></div>`;
   document.querySelectorAll('#s01state button').forEach(x => x.classList.toggle('on', x.dataset.s === store.s01));
+  document.querySelectorAll('#s01dataset button').forEach(x => x.classList.toggle('on', x.dataset.d === store.dataset));
 }
 </script>
 
@@ -1530,6 +1553,21 @@ document.addEventListener('click', ev => {
   // 原型控制
   const ss = t.closest('#s01state button');
   if (ss) { store.s01 = ss.dataset.s; renderS01(); return; }
+  const ds = t.closest('#s01dataset button');
+  if (ds) {
+    store.dataset = ds.dataset.d;
+    store.s03Trip = currentTrips()[0].id;
+    fb = null;                                   // S-02b 的編輯緩衝要跟著換趟
+    editTripId = store.s03Trip;
+    renderAll();
+    /* 批二／批三的畫面在另一支 render，切資料組要一起重畫，
+       否則 S-03～S-06 還停在舊那一趟。 */
+    if (typeof renderBatch2 === 'function') renderBatch2();
+    if (typeof renderS03b === 'function') renderS03b();
+    if (typeof renderS06 === 'function') renderS06();
+    if (typeof renderS07 === 'function') renderS07();
+    return;
+  }
   if (t.closest('#s02reset'))   { f = blankForm(); renderS02(); return; }
   const pt = hit('data-picktrip'); if (pt) { editTripId = pt.dataset.picktrip; fb = null; renderS02b(); return; }
 
@@ -1768,7 +1806,7 @@ function demoExpenses() {
           type:'shared', parts:M, payer:M[0], sponsor:true }),          // 負額共同項
   ];
 }
-store.expenses = { t1: demoExpenses(), t2: [], t3: [] };
+store.expenses = { t1: demoExpenses(), t2: [], t3: [], t4: [], t5: [] };   // 實作-K：真實形狀那兩趟是 0 筆
 store.s03Trip = 't1';
 store.s03Filter = null;     // {kind:'all'|'member', memberId}
 store.s03StatOpen = false;  // #17-2 統計卡預設收合
@@ -1777,7 +1815,7 @@ store.s03Menu = false;      // #28-6b ⋯ 選單
 store.s06StatOpen = false;  // #29-10 分享頁的統計卡，與 S-03 同一套
 store.s03Cur = 'TWD';       // #17-3 幣別切換
 
-const tripOf = id => store.trips.find(x => x.id === id);
+const tripOf = id => store.trips.find(x => x.id === id) || store.realTrips.find(x => x.id === id);
 const expsOf = id => store.expenses[id] || (store.expenses[id] = []);
 
 /* 行程現金匯率：外幣 ÷ 台幣。沒設定回 null */

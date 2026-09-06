@@ -1,13 +1,11 @@
 /* 實作-C-3　量測靶的 supabase 樁：量版面不連網路，回傳形狀與真實查詢一致。
    這個檔要在任何畫面模組 evaluate 之前跑完，所以獨立成一個 import。 */
-import { trip, expenses, members, settlementItems } from './fixtures';
+import { trip, expenses, members, settlementItems, noExpenses } from './fixtures';
 
 /* `?state=settled`：讓 S-05 走到「已結算、逐筆標記付清」那一態，
    才畫得出「查看計算依據」的逐人列。預設維持 active，不動既有版面基準。 */
 const settled = new URLSearchParams(location.search).get('state') === 'settled';
-/* `?expenses=none`：一趟**還沒記過帳**的行程。分享出去時旅伴看到的就是這個狀態，
-   而「這趟旅程還沒結算。」那一列先前會把畫面撐出 14px。 */
-const noExpenses = new URLSearchParams(location.search).get('expenses') === 'none';
+/* `?expenses=none` 由 fixtures 統一解析——同一個參數不要在兩個檔各判一次 */
 const expenses2 = noExpenses ? [] : expenses;
 const rows: Record<string, unknown[]> = {
   trips: [settled ? { ...trip, status: 'settled' } : trip],
@@ -55,4 +53,6 @@ const stub = {
   removeChannel: () => {},
 };
 (window as unknown as { __SUPABASE_STUB__: unknown }).__SUPABASE_STUB__ = stub;
+/* 把這一趟的 trip 掛出來給量測腳本查——只在量測靶裡，production bundle 碰不到 */
+(window as unknown as { __TRIP__: unknown }).__TRIP__ = rows.trips[0];
 

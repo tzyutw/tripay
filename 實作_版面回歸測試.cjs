@@ -17,6 +17,17 @@ const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Conte
 
 const SCREENS = ['s00', 's01', 's02', 's02b', 's03', 's03d', 's04', 's05', 's06', 's07'];
 const WIDTHS  = [320, 375, 414];
+
+/* 實作-K　資料形狀的組合。**預設那一組是原本的基準，不要動它。**
+   後三組是 Rozi 每天真的會打開的樣子——她自己建的三趟：
+   成員全部沒 emoji、0 筆消費、其中一趟匯率只填了外幣那一邊、有一趟沒設支付方式。
+   原本的假資料一項都不符合，所以那幾條路徑從來沒被量過。 */
+const MODES = [
+  { q: '',                                          name: '預設（有 emoji、8 筆消費）' },
+  { q: '&members=noemoji&expenses=none',            name: '兩人行程（無 emoji、0 筆）' },
+  { q: '&members=noemoji&expenses=none&rate=half',  name: '四人行程（無 emoji、0 筆、半匯率）' },
+  { q: '&members=noemoji&pays=none',                name: '沒設支付方式' },
+];
 const DIST    = path.resolve('dist-harness');
 
 let pass = 0, fail = 0;
@@ -61,12 +72,14 @@ function serve(dir) {
 
   const results = {};
 
+  for (const mode of MODES) {
   for (const id of SCREENS) {
-    results[id] = {};
+    const key = mode.q ? `${id}${mode.q}` : id;
+    results[key] = {};
     for (const w of WIDTHS) {
       await page.setViewport({ width: w, height: 844, isMobile: true, hasTouch: true,
                                deviceScaleFactor: 2 });
-      await page.goto(`${BASE}/harness.html?screen=${id}`, { waitUntil: 'networkidle0' });
+      await page.goto(`${BASE}/harness.html?screen=${id}${mode.q}`, { waitUntil: 'networkidle0' });
       await new Promise(r => setTimeout(r, 250));
 
       /* 展開可收合面板 */
@@ -215,8 +228,9 @@ function serve(dir) {
         };
       });
 
-      results[id][w] = { ...m, expanded };
+      results[key][w] = { ...m, expanded, mode: mode.name };
     }
+  }
   }
 
   /* ── 金絲雀：故意製造一次真的溢出，確認上面那兩條抓得到 ────────────────
@@ -283,10 +297,10 @@ function serve(dir) {
   console.log('\n=== 實作-C-3　版面回歸（真實 Chrome）===');
   console.log(`   ${SCREENS.length} 個畫面 × ${WIDTHS.join('／')} 三個寬度\n`);
 
-  for (const id of SCREENS) {
+  for (const id of Object.keys(results)) {
     const r320 = results[id][320];
     const ex = r320.expanded.length ? `　展開了：${r320.expanded.join('、')}` : '';
-    console.log(`   ${id.padEnd(5)} 文字節點 ${String(r320.textNodes).padStart(3)}｜` +
+    console.log(`   ${id.padEnd(46)} 文字節點 ${String(r320.textNodes).padStart(3)}｜` +
                 `純 icon 鈕 ${String(r320.iconBtns).padStart(2)}${ex}`);
 
     /* ① 目標存在：畫面沒 render 出來的話下面全部都是假通過 */
