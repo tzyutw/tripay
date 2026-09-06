@@ -59,6 +59,10 @@ const expenses = [
        foreign_amount: 20000, payer_member_id: M[3] }),
   mk({ title: '紀念品', category_emoji: '🛍️', expense_date: '2026-03-16',
        twd_amount: 860, parts: [M[1]], individual_member_id: M[1], payer_member_id: M[1] }),
+  mk({ title: '幫小美買的藥', category_emoji: '🛍️', expense_date: '2026-03-16',
+       twd_amount: 500, parts: [M[1]], individual_member_id: M[1], payer_member_id: M[0] }),
+  mk({ title: '阿明的計程車', category_emoji: '🚕', expense_date: '2026-03-17',
+       twd_amount: 300, parts: [], expense_type: 'personal', payer_member_id: M[2] }),
   mk({ title: '機場接送', category_emoji: '🚌', expense_date: '2026-03-18',
        twd_amount: 1600, payer_member_id: M[0], settled_on_spot: true }),
   mk({ title: '計程車', category_emoji: '🚕', expense_date: '2026-03-16', payer_member_id: M[0] }),
@@ -100,7 +104,7 @@ function confirmed(clearedFirst = true) {
   const items = [
     { id: 'i1', from_member_id: M[3], to_member_id: M[0], amount: 20220, is_cleared: clearedFirst },
     { id: 'i2', from_member_id: M[2], to_member_id: M[0], amount: 17740, is_cleared: false },
-    { id: 'i3', from_member_id: M[1], to_member_id: M[0], amount: 8220,  is_cleared: false },
+    { id: 'i3', from_member_id: M[1], to_member_id: M[0], amount: 8720,  is_cleared: false },
   ];
   state.trips = [{ ...baseTrip, status: 'settled' }];
   state.settlements = [{ id: 's1', trip_id: 't1', status: 'confirmed',
@@ -358,5 +362,40 @@ describe('C-2　hub 式結算：兩段式呈現', () => {
       tripSummary(hubTrip as never, expenses as never, 'active'),
       expenses as never, hubTrip as never);
     expect(h.net).toEqual(d.net);
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════
+   實作-M-7　「自己的」標記純粹是顯示層：**結算金額一分都不能變**
+   ══════════════════════════════════════════════════════════════ */
+describe('M-⑦　加了標記之後結算金額不變', () => {
+  it('personal 的筆不進結算——把它算進 partsOf 會改變轉帳', async () => {
+    const { tripSummary, settleTrip } = await import('@/lib/summary');
+    const S = tripSummary(baseTrip as never, expenses as never, 'active');
+    const { net, tx } = settleTrip(S, expenses as never, baseTrip as never);
+
+    /* Σ淨額恆為 0 */
+    expect(Object.values(net).reduce((a, b) => a + b, 0)).toBe(0);
+
+    /* 那一筆 personal 的 300 元不得出現在任何人的淨額裡：
+       把它從資料裡整個拿掉，淨額必須**完全相同**。 */
+    const without = (expenses as Array<{ expense_type: string }>)
+      .filter(e => e.expense_type !== 'personal');
+    const S2 = tripSummary(baseTrip as never, without as never, 'active');
+    const alt = settleTrip(S2, without as never, baseTrip as never);
+    expect(alt.net, 'personal 竟然影響了淨額').toEqual(net);
+    expect(alt.tx).toEqual(tx);
+  });
+
+  it('「自己的」那一筆（付款人＝被算的人）也不產生債務', async () => {
+    const { tripSummary, settleTrip } = await import('@/lib/summary');
+    const S = tripSummary(baseTrip as never, expenses as never, 'active');
+    const { tx } = settleTrip(S, expenses as never, baseTrip as never);
+
+    /* 紀念品 860：小美自己買自己付 → 不該有任何一筆轉帳等於 860 */
+    expect(tx.some(x => x.amount === 860), '自己買自己付竟然產生了債務').toBe(false);
+    /* 幫小美買的藥 500：Rozi 代墊 → 小美的欠款要**包含**這 500 */
+    const owe = tx.filter(x => x.from === M[1]).reduce((a, x) => a + x.amount, 0);
+    expect(owe, '代墊的 500 沒有算進小美的欠款').toBeGreaterThanOrEqual(500);
   });
 });

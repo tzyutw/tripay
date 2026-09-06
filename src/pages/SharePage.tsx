@@ -16,6 +16,7 @@ import { dateRange } from '@/lib/format';
 import { tripSummary, settleTrip } from '@/lib/summary';
 import ExpenseGroups from '@/components/shared/ExpenseGroups';
 import TransferView from '@/components/shared/TransferView';
+import NotFound from '@/components/shared/NotFound';
 import { StatCardTotal, StatCardPerList, StatCardFoot } from '@/components/shared/StatCard';
 import { useState } from 'react';
 import type { Trip, TripMember, ExpenseWithSplits } from '@/types/database';
@@ -66,14 +67,9 @@ export default function SharePage() {
   });
 
   if (isLoading) return <div className="spin"><i /></div>;
-  if (isError || !data?.trip) {
-    return (
-      <div className="empty">
-        <p>找不到這趟行程。</p>
-        <p>連結可能已經失效</p>
-      </div>
-    );
-  }
+  /* 與 S-03 共用同一份文案。**分享頁不放任何按鈕**——
+     訪客沒有帳號，「回到我的行程」是假出口；「開一趟自己的」則已裁示延到共編階段。 */
+  if (isError || !data?.trip) return <NotFound />;
 
   /* RPC 把 expenses 與 splits 分兩袋回來，這裡接回成引擎吃的形狀 */
   const expenses: ExpenseWithSplits[] = data.expenses.map(e => ({

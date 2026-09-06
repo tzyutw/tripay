@@ -65,6 +65,10 @@ const expenses = [
        foreign_amount: 20000, payer_member_id: M[3] }),
   mk({ title: '紀念品', category_emoji: '🛍️', expense_date: '2026-03-16',
        twd_amount: 860, parts: [M[1]], individual_member_id: M[1], payer_member_id: M[1] }),
+  mk({ title: '幫小美買的藥', category_emoji: '🛍️', expense_date: '2026-03-16',
+       twd_amount: 500, parts: [M[1]], individual_member_id: M[1], payer_member_id: M[0] }),
+  mk({ title: '阿明的計程車', category_emoji: '🚕', expense_date: '2026-03-17',
+       twd_amount: 300, parts: [], expense_type: 'personal', payer_member_id: M[2] }),
   mk({ title: '機場接送', category_emoji: '🚌', expense_date: '2026-03-18',
        twd_amount: 1600, payer_member_id: M[0], settled_on_spot: true }),
   mk({ title: '計程車', category_emoji: '🚕', expense_date: '2026-03-16', payer_member_id: M[0] }),
@@ -115,7 +119,7 @@ describe('B-3　S-03 行程頁', () => {
     fireEvent.click(screen.getByText('總花費'));          // #17-2 每人分擔預設收合，要展開才掃得到
 
     /* 實作-J 之後每個成員識別自成節點（圓底與名字各一個 span），段數因此變多 */
-    expect(want('s03').list.length).toBe(81);             // 基準本身要有東西
+    expect(want('s03').list.length).toBe(94);             // 基準本身要有東西
     const got = flat();
     const missing = want('s03').list.filter(t => !got.includes(t.replace(/\s+/g, '')));
     expect(missing, `原型有、App 沒有：${missing.join(' ｜ ')}`).toEqual([]);
@@ -126,7 +130,7 @@ describe('B-3　S-03 行程頁', () => {
     fireEvent.click(screen.getByText('總花費'));
     const got = flat();
     /* 這幾個數字是原型算出來的，不是我自己寫的預期值 */
-    for (const v of ['$34,375', '$32,620', '$10,515', '$20,620'])
+    for (const v of ['$35,175', '$32,620', '$11,015', '$20,620'])
       expect(got, `金額對不上：${v}`).toContain(v);
   });
 
@@ -350,7 +354,7 @@ describe('D-①　只能有一個刪除對話框', () => {
     expect(dlg).not.toBeNull();
     /* 數字用同一組 fixture：8 筆消費、4 位成員 */
     const want = '刪除「2026 濟州島四寶團」？刪掉就救不回來：'
-      + '8 筆消費與分帳紀錄4 位成員結算結果與分享連結'
+      + '10 筆消費與分帳紀錄4 位成員結算結果與分享連結'
       + '請輸入「刪除」兩個字算了，留著刪除';
     expect((dlg.textContent ?? '').replace(/\s+/g, ''))
       .toBe(want.replace(/\s+/g, ''));
@@ -361,7 +365,7 @@ describe('D-①　只能有一個刪除對話框', () => {
     fireEvent.click(document.querySelector('button[aria-label="更多"]')!);
     fireEvent.click(screen.getByText('刪除行程'));
     const lis = [...document.querySelectorAll('.dlg li')].map(x => x.textContent);
-    expect(lis).toEqual(['8 筆消費與分帳紀錄', '4 位成員', '結算結果與分享連結']);
+    expect(lis).toEqual(['10 筆消費與分帳紀錄', '4 位成員', '結算結果與分享連結']);
   });
 
   it('打「刪除」兩個字才 enable，而且只有一顆刪除鍵', async () => {

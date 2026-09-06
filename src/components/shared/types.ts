@@ -30,6 +30,8 @@ export interface SharedExpense {
   parts?: string[];              // type='single' 時第一個是被算的那個人
   onSpot?: boolean;              // 當場就清了
   sponsor?: boolean;             // 贊助回饋
+  /** 歷史資料的 `expense_type='personal'`。**純顯示用**——不進結算的行為沒變 */
+  personal?: boolean;
 }
 
 /** calc() 的結果：這一筆算出來的金額與未定案狀態 */

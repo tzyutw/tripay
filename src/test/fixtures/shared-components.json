@@ -31,11 +31,11 @@
     },
     "list": [
       {
-        "id": "x128",
+        "id": "x130",
         "title": "機票 ×4",
         "emoji": "✈️",
         "date": "2026-02-10",
-        "created": 10,
+        "created": 12,
         "payer": "x101",
         "type": "shared",
         "parts": [
@@ -45,14 +45,15 @@
           "x104"
         ],
         "onSpot": false,
-        "sponsor": false
+        "sponsor": false,
+        "personal": false
       },
       {
-        "id": "x129",
+        "id": "x131",
         "title": "黑豬肉晚餐",
         "emoji": "🍜",
         "date": "2026-03-14",
-        "created": 11,
+        "created": 13,
         "payer": "x103",
         "type": "shared",
         "parts": [
@@ -62,14 +63,15 @@
           "x104"
         ],
         "onSpot": false,
-        "sponsor": false
+        "sponsor": false,
+        "personal": false
       },
       {
-        "id": "x130",
+        "id": "x132",
         "title": "藥妝店",
         "emoji": "🛍️",
         "date": "2026-03-15",
-        "created": 12,
+        "created": 14,
         "payer": "x102",
         "type": "individual",
         "parts": [
@@ -79,14 +81,15 @@
           "x104"
         ],
         "onSpot": false,
-        "sponsor": false
+        "sponsor": false,
+        "personal": false
       },
       {
-        "id": "x131",
+        "id": "x133",
         "title": "城山日出峰門票",
         "emoji": "🎡",
         "date": "2026-03-15",
-        "created": 13,
+        "created": 15,
         "payer": "x104",
         "type": "shared",
         "parts": [
@@ -96,28 +99,58 @@
           "x104"
         ],
         "onSpot": false,
-        "sponsor": false
+        "sponsor": false,
+        "personal": false
       },
       {
-        "id": "x132",
+        "id": "x134",
         "title": "紀念品",
         "emoji": "🛍️",
         "date": "2026-03-16",
-        "created": 14,
+        "created": 16,
         "payer": "x102",
         "type": "single",
         "parts": [
           "x102"
         ],
         "onSpot": false,
-        "sponsor": false
+        "sponsor": false,
+        "personal": false
       },
       {
-        "id": "x133",
+        "id": "x135",
+        "title": "幫小美買的藥",
+        "emoji": "🛍️",
+        "date": "2026-03-16",
+        "created": 17,
+        "payer": "x101",
+        "type": "single",
+        "parts": [
+          "x102"
+        ],
+        "onSpot": false,
+        "sponsor": false,
+        "personal": false
+      },
+      {
+        "id": "x136",
+        "title": "阿明的計程車",
+        "emoji": "🚕",
+        "date": "2026-03-17",
+        "created": 18,
+        "payer": "x103",
+        "type": "shared",
+        "parts": [],
+        "onSpot": false,
+        "sponsor": false,
+        "personal": true
+      },
+      {
+        "id": "x137",
         "title": "機場接送",
         "emoji": "🚌",
         "date": "2026-03-18",
-        "created": 15,
+        "created": 19,
         "payer": "x101",
         "type": "shared",
         "parts": [
@@ -127,14 +160,15 @@
           "x104"
         ],
         "onSpot": true,
-        "sponsor": false
+        "sponsor": false,
+        "personal": false
       },
       {
-        "id": "x134",
+        "id": "x138",
         "title": "計程車",
         "emoji": "🚕",
         "date": "2026-03-16",
-        "created": 16,
+        "created": 20,
         "payer": "x101",
         "type": "shared",
         "parts": [
@@ -144,14 +178,15 @@
           "x104"
         ],
         "onSpot": false,
-        "sponsor": false
+        "sponsor": false,
+        "personal": false
       },
       {
-        "id": "x135",
+        "id": "x139",
         "title": "爸爸贊助",
         "emoji": "💝",
         "date": "2026-03-14",
-        "created": 17,
+        "created": 21,
         "payer": "x101",
         "type": "shared",
         "parts": [
@@ -161,21 +196,22 @@
           "x104"
         ],
         "onSpot": false,
-        "sponsor": true
+        "sponsor": true,
+        "personal": false
       }
     ],
     "calcs": {
-      "x128": {
+      "x130": {
         "twdTotal": 28400,
         "twdPending": false,
         "estimated": {}
       },
-      "x129": {
+      "x131": {
         "twdTotal": 2480,
         "twdPending": false,
         "estimated": {}
       },
-      "x130": {
+      "x132": {
         "twdTotal": 1035,
         "twdPending": false,
         "estimated": {
@@ -183,27 +219,37 @@
           "x104": true
         }
       },
-      "x131": {
+      "x133": {
         "twdTotal": null,
         "twdPending": true,
         "estimated": {}
       },
-      "x132": {
+      "x134": {
         "twdTotal": 860,
         "twdPending": false,
         "estimated": {}
       },
-      "x133": {
+      "x135": {
+        "twdTotal": 500,
+        "twdPending": false,
+        "estimated": {}
+      },
+      "x136": {
+        "twdTotal": 300,
+        "twdPending": false,
+        "estimated": {}
+      },
+      "x137": {
         "twdTotal": 1600,
         "twdPending": false,
         "estimated": {}
       },
-      "x134": {
+      "x138": {
         "twdTotal": null,
         "twdPending": true,
         "estimated": {}
       },
-      "x135": {
+      "x139": {
         "twdTotal": 50000,
         "twdPending": false,
         "estimated": {}
@@ -211,7 +257,7 @@
     },
     "per": {
       "x101": 32620,
-      "x102": 10515,
+      "x102": 11015,
       "x103": 20620,
       "x104": 20620
     },
@@ -221,7 +267,7 @@
       "x103": true,
       "x104": true
     },
-    "total": 34375,
+    "total": 35175,
     "tx": [
       {
         "from": "x102",
@@ -241,7 +287,7 @@
       "nodes": [
         "總花費",
         "約",
-        "$ 34,375",
+        "$ 35,175",
         "🐵",
         "Rozi",
         "約",
@@ -249,7 +295,7 @@
         "🐱",
         "小美",
         "約",
-        "$ 10,515",
+        "$ 11,015",
         "🍋",
         "阿明",
         "約",
@@ -260,12 +306,12 @@
         "$ 20,620",
         "標「約」的金額還沒算清楚，點名字看是哪幾筆"
       ],
-      "text": "總花費約$34,375🐵Rozi約$32,620🐱小美約$10,515🍋阿明約$20,620🐟小魚約$20,620標「約」的金額還沒算清楚，點名字看是哪幾筆"
+      "text": "總花費約$35,175🐵Rozi約$32,620🐱小美約$11,015🍋阿明約$20,620🐟小魚約$20,620標「約」的金額還沒算清楚，點名字看是哪幾筆"
     },
     "statCardReadonly": {
       "nodes": [
         "總花費",
-        "$ 34,375",
+        "$ 35,175",
         "🐵",
         "Rozi",
         "約",
@@ -273,7 +319,7 @@
         "🐱",
         "小美",
         "約",
-        "$ 10,515",
+        "$ 11,015",
         "🍋",
         "阿明",
         "約",
@@ -283,7 +329,7 @@
         "約",
         "$ 20,620"
       ],
-      "text": "總花費$34,375🐵Rozi約$32,620🐱小美約$10,515🍋阿明約$20,620🐟小魚約$20,620"
+      "text": "總花費$35,175🐵Rozi約$32,620🐱小美約$11,015🍋阿明約$20,620🐟小魚約$20,620"
     },
     "expenseGroups": {
       "nodes": [
@@ -294,6 +340,13 @@
         "Rozi",
         "當場就清了",
         "$ 1,600",
+        "第 4 天 · 3/17（二）",
+        "🚕",
+        "阿明的計程車",
+        "🍋",
+        "阿明",
+        "自己的",
+        "$ 300",
         "第 3 天 · 3/16（一）",
         "🚕",
         "計程車",
@@ -301,10 +354,16 @@
         "Rozi",
         "還沒填",
         "🛍️",
+        "幫小美買的藥",
+        "🐵",
+        "Rozi",
+        "只算 小美",
+        "$ 500",
+        "🛍️",
         "紀念品",
         "🐱",
         "小美",
-        "只算 小美",
+        "自己的",
         "$ 860",
         "第 2 天 · 3/15（日）",
         "🎡",
@@ -338,7 +397,7 @@
         "Rozi",
         "$ 28,400"
       ],
-      "text": "第5天·3/18（三）🚌機場接送🐵Rozi當場就清了$1,600第3天·3/16（一）🚕計程車🐵Rozi還沒填🛍️紀念品🐱小美只算小美$860第2天·3/15（日）🎡城山日出峰門票🐟小魚還沒填🛍️藥妝店🐱小美各付各的約$1,035第1天·3/14（六）💝爸爸贊助🐵Rozi贊助回饋−$50,000🍜黑豬肉晚餐🍋阿明$2,480出發前✈️機票×4🐵Rozi$28,400"
+      "text": "第5天·3/18（三）🚌機場接送🐵Rozi當場就清了$1,600第4天·3/17（二）🚕阿明的計程車🍋阿明自己的$300第3天·3/16（一）🚕計程車🐵Rozi還沒填🛍️幫小美買的藥🐵Rozi只算小美$500🛍️紀念品🐱小美自己的$860第2天·3/15（日）🎡城山日出峰門票🐟小魚還沒填🛍️藥妝店🐱小美各付各的約$1,035第1天·3/14（六）💝爸爸贊助🐵Rozi贊助回饋−$50,000🍜黑豬肉晚餐🍋阿明$2,480出發前✈️機票×4🐵Rozi$28,400"
     },
     "expenseGroupsReadonly": {
       "nodes": [
@@ -349,6 +408,13 @@
         "Rozi",
         "當場就清了",
         "$ 1,600",
+        "第 4 天 · 3/17（二）",
+        "🚕",
+        "阿明的計程車",
+        "🍋",
+        "阿明",
+        "自己的",
+        "$ 300",
         "第 3 天 · 3/16（一）",
         "🚕",
         "計程車",
@@ -356,10 +422,16 @@
         "Rozi",
         "還沒填",
         "🛍️",
+        "幫小美買的藥",
+        "🐵",
+        "Rozi",
+        "只算 小美",
+        "$ 500",
+        "🛍️",
         "紀念品",
         "🐱",
         "小美",
-        "只算 小美",
+        "自己的",
         "$ 860",
         "第 2 天 · 3/15（日）",
         "🎡",
@@ -393,7 +465,7 @@
         "Rozi",
         "$ 28,400"
       ],
-      "text": "第5天·3/18（三）🚌機場接送🐵Rozi當場就清了$1,600第3天·3/16（一）🚕計程車🐵Rozi還沒填🛍️紀念品🐱小美只算小美$860第2天·3/15（日）🎡城山日出峰門票🐟小魚還沒填🛍️藥妝店🐱小美各付各的約$1,035第1天·3/14（六）💝爸爸贊助🐵Rozi贊助回饋−$50,000🍜黑豬肉晚餐🍋阿明$2,480出發前✈️機票×4🐵Rozi$28,400"
+      "text": "第5天·3/18（三）🚌機場接送🐵Rozi當場就清了$1,600第4天·3/17（二）🚕阿明的計程車🍋阿明自己的$300第3天·3/16（一）🚕計程車🐵Rozi還沒填🛍️幫小美買的藥🐵Rozi只算小美$500🛍️紀念品🐱小美自己的$860第2天·3/15（日）🎡城山日出峰門票🐟小魚還沒填🛍️藥妝店🐱小美各付各的約$1,035第1天·3/14（六）💝爸爸贊助🐵Rozi贊助回饋−$50,000🍜黑豬肉晚餐🍋阿明$2,480出發前✈️機票×4🐵Rozi$28,400"
     },
     "transferDirect": {
       "nodes": [

@@ -166,6 +166,23 @@ input, textarea, select { font-size: var(--fs-input); }
   width: var(--h-tap); height: var(--h-tap); transform: translate(-50%, -50%);
 }
 
+/* 拖曳把手：與 `.rmbtn` **同一套**。同一列右邊的移除鈕早就撐到 44 了，把手漏掉，
+   量到只有 20×30.5。一樣用 `::after` 撐透明區——
+   **不要把 border box 撐大**，那會把同一列的「還沒用到／N 筆在用」擠掉。
+   看得見的 icon 維持 16px。 */
+.grip {
+  position: relative; color: var(--gr); font-size: var(--fs-body);
+  cursor: grab; padding: 4px 2px; margin: -4px -2px; user-select: none;
+  /* `touch-action:none` **只給把手**——整列都吃掉觸控的話，
+     使用者在這一段就滑不動頁面了（A-4 已經踩過）。 */
+  touch-action: none;
+}
+.grip:active { cursor: grabbing; }
+.grip::after {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: var(--h-tap); height: var(--h-tap); transform: translate(-50%, -50%);
+}
+
 /* 第三層　列尾的方向指示：裸 icon、16px、**本身不可點**。
    可點的是整一列，44px 由整列滿足。加容器會讓它看起來像另一顆按鈕。 */
 .chev { color: var(--gr); flex: none; pointer-events: none; }
@@ -250,31 +267,8 @@ input, textarea, select { font-size: var(--fs-input); }
 .hint { font-size:var(--fs-sub);color:var(--gr);margin:5px 0 0;line-height:1.45 }
 .err { font-size:var(--fs-sub);color:var(--out);margin:5px 0 0 }
 .fld { padding:0 14px 14px }
-/* ⚠️ 這條**拆成兩半**是有原因的（實作-L-1 的回歸）。
-   實作-J 把整條包進 `:where()` 把特異度降到 (0,0,0)，好讓元件上的 `w-8` 蓋得過；
-   但 Tailwind preflight 有 `input{padding:0}`，特異度 (0,0,1)——**比 0 高**，
-   於是 `padding:9px 10px` 被 preflight 蓋掉，所有沒有自己 class 的文字輸入框
-   從 39px 塌成 26px（受害的是「新增一種支付方式」那一個）。
-   **只有真的會跟 utility 打架的 `width` 需要降到 0**。
-
-   外觀那幾個寫成 `input:where([type=…])`＝**(0,0,1)**，不是 `input[type=…]`＝(0,1,1)：
-   - 贏得過 Tailwind preflight 的 `input{padding:0}`（同為 (0,0,1)，但我們排在後面）
-   - **輸給元件的 class**（`.rateinput` 是 (0,1,0)）
-   原型裡這條是 `.ui input[type=text]`＝(0,1,1)、`.ui .rateinput`＝(0,2,0)，
-   class 本來就贏。搬過來拿掉 `.ui` 之後兩者的大小關係**反過來了**——
-   寫成 (0,1,1) 會讓匯率欄從 38px 變成 44px。 */
-input:where([type=text],[type=number],[type=date]) {
-  background:#fff; border:1px solid var(--ln); border-radius:var(--r-base);
-  padding:9px 10px; font-size:var(--fs-input); color:#151C21; outline:none;
-}
-
+input:where([type=text]),input:where([type=number]),input:where([type=date]) { background:#fff; border:1px solid var(--ln); border-radius:var(--r-base); padding:9px 10px; font-size:var(--fs-input); color:#151C21; outline:none }
 :where(input[type=text],input[type=number],input[type=date]) { width:100% }
-/* Tailwind preflight 給輸入框 `line-height: inherit`（body 1.5 → 內容 24px），
-   原型沒有 preflight，輸入框用的是瀏覽器預設的 `normal`（≈19px）——
-   差這 5px 就是「新增一種支付方式」欄 44px vs 原型 39px。
-   **只給沒有自己 class 的輸入框**：有 class 的（`.rateinput` 38px、
-   `.fieldrow>input` 與 `.amtline input` 28px）是設計上就該那樣，不要一起壓矮。 */
-input:where([type=text],[type=number],[type=date]):not([class]):not(.fieldrow *) { line-height: normal }
 input:focus { border-color:var(--w) }
 :where(input[type=date]) { min-width:0 }
 .btn { width:100%;background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:11px 0; border-radius:var(--r-base);text-align:center }
@@ -294,10 +288,6 @@ input:focus { border-color:var(--w) }
 .gap { display:flex;flex-direction:column;gap:6px }
 .rowb { display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln); border-radius:var(--r-base);padding:8px 14px;width:100%;text-align:left }
 .rowb.on { border-color:var(--w);background:#F2F8FD }
-.rmbtn { position:relative;width:16px;height:16px;flex:none; display:inline-flex;align-items:center;justify-content:center;background:none;border:0;padding:0 }
-.rmbtn::after { content:'';position:absolute;left:50%;top:50%; width:44px;height:44px;transform:translate(-50%,-50%) }
-.grip { color:var(--gr);font-size:var(--fs-body);cursor:grab;touch-action:none; padding:4px 2px;margin:-4px -2px;user-select:none }
-.grip:active { cursor:grabbing }
 .rowb.dragging { box-shadow:0 6px 18px rgba(0,0,0,.18);transform:scale(1.03); border-color:var(--w);position:relative;z-index:2 }
 .rowb.dropped { animation:dropback .28s ease-out }
 .rowb>* { min-width:0 }
@@ -449,6 +439,8 @@ input.auto { color:#9AA5AB }
 .detailrow:last-child { border-bottom:0 }
 .bar .bk { font-size:var(--fs-body);font-weight:600;color:var(--wi) }
 .bar .ttl { font-size:var(--fs-body);font-weight:600;color:var(--md) }
+.tcard { margin:11px 14px 0;background:#fff;padding:14px;border:1px solid var(--ln);border-radius:var(--r-base); display:block;width:calc(100% - 28px);text-align:left }
+.tcard .img { height:150px;position:relative;padding:10px;display:flex;flex-direction:column; justify-content:flex-end;border-radius:var(--r-base);overflow:hidden }
 .tcard .sc { position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 38%,rgba(0,0,0,.46)) }
 .tcard .nm { position:relative;color:#fff;font-size:var(--fs-strong);font-weight:700;letter-spacing:-.01em;margin-top:6px }
 .tcard .dt { position:relative;font-size:var(--fs-sub);color:rgba(255,255,255,.9);margin-top:3px; font-variant-numeric:tabular-nums }
@@ -456,6 +448,10 @@ input.auto { color:#9AA5AB }
 .ghost div { height:60px;display:flex;align-items:center;justify-content:center; background:linear-gradient(135deg,#DCDED6,#C9CDC3);font-size:var(--fs-body);color:#5C6660 }
 .avatar { width:28px;height:28px;border-radius:var(--r-base);display:flex;align-items:center;justify-content:center; font-size:var(--fs-title);background:#fff;border:1px solid var(--ln);flex:none;overflow:hidden }
 .avatar.letter { color:#fff;font-size:var(--fs-body);font-weight:700;border-color:transparent }
+.avatar.sm { width:20px;height:20px;font-size:var(--fs-sub);display:inline-flex }
+.avatar.sm.letter { font-size:var(--fs-tag) }
+.mtag { display:inline-flex;align-items:center;gap:4px;min-width:0;vertical-align:middle }
+.mtag>.trunc { min-width:0 }
 .avatar input { width:100%;height:100%;text-align:center;padding:0;border:0;background:#fff;font-size:var(--fs-input) }
 .ratebox { background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden }
 .raterow { display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #F1F2EE }
@@ -533,5 +529,18 @@ input.auto { color:#9AA5AB }
              border-top: 1px solid var(--ln); display: flex; align-items: center; gap: 9px; }
 .sharefoot p { margin: 0; flex: 1; font-size: var(--fs-body); color: var(--md); }
 .verfoot  { padding: 14px; text-align: center; font-size: var(--fs-sub); color: var(--gr); }
+
+/* 查不到行程時那顆「回到我的行程」：實心、置中、**不滿版** */
+.notfoundbtn { width: min(240px, 100%); margin: 14px auto 0; }
+
+/* Tailwind preflight 給輸入框 `line-height: inherit`（body 1.5 → 內容 24px），
+   原型沒有 preflight，輸入框用的是瀏覽器預設的 `normal`（≈19px）——
+   差這 5px 就是「新增一種支付方式」欄 44px vs 原型 39px。
+   **只給沒有自己 class、也不在 `.fieldrow` 內的輸入框**：
+   有 class 的（`.rateinput` 38px、`.fieldrow>input` 與 `.amtline input` 28px）
+   是設計上就該那樣，不要一起壓矮。
+   ⚠️ 這一條**必須放在手寫區**——放進 CSS 移植腳本產生的區塊裡，
+   下次重跑 `實作_原型CSS移植.cjs` 會被整段洗掉（已經被洗掉過一次）。 */
+input:where([type=text],[type=number],[type=date]):not([class]):not(.fieldrow *) { line-height: normal }
 
 .trunc    { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

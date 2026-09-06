@@ -52,6 +52,7 @@ const OUT = 'src/test/fixtures/shared-components.json';
       id: e.id, title: e.title, emoji: e.emoji, date: e.date, created: e.created || 0,
       payer: e.payer || null, type: e.type,
       parts: e.parts || [], onSpot: !!e.onSpot, sponsor: !!e.sponsor,
+      personal: !!e.personal,
     }));
     const calcs = {};
     S.list.forEach(e => {

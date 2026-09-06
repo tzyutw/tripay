@@ -1,6 +1,6 @@
 /* 實作-C-3　量測靶的 supabase 樁：量版面不連網路，回傳形狀與真實查詢一致。
    這個檔要在任何畫面模組 evaluate 之前跑完，所以獨立成一個 import。 */
-import { trip, expenses, members, settlementItems, noExpenses } from './fixtures';
+import { trip, expenses, members, settlementItems, noExpenses, tripMissing } from './fixtures';
 
 /* `?state=settled`：讓 S-05 走到「已結算、逐筆標記付清」那一態，
    才畫得出「查看計算依據」的逐人列。預設維持 active，不動既有版面基準。 */
@@ -8,8 +8,9 @@ const settled = new URLSearchParams(location.search).get('state') === 'settled';
 /* `?expenses=none` 由 fixtures 統一解析——同一個參數不要在兩個檔各判一次 */
 const expenses2 = noExpenses ? [] : expenses;
 const rows: Record<string, unknown[]> = {
-  trips: [settled ? { ...trip, status: 'settled' } : trip],
-  expenses: expenses2, trip_members: members,
+  /* `?trip=missing`：查不到任何列——`.maybeSingle()` 會回 null，畫面要走「找不到」 */
+  trips: tripMissing ? [] : [settled ? { ...trip, status: 'settled' } : trip],
+  expenses: tripMissing ? [] : expenses2, trip_members: tripMissing ? [] : members,
   settlements: noExpenses ? [] : [{ id: 's1', trip_id: 't1', status: 'confirmed',
                   created_at: '2026-03-20', settlement_items: settlementItems }],
 };
@@ -30,7 +31,8 @@ function chain(table: string) {
 const stub = {
   from: (t: string) => chain(t),
   rpc: (_fn: string) => Promise.resolve({
-    data: {
+    /* 分享頁的 RPC 查不到 token 時回 null（get_shared_trip 的實際行為） */
+    data: tripMissing ? null : {
       trip, members,
       expenses: expenses2.map(({ expense_splits: _s, ...e }) => e),
       splits: expenses2.flatMap(e => e.expense_splits),

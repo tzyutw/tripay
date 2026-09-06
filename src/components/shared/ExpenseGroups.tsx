@@ -23,9 +23,23 @@ export function ExpenseRow({ e, c, S, readonly, money: mo, onEdit }: ExpenseRowP
 
   const badges: React.ReactNode[] = [];
   if (e.type === 'individual') badges.push(<span className="pill ind" key="ind">各付各的</span>);
+
+  /* 「只算一個人」涵蓋兩種語意完全不同的情況，先前畫面上長得一樣：
+       付款人＝被算的人 → 自己買自己付，**不產生任何債務**
+       付款人≠被算的人 → 有人幫他墊了，**他要還錢**——而這正是最容易忘記的一種
+     歷史資料的 `personal` 也歸在第一類（自己的購物，不進結算）。
+     樣式一律 `pill gr`（灰）：這類佔舊行程約三分之一（東京 44%、福岡 34%），
+     用強調色會變成滿頁雜訊。 */
   if (e.type === 'single' && e.parts?.[0]) {
-    const who = t.members.find(m => m.id === e.parts![0])?.name ?? '';
-    badges.push(<span className="pill gr" key="single">只算 {who}</span>);
+    const target = e.parts[0];
+    if (e.payer === target) {
+      badges.push(<span className="pill gr" key="own">自己的</span>);
+    } else {
+      const who = t.members.find(m => m.id === target)?.name ?? '';
+      badges.push(<span className="pill gr" key="single">只算 {who}</span>);
+    }
+  } else if (e.personal) {
+    badges.push(<span className="pill gr" key="own">自己的</span>);
   }
   if (e.onSpot) badges.push(<span className="pill gr" key="spot">當場就清了</span>);
   if (e.sponsor) badges.push(<span className="pill ind" key="spon">贊助回饋</span>);

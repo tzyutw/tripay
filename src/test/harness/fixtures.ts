@@ -46,6 +46,8 @@ export const noExpenses = Q.get('expenses') === 'none';
 export const halfRate = Q.get('rate') === 'half';
 /** `?pays=none`：支付方式還沒設定 */
 export const noPays = Q.get('pays') === 'none';
+/** `?trip=missing`：連結失效／行程已被刪／書籤過期——查不到任何列 */
+export const tripMissing = Q.get('trip') === 'missing';
 
 export const members: TripMember[] = mkMembers(membersHaveEmoji);
 
@@ -93,8 +95,13 @@ export const expenses: ExpenseWithSplits[] = [
        expense_type: 'individual', indiv: { [M[0]]: 12000, [M[1]]: 18000 }, payer_member_id: M[1] }),
   mk({ title: '城山日出峰門票', category_emoji: '🎡', expense_date: '2026-03-15',
        foreign_amount: 20000, payer_member_id: M[3] }),
+  /* 「自己的」三種情況各一筆——先前假資料只有第一種，另兩種從來沒被畫到過 */
   mk({ title: '紀念品', category_emoji: '🛍️', expense_date: '2026-03-16',
        twd_amount: 860, parts: [M[1]], individual_member_id: M[1], payer_member_id: M[1] }),
+  mk({ title: '幫小美買的藥', category_emoji: '🛍️', expense_date: '2026-03-16',
+       twd_amount: 500, parts: [M[1]], individual_member_id: M[1], payer_member_id: M[0] }),
+  mk({ title: '阿明的計程車', category_emoji: '🚕', expense_date: '2026-03-17',
+       twd_amount: 300, parts: [], expense_type: 'personal', payer_member_id: M[2] }),
   mk({ title: '機場接送', category_emoji: '🚌', expense_date: '2026-03-18',
        twd_amount: 1600, payer_member_id: M[0], settled_on_spot: true }),
   mk({ title: '計程車', category_emoji: '🚕', expense_date: '2026-03-16', payer_member_id: M[0] }),

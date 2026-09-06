@@ -157,6 +157,10 @@ export function toSharedExpense(e: ExpenseWithSplits, members: TripMember[]): Sh
     parts: e.individual_member_id ? [e.individual_member_id] : partsOf(e, members),
     onSpot: e.settled_on_spot,
     sponsor: e.is_sponsor,
+    /* production 有 128 筆歷史消費是 `personal`（四趟舊行程的個人購物）。
+       它們本來就不進結算（`partsOf()` 回空陣列），但畫面上完全沒有標記，
+       跟「一起分」長得一模一樣。這個旗標**只給顯示層**用，金額一分都不變。 */
+    personal: e.expense_type === 'personal',
   };
 }
 

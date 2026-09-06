@@ -60,7 +60,13 @@ let kept = 0, skipped = 0;
 for (const [, selRaw, body] of rules) {
   const sel = selRaw.trim();
   if (!sel.startsWith('.ui ')) { skipped++; continue; }
+  /* 這幾個 class 在 `src/index.css` 有**手寫的權威版本**（A-3 的三層 icon 按鈕，
+     用 `var(--h-tap)` 表達「可點區下限」的意圖，且 token 掃描會檢查那個變數）。
+     搬過來會變成同一個檔裡有兩份定義，後者生效——**改前面那份不會有任何效果**，
+     下一個人一定踩到。這裡直接不搬。 */
+  const HAND_WRITTEN = ['rmbtn', 'grip'];
   const classes = [...sel.matchAll(/\.([a-z][a-z0-9-]*)/g)].map(m => m[1]).filter(c => c !== 'ui');
+  if (classes.length && classes.every(c => HAND_WRITTEN.includes(c))) { skipped++; continue; }
   /* 沒有 class 的**元素選擇器**（`.ui input[type=date]{…}` 這種）也要搬。
      它們給的是 border／背景／padding 這些基礎樣式，少了就整組欄位裸奔——
      `.datefield` 移植過來了卻沒邊框，就是漏了這一條。 */

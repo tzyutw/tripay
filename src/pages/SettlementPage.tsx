@@ -54,7 +54,8 @@ export default function SettlementPage() {
       if (!tripId) return null;
       const { data, error } = await supabase
         .from('trips').select('*, trip_members!trip_members_trip_id_fkey(*)')
-        .eq('id', tripId).single();
+        /* 同 ExpenseListPage：查不到要回 null，不要拋 406 */
+        .eq('id', tripId).maybeSingle();
       if (error) throw error;
       return data as TripWithMembers;
     },

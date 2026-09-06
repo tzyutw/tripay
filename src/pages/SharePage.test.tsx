@@ -50,6 +50,10 @@ const built = [
        foreign_amount: 20000, payer_member_id: M[3] }),
   mk({ title: '紀念品', category_emoji: '🛍️', expense_date: '2026-03-16',
        twd_amount: 860, parts: [M[1]], individual_member_id: M[1], payer_member_id: M[1] }),
+  mk({ title: '幫小美買的藥', category_emoji: '🛍️', expense_date: '2026-03-16',
+       twd_amount: 500, parts: [M[1]], individual_member_id: M[1], payer_member_id: M[0] }),
+  mk({ title: '阿明的計程車', category_emoji: '🚕', expense_date: '2026-03-17',
+       twd_amount: 300, parts: [], expense_type: 'personal', payer_member_id: M[2] }),
   mk({ title: '機場接送', category_emoji: '🚌', expense_date: '2026-03-18',
        twd_amount: 1600, payer_member_id: M[0], settled_on_spot: true }),
   mk({ title: '計程車', category_emoji: '🚕', expense_date: '2026-03-16', payer_member_id: M[0] }),
@@ -81,7 +85,7 @@ beforeEach(() => {
     settlement_items: [
       { id: 'i1', settlement_id: 'st1', from_member_id: M[3], to_member_id: M[0], amount: 20220 },
       { id: 'i2', settlement_id: 'st1', from_member_id: M[2], to_member_id: M[0], amount: 17740 },
-      { id: 'i3', settlement_id: 'st1', from_member_id: M[1], to_member_id: M[0], amount: 8220 },
+      { id: 'i3', settlement_id: 'st1', from_member_id: M[1], to_member_id: M[0], amount: 8720 },
     ],
   };
 });
@@ -109,7 +113,7 @@ describe('B-6　S-06 分享頁', () => {
     fireEvent.click(screen.getByText('總花費'));
 
     const list = (screens as Record<string, { list: string[] }>).s06.list;
-    expect(list.length).toBe(95);
+    expect(list.length).toBe(108);
     /* 原型已同步：基準裡**不該**再有那串 emoji */
     expect(list, '原型的 hero 又帶回成員 emoji 了').not.toContain(KNOWN_DIVERGENCE);
 
@@ -154,7 +158,7 @@ describe('B-6　S-06 分享頁', () => {
   it('總花費排除贊助，與行程頁同一套算法（兩頁數字不得不同）', async () => {
     await show();
     /* 34,375 是 S-03 那一頁算出來的同一個數字 */
-    expect(flat()).toContain('$34,375');
+    expect(flat()).toContain('$35,175');
   });
 
   it('消費明細改日期分組、列上不寫日期', async () => {
@@ -197,7 +201,7 @@ describe('G-①　只畫 confirmed 那一次的轉帳', () => {
       { id: 'o3', settlement_id: 'old', from_member_id: M[1], to_member_id: M[0], amount: 333 },
       { id: 'c1', settlement_id: 'now', from_member_id: M[3], to_member_id: M[0], amount: 20220 },
       { id: 'c2', settlement_id: 'now', from_member_id: M[2], to_member_id: M[0], amount: 17740 },
-      { id: 'c3', settlement_id: 'now', from_member_id: M[1], to_member_id: M[0], amount: 8220 },
+      { id: 'c3', settlement_id: 'now', from_member_id: M[1], to_member_id: M[0], amount: 8720 },
       { id: 'd1', settlement_id: 'new', from_member_id: M[3], to_member_id: M[0], amount: 999 },
       { id: 'd2', settlement_id: 'new', from_member_id: M[2], to_member_id: M[0], amount: 888 },
       { id: 'd3', settlement_id: 'new', from_member_id: M[1], to_member_id: M[0], amount: 777 },
@@ -214,7 +218,7 @@ describe('G-①　只畫 confirmed 那一次的轉帳', () => {
     expect(rows.length, `畫出 ${rows.length} 列，應該只有 confirmed 那 3 列`).toBe(3);
 
     const got = flat();
-    for (const v of ['$20,220', '$17,740', '$8,220'])
+    for (const v of ['$20,220', '$17,740', '$8,720'])
       expect(got, `confirmed 的金額不見了：${v}`).toContain(v);
     /* superseded 與 draft 的金額一個都不准出現 */
     for (const v of ['$111', '$222', '$333', '$999', '$888', '$777'])

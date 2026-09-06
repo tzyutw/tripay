@@ -16,6 +16,7 @@ import SettlementPage from '@/pages/SettlementPage';
 import { Icon } from '@/components/Icon';
 import Seg from '@/components/shared/Seg';
 import MoreSheet from '@/components/shared/MoreSheet';
+import NotFound from '@/components/shared/NotFound';
 import ExpenseGroups from '@/components/shared/ExpenseGroups';
 import { StatCardTotal, StatCardPerList, StatCardFoot } from '@/components/shared/StatCard';
 
@@ -144,9 +145,11 @@ export default function ExpenseListPage() {
         .from('trips')
         .select('*, trip_members!trip_members_trip_id_fkey(*)')
         .eq('id', tripId)
-        .single();
+        /* `.single()` 查不到列時回 **406 並拋錯**，畫面就只能一直轉 spinner。
+           `.maybeSingle()` 回 `data: null`，才有東西可以判斷「查不到」。 */
+        .maybeSingle();
       if (error) throw error;
-      return data as TripWithMembers;
+      return (data as TripWithMembers) ?? null;
     },
     enabled: Boolean(tripId),
   });
@@ -229,7 +232,7 @@ export default function ExpenseListPage() {
   );
 
   // ── Loading ───────────────────────────────────────────────────────────────────
-  if (tripLoading || !trip || !S) {
+  if (tripLoading) {
     return (
       <div className="spin">
         <i />
@@ -237,6 +240,9 @@ export default function ExpenseListPage() {
       </div>
     );
   }
+  /* 查不到（連結失效／已被刪／書籤過期／PWA 記住上次的頁面）。
+     這一條**必須排在「載入中」之後**——不然載入期間會先閃一下「找不到」。 */
+  if (!trip || !S) return <NotFound onBack={() => navigate('/')} />;
 
   const isArchived = display === 'archived';
   const isSettled  = display === 'settled';

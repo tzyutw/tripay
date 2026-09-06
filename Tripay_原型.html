@@ -266,6 +266,11 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .grip{color:var(--gr);font-size:var(--fs-body);cursor:grab;touch-action:none;
   padding:4px 2px;margin:-4px -2px;user-select:none}
 .ui .grip:active{cursor:grabbing}
+/* 把手的可點區與 .rmbtn 同一套：::after 撐透明區到 44×44，
+   **不要把 border box 撐大**——那會把同一列的「還沒用到」擠掉 */
+.ui .grip{position:relative}
+.ui .grip::after{content:'';position:absolute;left:50%;top:50%;
+  width:44px;height:44px;transform:translate(-50%,-50%)}
 .ui .rowb.dragging{box-shadow:0 6px 18px rgba(0,0,0,.18);transform:scale(1.03);
   border-color:var(--w);position:relative;z-index:2}
 .ui .rowb.dropped{animation:dropback .28s ease-out}
@@ -1795,7 +1800,7 @@ function exp(o) {
   // 剛記完的那一筆要出現在最上面，不是照日期排就好。
   return Object.assign({ id:nid(), created:++expSeq, title:'', emoji:'➕', date:'2026-03-14',
     forAmt:'', twdAmt:'', pay:'現金', type:'shared', parts:null, indiv:{},
-    onSpot:false, sponsor:false, payer:null, rateOverride:null }, o);
+    onSpot:false, sponsor:false, personal:false, payer:null, rateOverride:null }, o);
 }
 
 /* 示範資料：濟州島（t1，KRW）*/
@@ -1812,7 +1817,11 @@ function demoExpenses() {
     exp({ title:'城山日出峰門票', emoji:'🎡', date:'2026-03-15', forAmt:'20000',
           pay:'現金', type:'shared', parts:M, payer:M[3] }),            // 現金、沒台幣 → 看匯率
     exp({ title:'紀念品', emoji:'🛍️', date:'2026-03-16', twdAmt:'860', pay:'現金',
-          type:'single', parts:[M[1]], payer:M[1] }),
+          type:'single', parts:[M[1]], payer:M[1] }),                   // 自己買自己付 → 「自己的」
+    exp({ title:'幫小美買的藥', emoji:'🛍️', date:'2026-03-16', twdAmt:'500', pay:'現金',
+          type:'single', parts:[M[1]], payer:M[0] }),                   // 有人幫他墊 → 「只算 小美」
+    exp({ title:'阿明的計程車', emoji:'🚕', date:'2026-03-17', twdAmt:'300', pay:'現金',
+          type:'shared', parts:[], payer:M[2], personal:true }),        // 歷史資料 → 「自己的」
     exp({ title:'機場接送', emoji:'🚌', date:'2026-03-18', twdAmt:'1600', pay:'現金',
           type:'shared', parts:M, payer:M[0], onSpot:true }),
     exp({ title:'計程車', emoji:'🚕', date:'2026-03-16', pay:'現金',
@@ -1995,8 +2004,16 @@ function expenseRow(e, c, S, opts) {
   const o = opts || {}, t = S.t, payer = t.members.find(m => m.id === e.payer);
   const badges = [];
   if (e.type === 'individual') badges.push(b('S-03-18','<span class="pill ind">各付各的</span>','inl'));
+  /* S-03-19（Rozi 2026-09-06 定案）：「只算一個人」涵蓋兩種語意完全不同的情況——
+     付款人＝被算的人 → 自己買自己付，**不產生任何債務**；
+     付款人≠被算的人 → 有人幫他墊了，**他要還錢**，而這是最容易忘記的一種。
+     歷史資料的 `personal`（舊行程的個人購物）也歸在第一類。
+     樣式一律 `pill gr`（灰）——這類佔舊行程約三分之一，用強調色會變成滿頁雜訊。 */
   if (e.type === 'single' && e.parts && e.parts[0])
-    badges.push(b('S-03-19', `<span class="pill gr">只算 ${esc((t.members.find(m=>m.id===e.parts[0])||{}).name||'')}</span>`,'inl'));
+    badges.push(b('S-03-19', e.payer === e.parts[0]
+      ? '<span class="pill gr">自己的</span>'
+      : `<span class="pill gr">只算 ${esc((t.members.find(m=>m.id===e.parts[0])||{}).name||'')}</span>`,'inl'));
+  else if (e.personal) badges.push(b('S-03-19','<span class="pill gr">自己的</span>','inl'));
   if (e.onSpot) badges.push(b('S-03-20','<span class="pill gr">當場就清了</span>','inl'));
   if (e.sponsor) badges.push(b('S-03-21','<span class="pill ind">贊助回饋</span>','inl'));
   // §5.4：整筆未定 → 橘紅左邊框＋「還沒填」，不再有「待補填」badge
@@ -2615,7 +2632,7 @@ Object.assign(INDEX, {
     ['S-03-16','消費列','op','整列可點進 S-04 編輯'],
     ['S-03-17','整筆未定的列','op','橘紅左邊框＋金額顯示「還沒填」。<b>「待補填」badge 已移除</b>（金額欄已經說了）'],
     ['S-03-18','「各付各的」badge','st',''],
-    ['S-03-19','「只算一個人」badge','st','顯示算的是誰'],
+    ['S-03-19','「只算一個人」／「自己的」badge','st','<b>改（Rozi 2026-09-06）</b>：付款人＝被算的人 → 「自己的」（自己買自己付，不產生債務）；付款人≠被算的人 → 「只算 {名字}」（有人幫他墊，他要還錢）。歷史資料的 personal 也顯示「自己的」。一律灰色'],
     ['S-03-20','「當場就清了」badge','st','<b>改（#22-4）</b>：與 S-04-18 同名，記錄但不進結算'],
     ['S-03-21','贊助列','st','負額共同項'],
     ['S-03-22','底部列 · 旅途中','op','<b>改（#28-6b）</b>：只剩一顆主鈕「＋ 記一筆」。「結算行程」由分段控制（S-03-32）取代——結算是一個檢視，不是一次性動作'],
