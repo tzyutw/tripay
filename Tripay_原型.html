@@ -1289,7 +1289,9 @@ function rateRows(form) {
     const isTwd = side === 'twd';
     const code = isTwd ? 'TWD' : cur;
     const val  = isTwd ? form.rateTwd : form.rateFor;
-    const ph   = isTwd ? '1' : (dec ? '0.00' : '0');
+    /* placeholder 跟著 oneSideOf 走，不是寫死「台幣那欄是 1」——
+       JPY 的 1 在 JPY 欄，KRW 的 1 才在台幣欄 */
+    const ph   = oneSideOf(cur) === side ? '1' : (dec ? '0.00' : '0');
     return `<div class="raterow" data-side="${side}">
       <span class="flag">${FLAG[code] || '🏳️'}</span>
       <input type="text" inputmode="decimal" class="rateinput" id="rate-${side}"
@@ -1375,6 +1377,8 @@ function renderS02b() {
       ${b('S-02b-12', `<div class="fld"><span class="lbl" data-group="兩列各自帶國旗標籤，非單一輸入欄">這趟的現金匯率</span>
         <p class="hint" style="margin:-2px 0 9px">在當地換錢後填一次就好</p>
         ${rateRows(fb)}
+        ${(String(fb.rateTwd || '').trim() !== '') !== (String(fb.rateFor || '').trim() !== '')
+          ? `<p class="hint">還差一欄，兩邊都填才換算得出來</p>` : ''}
         <p class="hint">刷卡不用這個匯率，直接填台幣</p>
       </div>`)}
 
@@ -2210,13 +2214,28 @@ function renderS03d() {
    ═══════════════════════════════════════════════════════════ */
 let g = null;                       // S-04 表單狀態（正在編輯的消費）
 /* #27-6b 由標題推斷類別。使用者一旦自己改過（emojiManual）就不再套用。 */
+/* 字典**由具體到通用**，先命中的先回。大小寫不敏感。
+   拿 Rozi production 的 404 筆真實標題挑出來的——原本只有五條規則
+   （餐／車／住／票／買），「帽子」「烤肉」「加油」全部落到 ➕。
+   ⚠️ 與 `src/components/ExpenseFormSheet.tsx` 的 `EMOJI_RULES` **必須同一份**。 */
+const EMOJI_RULES = [
+  [/機票|航班/i, '✈️'],
+  [/加油|油錢/i, '⛽'],
+  [/711|7-11|セブン|全家|LAWSON|ローソン|CU|GS25|便利/i, '🏪'],
+  [/超市|市場|業務|OGINO/i, '🛒'],
+  [/藥妝|藥局|美妝|粉餅|唇膏|香水|保養|Olive|AINZ|3CE|ADDICTION|面膜/i, '💄'],
+  [/衣|褲|裙|外套|鞋|帽|包包|襪|墨鏡/i, '👕'],
+  [/咖啡|星巴克|飲|茶|果昔|奶茶/i, '☕'],
+  [/餐|吃|食|麵|飯|肉|鍋|燒|烤|丼|壽司|炸雞|定食/i, '🍜'],
+  [/票|景點|館|園|展|樂園|溫泉|拍卡/i, '🎡'],
+  [/交通|車|巴士|地鐵|電車|計程|接送|船|租車/i, '🚌'],
+  [/住|飯店|旅館|民宿|hotel/i, '🏨'],
+  [/SIM|esim|網卡|漫遊/i, '📱'],
+  [/買|購物|店|伴手禮|紀念品|扭蛋|大創|無印|唐吉軻德|LOFT/i, '🛍️'],
+];
 function emojiForTitle(title) {
   const s = title || '';
-  if (/餐|吃|食/.test(s))      return '🍜';
-  if (/交通|車|巴士/.test(s))  return '🚌';
-  if (/住|飯店/.test(s))       return '🏨';
-  if (/票|景點/.test(s))       return '🎡';
-  if (/買|購物/.test(s))       return '🛍️';
+  for (const [re, e] of EMOJI_RULES) if (re.test(s)) return e;
   return '➕';
 }
 /* #35-1 「記一筆」預設今天，不是行程出發日。

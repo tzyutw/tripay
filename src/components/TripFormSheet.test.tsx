@@ -378,3 +378,62 @@ describe('L-③　S-02b-14 行程名稱', () => {
     expect(screen.queryByText('這趟叫什麼？')).toBeNull();
   });
 });
+
+/* ══════════════════════════════════════════════════════════════
+   實作-N-1　現金匯率的「1」要自動帶值（Rozi 填了 0.19 卻一直算不出來）
+   ══════════════════════════════════════════════════════════════ */
+describe('N-①　匯率的「1」自動帶值', () => {
+  it('JPY：1 在 JPY 那欄，台幣欄留空', async () => {
+    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    /* 行程是非同步載入的；載入前幣別還是預設的 JPY，要等它換成 KRW 之後再量 */
+    await waitFor(() => expect(
+      (document.getElementById('rate-twd') as HTMLInputElement)?.value).toBe('1'));
+
+    const twd = document.getElementById('rate-twd') as HTMLInputElement;
+    const forr = document.getElementById('rate-for') as HTMLInputElement;
+    /* fixture 的 t1 是 KRW；KRW 的 oneSideOf 是 twd → 1 在台幣欄 */
+    expect(twd.value).toBe('1');
+    expect(forr.value).toBe('');
+  });
+
+  it('placeholder 跟著 oneSideOf 走，不是寫死「台幣那欄是 1」', async () => {
+    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(
+      (document.getElementById('rate-twd') as HTMLInputElement)?.placeholder).toBe('1'));
+    const twd = document.getElementById('rate-twd') as HTMLInputElement;
+    const forr = document.getElementById('rate-for') as HTMLInputElement;
+    /* KRW：1 在台幣側 → 台幣 placeholder 是 1、外幣側不是 */
+    expect(twd.placeholder).toBe('1');
+    expect(forr.placeholder).not.toBe('1');
+  });
+
+  it('只填一欄時出提示；兩欄都有值或都空時不出', async () => {
+    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(
+      (document.getElementById('rate-twd') as HTMLInputElement)?.value).toBe('1'));
+
+    /* 預設：台幣 1、外幣空 → 只填一欄 → 要有提示 */
+    expect(screen.getByText('還差一欄，兩邊都填才換算得出來')).toBeInTheDocument();
+
+    fireEvent.change(document.getElementById('rate-for')!, { target: { value: '0.21' } });
+    expect(screen.queryByText('還差一欄，兩邊都填才換算得出來'),
+      '兩欄都有值就不該再提示').toBeNull();
+
+    fireEvent.change(document.getElementById('rate-twd')!, { target: { value: '' } });
+    expect(screen.getByText('還差一欄，兩邊都填才換算得出來')).toBeInTheDocument();
+
+    fireEvent.change(document.getElementById('rate-for')!, { target: { value: '' } });
+    expect(screen.queryByText('還差一欄，兩邊都填才換算得出來'),
+      '兩欄都空是還沒開始填，不該提示').toBeNull();
+  });
+
+  it('切換幣別時「1」要換邊', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+    /* 建立表單預設 JPY：oneSideOf('JPY') === 'for' → 1 在外幣側。
+       這裡只驗 defaultRates 的邏輯本身，切幣別的 UI 在 s02b 之外。 */
+    const { oneSideOf } = await import('@/lib/currencyTable');
+    expect(oneSideOf('JPY')).toBe('for');
+    expect(oneSideOf('KRW')).toBe('twd');
+  });
+});

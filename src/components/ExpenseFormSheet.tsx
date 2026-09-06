@@ -25,14 +25,32 @@ import type {
   TripWithMembers, ExpenseWithSplits, ExpenseType, PaymentMethod, SplitFillCurrency,
 } from '@/types/database';
 
-/* #27-6b 由標題推斷類別。使用者一旦自己改過就不再套用（category_emoji_manual）。 */
-function emojiForTitle(title: string): string {
+/* #27-6b 由標題推斷類別。使用者一旦自己改過就不再套用（category_emoji_manual）。
+ *
+ * 字典**由具體到通用**，先命中的先回。大小寫不敏感。
+ * 這一份是拿 Rozi production 的 404 筆真實消費標題挑出來的——
+ * 原本只有五條規則（餐／車／住／票／買），「帽子」「烤肉」「加油」全部落到 ➕。
+ * ⚠️ **不要無限擴充**，其餘留給手動改；已經存在資料庫的 `category_emoji` 也不回頭重算。
+ * ⚠️ 原型的 `emojiForTitle`（`Tripay_原型.html`）必須是**同一份**。 */
+const EMOJI_RULES: [RegExp, string][] = [
+  [/機票|航班/i, '✈️'],
+  [/加油|油錢/i, '⛽'],
+  [/711|7-11|セブン|全家|LAWSON|ローソン|CU|GS25|便利/i, '🏪'],
+  [/超市|市場|業務|OGINO/i, '🛒'],
+  [/藥妝|藥局|美妝|粉餅|唇膏|香水|保養|Olive|AINZ|3CE|ADDICTION|面膜/i, '💄'],
+  [/衣|褲|裙|外套|鞋|帽|包包|襪|墨鏡/i, '👕'],
+  [/咖啡|星巴克|飲|茶|果昔|奶茶/i, '☕'],
+  [/餐|吃|食|麵|飯|肉|鍋|燒|烤|丼|壽司|炸雞|定食/i, '🍜'],
+  [/票|景點|館|園|展|樂園|溫泉|拍卡/i, '🎡'],
+  [/交通|車|巴士|地鐵|電車|計程|接送|船|租車/i, '🚌'],
+  [/住|飯店|旅館|民宿|hotel/i, '🏨'],
+  [/SIM|esim|網卡|漫遊/i, '📱'],
+  [/買|購物|店|伴手禮|紀念品|扭蛋|大創|無印|唐吉軻德|LOFT/i, '🛍️'],
+];
+
+export function emojiForTitle(title: string): string {
   const s = title || '';
-  if (/餐|吃|食/.test(s))     return '🍜';
-  if (/交通|車|巴士/.test(s)) return '🚌';
-  if (/住|飯店/.test(s))      return '🏨';
-  if (/票|景點/.test(s))      return '🎡';
-  if (/買|購物/.test(s))      return '🛍️';
+  for (const [re, e] of EMOJI_RULES) if (re.test(s)) return e;
   return '➕';
 }
 

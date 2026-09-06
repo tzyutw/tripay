@@ -103,6 +103,71 @@ function serve(dir) {
   ok(nameField && nameField.value.length > 0, '行程名欄位沒有帶入現有的行程名');
   ok(nameField && Math.abs(nameField.h - 46) <= 1, `行程名欄高 ${nameField && nameField.h}px，應為 46`);
 
+  /* ── 實作-N-1　匯率的「1」自動帶值 ＋ 端到端換算 ─────────────────────── */
+  await go('screen=s02b');
+  const rate = await p.evaluate(() => {
+    const t = document.getElementById('rate-twd'), f = document.getElementById('rate-for');
+    const rows = [...document.querySelectorAll('.raterow')].map(r => r.dataset.side);
+    return t && f ? {
+      order: rows,
+      twd: { v: t.value, ph: t.placeholder }, for: { v: f.value, ph: f.placeholder },
+      hint: (document.body.textContent || '').includes('還差一欄，兩邊都填才換算得出來'),
+    } : null;
+  });
+  console.log(`\n   匯率（KRW）：順序 ${rate.order}｜TWD v="${rate.twd.v}" ph="${rate.twd.ph}"｜` +
+              `KRW v="${rate.for.v}" ph="${rate.for.ph}"｜只填一欄提示 ${rate.hint}`);
+  ok(rate !== null, '找不到匯率欄，這條等於沒驗');
+  /* fixture 是 KRW，oneSideOf('KRW')==='twd' → 1 在台幣那一欄、且排第一 */
+  ok(rate.order[0] === 'twd', `第一列應是台幣（KRW 的「1」在台幣側），實際 ${rate.order[0]}`);
+  ok(rate.twd.v === '1', `台幣欄應自動帶 1，實際 "${rate.twd.v}"`);
+  ok(rate.for.v === '', `外幣欄應留空，實際 "${rate.for.v}"`);
+  ok(rate.twd.ph === '1', `台幣欄 placeholder 應為 1，實際 "${rate.twd.ph}"`);
+  ok(rate.for.ph !== '1', `外幣欄 placeholder 不該是 1，實際 "${rate.for.ph}"`);
+  ok(rate.hint, '只填一欄時沒有出提示——這正是 Rozi 靜默算不出來的原因');
+
+  /* 換一個「1」在外幣側的幣別（JPY）——KRW 剛好與寫死 `isTwd` 同結果，驗不出差別 */
+  await go('screen=s02b&cur=JPY');
+  const jpy = await p.evaluate(() => {
+    const t = document.getElementById('rate-twd'), f = document.getElementById('rate-for');
+    return t && f ? {
+      order: [...document.querySelectorAll('.raterow')].map(r => r.dataset.side),
+      twd: { v: t.value, ph: t.placeholder }, for: { v: f.value, ph: f.placeholder },
+    } : null;
+  });
+  console.log(`   匯率（JPY）：順序 ${jpy.order}｜TWD v="${jpy.twd.v}" ph="${jpy.twd.ph}"｜` +
+              `JPY v="${jpy.for.v}" ph="${jpy.for.ph}"`);
+  ok(jpy !== null, 'JPY 模式找不到匯率欄，這條等於沒驗');
+  ok(jpy.order[0] === 'for', `JPY 的「1」在外幣側，第一列應是 for，實際 ${jpy.order[0]}`);
+  ok(jpy.for.v === '1', `JPY 欄應自動帶 1，實際 "${jpy.for.v}"`);
+  ok(jpy.twd.v === '', `台幣欄應留空，實際 "${jpy.twd.v}"`);
+  /* **與寫死 isTwd 相反**：JPY 行程時 placeholder 的 1 在 JPY 那欄，不在台幣欄 */
+  ok(jpy.for.ph === '1', `JPY 欄 placeholder 應為 1，實際 "${jpy.for.ph}"`);
+  ok(jpy.twd.ph !== '1', `台幣欄 placeholder 不該是 1（那正是誤導 Rozi 的地方），實際 "${jpy.twd.ph}"`);
+
+  /* 兩欄都填好時不再提示 */
+  await go('screen=s02b&rate=full');
+  const full = await p.evaluate(() => ({
+    twd: document.getElementById('rate-twd').value,
+    for: document.getElementById('rate-for').value,
+    hint: (document.body.textContent || '').includes('還差一欄'),
+  }));
+  console.log(`   匯率兩欄都填：TWD="${full.twd}" KRW="${full.for}"｜提示 ${full.hint}`);
+  ok(full.twd === '1' && full.for === '0.21', '兩欄的值沒有帶進來');
+  ok(!full.hint, '兩欄都有值還在提示');
+
+  /* 端到端：外幣 5000、台幣空 → 有匯率就要換算出 round(5000/0.21) */
+  for (const [q, want] of [['screen=s03', '還沒填'], ['screen=s03&rate=full', '$ 23,810']]) {
+    await go(q);
+    const cell = await p.evaluate(() => {
+      const row = [...document.querySelectorAll('.exprow')]
+        .find(r => r.textContent.includes('只有外幣的一筆'));
+      return row ? row.querySelector('.a').textContent.trim() : null;
+    });
+    console.log(`   ${q.padEnd(22)} 只有外幣的一筆 → ${JSON.stringify(cell)}`);
+    ok(cell !== null, `${q} 找不到那一列，這條等於沒驗`);
+    ok(cell === want, `${q} 應顯示 "${want}"，實際 "${cell}"`);
+  }
+
   /* ── 5 「⋯」是獨立頁面 ─────────────────────────────────────────────── */
   await go('screen=s03more');
   const more = await p.evaluate(() => ({

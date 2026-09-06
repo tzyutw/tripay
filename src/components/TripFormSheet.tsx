@@ -4,6 +4,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { searchCurrencies } from '@/lib/currencies';
 import { Icon } from '@/components/Icon';
+import { oneSideOf } from '@/lib/currencyTable';
 import PaymentMethods from '@/components/shared/PaymentMethods';
 import CashRate from '@/components/shared/CashRate';
 import SettleMode from '@/components/shared/SettleMode';
@@ -14,6 +15,22 @@ import type { TripWithMembers, SettlementMode } from '@/types/database';
 
 /** id 存在＝資料庫既有成員；不存在＝本次新加的 */
 interface MemberEntry { id?: string; emoji: string; name: string; }
+
+/**
+ * 現金匯率的預設值：**`oneSideOf()` 指到的那一欄自動帶「1」**，另一欄留空。
+ *
+ * 沒有這個預設值，兩欄都是空的，而另一欄的 placeholder 是灰色的「1」——
+ * 看起來像「那一欄已經是 1 了」。Rozi 因此只在 JPY 欄填了 0.19，
+ * `tripRate()` 拿 `Number(null)=0` 判 `<=0` 回 null，**全程沒有任何警告**，
+ * 記的帳一直顯示「還沒填」。原型（`tripToForm`）本來就會帶，是實作漏了。
+ */
+function defaultRates(currency: string, twd?: string | null, forr?: string | null) {
+  const one = oneSideOf(currency);
+  return {
+    rateTwd: twd != null && twd !== '' ? String(twd) : (one === 'twd' ? '1' : ''),
+    rateFor: forr != null && forr !== '' ? String(forr) : (one === 'for' ? '1' : ''),
+  };
+}
 
 interface Props {
   tripId?: string;
@@ -63,8 +80,8 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
   );
   /* B-1 的三段新區塊：支付方式、現金匯率、結算模式。都存在 trips 上 */
   const [pays, setPays] = useState<string[]>([]);
-  const [rateTwd, setRateTwd] = useState('');
-  const [rateFor, setRateFor] = useState('');
+  const [rateTwd, setRateTwd] = useState(() => defaultRates(existingTrip?.currency ?? 'JPY').rateTwd);
+  const [rateFor, setRateFor] = useState(() => defaultRates(existingTrip?.currency ?? 'JPY').rateFor);
   const [settleMode, setSettleMode] = useState<SettlementMode>('direct');
   const [hubMember, setHubMember] = useState<string | null>(null);
   const [payBlocked, setPayBlocked] = useState('');
@@ -102,8 +119,11 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
     setMyMemberIdx(oi >= 0 ? oi : null);
     setPays(Array.isArray(existingTrip.payment_methods)
       ? (existingTrip.payment_methods as string[]) : ['現金', '信用卡']);
-    setRateTwd(existingTrip.cash_rate_twd == null ? '' : String(existingTrip.cash_rate_twd));
-    setRateFor(existingTrip.cash_rate_foreign == null ? '' : String(existingTrip.cash_rate_foreign));
+    /* 舊資料只填了一邊時，另一邊也要把「1」帶回來，否則換算不出來 */
+    const r = defaultRates(existingTrip.currency,
+      existingTrip.cash_rate_twd as never, existingTrip.cash_rate_foreign as never);
+    setRateTwd(r.rateTwd);
+    setRateFor(r.rateFor);
     setSettleMode(existingTrip.settlement_mode);
     setHubMember(existingTrip.hub_member_id);
     setHydrated(true);
@@ -487,7 +507,14 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                   {filteredCurrencies.map(c => (
                     <button
                       key={c.code}
-                      onClick={() => { setCurrency(c.code); setShowCurrency(false); setCurrencySearch(''); }}
+                      onClick={() => {
+                        setCurrency(c.code);
+                        /* 換幣別時「1」要換邊：JPY 是 1 外幣 = N 台幣，
+                           KRW 反過來（1 台幣 = N 韓元）。不重算的話「1」會留在錯的欄。 */
+                        const r = defaultRates(c.code);
+                        setRateTwd(r.rateTwd); setRateFor(r.rateFor);
+                        setShowCurrency(false); setCurrencySearch('');
+                      }}
                       className={`w-full px-4 py-[11px] text-left text-body flex items-center justify-between hover:bg-[#F5F4F2] ${c.code === currency ? 'text-w font-bold' : 'text-ink'}`}
                     >
                       <span>{c.code} · {c.name}</span>

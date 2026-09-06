@@ -48,17 +48,24 @@ export const halfRate = Q.get('rate') === 'half';
 export const noPays = Q.get('pays') === 'none';
 /** `?trip=missing`：連結失效／行程已被刪／書籤過期——查不到任何列 */
 export const tripMissing = Q.get('trip') === 'missing';
+/** `?rate=full`：兩欄都填好（台幣 1／外幣 0.21）——驗端到端真的換算得出來 */
+export const fullRate = Q.get('rate') === 'full';
+/** `?cur=JPY`：換成「1」在**外幣側**的幣別。
+ *  預設的 KRW 剛好 `oneSideOf === 'twd'`，與寫死 `isTwd` 的結果一樣——
+ *  不換一個幣別，「placeholder 依 oneSideOf 走」那條斷言驗不出東西。 */
+export const currencyOverride = Q.get('cur');
 
 export const members: TripMember[] = mkMembers(membersHaveEmoji);
 
 export const trip = {
-  id: 't1', owner_id: 'u1', name: '2026 濟州島四寶團', emoji: '✈️', currency: 'KRW',
+  id: 't1', owner_id: 'u1', name: '2026 濟州島四寶團', emoji: '✈️',
+  currency: currencyOverride || 'KRW',
   start_date: '2026-03-14', end_date: '2026-03-18', status: 'active', kind: 'trip',
   share_token: 'tok', owner_member_id: M[0], collab_enabled: false, card_id: null,
   cover_path: null, settlement_mode: 'direct', hub_member_id: null,
   payment_methods: noPays ? null : ['現金', '信用卡', 'Linepay'],
-  cash_rate_twd: null,
-  cash_rate_foreign: halfRate ? 0.19 : null,
+  cash_rate_twd: fullRate ? 1 : null,
+  cash_rate_foreign: fullRate ? 0.21 : (halfRate ? 0.19 : null),
   tone_seq: 0, created_at: '2026-03-01', updated_at: '2026-03-01',
   trip_members: members,
 } as unknown as Trip & { trip_members: TripMember[] };
@@ -102,6 +109,10 @@ export const expenses: ExpenseWithSplits[] = [
        twd_amount: 500, parts: [M[1]], individual_member_id: M[1], payer_member_id: M[0] }),
   mk({ title: '阿明的計程車', category_emoji: '🚕', expense_date: '2026-03-17',
        twd_amount: 300, parts: [], expense_type: 'personal', payer_member_id: M[2] }),
+  /* 只有外幣、沒有台幣——有匯率才換算得出來。`?rate=full` 時要顯示金額，
+     沒匯率時顯示「還沒填」。這一筆就是 Rozi 遇到的那種。 */
+  mk({ title: '只有外幣的一筆', category_emoji: '🛍️', expense_date: '2026-03-15',
+       foreign_amount: 5000, payer_member_id: M[0] }),
   mk({ title: '機場接送', category_emoji: '🚌', expense_date: '2026-03-18',
        twd_amount: 1600, payer_member_id: M[0], settled_on_spot: true }),
   mk({ title: '計程車', category_emoji: '🚕', expense_date: '2026-03-16', payer_member_id: M[0] }),
