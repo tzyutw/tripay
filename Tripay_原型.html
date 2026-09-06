@@ -1195,8 +1195,10 @@ function tripToForm(t) {
   return { name:t.name, currency:t.currency, start:t.start, end:t.end,
            settleMode: t.settleMode || 'direct',
            hubMember: t.hubMember || null,
-           rateTwd: t.rateTwd ?? (oneSideOf(t.currency) === 'twd' ? '1' : ''),
-           rateFor: t.rateFor ?? (oneSideOf(t.currency) === 'for' ? '1' : ''),
+           rateTwd: t.rateTwd ?? '', rateFor: t.rateFor ?? '',
+           /* 讀回來的方向就是資料庫裡的事實，不要再判一次——
+              重判會把已經按過「換個方向」修好的行程又改回去 */
+           rateRaw: null, rateDir: null, rateFlipped: true,
            members:t.members.map(x => ({...x})), showCur:false, curQ:'',
            adding:false, newName:'', errs:{}, tone:t.tone, toneSeq:t.toneSeq, pays:[...t.pays], usedPays:t.usedPays,
            newPay:'', photo:t.photo || null, tonePick:false };
@@ -1288,26 +1290,74 @@ function renderS02() {
 
 <script>
 /* ═══ S-02b 編輯行程 ═══ */
-/* 兩列的上下順序依幣別改變——「1」的那一欄永遠在上面，讀起來就是「1 X = N Y」。
-   這是刻意的，不是 bug。 */
+/* 🔴 實作-Q-1（Rozi 2026-09-06 拍板方案 C）：**只有一個輸入框**。
+   兩格讓使用者可以組出方向相反的兩個數字，而系統無從分辨——
+   她想的是「1 日幣 = 0.21 台幣」，系統讀成「1 台幣 = 0.21 日幣」，
+   308500 日圓被存成 1,469,048 台幣（正確 64,785）而且不會有任何警告。
+   現在：填一個數字 → 依幣別量級判方向 → 用一行白話把系統的理解攤開，
+   判錯時按「換個方向」救得回來。 */
+
+/** 判方向：跟**幣別量級**比，不是跟 1 比。
+    「小於 1 用乘、大於 1 用除」在日韓泰越印菲印度是對的，
+    但美元 32／歐元 35／港幣 4.1 這些會反。 */
+function rateDirection(code, n) {
+  const P = TWD_PER_UNIT[code];
+  if (!P || !isFinite(n) || n <= 0) return null;
+  const d1 = Math.abs(Math.log(n) - Math.log(P));
+  const d2 = Math.abs(Math.log(n) - Math.log(1 / P));
+  if (d1 === d2) return oneSideOf(code) === 'for' ? 'for-unit' : 'twd-unit';
+  return d1 <= d2 ? 'for-unit' : 'twd-unit';
+}
+
+/** 兩欄 → 一個數字＋方向（載入既有行程時用） */
+function rateNumOf(form) {
+  const twd = parseFloat(form.rateTwd), fr = parseFloat(form.rateFor);
+  if (!(twd > 0) || !(fr > 0)) return null;
+  if (fr === 1)  return { n: twd, dir: 'for-unit' };
+  if (twd === 1) return { n: fr,  dir: 'twd-unit' };
+  return { n: twd / fr, dir: 'for-unit' };
+}
+
+/** 使用者打的那一個數字 → 兩欄。schema 不動，rateOf() 也不動。 */
+function setRateFromInput(form, v) {
+  form.rateRaw = v;
+  const n = parseFloat(v);
+  const auto = rateDirection(form.currency, n);
+  form.rateDir = v.trim() === '' ? null : (form.rateFlipped && form.rateDir ? form.rateDir : auto);
+  if (v.trim() === '') form.rateFlipped = false;
+  if (!(n > 0) || !form.rateDir) { form.rateTwd = ''; form.rateFor = ''; return; }
+  if (form.rateDir === 'for-unit') { form.rateFor = '1'; form.rateTwd = String(n); }
+  else                             { form.rateTwd = '1'; form.rateFor = String(n); }
+}
+
+/** placeholder 給那個幣別的量級範例，由 TWD_PER_UNIT 推——不要寫死一張表 */
+function ratePlaceholder(code) {
+  const p = TWD_PER_UNIT[code];
+  if (!p) return decimalsFor(code) ? '0.00' : '0';
+  const n = p < 0.1 ? 1 / p : p;
+  return n >= 10 ? String(Math.round(n)) : String(Number(n.toPrecision(2)));
+}
+
 function rateRows(form) {
-  const cur = form.currency, dec = decimalsFor(cur);
-  const row = (side) => {
-    const isTwd = side === 'twd';
-    const code = isTwd ? 'TWD' : cur;
-    const val  = isTwd ? form.rateTwd : form.rateFor;
-    /* placeholder 跟著 oneSideOf 走，不是寫死「台幣那欄是 1」——
-       JPY 的 1 在 JPY 欄，KRW 的 1 才在台幣欄 */
-    const ph   = oneSideOf(cur) === side ? '1' : (dec ? '0.00' : '0');
-    return `<div class="raterow" data-side="${side}">
-      <span class="flag">${FLAG[code] || '🏳️'}</span>
-      <input type="text" inputmode="decimal" class="rateinput" id="rate-${side}"
-        value="${esc(val)}" placeholder="${ph}" autocomplete="off">
-      <span class="code">${code}</span></div>`;
-  };
-  const first = oneSideOf(cur) === 'twd' ? 'twd' : 'for';
-  const second = first === 'twd' ? 'for' : 'twd';
-  return `<div class="ratebox">${row(first)}${row(second)}</div>`;
+  const cur = form.currency;
+  const raw = form.rateRaw != null ? form.rateRaw
+            : (rateNumOf(form) ? String(rateNumOf(form).n) : '');
+  const dir = form.rateDir != null ? form.rateDir
+            : (rateNumOf(form) ? rateNumOf(form).dir : null);
+  const plain = !raw.trim() || !dir ? null
+    : dir === 'for-unit' ? `1 ${currencyName(cur)} ＝ ${esc(raw)} 台幣`
+                         : `1 台幣 ＝ ${esc(raw)} ${currencyName(cur)}`;
+  return `<div class="ratebox">
+      <div class="raterow" data-side="one">
+        <span class="flag">${FLAG[cur] || '🏳️'}</span>
+        <input type="text" inputmode="decimal" class="rateinput" id="rate-one"
+          value="${esc(raw)}" placeholder="${ratePlaceholder(cur)}" autocomplete="off">
+        <span class="code">${cur}</span></div>
+    </div>
+    ${plain
+      ? `<p class="hint" style="margin-top:7px"><b style="color:var(--ink)">${plain}</b>
+           <button class="ratelink" data-rateflip="1">換個方向</button></p>`
+      : `<p class="hint">填一個數字就好，方向由系統判斷；判錯可以按「換個方向」</p>`}`;
 }
 
 function renderS02b() {
@@ -1384,8 +1434,6 @@ function renderS02b() {
       ${b('S-02b-12', `<div class="fld"><span class="lbl" data-group="兩列各自帶國旗標籤，非單一輸入欄">這趟的現金匯率</span>
         <p class="hint" style="margin:-2px 0 9px">在當地換錢後填一次就好</p>
         ${rateRows(fb)}
-        ${(String(fb.rateTwd || '').trim() !== '') !== (String(fb.rateFor || '').trim() !== '')
-          ? `<p class="hint">還差一欄，兩邊都填才換算得出來</p>` : ''}
         <p class="hint">刷卡不用這個匯率，直接填台幣</p>
       </div>`)}
 
@@ -1664,6 +1712,10 @@ document.addEventListener('click', ev => {
   if (sm) { fb.settleMode = sm.dataset.smode;
     if (fb.settleMode === 'hub' && !fb.hubMember) fb.hubMember = prepaidShare(editTripId).top || tripOf(editTripId).members[0].id;
     renderS02b(); renderS05(); return; }
+  if (t.closest('[data-rateflip]')) {
+    if (fb.rateDir) { fb.rateDir = fb.rateDir === 'for-unit' ? 'twd-unit' : 'for-unit';
+      fb.rateFlipped = true; setRateFromInput(fb, fb.rateRaw ?? String(rateNumOf(fb) ? rateNumOf(fb).n : '')); }
+    renderS02b(); return; }
   const hb = hit('data-hub');
   if (hb) { fb.hubMember = hb.dataset.hub; renderS02b(); return; }
   if (t.closest('#s02btone'))  { fb.tonePick = !fb.tonePick; renderS02b(); return; }
@@ -1754,10 +1806,23 @@ document.addEventListener('input', ev => {
     return; }
   if (t.id === 's02bname')   { fb.name = t.value; return; }   // S-02b-14 只寫 state，不重繪（#13）
   if (t.id === 's02bnewpay') { fb.newPay = t.value; return; }
-  if (t.id === 'rate-twd' || t.id === 'rate-for') {
-    // 兩欄都是自由輸入，它們本身就是匯率——不需要再算出第三個數字。
-    // 只寫 state，不重繪輸入框（#13 的教訓）。
-    fb[t.id === 'rate-twd' ? 'rateTwd' : 'rateFor'] = t.value;
+  if (t.id === 'rate-one') {
+    /* 只寫 state ＋ **只更新白話那一行**，不重建輸入框（#13 的教訓：
+       重建 input 會讓游標歸 0、iOS 鍵盤收起來）。 */
+    setRateFromInput(fb, t.value);
+    const box = t.closest('.fld');
+    const old2 = box && box.querySelector('.hint b');
+    const line = fb.rateDir && t.value.trim()
+      ? (fb.rateDir === 'for-unit'
+          ? `1 ${currencyName(fb.currency)} ＝ ${t.value} 台幣`
+          : `1 台幣 ＝ ${t.value} ${currencyName(fb.currency)}`)
+      : null;
+    if (old2 && line) old2.textContent = line;
+    else if (box) { const p2 = box.querySelector('.ratebox').nextElementSibling;
+      if (p2) p2.outerHTML = line
+        ? `<p class="hint" style="margin-top:7px"><b style="color:var(--ink)">${line}</b>
+             <button class="ratelink" data-rateflip="1">換個方向</button></p>`
+        : `<p class="hint">填一個數字就好，方向由系統判斷；判錯可以按「換個方向」</p>`; }
     return; }
   const cq = t.dataset.curq;
   if (cq) { const form = cq === 'f' ? f : fb; form.curQ = t.value;

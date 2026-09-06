@@ -114,11 +114,11 @@ describe('O-②　「各自付各的」用外幣填每個人的金額', () => {
   });
 });
 
-describe('O-①b　設定匯率時補算既有消費', () => {
+describe('O-①b／Q-①d　設定匯率時補算與重算', () => {
   const rows = [
-    { id: 'a', foreign_amount: 5000, twd_amount: null,  twd_pending: true,  exchange_rate: null },
-    { id: 'b', foreign_amount: 5000, twd_amount: 900,   twd_pending: false, exchange_rate: 0.18 },
-    { id: 'c', foreign_amount: null, twd_amount: null,  twd_pending: true,  exchange_rate: null },
+    { id: 'a', foreign_amount: 5000, twd_amount: null,  twd_pending: true,  exchange_rate: null, twd_from_rate: false },
+    { id: 'b', foreign_amount: 5000, twd_amount: 900,   twd_pending: false, exchange_rate: 0.18, twd_from_rate: false },
+    { id: 'c', foreign_amount: null, twd_amount: null,  twd_pending: true,  exchange_rate: null, twd_from_rate: false },
   ];
 
   it('只有「有外幣沒台幣」那一筆被改到，另外兩筆逐欄相同', () => {
@@ -140,5 +140,84 @@ describe('O-①b　設定匯率時補算既有消費', () => {
     /* 清空＝算不出匯率＝回空陣列，b 那一筆的 twd_amount 一個字都沒動 */
     expect(backfillRows(rows, noRate)).toEqual([]);
     expect(rows[1].twd_amount).toBe(900);
+  });
+});
+
+
+/* ══════════════════════════════════════════════════════════════
+   實作-Q-1d　改匯率之後要重算「系統算出來的」那些台幣
+   （方向判錯過一次，308500 日圓被存成 1,469,048 台幣；
+     改了判定之後那些錯的值不會自己變對）
+   ══════════════════════════════════════════════════════════════ */
+describe('Q-①d　改匯率時的重算範圍', () => {
+  /* 舊匯率是**方向反的**那一組（1 台幣 = 0.21 日圓）——就是出事的那一組 */
+  const wrongRate = { cash_rate_twd: 1, cash_rate_foreign: 0.21 };
+  const rightRate = { cash_rate_foreign: 1, cash_rate_twd: 0.21 };
+  const rows = () => [
+    /* ① 系統算的（用錯方向算出來的 1,469,048）→ 要被新匯率重算成 64,785 */
+    { id: 'sys', foreign_amount: 308500, twd_amount: Math.round(308500 / 0.21),
+      twd_pending: false, exchange_rate: 4.76, twd_from_rate: true },
+    /* ② 使用者自己手打的 → **一個欄位都不准動** */
+    { id: 'hand', foreign_amount: 308500, twd_amount: 60000,
+      twd_pending: false, exchange_rate: 0.194, twd_from_rate: false },
+    /* ③ 還沒有台幣 → 要被補算 */
+    { id: 'blank', foreign_amount: 5000, twd_amount: null,
+      twd_pending: true, exchange_rate: null, twd_from_rate: false },
+  ];
+
+  it('① 重算、② 逐欄完全不變、③ 補算', () => {
+    const before = rows();
+    const out = backfillRows(before, rightRate);
+    const ids = out.map(r => r.id);
+    expect(ids, '手打的那一筆不該出現在要寫回去的清單裡').toEqual(['sys', 'blank']);
+
+    const sys = out.find(r => r.id === 'sys')!;
+    expect(sys.twd_amount).toBe(Math.round(308500 / (1 / 0.21)));   // 64,785
+    expect(sys.twd_amount).toBe(64785);
+    expect(sys.twd_pending).toBe(false);
+    expect(sys.twd_from_rate).toBe(true);
+
+    const blank = out.find(r => r.id === 'blank')!;
+    expect(blank.twd_amount).toBe(Math.round(5000 / (1 / 0.21)));   // 1,050
+    expect(blank.twd_from_rate).toBe(true);
+
+    /* ② 逐欄比對：沒有被選中，原物件也沒被就地改掉 */
+    expect(before.find(r => r.id === 'hand')).toEqual(rows()[1]);
+  });
+
+  it('舊匯率（方向反的）本來就會算出 1,469,048——證明對照組挑得出差別', () => {
+    const out = backfillRows(rows(), wrongRate);
+    expect(out.find(r => r.id === 'sys')!.twd_amount).toBe(1469048);
+  });
+
+  it('匯率算不出來時一筆都不動（§2A.4 不追溯）', () => {
+    expect(backfillRows(rows(), { cash_rate_twd: null, cash_rate_foreign: null })).toEqual([]);
+  });
+});
+
+describe('Q-①d　存檔時標記「這個台幣是系統算的」', () => {
+  it('只填外幣、由匯率推出來 → twd_from_rate 是 true', () => {
+    const { row } = build(form({ forAmt: '5,000' }));
+    expect(row.twd_from_rate).toBe(true);
+    expect(row.twd_amount).toBe(23810);
+  });
+
+  it('使用者自己手打台幣 → twd_from_rate 是 false（改匯率時不准動它）', () => {
+    const { row } = build(form({ forAmt: '5,000', twdAmt: '900' }));
+    expect(row.twd_from_rate).toBe(false);
+    expect(row.twd_amount).toBe(900);
+  });
+
+  it('沒有匯率、什麼都算不出來 → false', () => {
+    const { row } = build(form({ forAmt: '5,000' }), noRate);
+    expect(row.twd_from_rate).toBe(false);
+    expect(row.twd_amount).toBeNull();
+  });
+
+  it('金額欄帶千分位也要存得進去（Number("308,500") 會回 NaN）', () => {
+    const { row } = build(form({ forAmt: '308,500', twdAmt: '64,785' }));
+    expect(row.foreign_amount).toBe(308500);
+    expect(row.twd_amount).toBe(64785);
+    expect(Number.isNaN(row.twd_amount as number)).toBe(false);
   });
 });

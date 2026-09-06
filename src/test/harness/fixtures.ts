@@ -2,6 +2,7 @@
  * （原型的 demoExpenses()）。版面測試量的是真實元件配真實 CSS，
  * 所以資料也要是真實形狀，不能用一兩筆敷衍——短內容量不出溢出。 */
 import type { Trip, TripMember, ExpenseWithSplits } from '@/types/database';
+import { rateColumns, rateDirection, TWD_PER_UNIT } from '@/lib/currencyTable';
 
 export const M = ['m0', 'm1', 'm2', 'm3'];
 
@@ -64,6 +65,13 @@ export const forOnly = Q.get('forOnly') === '1';
  *  只有一次是 confirmed。不挑就會把同樣三筆轉帳畫十二遍（實作-G 咬過一次）。 */
 export const settlementsMany = Q.get('settlements') === 'many';
 
+/** 該幣別「好記的那個方向」的代表值 → 正確的兩欄組合 */
+function fullRateColumns(code: string) {
+  const p = TWD_PER_UNIT[code] ?? 1;
+  const n = p < 0.1 ? Number((1 / p).toFixed(0)) : Number(p.toFixed(2));
+  return rateColumns(n, rateDirection(code, n));
+}
+
 export const members: TripMember[] = mkMembers(membersHaveEmoji);
 
 export const trip = {
@@ -73,8 +81,12 @@ export const trip = {
   share_token: 'tok', owner_member_id: M[0], collab_enabled: false, card_id: null,
   cover_path: null, settlement_mode: 'direct', hub_member_id: null,
   payment_methods: noPays ? null : ['現金', '信用卡', 'Linepay'],
-  cash_rate_twd: fullRate ? 1 : null,
-  cash_rate_foreign: fullRate ? 0.21 : (halfRate ? 0.19 : null),
+  /* `?rate=full`：**照該幣別正確的方向**組出兩欄（實作-Q-1）。
+     先前寫死 `twd:1, for:0.21`，那對 KRW 是對的、對 JPY 是**反的**——
+     於是 JPY 的端到端測試會拿到 1,469,048 而不是 64,785，
+     而那正是 production 出事的那個數字。假資料反了，測試就守不到東西。 */
+  ...(fullRate ? fullRateColumns(currencyOverride || 'KRW')
+               : { cash_rate_twd: null, cash_rate_foreign: halfRate ? 0.19 : null }),
   tone_seq: 0, created_at: '2026-03-01', updated_at: '2026-03-01',
   trip_members: members,
 } as unknown as Trip & { trip_members: TripMember[] };

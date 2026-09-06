@@ -11,7 +11,9 @@ const BUILD_SHA = (() => {
   catch { return 'dev'; }
 })();
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }) => {
+const BASE = mode === 'production' ? '/tripay/' : '/';
+return ({
   define: { __BUILD_SHA__: JSON.stringify(BUILD_SHA) },
 
   // '/tripay/' in production (GitHub Pages); '/' in development
@@ -55,18 +57,19 @@ export default defineConfig(({ mode }) => ({
         display: 'standalone',
         start_url: mode === 'production' ? '/tripay/' : '/',
         scope: mode === 'production' ? '/tripay/' : '/',
+        /* 🔴 路徑必須帶 base。原本寫死 `/pwa-icon.svg`，但網站掛在 `/tripay/` 底下，
+           所以 manifest 裡那兩個 icon **一直都是 404**（舊有的錯，不是換色造成的）。
+           跟 start_url／scope 用同一個 base。 */
         icons: [
-          {
-            src: '/pwa-icon.svg',
-            sizes: '192x192',
-            type: 'image/svg+xml',
-          },
-          {
-            src: '/pwa-icon.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'any maskable',
-          },
+          /* iOS 與部分 Android 不吃 SVG，PNG 排前面。
+             檔名帶 `-v2`：**檔名不變裝置就不會重抓**，Rozi 刪掉主畫面圖示重加
+             也還是拿到快取裡的舊圖。 */
+          { src: `${BASE}pwa-icon-192-v2.png`, sizes: '192x192', type: 'image/png' },
+          { src: `${BASE}pwa-icon-512-v2.png`, sizes: '512x512', type: 'image/png',
+            purpose: 'any maskable' },
+          { src: `${BASE}pwa-icon.svg`, sizes: '192x192', type: 'image/svg+xml' },
+          { src: `${BASE}pwa-icon.svg`, sizes: '512x512', type: 'image/svg+xml',
+            purpose: 'any maskable' },
         ],
       },
 
@@ -95,4 +98,5 @@ export default defineConfig(({ mode }) => ({
         build: { outDir: 'dist-harness', rollupOptions: { input: path.resolve(__dirname, 'harness.html') } },
       }
     : {}),
-}));
+});
+});

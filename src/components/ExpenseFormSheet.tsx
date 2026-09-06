@@ -14,6 +14,8 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { getCurrencySymbol } from '@/lib/currencies';
 import { md, weekday, firstGrapheme } from '@/lib/format';
+import { parseAmount, formatAmount, caretAfterFormat } from '@/lib/amount';
+import { decimalsFor } from '@/lib/currencyTable';
 import { calc, tripRate } from '@/lib/summary';
 import type { ExpenseCalc } from '@/lib/summary';
 import { MSG_NO_RATE, MSG_TWD_PENDING, MSG_FILL_ONE } from '@/lib/messages';
@@ -86,6 +88,39 @@ export function saveToastFor({ pending, blanks }: { pending: boolean; blanks: st
 /** 類別 emoji 的識別圓圈尺寸。**未編輯與編輯中共用同一個**，否則切換時整列會跳。 */
 const EMOJI_BOX = { width: 28, height: 28 } as const;
 
+/**
+ * 實作-Q-2　帶千分位的金額輸入框。
+ *
+ * ⚠️ **必須定義在模組層級**——定義在元件內部的話，每次父層 render 都是一個
+ * 全新的函式參考，React 視為不同的元件型別 → 卸載舊 DOM、掛新的 →
+ * `<input>` 被銷毀重建 → 焦點消失 → iOS 鍵盤收起來（`CashRate` 咬過一次）。
+ *
+ * `type="text"` 不能改成 `type=number`：後者放不進逗號，
+ * 而且不支援 selection API（`setSelectionRange` 拋錯後游標歸 0、字元倒序，#13）。
+ */
+function AmountInput({ id, value, decimals, className, placeholder, onChange, ariaLabel }: {
+  id?: string; value: string; decimals: 0 | 2; className?: string;
+  placeholder?: string; onChange: (v: string) => void; ariaLabel?: string;
+}) {
+  return (
+    <input
+      id={id} type="text" inputMode="decimal" className={className}
+      value={value} placeholder={placeholder} aria-label={ariaLabel}
+      onChange={e => {
+        const el = e.target;
+        const caret = el.selectionStart ?? el.value.length;
+        const next = formatAmount(el.value, decimals);
+        onChange(next);
+        /* 游標保位：不還原的話每打一個字就跳到最後，「308500」會打成倒序 */
+        const pos = caretAfterFormat(el.value, caret, next);
+        requestAnimationFrame(() => {
+          if (document.activeElement === el) { try { el.setSelectionRange(pos, pos); } catch { /* 不支援就算了 */ } }
+        });
+      }}
+    />
+  );
+}
+
 interface Props {
   tripId: string;
   trip: TripWithMembers;
@@ -124,15 +159,17 @@ export function formToExpense(f: FormState, parts: string[]) {
   return {
     expense_type: f.kind === 'individual' ? 'individual' : 'shared',
     individual_member_id: f.kind === 'single' ? f.single : null,
-    foreign_amount: f.forAmt.trim() === '' ? null : Number(f.forAmt),
-    twd_amount:     f.twdAmt.trim() === '' ? null : Number(f.twdAmt),
+    /* 🔴 一律走 `parseAmount()`——欄位裡是「308,500」，`Number()` 會回 NaN，
+       帳直接壞掉而且不會有任何警告。 */
+    foreign_amount: parseAmount(f.forAmt),
+    twd_amount:     parseAmount(f.twdAmt),
     split_fill_currency: f.fillCur,
     payer_member_id: f.payer,
     is_sponsor: f.sponsor,
     expense_splits: parts.map(id => ({
       member_id: id, is_participating: true,
-      split_amount:         f.fillCur === 'FOR' ? null : (f.indiv[id]?.trim() ? Number(f.indiv[id]) : null),
-      split_amount_foreign: f.fillCur === 'FOR' ? (f.indiv[id]?.trim() ? Number(f.indiv[id]) : null) : null,
+      split_amount:         f.fillCur === 'FOR' ? null : parseAmount(f.indiv[id]),
+      split_amount_foreign: f.fillCur === 'FOR' ? parseAmount(f.indiv[id]) : null,
     })),
   };
 }
@@ -160,13 +197,14 @@ export function buildRows(
   const parts = partsOfForm(f);
   const c = calc(formToExpense(f, parts) as never, trip, members);
   const sign = f.sponsor ? -1 : 1;
-  const forNum = f.forAmt.trim() === '' ? null : sign * Number(f.forAmt);
+  const forRaw = parseAmount(f.forAmt), twdRaw = parseAmount(f.twdAmt);
+  const forNum = forRaw == null ? null : sign * forRaw;
   /* 🔴 只填外幣、而這趟的匯率算得出台幣 → **存檔當下就換算**。
      留 `twd_amount=null`＋`twd_pending=true` 的後果：畫面用行程匯率推算得好好的、
      金額也對，但結算引擎 `.eq("twd_pending", false)` **整筆跳過**——
      總額對不起來，而畫面上不會有任何一句話說它被跳過。
      `c.twdFromRate` 就是 `calc()` 說「這個台幣是我用匯率推出來的」。 */
-  const twdNum = f.twdAmt.trim() !== '' ? sign * Number(f.twdAmt)
+  const twdNum = twdRaw != null ? sign * twdRaw
                : c.twdFromRate ? sign * c.twdTotal
                : null;
 
@@ -180,6 +218,10 @@ export function buildRows(
     /* 🔴 S-04-29　空欄就自動寫 pending。沒有這一段，S-04-8 拿掉 toggle 之後
        會存出「金額 null 但 pending false」的列，結算整趟回 422。 */
     foreign_pending: forNum == null, twd_pending: twdNum == null,
+    /* 🔴 實作-Q-1d　「這個台幣是系統算的」的**唯一依據**。
+       改匯率時只有 true 的會被重算——使用者自己手打的一筆都不准動。
+       不要用 `exchange_rate` 有沒有值來猜：手打台幣時它也會被寫入。 */
+    twd_from_rate: c.twdFromRate,
     exchange_rate: forNum && twdNum ? Math.abs(twdNum / forNum) : null,
     /* 支付方式是這趟自訂的清單，enum 塞不下 → 走 payment_label */
     payment_method: (['cash', 'credit_card', 'stored_value'].includes(f.pay)
@@ -194,8 +236,7 @@ export function buildRows(
   };
 
   const splitRows = parts.map(id => {
-    const raw = f.indiv[id]?.trim();
-    const v   = raw ? Number(raw) : null;
+    const v = parseAmount(f.indiv[id]);
     /* 「各自付各的」＋填的是外幣，才需要回推台幣。其餘情形照舊。 */
     const isFor = f.kind === 'individual' && f.fillCur === 'FOR';
     /* 🔴 填外幣時 `split_amount` **一定要算出來**。
@@ -238,13 +279,13 @@ function fromExpense(e: ExpenseWithSplits, members: TripWithMembers['trip_member
   const indiv: Record<string, string> = {};
   for (const s of e.expense_splits) {
     const v = e.split_fill_currency === 'FOR' ? s.split_amount_foreign : s.split_amount;
-    if (v != null) indiv[s.member_id] = String(v);
+    if (v != null) indiv[s.member_id] = formatAmount(String(v), 2);
   }
   return {
     title: e.title, emoji: e.category_emoji, emojiManual: e.category_emoji_manual,
     date: e.expense_date,                                   // 編輯既有消費沿用該筆原本的日期
-    forAmt: e.foreign_amount != null ? String(e.foreign_amount) : '',
-    twdAmt: e.twd_amount != null ? String(e.twd_amount) : '',
+    forAmt: e.foreign_amount != null ? formatAmount(String(e.foreign_amount), 2) : '',
+    twdAmt: e.twd_amount != null ? formatAmount(String(e.twd_amount), 2) : '',
     pay: e.payment_label ?? e.payment_method,
     payer: e.payer_member_id,
     kind: e.individual_member_id ? 'single' : (e.expense_type === 'individual' ? 'individual' : 'shared'),
@@ -456,19 +497,19 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
             <label htmlFor="e-for"
               className={`amtline${c.noAutoReason === 'noForeignTotal' ? ' needfill' : ''}`}>
               <span className="cur">{sym} {cur}</span>
-              <input id="e-for" type="text" inputMode="decimal" value={f.forAmt}
+              <AmountInput id="e-for" value={f.forAmt} decimals={decimalsFor(cur)}
                 className={c.forTotalAuto ? 'auto' : ''}
-                placeholder={c.forTotalAuto ? String(c.forTotalEff) : '0'}
-                onChange={e => set('forAmt', e.target.value)} />
+                placeholder={c.forTotalAuto ? formatAmount(String(c.forTotalEff), decimalsFor(cur)) : '0'}
+                onChange={v => set('forAmt', v)} />
               {/* S-04-30 外幣總額自動補入時標「自動」，仍可覆寫 */}
               {c.forTotalAuto && <span className="autotag">自動</span>}
             </label>
             <label htmlFor="e-twd" className="amtline">
               <span className="cur">$ 台幣</span>
-              <input id="e-twd" type="text" inputMode="decimal" value={f.twdAmt}
+              <AmountInput id="e-twd" value={f.twdAmt} decimals={0}
                 className={c.twdFromRate ? 'auto' : ''}
-                placeholder={c.twdFromRate ? String(c.twdTotal) : '0'}
-                onChange={e => set('twdAmt', e.target.value)} />
+                placeholder={c.twdFromRate ? formatAmount(String(c.twdTotal), 0) : '0'}
+                onChange={v => set('twdAmt', v)} />
               {c.twdFromRate && <span className="autotag">自動</span>}
             </label>
           </div>
@@ -687,10 +728,11 @@ function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
               <Avatar emoji={m?.emoji} name={m?.name} index={members.findIndex(x => x.id === id)} />
               <span className="flex-1 text-body">{m?.name ?? ''}</span>
               {auto && <span className="autotag">自動</span>}
-              <input id={`ei-${id}`} type="text" inputMode="decimal"
-                value={f.indiv[id] ?? ''} className={auto ? 'auto' : ''}
-                placeholder={c.noAutoReason ? '—' : (auto ? String(c.valInCur[id]) : '0')}
-                onChange={e => onAmt(id, e.target.value)} />
+              <AmountInput id={`ei-${id}`} value={f.indiv[id] ?? ''}
+                decimals={c.fillsAreForeign ? decimalsFor(cur) : 0}
+                className={auto ? 'auto' : ''}
+                placeholder={c.noAutoReason ? '—' : (auto ? formatAmount(String(c.valInCur[id]), 0) : '0')}
+                onChange={v => onAmt(id, v)} />
             </label>
           );
         })}

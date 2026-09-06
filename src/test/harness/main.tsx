@@ -44,7 +44,12 @@ function RouteProbe() {
 const TRIP_PATHS = ['/trips/:id', '/trips/:id/more', '/trips/:id/edit',
                     '/trips/:id/share', '/trips/:id/copy', '/trips/:id/delete'];
 
-const SCREENS: Record<string, { route: string; path?: string; paths?: string[]; el: React.ReactNode }> = {
+interface ScreenDef {
+  route: string; path?: string; paths?: string[]; el?: React.ReactNode;
+  /** 一個畫面掛多個不同元件時用（S-05 會導回 S-03） */
+  routes?: { path: string; el: React.ReactNode }[];
+}
+const SCREENS: Record<string, ScreenDef> = {
   s00:  { route: '/login',    el: <LoginPage /> },
   s01:  { route: '/',         el: <TripListPage /> },
   s02:  { route: '/',         el: <TripFormSheet onClose={() => {}} onCreated={() => {}} /> },
@@ -53,7 +58,11 @@ const SCREENS: Record<string, { route: string; path?: string; paths?: string[]; 
   s03d: { route: '/trips/t1', path: '/trips/:id', el: <ExpenseListPage /> },
   s04:  { route: '/trips/t1', path: '/trips/:id',
           el: <ExpenseFormSheet tripId="t1" trip={trip as never} onClose={() => {}} /> },
-  s05:  { route: '/trips/t1/settlement', path: '/trips/:id/settlement', el: <SettlementPage /> },
+  /* S-05 的「先去看一下」與警示層那一列會導回 `/trips/:id`（實作-Q-3），
+     所以兩邊的路徑都要註冊——少一條就是導過去一片空白，看起來像功能壞掉。 */
+  s05:  { route: '/trips/t1/settlement',
+          routes: [{ path: '/trips/:id/settlement', el: <SettlementPage /> },
+                   ...TRIP_PATHS.map(pt => ({ path: pt, el: <ExpenseListPage /> }))] },
   s06:  { route: '/share/tok', path: '/share/:token', el: <SharePage /> },
   s07:  { route: '/settings', el: <SettingsPage /> },
   /* 實作-L-4　「⋯」改成獨立頁面之後要能單獨量它 */
@@ -85,11 +94,13 @@ createRoot(document.getElementById('root')!).render(
       <ToastProvider>
         <MemoryRouter initialEntries={[s.route]}>
           <RouteProbe />
-          {s.paths
-            ? <Routes>{s.paths.map(pt => <Route key={pt} path={pt} element={s.el} />)}</Routes>
-            : s.path
-              ? <Routes><Route path={s.path} element={s.el} /></Routes>
-              : s.el}
+          {s.routes
+            ? <Routes>{s.routes.map(r => <Route key={r.path} path={r.path} element={r.el} />)}</Routes>
+            : s.paths
+              ? <Routes>{s.paths.map(pt => <Route key={pt} path={pt} element={s.el} />)}</Routes>
+              : s.path
+                ? <Routes><Route path={s.path} element={s.el} /></Routes>
+                : s.el}
         </MemoryRouter>
       </ToastProvider>
     </QueryClientProvider>

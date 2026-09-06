@@ -279,9 +279,13 @@ export default function SettlementPage() {
           <div className="text-strong font-bold mb-[5px]">有 {nUn} 筆還沒算清楚</div>
           <div className="text-body text-md mb-3">結算之後金額就固定了。要先去看一下嗎？</div>
           <div className="gap">
+            {/* 🔴 實作-Q-3　點這一列**直接開那一筆的編輯表單**。
+                原本是 `navigate('/trips/:id')`——它有反應，但回到的是整個消費列表，
+                而她本來就是從那裡過來的、那一筆也沒有被標出來，
+                所以看起來就像什麼都沒發生。 */}
             {S.unsettledList.map(({ e, c }) => (
               <button key={e.id} className="rowb"
-                onClick={() => navigate(`/trips/${tripId}`)}>
+                onClick={() => navigate(`/trips/${tripId}?expense=${e.id}`)}>
                 <span className="text-title">{e.emoji}</span>
                 <span className="flex-1 font-semibold">{e.title}</span>
                 <span className="text-sub text-gr">
@@ -294,7 +298,8 @@ export default function SettlementPage() {
         <div className="btnrow">
           <button className="btn qt" disabled={calculateMutation.isPending}
             onClick={() => calculateMutation.mutate()}>就這樣結算</button>
-          <button className="btn" onClick={() => navigate(`/trips/${tripId}`)}>先去看一下</button>
+          {/* 帶到「還沒算清楚」的篩選清單（S-03d），不是整個消費列表 */}
+          <button className="btn" onClick={() => navigate(`/trips/${tripId}?unsettled=all`)}>先去看一下</button>
         </div>
       </div>
     );

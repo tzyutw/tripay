@@ -73,6 +73,9 @@ export interface Expense {
   expense_type: ExpenseType;
   settled_on_spot: boolean;   // 共同但當場各付各的：記錄但不進結算
   is_sponsor: boolean;        // 外部贊助/回饋：負額共同項，平均扣進每人應付
+  /* 015 */
+  twd_from_rate: boolean;     // twd_amount 是系統用行程匯率算的（true）還是使用者打的（false）。
+                              // 改匯率時只有 true 的會被重算——**不要用 exchange_rate 有沒有值來猜**
   /* 012 */
   split_fill_currency: SplitFillCurrency;  // not null default 'TWD'。
                                            // 一定要有 default——既有 404 筆若是 NULL，

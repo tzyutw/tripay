@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { searchCurrencies } from '@/lib/currencies';
 import { Icon } from '@/components/Icon';
 import { calc, tripRate } from '@/lib/summary';
+import { rateDirection, rateColumns, rateFromColumns, type RateDir } from '@/lib/currencyTable';
 import PaymentMethods from '@/components/shared/PaymentMethods';
 import CashRate from '@/components/shared/CashRate';
 import SettleMode from '@/components/shared/SettleMode';
@@ -21,49 +22,59 @@ let memberKeySeq = 0;
 const newKey = () => `new-${++memberKeySeq}`;
 
 /**
- * 現金匯率：**填了一邊，另一邊自動帶「1」**（Rozi 2026-09-06 裁示）。
+ * 🔴 現金匯率：**一個數字，方向由系統依幣別量級判**（Rozi 2026-09-06 拍板方案 C）。
  *
- * 先前的做法是「進畫面時依幣別（`oneSideOf()`）預先在某一欄帶 1」。
- * 那個規則算得出正確結果，但**要求使用者先接受系統挑好的那一邊**；
- * 她要的是「我填哪一邊都行，另一邊自己補」。
+ * 推翻實作-O 的「填一邊、另一邊自動帶 1」——那個設計讓使用者可以組出
+ * **方向相反**的兩個數字，而系統無從分辨，於是 308500 日圓被存成
+ * 1,469,048 台幣（正確 64,785）而且不會有任何警告。
  *
- * `auto` 記住那個「1」是系統填的：來源欄被清空時它要跟著消失（不留殘值），
- * 使用者自己動過它就不再是自動的。
- * `oneSideOf()` 只剩下決定 placeholder 與小數位數，不再決定「1」放哪一欄。
+ * `flipped` 記住使用者有沒有按過「換個方向」：按過就以他的選擇為準，
+ * 之後改數字也不再重判——不然他改一個字方向就跳回去，救不回來。
  */
-export function nextRate(
-  cur: { twd: string; for: string; auto: 'twd' | 'for' | null },
-  side: 'twd' | 'for', v: string,
-): { twd: string; for: string; auto: 'twd' | 'for' | null } {
-  const other = side === 'twd' ? 'for' : 'twd';
-  const next = { ...cur, [side]: v };
-  if (cur.auto === side) next.auto = null;              // 動到那個 1 → 它不再是自動的
-  if (v.trim() !== '' && next[other].trim() === '') { next[other] = '1'; next.auto = other; }
-  else if (v.trim() === '' && cur.auto === other) { next[other] = ''; next.auto = null; }
-  return next;
+export interface RateState { n: string; dir: RateDir | null; flipped: boolean }
+
+export function nextRate(cur: RateState, currency: string, v: string): RateState {
+  const auto = rateDirection(currency, Number(v.replace(/,/g, '')));
+  /* 使用者按過「換個方向」就沿用他選的；沒按過才用自動判定 */
+  const dir = cur.flipped && cur.dir ? cur.dir : auto;
+  return { n: v, dir: v.trim() === '' ? null : dir, flipped: cur.flipped && v.trim() !== '' };
+}
+
+export function flipRate(cur: RateState): RateState {
+  if (!cur.dir) return cur;
+  return { ...cur, dir: cur.dir === 'for-unit' ? 'twd-unit' : 'for-unit', flipped: true };
 }
 
 /**
- * 🔴 規格 §2A.4　設定匯率的當下要補算哪些消費、補成什麼樣子。
+ * 🔴 規格 §2A.4 ＋ 實作-Q-1d　設定匯率的當下要動哪些消費、動成什麼樣子。
  *
- * 抽成純函式，因為「**只有第一種會被改到**」這件事必須能直接斷言：
- * 有外幣沒台幣 → 補；已經有台幣 → **一個欄位都不准動**（不追溯、不重算）；
- * 兩者都空 → 補不了，維持原狀。
- * 匯率算不出來（只填一欄或兩欄都空）→ 回空陣列，什麼都不做。
+ * 兩種會被動到：
+ * ① **有外幣、沒台幣** → 補算（§2A.4 原本就有的）
+ * ② **有外幣、台幣是系統算的**（`twd_from_rate === true`）→ 用新匯率**重算**
+ *    ——匯率方向判錯過一次（308500 日圓存成 1,469,048 台幣），
+ *    改了判定之後那些錯的值不會自己變對，所以要重算。
+ *
+ * **`twd_from_rate === false` 的一筆都不准動**——那是使用者自己手打的。
+ * 判斷只看這一欄，**不要用 `exchange_rate` 有沒有值來猜**（手打時它也會被寫入）。
+ *
+ * 匯率算不出來 → 回空陣列，什麼都不做（§2A.4 明講不追溯）。
  */
-export function backfillRows<T extends { foreign_amount: number | null; twd_amount: number | null }>(
+export function backfillRows<T extends {
+  foreign_amount: number | null; twd_amount: number | null; twd_from_rate?: boolean;
+}>(
   rows: T[], rates: { cash_rate_twd: number | null; cash_rate_foreign: number | null },
 ): T[] {
   const r = tripRate(rates as never);
   if (!r) return [];
   return rows
-    .filter(e => e.twd_amount == null && e.foreign_amount != null)
+    .filter(e => e.foreign_amount != null && (e.twd_amount == null || e.twd_from_rate === true))
     .map(e => {
       /* 換算走 `calc()`——**不在這裡另寫一套除法**。畫面顯示的數字與存進去的數字
          若不是同一段程式算的，早晚會差一塊錢而沒人發現。 */
-      const c = calc({ ...e, expense_splits: [] } as never, rates as never, []);
+      /* 重算的那一批要先把台幣清掉，`calc()` 才會走「用匯率推」那條分支 */
+      const c = calc({ ...e, twd_amount: null, expense_splits: [] } as never, rates as never, []);
       const f = Number(e.foreign_amount);
-      return { ...e, twd_amount: c.twdTotal, twd_pending: false,
+      return { ...e, twd_amount: c.twdTotal, twd_pending: false, twd_from_rate: true,
                exchange_rate: f ? Math.abs(c.twdTotal / f) : null };
     });
 }
@@ -118,10 +129,9 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
   /* 建立行程也要能設支付方式（Rozi 2026-09-06：兩頁欄位一致），
      預設清單與先前 insert 時寫死的那一組相同 */
   const [pays, setPays] = useState<string[]>(['現金', '信用卡']);
-  /* 兩欄一開始都空——不預先帶「1」。填了一邊，另一邊才自動帶。 */
-  const [rate, setRate] = useState<{ twd: string; for: string; auto: 'twd' | 'for' | null }>(
-    { twd: '', for: '', auto: null });
-  const rateTwd = rate.twd, rateFor = rate.for;
+  /* 一個數字＋一個方向。一開始都空——不預先帶任何值。 */
+  const [rate, setRate] = useState<RateState>({ n: '', dir: null, flipped: false });
+  const rateCols = rateColumns(rate.n.trim() === '' ? null : Number(rate.n.replace(/,/g, '')), rate.dir);
   const [settleMode, setSettleMode] = useState<SettlementMode>('direct');
   const [hubMember, setHubMember] = useState<string | null>(null);
   const [payBlocked, setPayBlocked] = useState('');
@@ -164,15 +174,12 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
     setMyMemberIdx(oi >= 0 ? oi : null);
     setPays(Array.isArray(existingTrip.payment_methods)
       ? (existingTrip.payment_methods as string[]) : ['現金', '信用卡']);
-    /* 既有資料**照原樣載入，不自動補 1**。
-       只填了一邊的舊資料，補 1 等於替使用者猜一個方向——猜錯就是靜默錯帳
-       （她把 0.19 填在外幣欄，補 1 之後 rate 會變成 0.19 而不是 1/0.19，差 25 倍）。
-       維持半填狀態，讓「還差一欄」那句提示出來，由她自己補。 */
-    setRate({
-      twd: existingTrip.cash_rate_twd != null ? String(existingTrip.cash_rate_twd) : '',
-      for: existingTrip.cash_rate_foreign != null ? String(existingTrip.cash_rate_foreign) : '',
-      auto: null,
-    });
+    /* 兩欄還原成「一個數字＋方向」。哪一欄是 1，另一欄就是 N；
+       兩欄都不是 1 的舊資料換算成方向一（1 外幣 = ? 台幣）。 */
+    const r = rateFromColumns(existingTrip);
+    /* 讀回來的方向就是資料庫裡的事實，不要再判一次——
+       重判會把她已經按過「換個方向」修好的行程又改回去。 */
+    setRate(r ? { n: String(r.n), dir: r.dir, flipped: true } : { n: '', dir: null, flipped: false });
     setSettleMode(existingTrip.settlement_mode);
     setHubMember(existingTrip.hub_member_id);
     setHydrated(true);
@@ -311,10 +318,13 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
   ) {
     const r = tripRate(rates as never);
     if (!r) return;
+    /* 兩批都撈回來：沒台幣的（要補）＋ 台幣是系統算的（要重算）。
+       篩選由 `backfillRows()` 再做一次——那一層才是「不准動手打的」的權威。 */
     const { data: pend, error: sErr } = await supabase
       .from('expenses').select('*')
       .eq('trip_id', id).is('deleted_at', null)
-      .is('twd_amount', null).not('foreign_amount', 'is', null);
+      .not('foreign_amount', 'is', null)
+      .or('twd_amount.is.null,twd_from_rate.is.true');
     if (sErr) throw sErr;
     if (!pend?.length) return;
     const rows = backfillRows(pend, rates);
@@ -324,7 +334,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
     const { data: done, error: uErr } = await supabase.from('expenses').upsert(rows).select();
     if (uErr) throw uErr;
     if ((done ?? []).length !== rows.length)
-      throw new Error(`匯率補算沒有全部生效（要補 ${rows.length} 筆，實際 ${(done ?? []).length} 筆）`);
+      throw new Error(`匯率補算沒有全部生效（要動 ${rows.length} 筆，實際 ${(done ?? []).length} 筆）`);
   }
 
   // ── Mutations ─────────────────────────────────────────────────────────────────
@@ -334,10 +344,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
       if (!user) throw new Error('未登入');
 
       if (isEdit && tripId) {
-        const nextRates = {
-          cash_rate_twd: rateTwd.trim() === '' ? null : Number(rateTwd),
-          cash_rate_foreign: rateFor.trim() === '' ? null : Number(rateFor),
-        };
+        const nextRates = rateCols;
         const { error } = await supabase
           .from('trips')
           .update({
@@ -427,8 +434,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
           /* 建立頁現在也有這三塊（Rozi 2026-09-06：兩頁欄位一致）。
              都不是必填——沒填就是沒填，支付方式沿用預設清單、匯率兩欄留空。 */
           payment_methods: pays,
-          cash_rate_twd: rateTwd.trim() === '' ? null : Number(rateTwd),
-          cash_rate_foreign: rateFor.trim() === '' ? null : Number(rateFor),
+          ...rateCols,
           settlement_mode: settleMode,
         })
         .select()
@@ -817,9 +823,10 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
               {payBlocked && <p className="hint" style={{ color: 'var(--md)' }}>{payBlocked}</p>}
               <CashRate
                 currency={currency}
-                rateTwd={rateTwd}
-                rateFor={rateFor}
-                onChange={(side, v) => setRate(r => nextRate(r, side, v))}
+                value={rate.n}
+                dir={rate.dir}
+                onChange={v => setRate(r => nextRate(r, currency, v))}
+                onFlip={() => setRate(flipRate)}
               />
             </>
           </div>

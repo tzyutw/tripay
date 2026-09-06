@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { deriveDisplayStatus } from '@/lib/deriveStatus';
@@ -122,15 +122,22 @@ export default function ExpenseListPage() {
   const location       = useLocation();
   const qc             = useQueryClient();
 
-  const [formOpen,        setFormOpen]        = useState(false);
-  const [editExpenseId,   setEditExpenseId]   = useState<string | undefined>();
+  /* 「記一筆」（新增）留在 state；**編輯既有消費與「還沒算清楚」改走 query**——
+     S-05 的結算前檢查層要能直接帶進來（實作-Q-3）。
+     用 query 不用 state 的理由與實作-O-8 相同：跨 route 的 state 會被丟掉。 */
+  const [sp, setSp] = useSearchParams();
+  const [newOpen,         setNewOpen]         = useState(false);
   const [currencyMode,    setCurrencyMode]    = useState<'TWD' | 'FOR'>('TWD');
   const [deleteConfirm,   setDeleteConfirm]   = useState('');
   /* S-03-33 分段控制：切換檢視不是動作。「結算」分頁的內容就是 S-05 整頁 */
   const [tab,             setTab]             = useState<'exp' | 'settle'>('exp');
   const [statOpen,        setStatOpen]        = useState(false);   // #17-2 每人分擔預設收合
   /* S-03d 未定案清單：null＝不在該畫面；'all'＝全部；否則是成員 id */
-  const [unsettledView,   setUnsettledView]   = useState<string | null>(null);
+  const qExpense     = sp.get('expense');
+  const unsettledView = sp.get('unsettled');
+  const formOpen      = newOpen || Boolean(qExpense);
+  const editExpenseId = qExpense ?? undefined;
+  const setUnsettledView = (v: string | null) => setSp(v ? { unsettled: v } : {}, { replace: true });
   const { toast: showToast } = useToast();
 
   // ── Queries ──────────────────────────────────────────────────────────────────
@@ -277,11 +284,11 @@ export default function ExpenseListPage() {
   function openTripEdit() { navigate(`/trips/${tripId}/edit`); }
   function closeTripEdit() { navigate(`/trips/${tripId}`, { replace: true }); }
 
-  function openNew() { setEditExpenseId(undefined); setFormOpen(true); }
+  function openNew() { setNewOpen(true); }
   /* 既有 bug：封存／已結算的行程原本仍點得進編輯。封存＝預設只讀，是既有決策。 */
   function openEdit(eid: string) {
     if (isArchived || isSettled) return;
-    setEditExpenseId(eid); setFormOpen(true);
+    setSp({ expense: eid }, { replace: true });
   }
 
   /* ── S-03-31／32　「⋯」是**獨立頁面**（Rozi 2026-09-06）──────────────────
@@ -503,7 +510,7 @@ export default function ExpenseListPage() {
           tripId={tripId!}
           trip={trip}
           expenseId={editExpenseId}
-          onClose={() => { setFormOpen(false); setEditExpenseId(undefined); }}
+          onClose={() => { setNewOpen(false); if (qExpense) setSp({}, { replace: true }); }}
         />
       )}
 

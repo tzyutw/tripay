@@ -52,7 +52,7 @@ function serve(dir) {
   ok(pay, '找不到「新增一種支付方式」欄，這條等於沒驗');
   ok(pay && Math.abs(pay.h - 40) <= 1, `支付方式欄高 ${pay && pay.h}px，應為 40（--h-field）`);
   const rates = inputs.filter(i => i.cls.includes('rateinput'));
-  ok(rates.length === 2, `匯率欄應有兩個，實際 ${rates.length}`);
+  ok(rates.length === 1, `匯率欄應只有一個（Q-1 兩格改一格），實際 ${rates.length}`);
   ok(rates.every(r => Math.abs(r.h - 40) <= 1), `匯率欄高 ${rates.map(r => r.h)}，應為 40（--h-field）`);
 
   /* ── 2 破框沒有壞回去（實作-J 修好的） ─────────────────────────────── */
@@ -69,21 +69,21 @@ function serve(dir) {
   /* ── 3 匯率欄位連打四鍵不失焦 ──────────────────────────────────────── */
   await go('screen=s02b');
   const typed = await p.evaluate(async () => {
-    const el = document.getElementById('rate-for');
-    if (!el) return { err: '找不到 #rate-for' };
+    const el = document.getElementById('rate-one');
+    if (!el) return { err: '找不到 #rate-one' };
     el.focus();
     const lost = [];
     const set = window.Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
     for (const ch of ['0', '.', '1', '9']) {
-      const node = document.getElementById('rate-for');
+      const node = document.getElementById('rate-one');
       set.call(node, node.value + ch);
       node.dispatchEvent(new Event('input', { bubbles: true }));
       await new Promise(r => setTimeout(r, 60));
       /* **用 isSameNode 比節點，不要比 id**——重建後 id 一樣但節點不同 */
       if (!document.activeElement || !document.activeElement.isSameNode(el)) lost.push(ch);
     }
-    return { lost, value: document.getElementById('rate-for').value,
-             sameNode: document.getElementById('rate-for').isSameNode(el) };
+    return { lost, value: document.getElementById('rate-one').value,
+             sameNode: document.getElementById('rate-one').isSameNode(el) };
   });
   if (typed.err) { ok(false, typed.err); }
   else {
@@ -107,99 +107,39 @@ function serve(dir) {
   ok(nameField && Math.abs(nameField.h - 40) <= 1,
     `行程名欄高 ${nameField && nameField.h}px，應為 40（實作-P 收斂成兩階，原本是 46）`);
 
-  /* ── 實作-O-7　匯率「填了一邊，另一邊自動帶 1」（Rozi 2026-09-06 覆蓋實作-N）──
-     實作-N 是「進畫面就依幣別預先在某一欄帶 1」。那算得出正確結果，
-     但要求使用者先接受系統挑好的那一邊。她要的是「我填哪一邊都行，另一邊自己補」。
-     `oneSideOf()` 只剩下決定 placeholder 與排序。 */
+  /* ── 實作-Q-1　匯率改成**一個空格**（Rozi 2026-09-06 拍板方案 C，覆蓋實作-O-7）──
+     方向判定、白話那一行、「換個方向」、端到端換算，全部在
+     `實作_匯率與千分位測試.cjs` 裡驗。這裡只守「舊的兩格沒有復活」。 */
   await go('screen=s02b');
-  const readRate = () => p.evaluate(() => {
-    const t = document.getElementById('rate-twd'), f = document.getElementById('rate-for');
-    return t && f ? {
-      order: [...document.querySelectorAll('.raterow')].map(r => r.dataset.side),
-      twd: { v: t.value, ph: t.placeholder }, for: { v: f.value, ph: f.placeholder },
-      hint: (document.body.textContent || '').includes('還差一欄，兩邊都填才換算得出來'),
-    } : null;
-  });
-  /* 真的用鍵盤打，不要用 el.value=…——那不會觸發 React 的 onChange */
-  const typeRate = async (side, v) => {
-    await p.click(`#rate-${side}`);
-    await p.keyboard.press('End');
-    /* 一次一個字元刪乾淨——三連點選取在 React 受控欄位上不一定生效，
-       只刪掉一個字元的話後面兩條會拿到 "0.2" 而不是 ""，看起來像功能沒做 */
-    for (let i = 0; i < 14; i++) await p.keyboard.press('Backspace');
-    if (v) await p.type(`#rate-${side}`, v, { delay: 8 });
-    await new Promise(r => setTimeout(r, 150));
-  };
-
-  const r0 = await readRate();
-  console.log(`\n   匯率（KRW）一開始：TWD v="${r0.twd.v}" ph="${r0.twd.ph}"｜` +
-              `KRW v="${r0.for.v}" ph="${r0.for.ph}"｜順序 ${r0.order}`);
-  ok(r0 !== null, '找不到匯率欄，這條等於沒驗');
-  ok(r0.twd.v === '' && r0.for.v === '', `兩欄一開始都要空，實際 TWD="${r0.twd.v}" FOR="${r0.for.v}"`);
-  /* placeholder 與排序仍照 oneSideOf 走：KRW 的「1」在台幣側 */
-  ok(r0.order[0] === 'twd', `KRW 第一列應是台幣，實際 ${r0.order[0]}`);
-  ok(r0.twd.ph === '1' && r0.for.ph !== '1',
-    `placeholder 沒跟著 oneSideOf：TWD="${r0.twd.ph}" FOR="${r0.for.ph}"`);
-
-  /* ① 在台幣欄輸入 0.21 → 外幣欄自動變 1 */
-  await typeRate('twd', '0.21');
-  const r1 = await readRate();
-  console.log(`   在台幣欄打 0.21 → TWD="${r1.twd.v}" FOR="${r1.for.v}"｜提示 ${r1.hint}`);
-  ok(r1.twd.v === '0.21', `台幣欄應為 0.21，實際 "${r1.twd.v}"`);
-  ok(r1.for.v === '1', `另一欄應自動帶 1，實際 "${r1.for.v}"`);
-  ok(!r1.hint, '兩欄都有值了還在提示「還差一欄」');
-
-  /* ② 把來源欄清空 → 自動的 1 也要跟著消失，不留殘值 */
-  await typeRate('twd', '');
-  const r2 = await readRate();
-  console.log(`   清空台幣欄 → TWD="${r2.twd.v}" FOR="${r2.for.v}"`);
-  ok(r2.twd.v === '' && r2.for.v === '',
-    `來源清空後自動的 1 要跟著清掉，實際 TWD="${r2.twd.v}" FOR="${r2.for.v}"`);
-
-  /* ③ 改在外幣欄輸入 → 台幣欄自動變 1（哪一邊都行） */
-  await typeRate('for', '45');
-  const r3 = await readRate();
-  console.log(`   改在外幣欄打 45 → TWD="${r3.twd.v}" FOR="${r3.for.v}"`);
-  ok(r3.for.v === '45', `外幣欄應為 45，實際 "${r3.for.v}"`);
-  ok(r3.twd.v === '1', `台幣欄應自動帶 1，實際 "${r3.twd.v}"`);
-
-  /* JPY：placeholder 與排序換邊，但「1」一樣是跟著輸入自動補的 */
-  await go('screen=s02b&cur=JPY');
-  const j0 = await readRate();
-  console.log(`   匯率（JPY）一開始：順序 ${j0.order}｜TWD ph="${j0.twd.ph}"｜JPY ph="${j0.for.ph}"`);
-  ok(j0 !== null, 'JPY 模式找不到匯率欄，這條等於沒驗');
-  ok(j0.order[0] === 'for', `JPY 的「1」在外幣側，第一列應是 for，實際 ${j0.order[0]}`);
-  ok(j0.twd.v === '' && j0.for.v === '', 'JPY 模式兩欄一開始也要空');
-  /* **與寫死 isTwd 相反**：JPY 行程時 placeholder 的 1 在 JPY 那欄，不在台幣欄 */
-  ok(j0.for.ph === '1', `JPY 欄 placeholder 應為 1，實際 "${j0.for.ph}"`);
-  ok(j0.twd.ph !== '1', `台幣欄 placeholder 不該是 1（那正是誤導 Rozi 的地方），實際 "${j0.twd.ph}"`);
-  await typeRate('twd', '0.21');
-  const j1 = await readRate();
-  console.log(`   JPY 在台幣欄打 0.21 → TWD="${j1.twd.v}" JPY="${j1.for.v}"`);
-  ok(j1.for.v === '1', `JPY 欄應自動帶 1，實際 "${j1.for.v}"`);
-
-  /* 兩欄都填好時不再提示 */
-  await go('screen=s02b&rate=full');
-  const full = await p.evaluate(() => ({
-    twd: document.getElementById('rate-twd').value,
-    for: document.getElementById('rate-for').value,
-    hint: (document.body.textContent || '').includes('還差一欄'),
+  const oneBox = await p.evaluate(() => ({
+    n: document.querySelectorAll('.rateinput').length,
+    one: !!document.getElementById('rate-one'),
+    old: !!document.getElementById('rate-twd') || !!document.getElementById('rate-for'),
   }));
-  console.log(`   匯率兩欄都填：TWD="${full.twd}" KRW="${full.for}"｜提示 ${full.hint}`);
-  ok(full.twd === '1' && full.for === '0.21', '兩欄的值沒有帶進來');
-  ok(!full.hint, '兩欄都有值還在提示');
+  console.log(`\n   匯率欄：.rateinput ${oneBox.n} 個｜#rate-one ${oneBox.one}｜舊的兩格還在 ${oneBox.old}`);
+  ok(oneBox.one, '找不到 #rate-one，這條等於沒驗');
+  ok(oneBox.n === 1, `.rateinput 應只有 1 個，實際 ${oneBox.n}`);
+  ok(!oneBox.old, '舊的兩格復活了（實作-O-7 已被 Q-1 推翻）');
 
   /* 端到端：外幣 5000、台幣空 → 有匯率就要換算出 round(5000/0.21) */
-  for (const [q, want] of [['screen=s03', '還沒填'], ['screen=s03&rate=full', '$ 23,810']]) {
+  /* 期望值由**這一趟真正的兩欄**算出來，不寫死——`?rate=full` 的假資料在實作-Q
+     改成「照該幣別正確的方向」組出來（KRW 是 1 台幣 = 43 韓元），
+     寫死 23,810 的舊期望值其實是**方向反了**才會出現的數字。 */
+  for (const [q, want] of [['screen=s03', '還沒填'], ['screen=s03&rate=full', null]]) {
     await go(q);
     const cell = await p.evaluate(() => {
       const row = [...document.querySelectorAll('.exprow')]
         .find(r => r.textContent.includes('只有外幣的一筆'));
       return row ? row.querySelector('.a').textContent.trim() : null;
     });
-    console.log(`   ${q.padEnd(22)} 只有外幣的一筆 → ${JSON.stringify(cell)}`);
+    const exp = want ?? await p.evaluate(() => {
+      const t = window.__TRIP__;
+      const rate = Number(t.cash_rate_foreign) / Number(t.cash_rate_twd);
+      return '$ ' + Math.round(5000 / rate).toLocaleString('en-US');
+    });
+    console.log(`   ${q.padEnd(22)} 只有外幣的一筆 → ${JSON.stringify(cell)}（期望 ${JSON.stringify(exp)}）`);
     ok(cell !== null, `${q} 找不到那一列，這條等於沒驗`);
-    ok(cell === want, `${q} 應顯示 "${want}"，實際 "${cell}"`);
+    ok(cell === exp, `${q} 應顯示 "${exp}"，實際 "${cell}"`);
   }
 
   /* ── 追加：類別 emoji 的識別圓圈（Rozi 2026-09-06）────────────────────── */

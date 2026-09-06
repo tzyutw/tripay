@@ -1,70 +1,75 @@
-/* B-1②　S-02b-12「這趟的現金匯率」——**只有兩個輸入框**。
-   「1」擺哪一欄依幣別決定（規格 §2b.3a）：台灣人講匯率會選數字好記的方向，
-   1 單位外幣不到 0.1 台幣時改成「1 台幣 = N 外幣」。**「1」的那一欄排在上面。**
-   刷卡不走這個匯率，直接填台幣。 */
-import { FLAG, decimalsFor, oneSideOf } from '@/lib/currencyTable';
+/* 實作-Q-1　S-02b-12「這趟的現金匯率」——**只有一個輸入框**。
+ *
+ * 🔴 為什麼從兩格改成一格（Rozi 2026-09-06 拍板方案 C）：
+ * 兩格讓使用者可以組出**方向相反**的兩個數字，而系統無從分辨。
+ * 她想的是「1 日幣 = 0.21 台幣」，系統讀成「1 台幣 = 0.21 日幣」，
+ * 於是 308500 日圓被存成 1,469,048 台幣（正確 64,785），
+ * 而且 `twd_pending=false`——**錯的值被當成確定值寫進資料庫，全程沒有警告**。
+ *
+ * 現在：填一個數字 → 依幣別量級判方向（`rateDirection`）→
+ * **用一行白話把系統的理解攤開**，判錯時按「換個方向」救得回來。
+ * 只顯示不給救，跟不顯示一樣糟。
+ */
+import { FLAG, decimalsFor, currencyName, TWD_PER_UNIT, type RateDir } from '@/lib/currencyTable';
 
 export interface CashRateProps {
   currency: string;
-  rateTwd: string;
-  rateFor: string;
-  onChange: (side: 'twd' | 'for', v: string) => void;
+  /** 使用者填的那一個數字（原字串，可能還在打） */
+  value: string;
+  /** 目前採用的方向。null＝還沒填或判不出來 */
+  dir: RateDir | null;
+  onChange: (v: string) => void;
+  onFlip: () => void;
 }
 
 /**
- * 一列匯率。**必須定義在 `CashRate` 外面**——
- * 在元件內部宣告的函式元件，每次父層 render 都是一個**全新的函式參考**，
- * React 會視為不同的元件型別 → 卸載舊 DOM、掛新的 → `<input>` 被銷毀重建 →
- * 焦點消失 → iOS 鍵盤收起來。打一個字就收一次，「0.19」要點四次。
- *
- * 原型早就寫過這條鐵律（`Tripay_原型.html:2219`）：
- * 「只更新衍生內容——**不重建任何 input**」。
- * ⚠️ 用 `useCallback` 包**沒有用**——那解決不了「元件型別每次都不同」這件事。
+ * placeholder 給那個幣別的**量級範例**——由 `TWD_PER_UNIT` 推，不要寫死一張表。
+ * 講法選數字好記的那一邊（與 `oneSideOf` 同一條規則）：
+ * 1 外幣不到 0.1 台幣時給倒數，才不會叫使用者填 `0.023`。
  */
-function RateRow({ side, currency, dec, rateTwd, rateFor, onChange }: {
-  side: 'twd' | 'for'; currency: string; dec: number;
-  rateTwd: string; rateFor: string;
-  onChange: (side: 'twd' | 'for', v: string) => void;
-}) {
-  const isTwd = side === 'twd';
-  const code = isTwd ? 'TWD' : currency;
-  /* placeholder 要跟著 `oneSideOf` 走，不能寫死「台幣那欄是 1」。
-     JPY 是「1 日圓 = N 台幣」，所以 1 在 **JPY** 那欄；KRW 才是 1 在台幣那欄。
-     寫死的話 JPY 行程會在台幣欄顯示灰色的「1」，看起來像已經填好了。 */
-  const isOne = oneSideOf(currency) === side;
-  return (
-    <div className="raterow" data-side={side}>
-      <span className="flag">{FLAG[code] || '🏳️'}</span>
-      <input
-        type="text" inputMode="decimal" className="rateinput" id={`rate-${side}`}
-        value={isTwd ? rateTwd : rateFor}
-        placeholder={isOne ? '1' : (dec ? '0.00' : '0')}
-        autoComplete="off"
-        onChange={e => onChange(side, e.target.value)}
-      />
-      <span className="code">{code}</span>
-    </div>
-  );
+export function ratePlaceholder(code: string): string {
+  const p = TWD_PER_UNIT[code];
+  if (!p) return decimalsFor(code) ? '0.00' : '0';
+  const n = p < 0.1 ? 1 / p : p;
+  return n >= 10 ? String(Math.round(n)) : String(Number(n.toPrecision(2)));
 }
 
-export default function CashRate({ currency, rateTwd, rateFor, onChange }: CashRateProps) {
-  const dec = decimalsFor(currency);
-  const first = oneSideOf(currency) === 'twd' ? 'twd' : 'for';
-  const second = first === 'twd' ? 'for' : 'twd';
-  const rowProps = { currency, dec, rateTwd, rateFor, onChange };
-  const hasTwd = rateTwd.trim() !== '', hasFor = rateFor.trim() !== '';
-  const halfFilled = hasTwd !== hasFor;
+export default function CashRate({ currency, value, dir, onChange, onFlip }: CashRateProps) {
+  const code = currency;
+  const filled = value.trim() !== '' && dir != null;
+  const name = currencyName(code);
+  /* 白話那一行：把系統的理解攤開。幣別名走 currencyName()，不要自己寫中文。 */
+  const plain = dir === 'for-unit'
+    ? `1 ${name} ＝ ${value} 台幣`
+    : `1 台幣 ＝ ${value} ${name}`;
+
   return (
     <div className="fld">
       <span className="lbl">這趟的現金匯率</span>
       <p className="hint" style={{ margin: '-2px 0 9px' }}>在當地換錢後填一次就好</p>
       <div className="ratebox">
-        <RateRow side={first} {...rowProps} />
-        <RateRow side={second} {...rowProps} />
+        <div className="raterow" data-side="one">
+          <span className="flag">{FLAG[code] || '🏳️'}</span>
+          <input
+            type="text" inputMode="decimal" className="rateinput" id="rate-one"
+            aria-label="這趟的現金匯率"
+            value={value}
+            placeholder={ratePlaceholder(code)}
+            autoComplete="off"
+            onChange={e => onChange(e.target.value)}
+          />
+          <span className="code">{code}</span>
+        </div>
       </div>
-      {/* 只填一欄時 `tripRate()` 算不出來，先前是**靜默**的——
-          Rozi 填了 0.19 卻一直看到「還沒填」，畫面沒說少了什麼。 */}
-      {halfFilled && <p className="hint">還差一欄，兩邊都填才換算得出來</p>}
+      {filled ? (
+        <p className="hint" style={{ marginTop: 7 }}>
+          <b style={{ color: 'var(--ink)' }}>{plain}</b>
+          {' '}
+          <button type="button" className="ratelink" onClick={onFlip}>換個方向</button>
+        </p>
+      ) : (
+        <p className="hint">填一個數字就好，方向由系統判斷；判錯可以按「換個方向」</p>
+      )}
       <p className="hint">刷卡不用這個匯率，直接填台幣</p>
     </div>
   );

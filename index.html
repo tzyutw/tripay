@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/pwa-icon.svg" />
+    <!-- iOS「加入主畫面」讀的是這一行的 **PNG**，不吃 SVG。
+         沒有它，iOS 會退回別的來源、而且**用 URL 當快取鍵**——
+         `pwa-icon.svg` 檔名沒變，所以刪掉重加也還是舊圖。
+         檔名帶 `-v2` 就是為了讓它重抓。 -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-v2.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1276C4" />
     <title>Tripay</title>

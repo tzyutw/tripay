@@ -168,14 +168,15 @@ describe('B-1　S-02b 編輯行程', () => {
     expect(document.querySelectorAll('.chkchip')).toHaveLength(0);
   });
 
-  it('現金匯率只有兩個輸入框，「1」那一欄排在上面', async () => {
+  /* 實作-Q-1：兩格改一格（Rozi 拍板方案 C）。placeholder 給該幣別的量級範例，
+     KRW 是「1 台幣 = 43 韓元」那個方向，所以是 43 而不是 0.023。 */
+  it('現金匯率只有一個輸入框，placeholder 是該幣別的量級範例', async () => {
     open();
     await waitFor(() => expect(screen.getAllByText('KRW').length).toBeGreaterThan(0));
     const inputs = document.querySelectorAll('.ratebox .rateinput');
-    expect(inputs).toHaveLength(2);
-    /* KRW：1 韓元不到 0.1 台幣 → 講法是「1 台幣 = N 韓元」，所以 TWD 那欄在上 */
-    expect(document.querySelectorAll('.raterow')[0].getAttribute('data-side')).toBe('twd');
-    expect((inputs[0] as HTMLInputElement).placeholder).toBe('1');
+    expect(inputs).toHaveLength(1);
+    expect(document.querySelectorAll('.raterow')[0].getAttribute('data-side')).toBe('one');
+    expect((inputs[0] as HTMLInputElement).placeholder).toBe('43');
   });
 
   /* 實作-O-5（Rozi 2026-09-06）：「按編輯行程的時候，我想到介面應該跟建立新行程的
@@ -420,95 +421,103 @@ describe('L-③　S-02b-14 行程名稱', () => {
 });
 
 /* ══════════════════════════════════════════════════════════════
-   實作-N-1　現金匯率的「1」要自動帶值（Rozi 填了 0.19 卻一直算不出來）
+   實作-Q-1　匯率改成「一個空格＋系統判方向」（Rozi 2026-09-06 拍板方案 C）
+
+   推翻實作-O 的「填一邊、另一邊自動帶 1」：那讓使用者可以組出**方向相反**
+   的兩個數字，而系統無從分辨——308500 日圓被存成 1,469,048 台幣
+   （正確 64,785）而且 twd_pending=false，錯的值被當成確定值寫進資料庫。
    ══════════════════════════════════════════════════════════════ */
-describe('O-⑦　匯率「填了一邊，另一邊自動帶 1」', () => {
-  /* Rozi 2026-09-06 覆蓋實作-N 的做法。
-     實作-N 是「進畫面就依幣別預先在某一欄帶 1」——算得出正確結果，
-     但要求使用者先接受系統挑好的那一邊。她要的是「我填哪一邊都行，另一邊自己補」。 */
-  it('既有資料照原樣載入，**不替使用者猜方向補 1**', async () => {
-    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
-    await waitFor(() => expect(
-      (document.getElementById('rate-for') as HTMLInputElement)?.value).toBe('0.19'));
-    /* 她把 0.19 填在外幣欄。這裡若自動補台幣 = 1，rate 會變成 0.19 而不是 1/0.19
-       ——差 25 倍，而且完全靜默。半填就維持半填，讓提示出來由她自己補。 */
-    expect((document.getElementById('rate-twd') as HTMLInputElement).value).toBe('');
-    expect(screen.getByText('還差一欄，兩邊都填才換算得出來')).toBeInTheDocument();
+describe('Q-①b　方向判定：跟幣別量級比，不是跟 1 比', () => {
+  it('逐條給值', async () => {
+    const { rateDirection } = await import('@/lib/currencyTable');
+    /* Rozi 的直覺（小於 1 用乘、大於 1 用除）在這些幣別上是對的 */
+    expect(rateDirection('JPY', 0.21)).toBe('for-unit');
+    expect(rateDirection('KRW', 45)).toBe('twd-unit');
+    /* 但在美元／人民幣這種「1 外幣值很多台幣」的幣別上會反——
+       她填「美元匯率 32」，照跟 1 比會變成 1 台幣 = 32 美元 */
+    expect(rateDirection('USD', 32)).toBe('for-unit');
+    expect(rateDirection('CNY', 4.4)).toBe('for-unit');
+    /* 反過來填也要判得出來 */
+    expect(rateDirection('JPY', 4.76)).toBe('twd-unit');
+    /* 判不出來就不判定，維持「還沒設匯率」——不要猜 */
+    expect(rateDirection('JPY', 0)).toBeNull();
+    expect(rateDirection('JPY', -1)).toBeNull();
+    expect(rateDirection('JPY', NaN)).toBeNull();
+    expect(rateDirection('ZZZ', 5)).toBeNull();
   });
 
-  it('填任一欄 → 另一欄自動變 1；清空來源 → 那個 1 也消失', async () => {
-    const { nextRate } = await import('./TripFormSheet');
-    let r = { twd: '', for: '', auto: null as 'twd' | 'for' | null };
-    /* ① 在台幣欄輸入 → 外幣欄自動帶 1 */
-    r = nextRate(r, 'twd', '0.21');
-    expect(r).toEqual({ twd: '0.21', for: '1', auto: 'for' });
-    /* ② 清空來源 → 自動的 1 跟著清掉，不留殘值 */
-    r = nextRate(r, 'twd', '');
-    expect(r).toEqual({ twd: '', for: '', auto: null });
-    /* ③ 改在外幣欄輸入 → 台幣欄自動帶 1（哪一邊都行） */
-    r = nextRate(r, 'for', '45');
-    expect(r).toEqual({ twd: '1', for: '45', auto: 'twd' });
-    /* ④ 使用者自己動過那個 1 → 它就不再是自動的，之後不會被清掉 */
-    r = nextRate(r, 'twd', '2');
-    expect(r.auto).toBeNull();
-    r = nextRate(r, 'for', '');
-    expect(r, '動過的值不該被當成自動值清掉').toEqual({ twd: '2', for: '', auto: null });
+  it('N === 1 是平手，沿用既有的 oneSideOf，不另定規則', async () => {
+    const { rateDirection, oneSideOf } = await import('@/lib/currencyTable');
+    for (const code of ['JPY', 'KRW', 'USD'])
+      expect(rateDirection(code, 1)).toBe(oneSideOf(code) === 'for' ? 'for-unit' : 'twd-unit');
   });
 
-  it('畫面上真的會自動帶：在台幣欄打字，外幣欄變 1', async () => {
-    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
-    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
-    const twd = document.getElementById('rate-twd') as HTMLInputElement;
-    const forr = document.getElementById('rate-for') as HTMLInputElement;
-    expect(twd.value, '建立頁兩欄一開始都要空').toBe('');
-    expect(forr.value).toBe('');
-    fireEvent.change(twd, { target: { value: '0.21' } });
-    expect((document.getElementById('rate-for') as HTMLInputElement).value).toBe('1');
-  });
-
-  it('placeholder 跟著 oneSideOf 走，不是寫死「台幣那欄是 1」', async () => {
-    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
-    await waitFor(() => expect(
-      (document.getElementById('rate-twd') as HTMLInputElement)?.placeholder).toBe('1'));
-    const twd = document.getElementById('rate-twd') as HTMLInputElement;
-    const forr = document.getElementById('rate-for') as HTMLInputElement;
-    /* KRW：1 在台幣側 → 台幣 placeholder 是 1、外幣側不是 */
-    expect(twd.placeholder).toBe('1');
-    expect(forr.placeholder).not.toBe('1');
-  });
-
-  it('只填一欄時出提示；兩欄都有值或都空時不出', async () => {
-    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
-    await waitFor(() => expect(
-      (document.getElementById('rate-for') as HTMLInputElement)?.value).toBe('0.19'));
-
-    /* 載入既有資料：外幣 0.19、台幣空 → 只填一欄 → 要有提示 */
-    expect(screen.getByText('還差一欄，兩邊都填才換算得出來')).toBeInTheDocument();
-
-    /* 一動它，另一欄就自動補 1 → 提示消失 */
-    fireEvent.change(document.getElementById('rate-for')!, { target: { value: '0.21' } });
-    expect(screen.queryByText('還差一欄，兩邊都填才換算得出來'),
-      '兩欄都有值就不該再提示').toBeNull();
-
-    /* 兩欄都空是還沒開始填，不提示 */
-    fireEvent.change(document.getElementById('rate-for')!, { target: { value: '' } });
-    expect(screen.queryByText('還差一欄，兩邊都填才換算得出來')).toBeNull();
-  });
-
-  it('`oneSideOf` 只剩下決定 placeholder 與排序，不再決定「1」放哪一欄', async () => {
-    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
-    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
-    const { oneSideOf } = await import('@/lib/currencyTable');
-    expect(oneSideOf('JPY')).toBe('for');
-    expect(oneSideOf('KRW')).toBe('twd');
-    /* 建立頁預設 JPY：實作-N 會在外幣欄預先填 1，現在**兩欄都要空** */
-    expect((document.getElementById('rate-for') as HTMLInputElement).value).toBe('');
-    expect((document.getElementById('rate-twd') as HTMLInputElement).value).toBe('');
-    /* 但 placeholder 仍照 oneSideOf 走：JPY 的 1 在外幣側 */
-    expect((document.getElementById('rate-for') as HTMLInputElement).placeholder).toBe('1');
+  it('一個數字＋方向 → trips 那兩欄，換算結果與 tripRate() 對得起來', async () => {
+    const { rateColumns, rateFromColumns } = await import('@/lib/currencyTable');
+    const { tripRate } = await import('@/lib/summary');
+    /* JPY 0.21 → 1 日圓 = 0.21 台幣 → 308500 日圓 = 64,785 台幣 */
+    const jpy = rateColumns(0.21, 'for-unit');
+    expect(jpy).toEqual({ cash_rate_foreign: 1, cash_rate_twd: 0.21 });
+    expect(Math.round(308500 / tripRate(jpy as never)!)).toBe(64785);
+    /* KRW 45 → 1 台幣 = 45 韓元 → 45000 韓元 = 1,000 台幣 */
+    const krw = rateColumns(45, 'twd-unit');
+    expect(krw).toEqual({ cash_rate_twd: 1, cash_rate_foreign: 45 });
+    expect(Math.round(45000 / tripRate(krw as never)!)).toBe(1000);
+    /* USD 32 → 1 美元 = 32 台幣 → 3200 美元 = 102,400 台幣 */
+    const usd = rateColumns(32, 'for-unit');
+    expect(Math.round(3200 / tripRate(usd as never)!)).toBe(102400);
+    /* 空值不寫任何東西 */
+    expect(rateColumns(null, 'for-unit')).toEqual({ cash_rate_twd: null, cash_rate_foreign: null });
+    expect(rateColumns(0.21, null)).toEqual({ cash_rate_twd: null, cash_rate_foreign: null });
+    /* 讀回來要還原成同一組 */
+    expect(rateFromColumns(jpy)).toEqual({ n: 0.21, dir: 'for-unit' });
+    expect(rateFromColumns(krw)).toEqual({ n: 45, dir: 'twd-unit' });
+    /* 兩欄都不是 1 的舊資料 → 換算成方向一 */
+    expect(rateFromColumns({ cash_rate_twd: 2, cash_rate_foreign: 4 }))
+      .toEqual({ n: 0.5, dir: 'for-unit' });
   });
 });
 
+describe('Q-①a　畫面：一個空格＋白話那一行＋換個方向', () => {
+  it('只有一個輸入框（反向斷言，防兩個空格都留著）', async () => {
+    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟的現金匯率')).toBeInTheDocument());
+    expect(document.querySelectorAll('.rateinput').length).toBe(1);
+    expect(document.getElementById('rate-twd'), '舊的兩格還在').toBeNull();
+    expect(document.getElementById('rate-for')).toBeNull();
+  });
+
+  it('既有資料還原成「一個數字＋方向」', async () => {
+    /* fixture：cash_rate_foreign 0.19、cash_rate_twd null → 兩欄湊不成匯率 → 空 */
+    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟的現金匯率')).toBeInTheDocument());
+    expect((document.getElementById('rate-one') as HTMLInputElement).value).toBe('');
+  });
+
+  it('填 0.21 → 出現「1 日圓 ＝ 0.21 台幣」；按「換個方向」→ 變成「1 台幣 ＝ 0.21 日圓」', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+    const one = document.getElementById('rate-one') as HTMLInputElement;
+    expect(one.value, '一開始要空').toBe('');
+    fireEvent.change(one, { target: { value: '0.21' } });
+    expect(screen.getByText('1 日圓 ＝ 0.21 台幣')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('換個方向'));
+    expect(screen.getByText('1 台幣 ＝ 0.21 日圓')).toBeInTheDocument();
+  });
+
+  it('按過「換個方向」之後再改數字，不會被自動判定翻回去', async () => {
+    const { nextRate, flipRate } = await import('./TripFormSheet');
+    let r = nextRate({ n: '', dir: null, flipped: false }, 'JPY', '0.21');
+    expect(r.dir).toBe('for-unit');
+    r = flipRate(r);
+    expect(r).toEqual({ n: '0.21', dir: 'twd-unit', flipped: true });
+    r = nextRate(r, 'JPY', '0.22');
+    expect(r.dir, '改一個字方向就跳回去的話，使用者救不回來').toBe('twd-unit');
+    /* 清空就整組歸零 */
+    r = nextRate(r, 'JPY', '');
+    expect(r).toEqual({ n: '', dir: null, flipped: false });
+  });
+});
 
 /* ══════════════════════════════════════════════════════════════
    實作-O-6c　停止條件 18（Cowork 2026-09-06 清點後補上）
