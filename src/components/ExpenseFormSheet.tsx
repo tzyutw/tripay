@@ -82,6 +82,9 @@ export function saveToastFor({ pending, blanks }: { pending: boolean; blanks: st
   return '記下來了';
 }
 
+/** 類別 emoji 的識別圓圈尺寸。**未編輯與編輯中共用同一個**，否則切換時整列會跳。 */
+const EMOJI_BOX = { width: 28, height: 28 } as const;
+
 interface Props {
   tripId: string;
   trip: TripWithMembers;
@@ -358,16 +361,21 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
         {/* S-04-2／S-04-3 */}
         <div className="fld">
           <div className="fieldrow">
+            {/* S-04-3　類別 emoji：**未編輯時也要有識別圓圈**（Rozi 2026-09-06 追加）。
+                先前是裸的 emoji，看不出可以點；成員識別（`<Avatar>`）一直都有框。
+                互動本來就共用 `useInlineEdit`，這一輪只補外觀。
+                ⚠️ 兩種狀態**共用同一個尺寸**（`EMOJI_BOX`），
+                切換編輯時外框大小不變——變了整列會跳動。 */}
             {inline.editing === 'exp' ? (
-              <span className="avatar" style={{ width: 24, height: 24 }}>
+              <span className="avatar" style={EMOJI_BOX}>
                 <input ref={inline.inputRef} type="text" maxLength={4} defaultValue=""
                   aria-label="類別 emoji"
                   onBlur={e => inline.commit(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && inline.commit(e.currentTarget.value)} />
               </span>
             ) : (
-              <button type="button" aria-label="類別 emoji" onClick={() => inline.begin('exp')}
-                className="text-title flex-none w-[22px] text-center leading-normal">
+              <button type="button" className="avatar" style={EMOJI_BOX}
+                aria-label="類別 emoji" onClick={() => inline.begin('exp')}>
                 {f.emoji}
               </button>
             )}

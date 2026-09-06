@@ -168,6 +168,36 @@ function serve(dir) {
     ok(cell === want, `${q} 應顯示 "${want}"，實際 "${cell}"`);
   }
 
+  /* ── 追加：類別 emoji 的識別圓圈（Rozi 2026-09-06）────────────────────── */
+  await go('screen=s04');
+  const box = async () => p.evaluate(() => {
+    const el = document.querySelector('[aria-label="類別 emoji"]');
+    if (!el) return null;
+    const b = el.classList.contains('avatar') ? el : el.closest('.avatar');
+    if (!b) return { avatar: false };
+    const r = b.getBoundingClientRect(), row = el.closest('.fieldrow');
+    return { avatar: true, w: +r.width.toFixed(1), h: +r.height.toFixed(1),
+             row: +row.getBoundingClientRect().height.toFixed(1),
+             focus: document.activeElement ? document.activeElement.tagName : null };
+  });
+  const before = await box();
+  await p.evaluate(() => document.querySelector('[aria-label="類別 emoji"]').click());
+  await new Promise(r => setTimeout(r, 300));
+  const after = await box();
+  console.log(`\n   類別 emoji：未編輯 ${before && before.w}×${before && before.h} 列高 ${before && before.row}｜` +
+              `編輯中 ${after && after.w}×${after && after.h} 列高 ${after && after.row}｜焦點 ${after && after.focus}`);
+  ok(before !== null, '找不到類別 emoji，這條等於沒驗');
+  ok(before.avatar, '類別 emoji 未編輯時沒有識別圓圈（.avatar）');
+  ok(before.w === before.h, `圓圈不是正方 ${before.w}×${before.h}`);
+  ok(before.w >= 24 && before.w <= 28, `圓圈 ${before.w}px，應介於 24–28`);
+  ok(after.avatar, '編輯狀態沒有 .avatar');
+  ok(Math.abs(after.w - before.w) <= 1 && Math.abs(after.h - before.h) <= 1,
+    `切換編輯時外框大小變了：${before.w}×${before.h} → ${after.w}×${after.h}（整列會跳動）`);
+  ok(after.focus === 'INPUT', `點了之後焦點應在 input，實際 ${after.focus}`);
+  /* 列高在兩種狀態相同，且與改動前（46.0）差 ≤2 */
+  ok(before.row === after.row, `列高在兩種狀態不同：${before.row} vs ${after.row}`);
+  ok(Math.abs(before.row - 46) <= 2, `列高 ${before.row}，與改動前的 46 差超過 2px`);
+
   /* ── 5 「⋯」是獨立頁面 ─────────────────────────────────────────────── */
   await go('screen=s03more');
   const more = await p.evaluate(() => ({
@@ -190,7 +220,7 @@ function serve(dir) {
   ok(more.del === 1, `刪除應是唯一著色的一項，實際 ${more.del}`);
 
   /* ── 6 s02b 與 more 在三個寬度下不橫向溢出 ─────────────────────────── */
-  for (const scr of ['s02b', 's03more']) {
+  for (const scr of ['s02b', 's03more', 's04']) {
     for (const w of [320, 390, 414]) {
       await p.setViewport({ width: w, height: 844, isMobile: true, hasTouch: true });
       await go(`screen=${scr}`);

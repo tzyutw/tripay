@@ -2276,9 +2276,12 @@ function renderS04() {
       <input type="date" id="e-date" value="${g.date}"></div></div>`);
 
   h += b('S-04-2', `<div class="fld"><div class="fieldrow">
+      ${/* S-04-3　類別 emoji：**未編輯時也要有識別圓圈**（Rozi 2026-09-06 追加）。
+            先前是裸的 emoji，看不出可以點；成員識別一直都有框。
+            兩種狀態共用 28px，切換時外框不變大小——變了整列會跳動。 */''}
       ${b('S-04-3', editing === 'exp:g'
-          ? `<span class="avatar" style="width:24px;height:24px;font-size:var(--fs-title)">${inlineEditInput('exp:g')}</span>`
-          : `<button data-av="exp:g" style="font-size:var(--fs-title);line-height:1.5;width:22px;text-align:center;flex:none">${g.emoji}</button>`, 'inl')}
+          ? `<span class="avatar" style="width:28px;height:28px">${inlineEditInput('exp:g')}</span>`
+          : `<button class="avatar" data-av="exp:g" style="width:28px;height:28px">${g.emoji}</button>`, 'inl')}
       <span class="lbl" style="width:46px">花費</span>
       <input type="text" id="e-title" value="${esc(g.title)}" placeholder="例如：藥妝店"></div></div>`);
 
@@ -2676,7 +2679,7 @@ Object.assign(INDEX, {
   s04: [
     ['S-04-1','標題','st','新增＝記一筆／編輯＝編輯消費。<b>改（#30-2）</b>：關閉鍵改用 <code>.ic2</code>'],
     ['S-04-2','什麼花費？','op','必填'],
-    ['S-04-3','類別 emoji','op','<b>改（#27-6b）</b>：改成<b>可點的就地編輯</b>——點一下變單字元輸入框、自動聚焦、輸入後自動存檔收合，<b>與 S-02c-11 共用同一個處理函式</b>（<code>beginInlineEdit()</code>／<code>commitInlineEdit()</code>），不做第二種寫法。<br>原本工作清單寫「複用既有 EmojiPicker」，但同一份檔案又裁示刪掉 EmojiPicker——兩條互斥，改用就地編輯。<br><b>手動指定優先於自動推斷</b>：改過之後再改標題不會被蓋回去'],
+    ['S-04-3','類別 emoji','op','<b>改（#27-6b）</b>：改成<b>可點的就地編輯</b>——點一下變單字元輸入框、自動聚焦、輸入後自動存檔收合，<b>與 S-02c-11 共用同一個處理函式</b>（<code>beginInlineEdit()</code>／<code>commitInlineEdit()</code>），不做第二種寫法。<br>原本工作清單寫「複用既有 EmojiPicker」，但同一份檔案又裁示刪掉 EmojiPicker——兩條互斥，改用就地編輯。<br><b>手動指定優先於自動推斷</b>：改過之後再改標題不會被蓋回去。<br><b>改（Rozi 2026-09-06）</b>：<b>未編輯時也要有識別圓圈</b>（28px `.avatar`，與成員識別同一個視覺）——原本是裸的 emoji，看不出可以點。兩種狀態共用同一個尺寸，切換時外框不變'],
     ['S-04-4','金額區塊','op','外幣與台幣兩欄。<b>改（#29-2）</b>：placeholder 改成 <code>0</code>（原本兩欄都寫同一句「你被允許不填」）——placeholder 該放的是「這格長什麼樣子」，不是「你被允許不填」；而且兩欄寫同一個詞，分不出哪格是哪種幣別。真正有用的那句「填一邊就好」改成整個區塊講一次'],
     ['S-04-5','外幣總額','op','欄位上標明幣別（P1-0 的根因就是沒標）'],
     ['S-04-6','台幣總額','op','空白＝整筆待填，結算跳過；現金會用行程匯率換算後填進 placeholder'],
