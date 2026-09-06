@@ -462,7 +462,11 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .expandbtn{border:1px solid var(--w);color:var(--wi);font-size:var(--fs-body);font-weight:600;
   padding:6px 10px;border-radius:var(--r-base);flex:none}
 .ui .paysep{width:1px;align-self:stretch;background:var(--ln);margin:0 2px}
-.ui .ratelink{color:var(--wi);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:2px}
+.ui .ratelink{color:var(--wi);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:2px;
+  /* 實作-R-1a　純文字鈕只有 19px 高，手指按不到（Rozi：「按『換個方向』沒有反應」
+     ——功能是好的，是太矮）。內距把可點區撐到 45×76，
+     等量負外距讓看得見的字**停在原位**，周圍排版完全不動。 */
+  padding:13px 12px;margin:-13px -12px}
 /* #31-8 停用態：不給白色 pill、字降到三階（--gr 對底軌 #E2E4DD 實測 3.6:1，
    仍讀得出來但明顯弱於可按的 --md 6.2:1），再加 not-allowed。
    下方的 hint 已經寫了為什麼不能按，兩者一起才夠。 */

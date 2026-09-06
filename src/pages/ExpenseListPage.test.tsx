@@ -250,30 +250,54 @@ describe('B-3　S-03d 未定案清單', () => {
   });
 });
 
-describe('B-3　既有 bug：封存／已結算不得點進編輯', () => {
-  it('封存的行程點消費列不會開表單', async () => {
+/* ══════════════════════════════════════════════════════════════
+   實作-R-4　**封存唯讀、已結算可編輯**
+
+   這一組原本叫「既有 bug：封存／已結算不得點進編輯」，把做反的行為鎖住了。
+   `畫面地圖.md:118` 的行程狀態表白紙黑字：已結算 → 列表唯讀
+   （**點擊仍可編輯，重新計算**）；封存那一列才沒有那個括號。
+   `規格_金額未定案與幣別.md` §5.6 對已結算／已封存只規定
+   「不顯示約、不顯示未定案入口、不做結算前檢查」，**一個字都沒提唯讀**。
+   ══════════════════════════════════════════════════════════════ */
+describe('R-④　封存唯讀、已結算可編輯', () => {
+  it('封存：列點得下去但不開表單，改跳「重新開啟行程」那句', async () => {
     state.trips = [{ ...trip, status: 'archived' }];
     render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
     await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 
-    /* 唯讀態的列本來就渲染成 div——先確認真的有列，否則這條會在「沒有列」時假通過 */
+    /* 先確認真的有列，否則這條會在「沒有列」時假通過 */
     const rows = [...document.querySelectorAll('.exprow')];
     expect(rows.length).toBeGreaterThan(0);
-    expect(rows.every(r => r.tagName === 'DIV')).toBe(true);
+    /* 現在是 <button>——點了完全沒反應跟壞掉分不出來，所以要點得下去、要講話 */
+    expect(rows.every(r => r.tagName === 'BUTTON')).toBe(true);
+    fireEvent.click(rows[0]);
+    expect(flat(), '封存態不該開編輯表單').not.toContain('記下來');
+    expect(screen.getByText('這趟封存了。要改的話，先按下面的「重新開啟行程」')).toBeInTheDocument();
     /* 封存態底部是「重新開啟行程」，不是「記一筆」 */
     expect(document.querySelector('.btnrow .btn')!.textContent).toContain('重新開啟行程');
   });
 
-  it('已結算的行程也一樣：列不可點，且底部沒有主鈕', async () => {
+  it('已結算：列點得開編輯表單（**這條原本是反過來鎖著的**），底部仍然沒有主鈕', async () => {
     state.trips = [{ ...trip, status: 'settled' }];
     render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
     await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 
     const rows = [...document.querySelectorAll('.exprow')];
     expect(rows.length).toBeGreaterThan(0);
-    expect(rows.every(r => r.tagName === 'DIV')).toBe(true);
-    /* #28-6b 已結算態沒有主鈕——那時的主要動作是「逐筆標記付清」，在結算分頁裡做 */
+    expect(rows.every(r => r.tagName === 'BUTTON')).toBe(true);
+    /* #28-6b 已結算態沒有主鈕——那時的主要動作是「逐筆標記付清」，在結算分頁裡做。
+       **要在開表單之前量**：表單自己也有一條 .btnrow（取消／記下來）。 */
     expect(document.querySelector('.btnrow')).toBeNull();
+    fireEvent.click(rows[0]);
+    await waitFor(() => expect(screen.getByText('記下來')).toBeInTheDocument());
+  });
+
+  it('已結算：`S.readonly`（§5.6）不得被動到——「還沒算清楚」入口仍然不顯示', async () => {
+    state.trips = [{ ...trip, status: 'settled' }];
+    render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
+    await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
+    /* 這一輪只改「列能不能點」，§5.6 的三件事一個字都沒動 */
+    expect(flat()).not.toContain('還沒算清楚');
   });
 });
 

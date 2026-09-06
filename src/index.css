@@ -255,6 +255,23 @@ input, textarea, select { font-size: var(--fs-input); }
    `*` 走 ::after，**不寫進 textContent**——標籤的文字要保持乾淨，
    斷言才能用「標籤文字 === 欄位名」比對而不必先剝掉星號。
    顏色走既有的 --out（警示），不另外寫色碼字面值。 */
+/* ── 可點區擴張（實作-R-1）────────────────────────────────────────────
+   Rozi：「按『換個方向』沒有反應」——那顆鈕功能是好的，只是 52×19，手指按不到。
+   一併掃了九個畫面，又矮又窄的還有成員移除鈕（24×24）與當按鈕用的 avatar（28×28）。
+
+   做法沿用實作-M 修拖曳把手時那一套：**撐透明區，不放大看得見的圖形**。
+   不要改 border box——撐大會把同一列的其他內容擠掉。 */
+.tap44 { position: relative; }
+.tap44::after {
+  content: ''; position: absolute;
+  left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: var(--h-tap); height: var(--h-tap);
+}
+/* ⚠️ `.avatar` 本身是 `overflow:hidden`（給 `<img>` 頭像裁圓角用），
+   會把 44×44 的擴張區**整個裁掉**——擴了等於沒擴，而且看不出來。
+   當按鈕用的 avatar 一律放行；純顯示的 avatar 沒有 `.tap44`，維持裁切。 */
+.avatar.tap44 { overflow: visible; }
+
 .req::after {
   content: '*';
   color: var(--out);
@@ -416,7 +433,7 @@ input:focus { border-color:var(--w) }
 .sharedhead { display:flex;align-items:center;justify-content:space-between;gap:10px; background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);padding:11px }
 .expandbtn { border:1px solid var(--w);color:var(--wi);font-size:var(--fs-body);font-weight:600; padding:6px 10px;border-radius:var(--r-base);flex:none }
 .paysep { width:1px;align-self:stretch;background:var(--ln);margin:0 2px }
-.ratelink { color:var(--wi);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:2px }
+.ratelink { color:var(--wi);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:2px; padding:13px 12px;margin:-13px -12px }
 .seg button.dis { color:var(--gr);cursor:not-allowed;background:transparent;box-shadow:none;border:0 }
 input.auto { color:#9AA5AB }
 .unsettled span { display:inline-flex;align-items:center;gap:5px }

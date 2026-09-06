@@ -747,7 +747,9 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                       onClick={e => { e.stopPropagation(); removeMember(i); }}
                       disabled={used > 0}
                       title={used > 0 ? '這位已經有消費紀錄，不能移除' : '移除'}
-                      className={`text-sm ml-1 w-6 h-6 flex items-center justify-center ${used > 0 ? 'text-[#D8D2CC] cursor-not-allowed' : 'text-gr'}`}
+                      /* tap44：24×24 的圖形不變，用透明 ::after 把可點區撐到 44×44。
+                         ⚠️ 不要放大 ✕ 本身，也不要把 border box 撐大——那會把同一列的內容擠掉。 */
+                      className={`tap44 text-sm ml-1 w-6 h-6 flex items-center justify-center ${used > 0 ? 'text-[#D8D2CC] cursor-not-allowed' : 'text-gr'}`}
                     >
                       ✕
                     </button>

@@ -35,8 +35,10 @@ export default function Avatar({
   const Tag = onClick ? 'button' : 'span';
   const common = { onClick, 'aria-label': label, type: onClick ? ('button' as const) : undefined };
   /* 20px 時字級降一階，否則字會頂到圓底邊緣 */
+  /* 實作-R-1c　**當按鈕用的時候**才擴可點區到 44×44（透明 ::after，看得見的圖形不變）。
+     s03／s05 那些 20px 的純顯示 avatar 不掛——它們不是按鈕，擴了會蓋住鄰居。 */
   const cls = (extra = '') =>
-    `avatar${size === 20 ? ' sm' : ''}${extra}${className ? ' ' + className : ''}`;
+    `avatar${size === 20 ? ' sm' : ''}${extra}${onClick ? ' tap44' : ''}${className ? ' ' + className : ''}`;
 
   if (emoji) return <Tag className={cls()} {...common}>{emoji}</Tag>;
 

@@ -9,6 +9,7 @@ import { destinationOf } from '@/lib/destinations';
 import { dateRange } from '@/lib/format';
 import { tripSummary, tripRate } from '@/lib/summary';
 import { useToast } from '@/contexts/ToastContext';
+import { MSG_SETTLED_STALE, MSG_ARCHIVED_TAP } from '@/lib/messages';
 import type { TripWithMembers, ExpenseWithSplits } from '@/types/database';
 import ExpenseFormSheet from '@/components/ExpenseFormSheet';
 import TripFormSheet from '@/components/TripFormSheet';
@@ -285,9 +286,15 @@ export default function ExpenseListPage() {
   function closeTripEdit() { navigate(`/trips/${tripId}`, { replace: true }); }
 
   function openNew() { setNewOpen(true); }
-  /* 既有 bug：封存／已結算的行程原本仍點得進編輯。封存＝預設只讀，是既有決策。 */
+  /* 🔴 實作-R-4　**已結算的消費列點得進編輯，這是規格不是 bug。**
+     `畫面地圖.md:118` 的行程狀態表白紙黑字寫「已結算 → 列表唯讀
+     （**點擊仍可編輯，重新計算**）」，封存那一列才沒有那個括號；
+     `規格_金額未定案與幣別.md` §5.6 對已結算／已封存只規定「不顯示約、
+     不顯示未定案入口、不做結算前檢查」，**一個字都沒提唯讀**。
+     這裡原本的註解寫「既有 bug：已結算仍點得進編輯」——那不是 bug，
+     是實作把正確行為當成 bug 修掉了。封存維持唯讀（決策 B）。 */
   function openEdit(eid: string) {
-    if (isArchived || isSettled) return;
+    if (isArchived) return;
     setSp({ expense: eid }, { replace: true });
   }
 
@@ -428,7 +435,12 @@ export default function ExpenseListPage() {
               <p>早餐、計程車、門票，都可以記</p>
             </div>
           ) : (
-            <ExpenseGroups S={S} readonly={S.readonly} money={moneyOpts} onEdit={openEdit} />
+            /* ⚠️ `S.readonly`（summary.ts）同時在管 §5.6 的「不顯示約／不顯示未定案入口」，
+               那對已結算是**成立的**，一個字都不要動。
+               這裡只換「消費列能不能點」這一件事的依據。 */
+            <ExpenseGroups S={S} readonly={isArchived} money={moneyOpts}
+              onEdit={openEdit}
+              onReadonlyTap={isArchived ? () => showToast(MSG_ARCHIVED_TAP) : undefined} />
           )}
 
           {/* #28-6b 底部只留一顆主鈕，且依狀態變。已結算態沒有主鈕——
@@ -510,7 +522,13 @@ export default function ExpenseListPage() {
           tripId={tripId!}
           trip={trip}
           expenseId={editExpenseId}
-          onClose={() => { setNewOpen(false); if (qExpense) setSp({}, { replace: true }); }}
+          onClose={(saved?: boolean) => {
+            setNewOpen(false);
+            if (qExpense) setSp({}, { replace: true });
+            /* 已結算的行程改了帳，結算數字就過期了——講出來，但**不自動重算**：
+               自動作廢會抹掉已經「標記付清」的紀錄，而且不可逆。 */
+            if (saved && isSettled) showToast(MSG_SETTLED_STALE);
+          }}
         />
       )}
 

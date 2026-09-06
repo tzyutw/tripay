@@ -5,12 +5,17 @@ import { trip, expenses, members, settlementItems, allSettlementItems, settlemen
 
 /* `?state=settled`：讓 S-05 走到「已結算、逐筆標記付清」那一態，
    才畫得出「查看計算依據」的逐人列。預設維持 active，不動既有版面基準。 */
-const settled = new URLSearchParams(location.search).get('state') === 'settled';
+const st = new URLSearchParams(location.search).get('state');
+const settled = st === 'settled';
+/* `?state=archived`：封存態的列**維持唯讀**（決策 B），但點下去要有話講。
+   已結算與封存是**兩件事**，所以兩個狀態都要有假資料走過。 */
+const archived = st === 'archived';
 /* `?expenses=none` 由 fixtures 統一解析——同一個參數不要在兩個檔各判一次 */
 const expenses2 = noExpenses ? [] : expenses;
 const rows: Record<string, unknown[]> = {
   /* `?trip=missing`：查不到任何列——`.maybeSingle()` 會回 null，畫面要走「找不到」 */
-  trips: tripMissing ? [] : [settled ? { ...trip, status: 'settled' } : trip],
+  trips: tripMissing ? [] : [settled ? { ...trip, status: 'settled' }
+                           : archived ? { ...trip, status: 'archived' } : trip],
   expenses: tripMissing ? [] : expenses2, trip_members: tripMissing ? [] : members,
   /* 直接查表的路徑（S-05／ShareSheet）只會拿 confirmed 那一筆 */
   settlements: noExpenses ? [] : [{ id: CONFIRMED_ID, trip_id: 't1', status: 'confirmed',

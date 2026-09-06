@@ -13,11 +13,14 @@ export interface ExpenseRowProps {
   c: SharedCalc;
   S: SharedSummary;
   readonly?: boolean;
+  /** 唯讀時點下去要說一句話。**不傳就維持現在的 `<div>`**——
+   *  分享頁不傳，行為一個字都不變。 */
+  onReadonlyTap?: (id: string) => void;
   money?: MoneyOpts;
   onEdit?: (id: string) => void;
 }
 
-export function ExpenseRow({ e, c, S, readonly, money: mo, onEdit }: ExpenseRowProps) {
+export function ExpenseRow({ e, c, S, readonly, money: mo, onEdit, onReadonlyTap }: ExpenseRowProps) {
   const t = S.t;
   const payer = t.members.find(m => m.id === e.payer);
 
@@ -71,19 +74,24 @@ export function ExpenseRow({ e, c, S, readonly, money: mo, onEdit }: ExpenseRowP
   );
 
   const cls = `exprow${pend ? ' pend' : ''}`;
-  return readonly
-    ? <div className={cls}>{inner}</div>
-    : <button className={cls} onClick={() => onEdit?.(e.id)}>{inner}</button>;
+  /* 封存態的列**維持不可編輯**（決策 B），但點下去要有話講——
+     現在完全沒反應，跟壞掉分不出來。 */
+  if (readonly)
+    return onReadonlyTap
+      ? <button className={cls} onClick={() => onReadonlyTap(e.id)}>{inner}</button>
+      : <div className={cls}>{inner}</div>;
+  return <button className={cls} onClick={() => onEdit?.(e.id)}>{inner}</button>;
 }
 
 export interface ExpenseGroupsProps {
   S: SharedSummary;
   readonly?: boolean;
+  onReadonlyTap?: (id: string) => void;
   money?: MoneyOpts;
   onEdit?: (id: string) => void;
 }
 
-export default function ExpenseGroups({ S, readonly, money: mo, onEdit }: ExpenseGroupsProps) {
+export default function ExpenseGroups({ S, readonly, money: mo, onEdit, onReadonlyTap }: ExpenseGroupsProps) {
   const t = S.t;
   const groups = new Map<string, SharedExpense[]>();
   [...S.list]
@@ -100,7 +108,8 @@ export default function ExpenseGroups({ S, readonly, money: mo, onEdit }: Expens
         <div key={label}>
           <div className="sec">{label}</div>
           {arr.map(e => (
-            <ExpenseRow key={e.id} e={e} c={S.calcOf(e)} S={S} readonly={readonly} money={mo} onEdit={onEdit} />
+            <ExpenseRow key={e.id} e={e} c={S.calcOf(e)} S={S} readonly={readonly}
+              money={mo} onEdit={onEdit} onReadonlyTap={onReadonlyTap} />
           ))}
         </div>
       ))}

@@ -125,7 +125,9 @@ interface Props {
   tripId: string;
   trip: TripWithMembers;
   expenseId?: string;
-  onClose: () => void;
+  /** `saved`＝這次關閉是因為**真的寫進去了**（存檔或刪除）。
+   *  已結算的行程改了帳，結算數字就過期，由呼叫端決定要不要提醒。 */
+  onClose: (saved?: boolean) => void;
 }
 
 type SplitKind = 'shared' | 'individual' | 'single';
@@ -395,7 +397,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
         pending: c.twdPending,
         blanks: c.blanks.map(id => members.find(m => m.id === id)?.name ?? ''),
       }));
-      onClose();
+      onClose(true);
     },
     onError: (e: Error) => toast(e.message || '存不起來，請再試一次'),
   });
@@ -410,7 +412,8 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['expenses', tripId] });
       toast('刪掉了');
-      onClose();
+      /* 刪掉一筆與改掉一筆對結算的影響一樣——都會讓已結算的數字過期 */
+      onClose(true);
     },
     onError: (e: Error) => toast(e.message),
   });
@@ -427,7 +430,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/40 animate-fade-in"
-        style={{ backdropFilter: 'blur(3px)' }} onClick={onClose} />
+        style={{ backdropFilter: 'blur(3px)' }} onClick={() => onClose()} />
 
       {/* ⚠️ 外層**不捲**，也不掛 `.sheet`——`.sheet` 是 `overflow:hidden`，
           跟同一個元素上的 `overflow-y-auto` 打架，hidden 會贏，整張就捲不動了
@@ -441,7 +444,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
         {/* S-04-1 */}
         <div className="shd flex-shrink-0" style={{ paddingTop: 14 }}>
           <h3>{isEdit ? '編輯消費' : '記一筆'}</h3>
-          <button className="ic2" aria-label="關閉" onClick={onClose}>
+          <button className="ic2" aria-label="關閉" onClick={() => onClose()}>
             <Icon name="close" size={20} />
           </button>
         </div>
@@ -471,14 +474,15 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
                 ⚠️ 兩種狀態**共用同一個尺寸**（`EMOJI_BOX`），
                 切換編輯時外框大小不變——變了整列會跳動。 */}
             {inline.editing === 'exp' ? (
-              <span className="avatar" style={EMOJI_BOX}>
+              <span className="avatar tap44" style={EMOJI_BOX}>
                 <input ref={inline.inputRef} type="text" maxLength={4} defaultValue=""
                   aria-label="類別 emoji"
                   onBlur={e => inline.commit(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && inline.commit(e.currentTarget.value)} />
               </span>
             ) : (
-              <button type="button" className="avatar" style={EMOJI_BOX}
+              /* tap44：28×28 的圓圈不變，可點區用透明 ::after 撐到 44×44 */
+              <button type="button" className="avatar tap44" style={EMOJI_BOX}
                 aria-label="類別 emoji" onClick={() => inline.begin('exp')}>
                 {f.emoji}
               </button>
@@ -658,7 +662,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
         {/* S-04-22　存檔一律放行：不擋、不跳確認、不 disable。
             **在捲動區外面**，所以永遠按得到。 */}
         <div className="btnrow flex-shrink-0">
-          <button className="btn gh" onClick={onClose}>取消</button>
+          <button className="btn gh" onClick={() => onClose()}>取消</button>
           <button className="btn" disabled={save.isPending}
             onClick={() => { if (validate()) save.mutate(); }}>
             {save.isPending ? '存檔中…' : '記下來'}

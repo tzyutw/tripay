@@ -15,9 +15,14 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="96" fill="url(#g)"/>
-  <!-- purpose="any maskable"：Android 的圓形遮罩會吃掉外圈，
-       「T」必須整個留在中央 80%（51.2 → 460.8）的安全區內。
-       260px 的字上緣約 y=320-190=130、下緣約 y=320，寬度約 ±80 → 都在安全區裡。 -->
-  <text x="256" y="320" font-family="system-ui, sans-serif" font-size="260" font-weight="700"
+  <!-- 實作-R-3　T 的大小與位置是**量出來的**，不是算出來的：
+       `實作_圖示T置中.cjs` 把 SVG 畫進 canvas、找出米白像素的邊界框，
+       迭代到「墨水高 = 52% 圖高、垂直中心落在 256」才收斂。
+       ⚠️ `y` 是**基線**不是中心——原本 y=320／font-size=260 的墨水只佔 35.7%、
+       中心還比正中央高 27.5px，所以 Rozi 看到的是「T 太小而且浮在上方沒有置中」。
+       ⚠️ 這兩個數字綁著 system-ui 實際的字形，**改字體就要重跑那支腳本**，不要手改。
+       purpose="any maskable"：Android 圓形遮罩會吃外圈；
+       墨水高 52% 又置中 → 整個 T 都在中央 80%（51.2～460.8）的安全區內。 -->
+  <text x="256" y="389" font-family="system-ui, sans-serif" font-size="378.6" font-weight="700"
         text-anchor="middle" fill="#FEF9EE">T</text>
 </svg>

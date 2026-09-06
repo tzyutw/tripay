@@ -192,10 +192,12 @@ function serve(dir) {
     const g = c.getContext('2d'); g.drawImage(img, 0, 0);
     const at2 = (x, y) => [...g.getImageData(x, y, 1, 1).data].slice(0, 3);
     return { w: img.naturalWidth, h: img.naturalHeight,
-             tl: at2(14, 14), tr: at2(165, 14), bl: at2(14, 165), br: at2(165, 165) };
+             tl: at2(40, 40), tr: at2(139, 40), bl: at2(40, 139), br: at2(139, 139) };
   });
   console.log(`   apple-touch-icon 實際 ${px.w}×${px.h}｜左上 rgb(${px.tl}) 右下 rgb(${px.br})`);
   ok(px.w === 180 && px.h === 180, `尺寸應為 180×180，實際 ${px.w}×${px.h}`);
+  /* ⚠️ 取樣點在**圓角內側**（14/165 ≈ 8%／92%，rx=96 換算到 180 圖是 33.75px）。
+     先前取 12%／88% 其實已經在圓角外面——那裡是白的，這條等於沒在驗角落。 */
   for (const [nm, c] of [['左上', px.tl], ['右上', px.tr], ['左下', px.bl], ['右下', px.br]])
     ok(c[2] > c[1] && c[1] > c[0], `${nm}角不是藍調（B>G>R），實際 rgb(${c}) —— 又拿到舊的磚紅了？`);
   const lum = c => c[0] * .299 + c[1] * .587 + c[2] * .114;
