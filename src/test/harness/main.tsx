@@ -68,12 +68,16 @@ const s  = SCREENS[id] ?? SCREENS.s01;
    沒有這個出口，「分享頁只畫一組轉帳」是**真的挑對了**還是
    **`settlements=many` 根本沒實作、本來就只有一組**，在斷言的輸出裡長得一模一樣
    ——#29 那條假通過的斷言就是這樣過關的。 */
+const served = (window as unknown as { __SERVED__: { trip: unknown; expenses: unknown[]; members: unknown[] } }).__SERVED__;
 (window as unknown as { __HARNESS_FIXTURE__: unknown }).__HARNESS_FIXTURE__ = {
-  screen: id, trip, members, expenses,
+  screen: id,
+  /* 掛**真正被端出去的那一份**（樁已套用各種 `?` 開關），不是 fixtures 的原始清單 */
+  trip: served.trip, members: served.members, expenses: served.expenses,
   settlements, settlement_items: allSettlementItems,
   confirmed_id: CONFIRMED_ID,
   confirmed_items: settlementItems,
 };
+void trip; void members; void expenses;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

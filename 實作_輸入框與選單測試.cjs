@@ -44,13 +44,16 @@ function serve(dir) {
              padT: cs.paddingTop, w: +r.width.toFixed(1) };
   }));
   for (const i of inputs) console.log(`   ${i.tag.slice(0, 18).padEnd(20)} h=${i.h} padT=${i.padT}`);
+  /* 實作-P：全站收斂成兩階（--h-field 40／--h-inline 28）。
+     這一條原本守的是「`:where()` 降權重不能連 preflight 都輸掉」——
+     那個回歸的症狀是**塌成 26px**，所以現在改成守「等於 40，不是塌下去的值」。
+     集合相等由 `實作_高度階梯與圖示測試.cjs` 全站掃。 */
   const pay = inputs.find(i => i.tag.includes('新增一種支付方式'));
   ok(pay, '找不到「新增一種支付方式」欄，這條等於沒驗');
-  ok(pay && pay.h >= 36 && pay.h <= 42, `支付方式欄高 ${pay && pay.h}px，應在 36–42`);
-  ok(pay && pay.padT === '9px', `支付方式欄 paddingTop=${pay && pay.padT}，應為 9px`);
+  ok(pay && Math.abs(pay.h - 40) <= 1, `支付方式欄高 ${pay && pay.h}px，應為 40（--h-field）`);
   const rates = inputs.filter(i => i.cls.includes('rateinput'));
   ok(rates.length === 2, `匯率欄應有兩個，實際 ${rates.length}`);
-  ok(rates.every(r => Math.abs(r.h - 38) <= 1), `匯率欄高 ${rates.map(r => r.h)}，應為 38（不得被一起壓矮）`);
+  ok(rates.every(r => Math.abs(r.h - 40) <= 1), `匯率欄高 ${rates.map(r => r.h)}，應為 40（--h-field）`);
 
   /* ── 2 破框沒有壞回去（實作-J 修好的） ─────────────────────────────── */
   await p.evaluate(() => { const a = document.querySelector('.rowb .avatar'); if (a) a.click(); });
@@ -101,7 +104,8 @@ function serve(dir) {
   console.log(`   S-02b-14 行程名："${nameField && nameField.value}" h=${nameField && nameField.h}`);
   ok(nameField !== null, '編輯行程沒有行程名欄位');
   ok(nameField && nameField.value.length > 0, '行程名欄位沒有帶入現有的行程名');
-  ok(nameField && Math.abs(nameField.h - 46) <= 1, `行程名欄高 ${nameField && nameField.h}px，應為 46`);
+  ok(nameField && Math.abs(nameField.h - 40) <= 1,
+    `行程名欄高 ${nameField && nameField.h}px，應為 40（實作-P 收斂成兩階，原本是 46）`);
 
   /* ── 實作-O-7　匯率「填了一邊，另一邊自動帶 1」（Rozi 2026-09-06 覆蓋實作-N）──
      實作-N 是「進畫面就依幣別預先在某一欄帶 1」。那算得出正確結果，

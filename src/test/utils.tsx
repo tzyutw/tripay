@@ -22,6 +22,13 @@ export type MockRows = Record<string, unknown[]>;
  * @param rows 以表名為鍵；`from('trips')` 之後 await 到的就是 rows.trips
  * @param user 目前登入者；傳 null 代表沒登入
  */
+/**
+ * 送出去的每一次寫入。**斷言「畫面沒變」是不夠的**——畫面沒變也可能是
+ * 送出了但回來的資料一樣；而「這一欄改了會不會真的寫進去」只有看 payload 才知道。
+ * 用之前先 `supabaseWrites.length = 0`。
+ */
+export const supabaseWrites: { table: string; op: string; payload: unknown }[] = [];
+
 export function makeSupabaseMock(rows: MockRows = {}, user: { id: string } | null = { id: 'u1' }) {
   const build = (table: string) => {
     const data = rows[table] ?? [];
@@ -32,9 +39,10 @@ export function makeSupabaseMock(rows: MockRows = {}, user: { id: string } | nul
       catch: () => chain,
     };
     for (const m of ['select', 'eq', 'neq', 'in', 'is', 'not', 'order', 'limit', 'range',
-                     'filter', 'gte', 'lte', 'match', 'or', 'insert', 'update', 'upsert',
-                     'delete', 'returns', 'abortSignal'])
+                     'filter', 'gte', 'lte', 'match', 'or', 'returns', 'abortSignal'])
       chain[m] = vi.fn(() => chain);
+    for (const m of ['insert', 'update', 'upsert', 'delete'])
+      chain[m] = vi.fn((payload: unknown) => { supabaseWrites.push({ table, op: m, payload }); return chain; });
     chain.single = vi.fn(() => Promise.resolve({ data: data[0] ?? null, error: null }));
     chain.maybeSingle = chain.single;
     return chain;

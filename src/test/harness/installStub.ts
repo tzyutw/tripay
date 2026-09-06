@@ -67,4 +67,10 @@ const stub = {
 (window as unknown as { __SUPABASE_STUB__: unknown }).__SUPABASE_STUB__ = stub;
 /* 把這一趟的 trip 掛出來給量測腳本查——只在量測靶裡，production bundle 碰不到 */
 (window as unknown as { __TRIP__: unknown }).__TRIP__ = rows.trips[0];
+/* **真正被端出去的那一份**（已套用 `?expenses=none`／`?trip=missing` 等開關）。
+   `__HARNESS_FIXTURE__` 要照這一份掛，不能直接掛 fixtures 的原始清單——
+   兩者不同時，「參數有沒有作用」的反向斷言會拿對照組當通過。 */
+(window as unknown as { __SERVED__: unknown }).__SERVED__ = {
+  trip: rows.trips[0], expenses: rows.expenses, members: rows.trip_members,
+};
 

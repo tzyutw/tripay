@@ -172,6 +172,44 @@ function serve(dir) {
     ok(n === 1, `${q} 應該只掛那一筆，實際 ${n} 筆`);
   }
 
+  /* ── 17 假資料開關**真的接上了**（不是只寫進 fixtures.ts）──────────────
+     反向斷言：不帶參數時那條路徑**不存在**——證明參數真的有作用，
+     而不是「本來就長這樣」。這與 #29 那條假通過的斷言是同一類問題。 */
+  console.log('');
+  await go('screen=s04&fill=for');
+  const ff = await p.evaluate(() => {
+    const f = window.__HARNESS_FIXTURE__;
+    const e = f && f.expenses[0];
+    return e ? { type: e.expense_type, cur: e.split_fill_currency,
+                 splits: e.expense_splits.map(x => x.split_amount_foreign) } : null;
+  });
+  console.log(`   ?fill=for：type ${ff && ff.type}｜fillCur ${ff && ff.cur}｜各人外幣 ${JSON.stringify(ff && ff.splits)}`);
+  ok(ff !== null, '?fill=for 沒有造出任何消費，這條等於沒驗');
+  ok(ff.type === 'individual', `expense_type 應為 individual，實際 ${ff.type}`);
+  ok(ff.cur === 'FOR', `split_fill_currency 應為 FOR，實際 ${ff.cur}`);
+  ok(ff.splits.length >= 2 && ff.splits.every(v => v !== null),
+    `每個 split 都要有 split_amount_foreign，實際 ${JSON.stringify(ff.splits)}`);
+
+  const forOnlyRows = async q => { await go(q); return p.evaluate(() => {
+    const f = window.__HARNESS_FIXTURE__;
+    const rows2 = f ? f.expenses : [];
+    return { n: rows2.length,
+             onlyFor: rows2.filter(e => e.foreign_amount !== null && e.twd_amount === null
+                                        && e.expense_type === 'shared').length,
+             mine: rows2.filter(e => e.title === '只有外幣沒有台幣').length };
+  }); };
+  const withFlag = await forOnlyRows('screen=s03&forOnly=1');
+  /* 反向對照：不帶參數時**那一筆不存在**，而且清單長度完全不同——
+     證明上面那個 1 是參數造出來的，不是「本來就長這樣」。 */
+  const without = await forOnlyRows('screen=s03');
+  console.log(`   ?forOnly=1：共 ${withFlag.n} 筆／只有外幣 ${withFlag.onlyFor} 筆／目標筆 ${withFlag.mine}` +
+              `　｜不帶參數：共 ${without.n} 筆／目標筆 ${without.mine}`);
+  ok(withFlag.n === 1 && withFlag.onlyFor === 1,
+    `?forOnly=1 應只掛一筆「只有外幣」的 shared 消費，實際 ${JSON.stringify(withFlag)}`);
+  ok(withFlag.mine === 1, '?forOnly=1 沒有造出那一筆');
+  ok(without.mine === 0 && without.n > 1,
+    `不帶參數時不該有那一筆，實際 ${JSON.stringify(without)}——參數沒有作用`);
+
   console.log('\n============================');
   console.log(`通過 ${pass}　失敗 ${fail}`);
   await b.close(); srv.close();

@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import screens from '@/test/fixtures/screens.json';
-import { render, makeSupabaseMock } from '@/test/utils';
+import { render, makeSupabaseMock, supabaseWrites } from '@/test/utils';
 
 const members = [
   { id: 'm1', trip_id: 't1', name: 'Rozi', emoji: '🐵', sort_order: 0, linked_profile_id: null,
@@ -506,5 +506,95 @@ describe('O-⑦　匯率「填了一邊，另一邊自動帶 1」', () => {
     expect((document.getElementById('rate-twd') as HTMLInputElement).value).toBe('');
     /* 但 placeholder 仍照 oneSideOf 走：JPY 的 1 在外幣側 */
     expect((document.getElementById('rate-for') as HTMLInputElement).placeholder).toBe('1');
+  });
+});
+
+
+/* ══════════════════════════════════════════════════════════════
+   實作-O-6c　停止條件 18（Cowork 2026-09-06 清點後補上）
+   Rozi 明講「這一欄位只要有調整，就改變結算方式」，
+   但原本**沒有任何斷言**在守——顯示對了不代表存進去了。
+   ══════════════════════════════════════════════════════════════ */
+describe('O-⑥c　結算方式改了要真的寫進去', () => {
+  const lastWrite = (table: string, op: string) =>
+    [...supabaseWrites].reverse().find(w => w.table === table && w.op === op)?.payload as
+      Record<string, unknown> | undefined;
+
+  it('建立頁選「都轉給同一個人」＋指定中心人 → 存出 hub ＋ 那個人的 id', async () => {
+    supabaseWrites.length = 0;
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+
+    /* 必填先填齊，不然按了會被擋下來（O-6d）*/
+    fireEvent.change(screen.getByPlaceholderText('例如：沖繩四人行 ☀️'), { target: { value: 'ZZ 結算方式' } });
+    fireEvent.change(document.querySelector('input[aria-label="出發"]')!, { target: { value: '2026-05-01' } });
+    fireEvent.click(screen.getByText('新增成員'));
+    fireEvent.change(screen.getByPlaceholderText('叫什麼名字？'), { target: { value: 'Alex' } });
+    fireEvent.click(screen.getByText('加進來'));
+
+    fireEvent.click(screen.getByText('都轉給同一個人'));
+    await waitFor(() => expect(document.querySelector('.chips .chip')).not.toBeNull());
+    fireEvent.click(document.querySelector('.chips .chip')!);
+
+    fireEvent.click(screen.getByText('出發！'));
+    await waitFor(() => expect(lastWrite('trips', 'insert')).toBeTruthy());
+    expect(lastWrite('trips', 'insert')!.settlement_mode).toBe('hub');
+    /* hub_member_id 要等成員插入拿到真 id 之後才寫得出來，所以是接著的那一次 update */
+    await waitFor(() => expect(lastWrite('trips', 'update')?.hub_member_id).toBeTruthy());
+    const members2 = lastWrite('trip_members', 'insert') as unknown as unknown[] | undefined;
+    expect(Array.isArray(members2) ? members2.length : -1).toBe(1);
+  });
+
+  it('建立頁維持預設 → 存出 direct', async () => {
+    supabaseWrites.length = 0;
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+    fireEvent.change(screen.getByPlaceholderText('例如：沖繩四人行 ☀️'), { target: { value: 'ZZ 預設' } });
+    fireEvent.change(document.querySelector('input[aria-label="出發"]')!, { target: { value: '2026-05-01' } });
+    fireEvent.click(screen.getByText('新增成員'));
+    fireEvent.change(screen.getByPlaceholderText('叫什麼名字？'), { target: { value: 'Alex' } });
+    fireEvent.click(screen.getByText('加進來'));
+    fireEvent.click(screen.getByText('出發！'));
+    await waitFor(() => expect(lastWrite('trips', 'insert')).toBeTruthy());
+    expect(lastWrite('trips', 'insert')!.settlement_mode).toBe('direct');
+  });
+
+  it('編輯頁把 hub 改回 direct → 存出 direct 且 hub_member_id 是 null', async () => {
+    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    /* **要等 hydration 真的灌完再點**：行程是非同步載入的，
+       在灌值之前點下去，`setSettleMode(existingTrip.settlement_mode)` 會把選擇蓋回 direct
+       ——那是測試的時序問題，不是功能壞掉。等名稱有值就代表灌完了。 */
+    await waitFor(() => expect(
+      (screen.getByPlaceholderText('例如：沖繩四人行 ☀️') as HTMLInputElement).value).toBe('2026 濟州島四寶團'));
+    fireEvent.click(screen.getByText('都轉給同一個人'));
+    await waitFor(() => expect(document.querySelector('.chips .chip')).not.toBeNull());
+    fireEvent.click(document.querySelector('.chips .chip')!);
+    fireEvent.click(screen.getByText('誰欠誰就轉給誰'));
+
+    supabaseWrites.length = 0;
+    fireEvent.click(screen.getByText('儲存'));
+    await waitFor(() => expect(lastWrite('trips', 'update')).toBeTruthy());
+    const row = lastWrite('trips', 'update')!;
+    expect(row.settlement_mode).toBe('direct');
+    expect(row.hub_member_id).toBeNull();
+  });
+
+  it('編輯頁選 hub ＋ 既有成員 → 存出 hub ＋ 那位的真 id', async () => {
+    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    /* **要等 hydration 真的灌完再點**：行程是非同步載入的，
+       在灌值之前點下去，`setSettleMode(existingTrip.settlement_mode)` 會把選擇蓋回 direct
+       ——那是測試的時序問題，不是功能壞掉。等名稱有值就代表灌完了。 */
+    await waitFor(() => expect(
+      (screen.getByPlaceholderText('例如：沖繩四人行 ☀️') as HTMLInputElement).value).toBe('2026 濟州島四寶團'));
+    fireEvent.click(screen.getByText('都轉給同一個人'));
+    await waitFor(() => expect(document.querySelector('.chips .chip')).not.toBeNull());
+    fireEvent.click([...document.querySelectorAll('.chips .chip')][1]);
+
+    supabaseWrites.length = 0;
+    fireEvent.click(screen.getByText('儲存'));
+    await waitFor(() => expect(lastWrite('trips', 'update')).toBeTruthy());
+    const row = lastWrite('trips', 'update')!;
+    expect(row.settlement_mode).toBe('hub');
+    expect(row.hub_member_id).toBe('m2');
   });
 });
