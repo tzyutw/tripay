@@ -5,6 +5,7 @@
 import { Icon } from '@/components/Icon';
 import { money, firstGrapheme } from '@/lib/format';
 import type { SharedSummary, MoneyOpts } from './types';
+import Avatar from './Avatar';
 
 export interface StatCardProps {
   S: SharedSummary;
@@ -34,11 +35,12 @@ export function StatCardTotal({ S, open, money: mo, onToggleTotal }: StatCardPro
 export function StatCardPerList({ S, readonly, money: mo, onPickMember }: StatCardProps) {
   return (
     <div className="perlist">
-      {S.t.members.map(m => {
+      {S.t.members.map((m, i) => {
         const ap = S.approx[m.id];
         const inner = (
           <>
-            <span className="av">{m.emoji || firstGrapheme(m.name) || '🙂'}</span>
+            {/* S-02c-10 三層 fallback 全站一致（Rozi 2026-09-06 裁示） */}
+            <Avatar emoji={m.emoji} name={m.name} index={i} />
             <span className="nm">{m.name}</span>
             <span className={`am${ap ? ' ap' : ''}`}>
               {ap && <i>約</i>}

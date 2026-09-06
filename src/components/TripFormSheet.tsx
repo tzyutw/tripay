@@ -596,31 +596,11 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
               {addingMember ? (
                 <div className="mt-3 bg-white rounded-base p-3 border border-[#E4DFD9]">
                   <p className="text-sub font-bold text-md mb-2">加一個人</p>
-                  <div className="flex items-center gap-3 mb-3">
-                    {inline.editing === 'new' ? (
-                      <input
-                        ref={inline.inputRef}
-                        type="text"
-                        maxLength={4}
-                        defaultValue=""
-                        aria-label="換 emoji"
-                        className="w-12 h-12 rounded-base border-[1.5px] border-w bg-white text-title text-center flex-shrink-0 outline-none"
-                        onBlur={e => inline.commit(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') inline.commit((e.target as HTMLInputElement).value);
-                          if (e.key === 'Escape') inline.cancel();
-                        }}
-                      />
-                    ) : (
-                      <Avatar
-                        emoji={newMemberEmoji}
-                        name={newMemberName}
-                        index={members.length}
-                        aria-label="選新成員的 emoji"
-                        onClick={() => inline.begin('new')}
-                      />
-                    )}
-                  </div>
+                  {/* 原型 S-02-15（`Tripay_原型.html:1207–1213`）這一塊**只有**
+                      標題＋名字輸入框＋取消／加進來，**沒有頭像**。
+                      盤點表也寫「emoji 選擇鈕要拿掉」，當初做成「升級為就地編輯留在原地」是反了。
+                      新成員 emoji 恆為空，加進來之後在成員列由 Avatar 的第二層
+                      （名字第一個字＋填色圓底）顯示。 */}
                   <input
                     ref={addMemberInputRef}
                     type="text"

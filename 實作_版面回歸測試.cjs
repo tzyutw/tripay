@@ -202,8 +202,13 @@ function serve(dir) {
           if (d > 2) misaligned.push(`${txt.slice(0, 8)} 差 ${d.toFixed(1)}px`);
         }
 
+        /* 實作-J 停止條件 2：🙂 是 Avatar 的**第三層**（emoji 空 ＋ 名字空），
+           產品流程已擋住空名字，所以它不該出現在任何畫面上。
+           這裡跑的是**有 emoji** 的預設模式；無 emoji 模式由 實作_成員識別測試.cjs 驗。 */
+        const smiley = (document.body.textContent || '').includes('🙂');
+
         return {
-          bodyText, textNodes, iconBtns, offscreen, misaligned,
+          bodyText, textNodes, iconBtns, offscreen, misaligned, smiley,
           bodyOverflow, past: past.slice(0, 5), pastCount: past.length, scrollables,
           clientWidth: de.clientWidth,
           near, small, overflow,
@@ -302,6 +307,7 @@ function serve(dir) {
         `${id} @${w} 可點區不足 44 的 icon 鈕 ${m.small.length} 個：` +
         m.small.map(x => `${x.label} ${x.w}×${x.h}`).join('；'));
       ok(m.scrollables >= 1, `${id} @${w} 一個捲動容器都沒掃到，這條等於沒驗`);
+      ok(!m.smiley, `${id} @${w} 出現了 🙂——那是「沒 emoji 也沒名字」才該有的第三層`);
       ok(m.offscreen.length === 0,
         `${id} @${w} 有 ${m.offscreen.length} 顆主要按鈕在畫面外：${m.offscreen.join('；')}`);
       ok(m.misaligned.length === 0,

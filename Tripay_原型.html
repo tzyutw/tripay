@@ -581,6 +581,8 @@ html.dev .ui .s00wrap{min-height:calc(100dvh - var(--devbar-h,54px))}
 .ui .avatar{width:28px;height:28px;border-radius:var(--r-base);display:flex;align-items:center;justify-content:center;
   font-size:var(--fs-title);background:#fff;border:1px solid var(--ln);flex:none;overflow:hidden}
 .ui .avatar.letter{color:#fff;font-size:var(--fs-body);font-weight:700;border-color:transparent}
+.ui .avatar.sm{width:20px;height:20px;font-size:var(--fs-sub);display:inline-flex}
+.ui .avatar.sm.letter{font-size:var(--fs-tag)}
 .ui .avatar input{width:100%;height:100%;text-align:center;padding:0;border:0;background:#fff;font-size:var(--fs-input)}
 .ui .ratebox{background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden}
 .ui .raterow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #F1F2EE}
@@ -990,6 +992,18 @@ function dateRange(s, e) {
   return e && e !== s ? `${md(s)} – ${md(e)} · ${y}` : `${md(s)} · ${y}（單日）`;
 }
 
+/* S-02c-10 三層 fallback 的 HTML 版：**與 src/components/shared/Avatar.tsx 同一套規則**。
+   Rozi 2026-09-06 裁示這條顯示規則**全站一致**——原型先前只在成員列落實，
+   S-03／S-04／S-05 都是純文字，所以「沒填 emoji 的人沒有填色圓底」。
+   size 20 用於 chip／列內並排（28 會把 chip 撐高）。 */
+function avatarHTML(m, idx, size) {
+  const sm = size === 20 ? ' sm' : '';
+  if (m && m.emoji) return `<span class="avatar${sm}">${m.emoji}</span>`;
+  const g = firstGrapheme((m && m.name) || '');
+  if (g) return `<span class="avatar${sm} letter" style="background:${LETTER_COLORS[(idx||0) % LETTER_COLORS.length]}">${esc(g)}</span>`;
+  return `<span class="avatar${sm}">🙂</span>`;
+}
+
 /* 成員識別：三層 fallback（S-02c-10 的規則，批一先用上）*/
 function avatar(mem, idx, editable, ctx) {
   const key = ctx ? `${ctx}:${mem.id}` : mem.id;
@@ -1293,8 +1307,8 @@ function renderS02b() {
             <span style="flex:1;font-weight:600">都轉給同一個人</span></button>
         </div>
         ${fb.settleMode === 'hub' ? `<div class="chips" style="margin-top:8px">${
-          tripOf(editTripId).members.map(m => `<button class="chip${fb.hubMember===m.id?' on':''}" data-hub="${m.id}">${
-            m.emoji||firstGrapheme(m.name)} ${esc(m.name)}</button>`).join('')}</div>` : ''}
+          tripOf(editTripId).members.map((m, i) => `<button class="chip${fb.hubMember===m.id?' on':''}" data-hub="${m.id}">${
+            avatarHTML(m, i, 20)} ${esc(m.name)}</button>`).join('')}</div>` : ''}
       </div>`)}
 
       ${b('S-02b-11', `<div class="fld"><span class="lbl" data-group="清單管理，非單一輸入欄">這趟的支付方式</span>
@@ -2073,7 +2087,7 @@ function statCard(S, o) {
       ${ic(o.open ? 'up' : 'down', 16)}</span></button>`;
   const per = `<div class="perlist">${t.members.map(m => {
       const ap = S.approx[m.id];
-      const inner = `<span class="av">${m.emoji || firstGrapheme(m.name) || '🙂'}</span>
+      const inner = `${avatarHTML(m, t.members.indexOf(m), 28)}
         <span class="nm">${esc(m.name)}</span>
         <span class="am ${ap ? 'ap' : ''}">${ap ? '<i>約</i>' : ''}<span class="money">${money(S.per[m.id])}</span></span>`;
       return o.readonly
@@ -2191,7 +2205,7 @@ function renderS04() {
 
   h += b('S-04-21', `<div class="fld"><span class="lbl" data-group="chips 多選一，非單一輸入欄">誰付的？</span>
     <div class="chips">${t.members.map(m =>
-      `<button class="chip${!g.onSpot && g.payer===m.id?' on':''}" data-epayer="${m.id}">${m.emoji||firstGrapheme(m.name)} ${esc(m.name)}</button>`).join('')}
+      `<button class="chip${!g.onSpot && g.payer===m.id?' on':''}" data-epayer="${m.id}">${avatarHTML(m, t.members.indexOf(m), 20)} ${esc(m.name)}</button>`).join('')}
       <span class="paysep"></span>
       ${b('S-04-18', `<button class="chip alt${g.onSpot?' on':''}" data-eflag="onSpot">當場就清了</button>`, 'inl')}
     </div></div>`);
@@ -2249,14 +2263,14 @@ function paintS04() {
       ${g._partsOpen ? `<div class="gap" style="margin-top:9px">${t2.members.map(m => {
         const on = (g.parts||[]).includes(m.id);
         return `<button class="rowb${on?' on':''}" data-epart="${m.id}">
-          <span style="font-size:var(--fs-title)">${m.emoji||firstGrapheme(m.name)}</span>
+          ${avatarHTML(m, t2.members.indexOf(m), 28)}
           <span style="flex:1;font-weight:600">${esc(m.name)}</span>
           <span class="chkchip ${on?'on':''}" aria-hidden="true"></span></button>`; }).join('')}</div>` : ''}
     </div>`);
   } else if (g.type === 'single') {
     tb.innerHTML = b('S-04-17', `<div style="margin-top:10px"><span class="lbl" data-group="chips 多選一，非單一輸入欄">算誰的？</span>
       <div class="chips">${t2.members.map(m =>
-        `<button class="chip${(g.parts||[])[0]===m.id?' on':''}" data-esingle="${m.id}">${m.emoji||firstGrapheme(m.name)} ${esc(m.name)}</button>`).join('')}</div></div>`);
+        `<button class="chip${(g.parts||[])[0]===m.id?' on':''}" data-esingle="${m.id}">${avatarHTML(m, t2.members.indexOf(m), 20)} ${esc(m.name)}</button>`).join('')}</div></div>`);
   } else {
     const fillCur = c.fillsAreForeign ? cur : 'TWD';
     const fs = fillCur === 'TWD' ? '$' : sym;
@@ -2269,7 +2283,7 @@ function paintS04() {
       const m = t2.members.find(x => x.id === id) || {};
       const auto = c.valInCur[id] != null && !(id in c.manual);
       const cell = `<label for="ei-${id}" class="amtrow" data-arow="${id}">
-        <span style="font-size:var(--fs-title)">${m.emoji||firstGrapheme(m.name||'')}</span>
+        ${avatarHTML(m, i, 28)}
         <span style="flex:1;font-size:var(--fs-body)">${esc(m.name||'')}</span>
         <span data-eauto="${id}">${auto ? '<span class="autotag">自動</span>' : ''}</span>
         <input type="text" inputmode="decimal" id="ei-${id}" data-eindiv="${id}" value="${esc(g.indiv[id] ?? '')}"
@@ -2402,7 +2416,7 @@ function renderS05() {
             const mine = tx.filter(x => x.from === m.id || x.to === m.id);
             return `<div style="background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);padding:9px 10px">
               <div style="display:flex;align-items:center;gap:8px">
-                <span style="font-size:var(--fs-title)">${m.emoji||firstGrapheme(m.name)}</span>
+                ${avatarHTML(m, t.members.indexOf(m), 28)}
                 <span style="flex:1;font-size:var(--fs-body);font-weight:600">${esc(m.name)}</span>
                 <span class="money" style="font-size:var(--fs-money);font-weight:600;color:${v>0?'var(--in)':v<0?'var(--out)':'var(--gr)'}">${
                   v>0?`可以拿回 ${money(v)}`:v<0?`要給出 ${money(-v)}`:'剛好打平'}</span></div>
@@ -2415,7 +2429,7 @@ function renderS05() {
             <div class="detailhd"><span>成員</span><span>實際付出</span><span>應分攤</span><span>差額</span></div>
             ${t.members.map(m => { const v = net[m.id];
               const paid = S.list.filter(e => e.payer === m.id && !e.onSpot).reduce((a,e) => a + (calc(e,t).twdTotal||0), 0);
-              return `<div class="detailrow tnum"><span style="font-family:var(--sans)">${m.emoji||firstGrapheme(m.name)} ${esc(m.name)}</span>
+              return `<div class="detailrow tnum"><span style="font-family:var(--sans);display:flex;align-items:center;gap:4px;min-width:0">${avatarHTML(m, t.members.indexOf(m), 20)}<span>${esc(m.name)}</span></span>
                 <span>${paid.toLocaleString()}</span><span>${(paid-v).toLocaleString()}</span>
                 <span style="color:${v>=0?'var(--in)':'var(--out)'}">${v>=0?'+':''}${v.toLocaleString()}</span></div>`; }).join('')}
           </div>`)}
@@ -2900,7 +2914,7 @@ function renderS06() {
     <div class="sc"></div>
     ${b('S-06-2', `<span style="position:absolute;top:10px;right:12px"><span class="stamp">朋友檢視</span></span>`)}
     ${b('S-06-3', `<div style="position:relative"><div class="tt">${esc(t.name)}</div>
-      <div class="dt">${dateRange(t.start, t.end)}　${t.members.map(m=>m.emoji||firstGrapheme(m.name)).join('')}</div></div>`)}
+      <div class="dt">${dateRange(t.start, t.end)}</div></div>`)}
   </div>`);
 
   // #29-10 與 S-03-9／S-03-27 共用 statCard()。人均取消——每人分擔列已經取代它，

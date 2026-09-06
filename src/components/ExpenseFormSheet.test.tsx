@@ -57,7 +57,7 @@ const flat = () => (document.body.textContent ?? '').replace(/\s+/g, '');
 function pickPayer(body: HTMLElement = document.body) {
   const zone = [...body.querySelectorAll('.fld')]
     .find(x => x.textContent?.includes('誰付的？'))!;
-  fireEvent.click([...zone.querySelectorAll('.chip')].find(c => c.textContent === '🐵 Rozi')!);
+  fireEvent.click([...zone.querySelectorAll('.chip')].find(c => (c.textContent ?? '').includes('Rozi'))!);
 }
 
 beforeEach(() => {
@@ -81,7 +81,8 @@ describe('B-4　S-04 記一筆', () => {
        原型的 renderS04() 不會依標題重算它，填了標題反而對不上。 */
     fireEvent.change(document.getElementById('e-twd')!, { target: { value: '1200' } });
     /* 「要排除誰？」以外的都在預設狀態就看得到；R2 那一段本來就收合 */
-    expect(want.list.length).toBe(29);
+    /* 實作-J 之後每個成員識別自成一個文字節點（原本 `🐵 Rozi` 是一段），所以段數變多 */
+    expect(want.list.length).toBe(33);
     const got = flat();
     const missing = want.list.filter(t => !got.includes(t.replace(/\s+/g, '')));
     expect(missing, `原型有、App 沒有：${missing.join(' ｜ ')}`).toEqual([]);
@@ -96,7 +97,7 @@ describe('B-4　S-04 記一筆', () => {
 
   it('🔴 S-04-8＋S-04-29　完全沒填金額 → twd_amount null 且 pending 為 true', async () => {
     open();
-    fireEvent.click(screen.getByText('🐵 Rozi'));
+    pickPayer();
     fireEvent.click(screen.getByText('記下來'));
     await waitFor(() => expect(captured.expenses.length).toBe(1));
 

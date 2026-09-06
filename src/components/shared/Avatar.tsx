@@ -18,26 +18,33 @@ export interface AvatarProps {
   name?: string | null;
   /** 成員在清單中的順位——決定第二層取哪一個底色 */
   index?: number;
+  /**
+   * 28＝獨立的識別圖位（成員列、統計卡、逐人列）。
+   * 20＝chip／列內「識別 ＋ 名字」並排時用，避免把 chip 撐高。
+   * 尺寸只由這個 prop 決定，**不要在元件外另寫 style 覆蓋**。
+   */
+  size?: 28 | 20;
   className?: string;
   onClick?: () => void;
   'aria-label'?: string;
 }
 
 export default function Avatar({
-  emoji, name, index = 0, className, onClick, 'aria-label': label,
+  emoji, name, index = 0, size = 28, className, onClick, 'aria-label': label,
 }: AvatarProps) {
   const Tag = onClick ? 'button' : 'span';
   const common = { onClick, 'aria-label': label, type: onClick ? ('button' as const) : undefined };
+  /* 20px 時字級降一階，否則字會頂到圓底邊緣 */
+  const cls = (extra = '') =>
+    `avatar${size === 20 ? ' sm' : ''}${extra}${className ? ' ' + className : ''}`;
 
-  if (emoji) {
-    return <Tag className={`avatar${className ? ' ' + className : ''}`} {...common}>{emoji}</Tag>;
-  }
+  if (emoji) return <Tag className={cls()} {...common}>{emoji}</Tag>;
 
   const g = firstGrapheme(name ?? '');
   if (g) {
     return (
       <Tag
-        className={`avatar letter${className ? ' ' + className : ''}`}
+        className={cls(' letter')}
         style={{ background: LETTER_COLORS[index % LETTER_COLORS.length] }}
         {...common}
       >
@@ -46,5 +53,5 @@ export default function Avatar({
     );
   }
 
-  return <Tag className={`avatar${className ? ' ' + className : ''}`} {...common}>🙂</Tag>;
+  return <Tag className={cls()} {...common}>🙂</Tag>;
 }

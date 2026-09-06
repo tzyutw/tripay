@@ -5,14 +5,29 @@ import type { Trip, TripMember, ExpenseWithSplits } from '@/types/database';
 
 export const M = ['m0', 'm1', 'm2', 'm3'];
 
-export const members: TripMember[] = [
-  { emoji: '🐵', name: 'Rozi' }, { emoji: '🐱', name: '小美' },
-  { emoji: '🍋', name: '阿明' }, { emoji: '🐟', name: '小魚' },
-].map((m, i) => ({
-  id: M[i], trip_id: 't1', name: m.name, emoji: m.emoji, sort_order: i,
-  linked_profile_id: null, person_id: null, user_id: null, role: null,
-  created_at: '2026-03-01',
-})) as TripMember[];
+const NAMES = ['Rozi', '小美', '阿明', '小魚'];
+const EMOJI = ['🐵', '🐱', '🍋', '🐟'];
+
+function mkMembers(withEmoji: boolean): TripMember[] {
+  return NAMES.map((name, i) => ({
+    id: M[i], trip_id: 't1', name, emoji: withEmoji ? EMOJI[i] : '', sort_order: i,
+    linked_profile_id: null, person_id: null, user_id: null, role: null,
+    created_at: '2026-03-01',
+  })) as TripMember[];
+}
+
+/**
+ * `?members=noemoji` 時所有成員都沒有 emoji。
+ *
+ * **為什麼要有這個模式**：原本的假資料清一色有 emoji，
+ * 所以 Avatar 的第二層（名字第一個字＋填色圓底）**從來沒被測到過**——
+ * Rozi 在手機上反覆回報「沒有填色圓底」，而版面回歸 263 條全綠。
+ * 假資料只走 happy path，等於那條路沒有人守。
+ */
+export const membersHaveEmoji =
+  new URLSearchParams(location.search).get('members') !== 'noemoji';
+
+export const members: TripMember[] = mkMembers(membersHaveEmoji);
 
 export const trip = {
   id: 't1', owner_id: 'u1', name: '2026 濟州島四寶團', emoji: '✈️', currency: 'KRW',

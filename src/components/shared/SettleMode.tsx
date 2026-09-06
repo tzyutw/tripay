@@ -4,6 +4,7 @@
    ⚠️ 版位：這一段必須排在「誰一起去？」之後——**要先有成員才選得出中心人**。 */
 import type { SharedMember } from './types';
 import { firstGrapheme } from '@/lib/format';
+import Avatar from './Avatar';
 
 export interface SettleModeProps {
   mode: 'direct' | 'hub';
@@ -29,9 +30,9 @@ export default function SettleMode({ mode, hubMember, members, onMode, onHub }: 
       </div>
       {mode === 'hub' && (
         <div className="chips" style={{ marginTop: 8 }}>
-          {members.map(m => (
+          {members.map((m, i) => (
             <button key={m.id} className={`chip${hubMember === m.id ? ' on' : ''}`} onClick={() => onHub(m.id)}>
-              {m.emoji || firstGrapheme(m.name)} {m.name}
+              <Avatar emoji={m.emoji} name={m.name} index={i} size={20} /> {m.name}
             </button>
           ))}
         </div>

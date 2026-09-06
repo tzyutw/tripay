@@ -2,8 +2,11 @@
    這個檔要在任何畫面模組 evaluate 之前跑完，所以獨立成一個 import。 */
 import { trip, expenses, members, settlementItems } from './fixtures';
 
+/* `?state=settled`：讓 S-05 走到「已結算、逐筆標記付清」那一態，
+   才畫得出「查看計算依據」的逐人列。預設維持 active，不動既有版面基準。 */
+const settled = new URLSearchParams(location.search).get('state') === 'settled';
 const rows: Record<string, unknown[]> = {
-  trips: [trip], expenses, trip_members: members,
+  trips: [settled ? { ...trip, status: 'settled' } : trip], expenses, trip_members: members,
   settlements: [{ id: 's1', trip_id: 't1', status: 'confirmed',
                   created_at: '2026-03-20', settlement_items: settlementItems }],
 };

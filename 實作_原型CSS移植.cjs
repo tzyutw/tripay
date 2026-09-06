@@ -66,7 +66,16 @@ for (const [, selRaw, body] of rules) {
      `.datefield` 移植過來了卻沒邊框，就是漏了這一條。 */
   const isBareElement = !classes.length && /^\.ui\s+[a-z]+(\[[^\]]*\])?/.test(sel);
   if (!isBareElement && (!classes.length || !classes.some(c => used.has(c)))) { skipped++; continue; }
-  out.push(`${sel.replace(/\.ui\s+/g, '')} { ${body.trim().replace(/\s*\n\s*/g, ' ')} }`);
+  /* 裸元素選擇器搬過來時**特異度會變高**：原型裡是 `.ui input[…]`（0,1,1 但被 .ui scope
+     住），拿掉 `.ui` 之後變成全域 (0,1,1)，壓過 Tailwind utility 的 (0,1,0)——
+     於是元件上寫的 `w-8 h-8` 靜默失效，輸入框撐滿整列。
+     只要宣告裡有**尺寸／版面**屬性就用 `:where()` 把特異度降到 0；
+     reset 與繼承類（font-size／font-family／color…）維持原樣——
+     `input{font-size:var(--fs-input)}` 那條是 iOS 的 16px 硬性下限，被蓋掉會整頁放大。 */
+  const bareSel = sel.replace(/\.ui\s+/g, '');
+  const LAYOUT = /(^|[;\s])(width|height|min-[a-z]+|max-[a-z]+|padding|margin|flex|position|overflow|display)\s*:/;
+  const needsWhere = isBareElement && LAYOUT.test(body);
+  out.push(`${needsWhere ? `:where(${bareSel})` : bareSel} { ${body.trim().replace(/\s*\n\s*/g, ' ')} }`);
   kept++;
 }
 

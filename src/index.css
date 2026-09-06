@@ -198,6 +198,13 @@ input, textarea, select { font-size: var(--fs-input); }
 .s00slogan{ color: rgba(255,255,255,.8); font-size: var(--fs-body); letter-spacing: .32em; margin-top: 12px; }
 .s00tag   { color: rgba(255,255,255,.66); font-size: var(--fs-body); text-align: center;
             margin-top: 28px; white-space: nowrap; }
+/* 實作-J　`.avatar` 的小尺寸：chip／列內「識別 ＋ 名字」並排時用。
+   28px 會把 chip 撐高（chip 本身只有 31px），所以縮到 20 並降一階字級。
+   ⚠️ `display:inline-flex` 不能省——`.avatar` 本身是 `display:flex`＝block-level，
+   放進 chip 的**行內**文字流會自己佔一行，量到 54px。改成 inline-flex 之後回到 34.5px。 */
+.avatar.sm { width: 20px; height: 20px; font-size: var(--fs-sub); display: inline-flex; }
+.avatar.sm.letter { font-size: var(--fs-tag); }
+
 /* 原型第 183 行的全域 `.ic`。**它沒有 `.ui ` 前綴，所以 CSS 移植腳本抓不到**
    （腳本只收 `.ui …` 開頭的規則，那是為了把原型自己的檢視器外框排除掉）。
    少了它，Feather SVG 在**文字流**裡會以 baseline 對齊 → 圖示浮在文字上方，
@@ -238,9 +245,9 @@ input, textarea, select { font-size: var(--fs-input); }
 .hint { font-size:var(--fs-sub);color:var(--gr);margin:5px 0 0;line-height:1.45 }
 .err { font-size:var(--fs-sub);color:var(--out);margin:5px 0 0 }
 .fld { padding:0 14px 14px }
-input[type=text],input[type=number],input[type=date] { width:100%;background:#fff; border:1px solid var(--ln);border-radius:var(--r-base);padding:9px 10px;font-size:var(--fs-input);color:#151C21;outline:none }
+:where(input[type=text],input[type=number],input[type=date]) { width:100%;background:#fff; border:1px solid var(--ln);border-radius:var(--r-base);padding:9px 10px;font-size:var(--fs-input);color:#151C21;outline:none }
 input:focus { border-color:var(--w) }
-input[type=date] { min-width:0 }
+:where(input[type=date]) { min-width:0 }
 .btn { width:100%;background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:11px 0; border-radius:var(--r-base);text-align:center }
 .btn.gh { background:#fff;color:var(--wi);border:1px solid var(--w) }
 .btn.qt { background:#fff;color:var(--md);border:1px solid var(--ln) }
@@ -497,4 +504,5 @@ input.auto { color:#9AA5AB }
              border-top: 1px solid var(--ln); display: flex; align-items: center; gap: 9px; }
 .sharefoot p { margin: 0; flex: 1; font-size: var(--fs-body); color: var(--md); }
 .verfoot  { padding: 14px; text-align: center; font-size: var(--fs-sub); color: var(--gr); }
+
 .trunc    { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

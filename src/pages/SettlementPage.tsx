@@ -14,6 +14,7 @@ import { money, memberLabel, firstGrapheme } from '@/lib/format';
 import { Icon } from '@/components/Icon';
 import TransferView from '@/components/shared/TransferView';
 import type { TripWithMembers, SettlementItem, ExpenseWithSplits } from '@/types/database';
+import Avatar from '@/components/shared/Avatar';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -418,7 +419,7 @@ export default function SettlementPage() {
         <div className="fld">
           {/* S-05-11　人話淨額。由多筆轉帳組成時**對象要全部列出**。 */}
           <div className="gap">
-            {t.members.map(m => {
+            {t.members.map((m, i) => {
               const v = netFromItems.find(x => x.id === m.id)?.net ?? net[m.id] ?? 0;
               const mine = (items.length
                 ? items.map(i => ({ from: i.from_member_id, to: i.to_member_id, amount: i.amount }))
@@ -426,7 +427,7 @@ export default function SettlementPage() {
               return (
                 <div className="netcard" key={m.id}>
                   <div className="netrow">
-                    <span className="text-title">{m.emoji || firstGrapheme(m.name)}</span>
+                    <Avatar emoji={m.emoji} name={m.name} index={i} />
                     <span className="flex-1 text-body font-semibold">{m.name}</span>
                     <span className="money"
                       style={{ color: v > 0 ? 'var(--in)' : v < 0 ? 'var(--out)' : 'var(--gr)' }}>
@@ -456,15 +457,17 @@ export default function SettlementPage() {
             <div className="detailhd">
               <span>成員</span><span>實際付出</span><span>應分攤</span><span>差額</span>
             </div>
-            {t.members.map(m => {
+            {t.members.map((m, i) => {
               const v = netFromItems.find(x => x.id === m.id)?.net ?? net[m.id] ?? 0;
               const paid = expenses
                 .filter(e => e.payer_member_id === m.id && !e.settled_on_spot)
                 .reduce((a, e) => a + (calc(e, trip, trip.trip_members).twdTotal || 0), 0);
               return (
                 <div className="detailrow tnum" key={m.id}>
-                  <span style={{ fontFamily: 'var(--sans)' }}>
-                    {m.emoji || firstGrapheme(m.name)} {m.name}
+                  <span style={{ fontFamily: 'var(--sans)', display: 'flex',
+                                 alignItems: 'center', gap: 4, minWidth: 0 }}>
+                    <Avatar emoji={m.emoji} name={m.name} index={i} size={20} />
+                    <span className="trunc">{m.name}</span>
                   </span>
                   <span>{paid.toLocaleString()}</span>
                   <span>{(paid - v).toLocaleString()}</span>

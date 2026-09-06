@@ -20,6 +20,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { Icon } from '@/components/Icon';
 import Seg from '@/components/shared/Seg';
 import { useInlineEdit } from '@/components/shared/useInlineEdit';
+import Avatar from '@/components/shared/Avatar';
 import type {
   TripWithMembers, ExpenseWithSplits, ExpenseType, PaymentMethod, SplitFillCurrency,
 } from '@/types/database';
@@ -416,7 +417,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
                   setF(s => ({ ...s, payer: m.id, onSpot: false }));
                   setErrors(e => ({ ...e, payer: '' }));
                 }}>
-                {m.emoji || firstGrapheme(m.name)} {m.name}
+                <Avatar emoji={m.emoji} name={m.name} index={members.indexOf(m)} size={20} /> {m.name}
               </button>
             ))}
             <span className="paysep" />
@@ -465,7 +466,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
                     return (
                       <button key={m.id} className={`rowb${on ? ' on' : ''}`}
                         onClick={() => togglePart(m.id)}>
-                        <span className="text-title">{m.emoji || firstGrapheme(m.name)}</span>
+                        <Avatar emoji={m.emoji} name={m.name} index={members.indexOf(m)} />
                         <span className="flex-1 font-semibold">{m.name}</span>
                         <span className={`chkchip ${on ? 'on' : ''}`} aria-hidden="true" />
                       </button>
@@ -484,7 +485,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
                 {members.map(m => (
                   <button key={m.id} className={`chip${f.single === m.id ? ' on' : ''}`}
                     onClick={() => set('single', m.id)}>
-                    {m.emoji || firstGrapheme(m.name)} {m.name}
+                    <Avatar emoji={m.emoji} name={m.name} index={members.indexOf(m)} size={20} /> {m.name}
                   </button>
                 ))}
               </div>
@@ -593,7 +594,7 @@ function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
           const auto = c.valInCur[id] != null && !(f.indiv[id]?.trim());
           return (
             <label key={id} htmlFor={`ei-${id}`} className="amtrow">
-              <span className="text-title">{m?.emoji || firstGrapheme(m?.name ?? '')}</span>
+              <Avatar emoji={m?.emoji} name={m?.name} index={members.findIndex(x => x.id === id)} />
               <span className="flex-1 text-body">{m?.name ?? ''}</span>
               {auto && <span className="autotag">自動</span>}
               <input id={`ei-${id}`} type="text" inputMode="decimal"
