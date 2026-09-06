@@ -51,6 +51,15 @@ vi.mock('@/lib/supabaseClient', async () => {
 const want = (screens as Record<string, { list: string[] }>).s04;
 const flat = () => (document.body.textContent ?? '').replace(/\s+/g, '');
 
+
+/** 選一位付款人。實作-I-② 之後沒選付款人會被擋下（不再靜默失敗），
+ *  所以凡是要走到存檔的測試都得先選。 */
+function pickPayer(body: HTMLElement = document.body) {
+  const zone = [...body.querySelectorAll('.fld')]
+    .find(x => x.textContent?.includes('誰付的？'))!;
+  fireEvent.click([...zone.querySelectorAll('.chip')].find(c => c.textContent === '🐵 Rozi')!);
+}
+
 beforeEach(() => {
   captured.expenses = []; captured.splits = [];
   vi.setSystemTime(new Date('2026-03-14T09:00:00+08:00'));
@@ -151,6 +160,7 @@ describe('B-4　S-04 記一筆', () => {
     const pick = [...body.querySelectorAll('.fld')]
       .find(x => x.textContent?.includes('算誰的？'))!;
     fireEvent.click([...pick.querySelectorAll('.chip')].find(c => c.textContent === '🐱 小美')!);
+    pickPayer(body);
     fireEvent.click(screen.getByText('記下來'));
     await waitFor(() => expect(captured.expenses.length).toBe(1));
     expect((captured.expenses[0] as Record<string, unknown>).individual_member_id).toBe('m1');
@@ -162,6 +172,7 @@ describe('B-4　S-04 記一筆', () => {
     fireEvent.click(screen.getByRole('tab', { name: /KRW 填/ }));
     fireEvent.change(screen.getByLabelText('花費'), { target: { value: '藥妝店' } });
     fireEvent.change(document.getElementById('ei-m0')!, { target: { value: '12000' } });
+    pickPayer();
     fireEvent.click(screen.getByText('記下來'));
     await waitFor(() => expect(captured.splits.length).toBeGreaterThan(0));
 
@@ -228,6 +239,7 @@ describe('B-4　S-04 記一筆', () => {
     open();
     fireEvent.click(screen.getByLabelText('類別 emoji'));
     fireEvent.blur(screen.getByLabelText('類別 emoji'), { target: { value: '🍕' } });
+    pickPayer();
     fireEvent.click(screen.getByText('記下來'));
     await waitFor(() => expect(captured.expenses.length).toBe(1));
     expect((captured.expenses[0] as Record<string, unknown>).category_emoji_manual).toBe(true);
@@ -272,5 +284,90 @@ describe('B-4　S-04 記一筆', () => {
       .toBe('已存。小美 和 阿明 的金額還沒填，先照均分算。');
     expect(saveToastFor({ pending: false, blanks: ['小美', '阿明', '小魚'] }))
       .toBe('已存。還有 3 人的金額還沒填，先照均分算。');
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════
+   實作-I　Cowork 線上實測找到的 bug（①②）
+   ══════════════════════════════════════════════════════════════ */
+describe('I-①　sheet 要捲得動，「記下來」永遠按得到', () => {
+  it('外層不捲、不掛 .sheet；捲動的是中間那層，footer 在它外面', () => {
+    const body = open();
+    /* `.sheet` 是 overflow:hidden，掛在同一個元素上會贏過 overflow-y-auto，整張捲不動 */
+    const outer = body.querySelector('.animate-sheet-up') as HTMLElement;
+    expect(outer, '找不到 sheet 外層').not.toBeNull();
+    /* 用 classList 比對，不要用正規式——`\bsheet\b` 會被 shadow-sheet／
+       animate-sheet-up 裡的 sheet 命中（`-` 是 word boundary）。 */
+    expect(outer.classList.contains('sheet'),
+      '外層不該掛 .sheet（overflow:hidden 會蓋掉捲動）').toBe(false);
+    expect(outer.className, '外層不該自己捲').not.toContain('overflow-y-auto');
+
+    const scroller = body.querySelector('.sheetbody') as HTMLElement;
+    expect(scroller, '找不到捲動區').not.toBeNull();
+    expect(scroller.className).toContain('overflow-y-auto');
+
+    /* footer 必須在捲動區**外面**——在裡面的話內容一長就被推出畫面 */
+    const footer = body.querySelector('.btnrow') as HTMLElement;
+    expect(footer, '找不到 footer').not.toBeNull();
+    expect(scroller.contains(footer), 'footer 不可以在捲動區裡面').toBe(false);
+    expect(outer.contains(footer)).toBe(true);
+  });
+
+  it('「記下來」與「取消」都在 footer 裡，不隨內容捲走', () => {
+    const body = open();
+    const footer = body.querySelector('.btnrow') as HTMLElement;
+    const labels = [...footer.querySelectorAll('button')].map(b => b.textContent);
+    expect(labels).toEqual(['取消', '記下來']);
+  });
+
+  it('刪除這筆留在捲動區裡——它不是常駐動作', () => {
+    render(<ExpenseFormSheet tripId="t1" trip={trip} expenseId="e1" onClose={() => {}} />);
+    const scroller = document.body.querySelector('.sheetbody') as HTMLElement;
+    const del = [...document.body.querySelectorAll('button')]
+      .find(b => b.textContent === '刪除這筆')!;
+    expect(del).toBeTruthy();
+    expect(scroller.contains(del)).toBe(true);
+  });
+});
+
+describe('I-②　沒選付款人不可以靜默失敗', () => {
+  it('不選付款人按「記下來」→ 出現錯誤、而且沒有送出', async () => {
+    open();
+    fireEvent.change(screen.getByLabelText('花費'), { target: { value: '藥妝店' } });
+    fireEvent.change(document.getElementById('e-for')!, { target: { value: '45000' } });
+    fireEvent.click(screen.getByText('記下來'));
+
+    expect(screen.getByText('先選這筆是誰付的')).toBeInTheDocument();
+    /* 關鍵是**沒有送出**——不是只看畫面有沒有字 */
+    await new Promise(r => setTimeout(r, 30));
+    expect(captured.expenses.length, '不該送出').toBe(0);
+  });
+
+  it('選了付款人之後錯誤消失，而且送得出去', async () => {
+    const body = open();
+    fireEvent.click(screen.getByText('記下來'));
+    expect(screen.getByText('先選這筆是誰付的')).toBeInTheDocument();
+
+    pickPayer(body);
+    expect(screen.queryByText('先選這筆是誰付的'), '選了人錯誤要清掉').toBeNull();
+
+    fireEvent.click(screen.getByText('記下來'));
+    await waitFor(() => expect(captured.expenses.length).toBe(1));
+  });
+
+  it('「當場就清了」＝沒有人代墊，不該被要求選付款人', async () => {
+    open();
+    fireEvent.click(screen.getByText('當場就清了'));
+    fireEvent.click(screen.getByText('記下來'));
+    expect(screen.queryByText('先選這筆是誰付的')).toBeNull();
+    await waitFor(() => expect(captured.expenses.length).toBe(1));
+  });
+
+  it('錯誤用現有的 .err 樣式，不是另寫一套', () => {
+    const body = open();
+    fireEvent.click(screen.getByText('記下來'));
+    const err = body.querySelector('.err');
+    expect(err, '錯誤訊息要用 .err').not.toBeNull();
+    expect(err!.textContent).toBe('先選這筆是誰付的');
   });
 });

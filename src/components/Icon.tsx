@@ -40,7 +40,7 @@ export function Icon({ name, size = 18, className, style }: {
       viewBox="0 0 24 24" width={size} height={size}
       fill="none" stroke="currentColor" strokeWidth={ICON_STROKE}
       strokeLinecap="round" strokeLinejoin="round"
-      className={className} style={style} aria-hidden="true"
+      className={`ic${className ? ' ' + className : ''}`} style={style} aria-hidden="true"
       dangerouslySetInnerHTML={{ __html: ICON[name] }}
     />
   );

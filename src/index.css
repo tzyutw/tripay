@@ -198,6 +198,13 @@ input, textarea, select { font-size: var(--fs-input); }
 .s00slogan{ color: rgba(255,255,255,.8); font-size: var(--fs-body); letter-spacing: .32em; margin-top: 12px; }
 .s00tag   { color: rgba(255,255,255,.66); font-size: var(--fs-body); text-align: center;
             margin-top: 28px; white-space: nowrap; }
+/* 原型第 183 行的全域 `.ic`。**它沒有 `.ui ` 前綴，所以 CSS 移植腳本抓不到**
+   （腳本只收 `.ui …` 開頭的規則，那是為了把原型自己的檢視器外框排除掉）。
+   少了它，Feather SVG 在**文字流**裡會以 baseline 對齊 → 圖示浮在文字上方，
+   「＋ 記一筆」看起來就像「＋」跑到左上角。flex 容器裡則不受影響，
+   所以一直到 Rozi 看到那顆按鈕才暴露出來。 */
+.ic { display: inline-block; vertical-align: -.15em; flex: none; }
+
 /* 整頁唯一動作。白底深字，與任何「選取態」的語彙都不同 */
 .gbtn {
   width: 100%; height: 48px; background: #fff; border-radius: var(--r-base);
@@ -229,6 +236,7 @@ input, textarea, select { font-size: var(--fs-input); }
 .datefield input[type=date]::-webkit-calendar-picker-indicator { opacity:0;position:absolute; right:0;top:0;width:100%;height:100%;cursor:pointer }
 .datefield>svg { position:absolute;right:10px;color:var(--gr);pointer-events:none }
 .hint { font-size:var(--fs-sub);color:var(--gr);margin:5px 0 0;line-height:1.45 }
+.err { font-size:var(--fs-sub);color:var(--out);margin:5px 0 0 }
 .fld { padding:0 14px 14px }
 input[type=text],input[type=number],input[type=date] { width:100%;background:#fff; border:1px solid var(--ln);border-radius:var(--r-base);padding:9px 10px;font-size:var(--fs-input);color:#151C21;outline:none }
 input:focus { border-color:var(--w) }

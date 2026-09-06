@@ -216,7 +216,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
 
   // ── Mutations ─────────────────────────────────────────────────────────────────
   const mutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (submitMembers: MemberEntry[] = members) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('未登入');
 
@@ -235,7 +235,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
         if (error) throw error;
 
         // 成員異動：更新既有、新增、刪除（刪除前擋掉已有紀錄者）
-        const kept = members.filter(m => m.name.trim());
+        const kept = submitMembers.filter(m => m.name.trim());
         const originalIds = (existingTrip?.trip_members ?? []).map(m => m.id);
         const keptIds = kept.map(m => m.id).filter(Boolean) as string[];
         const removed = originalIds.filter(id => !keptIds.includes(id));
@@ -309,7 +309,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
         .single();
       if (tripErr) throw tripErr;
 
-      const memberRows = members
+      const memberRows = submitMembers
         .filter(m => m.name.trim())
         .map((m, i) => ({
           trip_id:    trip.id,
@@ -350,23 +350,39 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
   });
 
   // ── Validation & submit ───────────────────────────────────────────────────────
-  function validate() {
+  function validate(list: MemberEntry[]) {
     const errs: Record<string, string> = {};
     if (!name.trim())      errs.name      = '這欄還沒填喔';
     if (!startDate)        errs.startDate = '這欄還沒填喔';
-    if (members.filter(m => m.name.trim()).length === 0) errs.members = '至少要有一位成員';
+    if (list.filter(m => m.name.trim()).length === 0) errs.members = '至少要有一位成員';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
 
   function handleSubmit() {
-    if (validate()) mutation.mutate();
+    /* 「加一個人」欄位裡打了名字、但還沒按「加進來」就直接送出——
+       名字明明在畫面上，卻報「至少要有一位成員」。先把它收進來再驗。
+       （「加進來」那顆在摺線以下，要捲才看得到，使用者不會知道要按。） */
+    const pending = newMemberName.trim();
+    const list = pending
+      ? [...members, { emoji: newMemberEmoji, name: pending.slice(0, 10) }]
+      : members;
+    if (pending) {
+      setMembers(list);
+      setNewMemberName('');
+      setNewMemberEmoji('');
+    }
+    /* mutation 讀的是 state，這一輪還沒更新——所以把有效清單傳進去 */
+    if (validate(list)) mutation.mutate(list);
   }
 
   // ── Member helpers ────────────────────────────────────────────────────────────
   function addMember() {
     if (!newMemberName.trim()) return;
     setMembers(prev => [...prev, { emoji: newMemberEmoji, name: newMemberName.trim().slice(0, 10) }]);
+    /* 加進來了就把「至少要有一位成員」清掉——跟其他欄位一樣在 onChange 時清，
+       不然人已經在畫面上了紅字還掛著。 */
+    setErrors(e => ({ ...e, members: '' }));
     setNewMemberName('');
     setNewMemberEmoji('');
     setAddingMember(false);

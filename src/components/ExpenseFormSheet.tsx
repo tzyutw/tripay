@@ -8,7 +8,7 @@
  *    pending 旗標。分開做的中間狀態是 `twd_amount = null` 且 `twd_pending = false`，
  *    結算整趟會回 422。
  */
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
@@ -147,12 +147,26 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
 
   const [f, setF] = useState<FormState>(() => blank(trip, members));
   const [showDelete, setShowDelete] = useState(false);
+  /* 付款人沒選時**不能靜默失敗**——按鈕看起來按得下去、按了什麼都不說，
+     使用者只會覺得 App 壞了。用與其他欄位同一套 errors 機制。 */
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const payerRowRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (existing) setF(fromExpense(existing, members));
   }, [existing]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF(s => ({ ...s, [k]: v }));
+
+  /* 存檔前的檢查。**只擋真的存不下去的**——金額空白照樣放行（S-04-8）。 */
+  function validate(): boolean {
+    const errs: Record<string, string> = {};
+    /* 「當場就清了」＝沒有人代墊，本來就不需要付款人 */
+    if (!f.onSpot && !f.payer) errs.payer = '先選這筆是誰付的';
+    setErrors(errs);
+    if (errs.payer) payerRowRef.current?.scrollIntoView({ block: 'center' });
+    return Object.keys(errs).length === 0;
+  }
 
   /* S-04-3 類別 emoji 就地編輯。手動改過就寫 emojiManual，之後改標題不再覆蓋。 */
   const inline = useInlineEdit((_k, v) => setF(s => ({ ...s, emoji: v, emojiManual: true })));
@@ -288,16 +302,25 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
       <div className="absolute inset-0 bg-black/40 animate-fade-in"
         style={{ backdropFilter: 'blur(3px)' }} onClick={onClose} />
 
-      <div className="sheet relative shadow-sheet max-h-[95%] flex flex-col animate-sheet-up overflow-y-auto scrollbar-hide">
-        <div className="grab" />
+      {/* ⚠️ 外層**不捲**，也不掛 `.sheet`——`.sheet` 是 `overflow:hidden`，
+          跟同一個元素上的 `overflow-y-auto` 打架，hidden 會贏，整張就捲不動了
+          （Rozi 的手機上「記下來」直接被切掉、按不到）。
+          結構照 `TripFormSheet`：外層只負責高度上限與排版，
+          中間一個 `flex-1 overflow-y-auto` 放內容，
+          **footer 放在捲動區外面**——內容再長它都還在畫面上。 */}
+      <div className="relative bg-bg rounded-t-panel shadow-sheet max-h-[93%] flex flex-col animate-sheet-up">
+        <div className="grab flex-shrink-0" />
 
         {/* S-04-1 */}
-        <div className="shd" style={{ paddingTop: 14 }}>
+        <div className="shd flex-shrink-0" style={{ paddingTop: 14 }}>
           <h3>{isEdit ? '編輯消費' : '記一筆'}</h3>
           <button className="ic2" aria-label="關閉" onClick={onClose}>
             <Icon name="close" size={20} />
           </button>
         </div>
+
+        {/* 捲動區 */}
+        <div className="sheetbody flex-1 overflow-y-auto scrollbar-hide">
 
         {/* S-04-10　日期。#29-1 不是「這一筆的屬性」，是「這一批帳的共同前提」——
             一天只設一次，卻擋在每筆都要填的「誰付的」前面，所以放在標題正下方，
@@ -384,20 +407,27 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
         </div>
 
         {/* S-04-21／18 */}
-        <div className="fld">
+        <div className="fld" ref={payerRowRef}>
           <span className="lbl">誰付的？</span>
           <div className="chips">
             {members.map(m => (
               <button key={m.id} className={`chip${!f.onSpot && f.payer === m.id ? ' on' : ''}`}
-                onClick={() => setF(s => ({ ...s, payer: m.id, onSpot: false }))}>
+                onClick={() => {
+                  setF(s => ({ ...s, payer: m.id, onSpot: false }));
+                  setErrors(e => ({ ...e, payer: '' }));
+                }}>
                 {m.emoji || firstGrapheme(m.name)} {m.name}
               </button>
             ))}
             <span className="paysep" />
             {/* #17-10「當場各付各的」本來就是在回答「誰付的」——答案是沒有人代墊 */}
             <button className={`chip alt${f.onSpot ? ' on' : ''}`}
-              onClick={() => set('onSpot', !f.onSpot)}>當場就清了</button>
+              onClick={() => {
+                set('onSpot', !f.onSpot);
+                setErrors(e => ({ ...e, payer: '' }));
+              }}>當場就清了</button>
           </div>
+          {errors.payer && <p className="err">{errors.payer}</p>}
         </div>
 
         {/* S-04-11　分帳方式 */}
@@ -484,20 +514,24 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
           )}
         </div>
 
-        {/* S-04-22　存檔一律放行：不擋、不跳確認、不 disable */}
-        <div className="btnrow">
-          <button className="btn gh" onClick={onClose}>取消</button>
-          <button className="btn" disabled={save.isPending} onClick={() => save.mutate()}>
-            {save.isPending ? '存檔中…' : '記下來'}
-          </button>
-        </div>
-
-        {/* S-04-23　刪除。**這是軟刪**，所以不要寫「無法復原」——那不誠實。 */}
+        {/* S-04-23　刪除。**這是軟刪**，所以不要寫「無法復原」——那不誠實。
+            它跟著內容捲，不是常駐動作。 */}
         {isEdit && (
           <div className="delrow">
             <button onClick={() => setShowDelete(true)}>刪除這筆</button>
           </div>
         )}
+        </div>
+
+        {/* S-04-22　存檔一律放行：不擋、不跳確認、不 disable。
+            **在捲動區外面**，所以永遠按得到。 */}
+        <div className="btnrow flex-shrink-0">
+          <button className="btn gh" onClick={onClose}>取消</button>
+          <button className="btn" disabled={save.isPending}
+            onClick={() => { if (validate()) save.mutate(); }}>
+            {save.isPending ? '存檔中…' : '記下來'}
+          </button>
+        </div>
       </div>
 
       {showDelete && (

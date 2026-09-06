@@ -174,8 +174,36 @@ function serve(dir) {
             });
         }
 
+        /* ⑥ 實作-I：**sheet 的 footer 按鈕必須在 viewport 內**。
+           只量 scrollWidth 抓不到這一類——Rozi 的手機上「記下來」是被**垂直**切掉的。 */
+        const offscreen = [];
+        for (const b of document.querySelectorAll('.btnrow button, .dlgrow button')) {
+          /* **只管彈層裡的 footer**。頁面正常流程底部的按鈕（S-03 的「記一筆」）
+             本來就在摺線以下，捲下去就看得到，那不是 bug。
+             彈層的判準：祖先有 position:fixed。 */
+          let inOverlay = false;
+          for (let e = b.parentElement; e; e = e.parentElement)
+            if (getComputedStyle(e).position === 'fixed') { inOverlay = true; break; }
+          if (!inOverlay) continue;
+          const r = b.getBoundingClientRect();
+          if (r.height === 0) continue;
+          if (r.bottom > innerHeight + 1 || r.top < -1)
+            offscreen.push(`${(b.textContent || '').trim().slice(0, 8)} top=${Math.round(r.top)} bottom=${Math.round(r.bottom)}`);
+        }
+        /* ⑦ 「＋ 文字」型的按鈕：icon 與文字的垂直中心要對齊（≤2px） */
+        const misaligned = [];
+        for (const b of document.querySelectorAll('button')) {
+          const svg = b.querySelector(':scope > svg');
+          const txt = (b.textContent || '').trim();
+          if (!svg || !txt) continue;
+          const sr = svg.getBoundingClientRect(), br = b.getBoundingClientRect();
+          if (sr.height === 0) continue;
+          const d = Math.abs((sr.top + sr.bottom) / 2 - (br.top + br.bottom) / 2);
+          if (d > 2) misaligned.push(`${txt.slice(0, 8)} 差 ${d.toFixed(1)}px`);
+        }
+
         return {
-          bodyText, textNodes, iconBtns,
+          bodyText, textNodes, iconBtns, offscreen, misaligned,
           bodyOverflow, past: past.slice(0, 5), pastCount: past.length, scrollables,
           clientWidth: de.clientWidth,
           near, small, overflow,
@@ -210,7 +238,14 @@ function serve(dir) {
     /* 第二隻金絲雀：塞進**某個捲動容器裡**，document 不會溢出，
        只有「量容器」那條抓得到。這正是 2026-09-05 漏掉的那一類。 */
     let inContainer = 0;
-    const box = document.querySelector('.sheet');
+    let boxName = '(找不到捲動容器)';
+    /* 找**真的會捲**的那個容器，不要寫死 class 名——
+       實作-I 把記帳 sheet 的捲動層從 `.sheet` 換成 `.sheetbody`，
+       寫死的話金絲雀就靜靜地放不出去（這一次就是這樣被抓到的）。 */
+    const box = [...document.querySelectorAll('body *')].find(e => {
+      const cs = getComputedStyle(e);
+      return (cs.overflowY === 'auto' || cs.overflowY === 'scroll') && e.clientHeight > 100;
+    });
     if (box) {
       const w = document.createElement('div');
       /* `flex:none` 不能省——`.sheet` 是 flex 容器，flex-shrink 預設 1，
@@ -219,11 +254,12 @@ function serve(dir) {
       box.appendChild(w);
       if (box.scrollWidth > box.clientWidth + 1) inContainer = box.scrollWidth - box.clientWidth;
       w.remove();
+      boxName = `${box.tagName}.${(typeof box.className === 'string' ? box.className : '').slice(0, 24)}`;
     }
-    return { bodyOverflow, past, inContainer };
+    return { bodyOverflow, past, inContainer, boxName };
   });
   console.log(`\n   金絲雀（故意塞 900px 寬的元素）：body 溢出 ${canary.bodyOverflow}px、` +
-              `超出右緣 ${canary.past} 個、sheet 容器溢出 ${canary.inContainer}px`);
+              `超出右緣 ${canary.past} 個、捲動容器（${canary.boxName}）溢出 ${canary.inContainer}px`);
   ok(canary.bodyOverflow > 0, '金絲雀沒被 body 溢出這條抓到——這條斷言是假的');
   ok(canary.past > 0, '金絲雀沒被「超出右緣」這條抓到——這條斷言是假的');
   ok(canary.inContainer > 0,
@@ -266,6 +302,10 @@ function serve(dir) {
         `${id} @${w} 可點區不足 44 的 icon 鈕 ${m.small.length} 個：` +
         m.small.map(x => `${x.label} ${x.w}×${x.h}`).join('；'));
       ok(m.scrollables >= 1, `${id} @${w} 一個捲動容器都沒掃到，這條等於沒驗`);
+      ok(m.offscreen.length === 0,
+        `${id} @${w} 有 ${m.offscreen.length} 顆主要按鈕在畫面外：${m.offscreen.join('；')}`);
+      ok(m.misaligned.length === 0,
+        `${id} @${w} icon 與文字沒對齊：${m.misaligned.join('；')}`);
       ok(m.overflow.length === 0,
         `${id} @${w} 容器橫向溢出 ${m.overflow.length} 處：` +
         [...new Set(m.overflow.map(x => `${x.sel} ${x.scroll}>${x.client}`))].slice(0, 4).join('；'));

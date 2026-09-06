@@ -4,7 +4,7 @@
  * 原型是規格，所以比對對象是原型，不是「上一版的自己」。
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import screens from '@/test/fixtures/screens.json';
 import { render, makeSupabaseMock } from '@/test/utils';
 
@@ -270,5 +270,59 @@ describe('H-②　新增行程不預填上一趟的成員（G-09 已於 2026-09-
     const rows = [...container.querySelectorAll('.rowb')].filter(r => r.querySelector('.avatar'));
     expect(rows.length, '複製行程要帶入四位成員').toBe(4);
     expect(seen(document.body)).toContain('Rozi');
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════
+   實作-I　Cowork 線上實測找到的 bug（③④）
+   ══════════════════════════════════════════════════════════════ */
+describe('I-③　成員加進來之後，錯誤要跟著清掉', () => {
+  it('觸發「至少要有一位成員」→ 加一位 → 紅字消失', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+
+    fireEvent.change(screen.getByPlaceholderText('例如：沖繩四人行 ☀️'), { target: { value: 'ZZ 測試' } });
+    fireEvent.click(screen.getByText('出發！'));
+    expect(screen.getByText('至少要有一位成員')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('新增成員'));
+    fireEvent.change(screen.getByPlaceholderText('叫什麼名字？'), { target: { value: '小美' } });
+    fireEvent.click(screen.getByText('加進來'));
+
+    expect(screen.queryByText('至少要有一位成員'), '人已經在畫面上了，紅字不該還掛著').toBeNull();
+  });
+});
+
+describe('I-④　名字打了但沒按「加進來」就送出', () => {
+  it('直接按「出發！」→ 那個名字算一位成員，不報錯', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+
+    fireEvent.change(screen.getByPlaceholderText('例如：沖繩四人行 ☀️'), { target: { value: 'ZZ 測試' } });
+    fireEvent.click(screen.getByText('新增成員'));
+    fireEvent.change(screen.getByPlaceholderText('叫什麼名字？'), { target: { value: '小美' } });
+    /* 不按「加進來」——那顆在摺線以下，使用者不會知道要按 */
+    fireEvent.click(screen.getByText('出發！'));
+
+    expect(screen.queryByText('至少要有一位成員'),
+      '名字明明在畫面上，不該報「至少要有一位成員」').toBeNull();
+    /* 名字欄清空、人進到成員列 */
+    await waitFor(() =>
+      expect((screen.getByPlaceholderText('叫什麼名字？') as HTMLInputElement).value).toBe(''));
+  });
+
+  it('名字欄按 Enter 等同按「加進來」', async () => {
+    render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
+    const container = document.body;   // sheet 走 createPortal
+    await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('新增成員'));
+    const input = screen.getByPlaceholderText('叫什麼名字？');
+    fireEvent.change(input, { target: { value: '阿明' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    const rows = [...container.querySelectorAll('.rowb')].filter(r => r.querySelector('.avatar'));
+    expect(rows.length, 'Enter 沒有把人加進來').toBe(1);
+    expect(seen(document.body)).toContain('阿明');
   });
 });
