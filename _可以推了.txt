@@ -1,0 +1,24 @@
+Cowork 複驗通過，migration 015 已套 production，可以 push。　2026-09-06 23:20
+
+## migration 015（Cowork 套的，先空跑再套）
+空跑：符合標記條件的 **1 筆**（2155測試 實作OP／藥妝，308500 → 1469048）。
+實套後：`twd_from_rate = true` 共 **1 筆 / 411 筆**，**沒有任何金額被改動**。
+真正的重算由 App 在 Rozi 按下「儲存匯率」時走正常寫入路徑做。
+
+## Cowork 自己跑的（不採信終端機回報）
+- verify_Q.cjs        14/14　JPY／KRW 各自「只有一格」「白話那行方向正確」「有換個方向」
+                              「換方向後白話跟著變」「無 pageerror」；千分位 `308,500`；
+                              端到端換算（**期望值由該趟真正的兩欄算出來，不寫死**）；
+                              點警示層那一列 → 出現「記下來」；先去看一下 → 出現「還沒算清楚 · N 筆」
+- verify_O.cjs        14/14　兩頁欄位完全相同、必填恰好 4 個、反向斷言、未填跳焦點、日期欄 CSS（回歸）
+- verify_O_extra.cjs   3/3 　⋯ 三個入口彈層真的開（回歸）
+- verify_P.cjs         9/9 　全站高度集合恰好 {40px,28px}、font-size≥16、宣告==渲染（回歸）
+- **production build 實建**：`dist/index.html` 的 icon 兩條都帶 `/tripay/`；
+  manifest 四個 icon 全部帶 `/tripay/`；`apple-touch-icon-v2.png` 180×180、
+  `pwa-icon-192-v2.png` 192×192、`pwa-icon-512-v2.png` 512×512 都在 dist 裡
+- **三張 PNG 逐張取樣**：四角都是藍調（B>G>R）、左上比右下暗、無任何紅調
+- 獨立重跑：`tsc` 0 錯｜`vitest` 305 passed / 3 skipped
+
+## Cowork 自己改掉的兩條過期斷言（不是實作的問題）
+① verify_O 的「匯率兩欄一開始都空」是實作-O 的形狀，方案 C 只剩一格 → 改成「恰好 1 格且是空的」
+② verify_O_extra 的 13a～13d 是「兩欄動態帶 1」，已被方案 C 取代 → 移除，判定移到 verify_Q
