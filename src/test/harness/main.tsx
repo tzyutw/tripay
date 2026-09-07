@@ -29,7 +29,11 @@ import SettlementPage from '@/pages/SettlementPage';
 import SharePage from '@/pages/SharePage';
 import SettingsPage from '@/pages/SettingsPage';
 
-const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+/* ⚠️ **要跟 `src/App.tsx` 的設定一樣**（`retry: 1, staleTime: 30_000`）。
+   先前是 `retry:false, gcTime:0`——快取等於不存在，
+   於是「改完立刻重開會讀到舊資料」這種**快取 key 的 bug 在量測靶上重現不出來**
+   （V-1 的金絲雀因此不會紅）。`retry` 留 false 是為了讓失敗立刻顯示，不影響快取行為。 */
+const qc = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 30_000 } } });
 
 /* MemoryRouter 不會動到 window.location，所以「按了之後網址有沒有變」量不到。
    把 router 的 pathname 露出來——實作-O-8 的 bug 正是「網址對了但畫面沒東西」，

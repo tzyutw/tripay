@@ -416,7 +416,45 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 
 
 /* ══ 批二：S-03 / S-03d / S-04 / S-05 ══ */
+/* 實作-V-5　首頁頂部列固定。底色不透明，安全區留在 padding-top。 */
+.ui .topbar{position:sticky;top:0;z-index:30;background:#fff;
+  padding-top:calc(16px + env(safe-area-inset-top))}
+
+/* 🔴 實作-V-6　行程頁的 hero：**捲動時黏在頂端縮成一條**（iOS large-title 那種收合）。
+   改之前 `position:relative`，往下捲整塊消失，返回鍵與 ⋯ 選單跟著不見。
+   高度與字級隨捲動位置變化——用 CSS 的 `animation-timeline: scroll()` 做，
+   不用 JS 監聽捲動（監聽會在每一幀重繪整頁）。
+   ⚠️ 只掛在**行程頁**的 hero（`.hero.collapsing`）——分享頁共用 `.hero`，
+   那裡沒有這個需求，不要順手改它。
+   ⚠️ 不支援 scroll-timeline 的瀏覽器：hero 仍然黏在頂端、返回鍵與標題都在，
+   只是沒有縮小的過渡。 */
 .ui .hero{padding:30px 14px 13px;color:#fff;position:relative}
+.ui .hero.collapsing{position:sticky;top:0;z-index:20;
+  /* 底色不透明：漸層走 background-image，底下再墊一層實色，
+     捲過去的消費列才不會透出來 */
+  background-color:#0F5E9E;
+  padding-top:calc(30px + env(safe-area-inset-top))}
+/* 收合之後標題移到與返回鍵同一列（不然光是 navrow 就 40px，塞不進 56px 的一條） */
+.ui .hero .navttl{position:absolute;left:50%;transform:translateX(-50%);
+  max-width:56%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:var(--fs-strong);font-weight:700;opacity:0}
+.ui .hero.collapsing .dt{overflow:hidden}
+@supports (animation-timeline: scroll()) {
+  .ui .hero.collapsing{animation:heroShrink linear both;animation-timeline:scroll();animation-range:0 120px}
+  .ui .hero.collapsing .tt{animation:heroTitle linear both;animation-timeline:scroll();animation-range:0 120px}
+  .ui .hero.collapsing .dt{animation:heroDate linear both;animation-timeline:scroll();animation-range:0 90px}
+  .ui .hero.collapsing .navrow{animation:heroNav linear both;animation-timeline:scroll();animation-range:0 120px}
+  .ui .hero.collapsing .navttl{animation:heroNavTtl linear both;animation-timeline:scroll();animation-range:60px 120px}
+}
+@keyframes heroShrink{
+  from{padding-top:calc(30px + env(safe-area-inset-top));padding-bottom:13px}
+  to  {padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:8px}
+}
+@keyframes heroTitle{ from{font-size:var(--fs-title);opacity:1;max-height:30px}
+                      to{font-size:0;opacity:0;max-height:0} }
+@keyframes heroDate{ from{opacity:1;max-height:24px;margin-top:4px} to{opacity:0;max-height:0;margin-top:0} }
+@keyframes heroNav{ from{margin-bottom:14px} to{margin-bottom:0} }
+@keyframes heroNavTtl{ from{opacity:0} to{opacity:1} }
 .ui .hero .sc{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 34%,rgba(0,0,0,.5))}
 .ui .hero .navrow{position:relative;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .ui .hero .nb{font-size:var(--fs-body);font-weight:600;color:rgba(255,255,255,.92)}

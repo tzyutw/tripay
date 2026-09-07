@@ -116,7 +116,7 @@ const TRIP_PATHS = ['/trips/:id', '/trips/:id/more',
                     '/trips/:id/share', '/trips/:id/copy', '/trips/:id/delete'];
 const show = async () => {
   render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
-  await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
+  await waitFor(() => expect(screen.getAllByText('2026 濟州島四寶團').length).toBeGreaterThan(0));
 };
 
 describe('B-3　S-03 行程頁', () => {
@@ -248,7 +248,14 @@ describe('B-3　S-03d 未定案清單', () => {
     const segs = [...document.querySelectorAll('[data-seg]')];
     expect(segs.length, '一段都沒有').toBeGreaterThan(0);
     const sum = segs.reduce((a, e) => a + Number((e as HTMLElement).dataset.segSum), 0);
-    expect(Math.abs(sum - amt), `三段小計 ${sum} 與那一列的 ${amt} 對不起來`).toBeLessThanOrEqual(1);
+    /* ⚠️ 實作-V-2 之後贊助在這一頁是**負數**（與 S-03 一致），而 `per[]` 仍當正數累加
+       （那是帳務語意，Rozi 還沒拍板，這一輪不動）。所以差額要剛好等於贊助的兩倍。 */
+    const sponsor = [...document.querySelectorAll('[data-exp-row]')]
+      .filter(r => (r.textContent ?? '').includes('贊助'))
+      .reduce((a, r) => a + Number((r as HTMLElement).dataset.mine), 0);
+    expect(Math.abs((amt - sum) - (-2 * sponsor)),
+      `三段小計 ${sum} 與那一列的 ${amt} 差 ${amt - sum}，贊助兩倍是 ${-2 * sponsor}`)
+      .toBeLessThanOrEqual(1);
   });
 
   /* 🔴 實作-T-1　**這條原本是反過來鎖著的**。
@@ -267,7 +274,7 @@ describe('B-3　S-03d 未定案清單', () => {
   it('封存態的未定案清單維持唯讀，但點下去要講話', async () => {
     state.trips = [{ ...trip, status: 'archived' }];
     render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
-    await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText('2026 濟州島四寶團').length).toBeGreaterThan(0));
     const entry = document.querySelector('.unsettled');
     /* 封存態沒有未定案入口（§5.6），改用 query 直接進那一頁 */
     if (!entry) {
@@ -294,7 +301,7 @@ describe('R-④　封存唯讀、已結算可編輯', () => {
   it('封存：列點得下去但不開表單，改跳「重新開啟行程」那句', async () => {
     state.trips = [{ ...trip, status: 'archived' }];
     render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
-    await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText('2026 濟州島四寶團').length).toBeGreaterThan(0));
 
     /* 先確認真的有列，否則這條會在「沒有列」時假通過 */
     const rows = [...document.querySelectorAll('.exprow')];
@@ -311,7 +318,7 @@ describe('R-④　封存唯讀、已結算可編輯', () => {
   it('已結算：列點得開編輯表單（**這條原本是反過來鎖著的**），底部仍然沒有主鈕', async () => {
     state.trips = [{ ...trip, status: 'settled' }];
     render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
-    await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText('2026 濟州島四寶團').length).toBeGreaterThan(0));
 
     const rows = [...document.querySelectorAll('.exprow')];
     expect(rows.length).toBeGreaterThan(0);
@@ -326,7 +333,7 @@ describe('R-④　封存唯讀、已結算可編輯', () => {
   it('已結算：`S.readonly`（§5.6）不得被動到——「還沒算清楚」入口仍然不顯示', async () => {
     state.trips = [{ ...trip, status: 'settled' }];
     render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
-    await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText('2026 濟州島四寶團').length).toBeGreaterThan(0));
     /* 這一輪只改「列能不能點」，§5.6 的三件事一個字都沒動 */
     expect(flat()).not.toContain('還沒算清楚');
   });
@@ -527,7 +534,7 @@ describe('L-④　⋯ 是獨立頁面，不是彈層', () => {
     expect(document.querySelector('.bar .ttl')).not.toBeNull();
 
     fireEvent.click(document.querySelector('.bar button[aria-label="返回"]')!);
-    await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText('2026 濟州島四寶團').length).toBeGreaterThan(0));
     expect(document.querySelector('.hero'), '沒有回到 S-03').not.toBeNull();
   });
 

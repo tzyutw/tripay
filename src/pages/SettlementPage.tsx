@@ -305,13 +305,20 @@ export default function SettlementPage() {
      設定的唯一入口是 S-02b-13（一個設定只有一個入口）。 */
   const HubHint = suggestHub && prepaid?.top ? (
     <div className="fld" style={{ paddingTop: 12 }}>
+      {/* 實作-V-3　圖示與內文之間包一層：不包的話圖示與文字是兩個 flex item，
+          文字放不下時**整個 item 換行**，圖示就孤零零留在上一行（Rozi 截圖到的）。
+          `.note.warn` 只有圖示＋文字，光靠 CSS 的 nowrap 就夠；
+          這裡多一顆「去設定」，要讓它跟著內文一起流，所以包起來。 */}
       <div className="note calm">
-        <Icon name="warn" size={14} /> 這趟有 {Math.round(prepaid.ratio * 100)}% 是{' '}
-        {memberLabel(t.members.find(m => m.id === prepaid.top)!)} 先付的。
-        改成「都轉給同一個人」的話，每個人只要轉一次。
-        <button className="ratelink" onClick={() => navigate(`/trips/${tripId}/edit`)}>
-          去設定 <Icon name="next" size={13} />
-        </button>
+        <Icon name="warn" size={14} />
+        <span className="notebody">
+          這趟有 {Math.round(prepaid.ratio * 100)}% 是{' '}
+          {memberLabel(t.members.find(m => m.id === prepaid.top)!)} 先付的。
+          改成「都轉給同一個人」的話，每個人只要轉一次。
+          <button className="ratelink" onClick={() => navigate(`/trips/${tripId}/edit`)}>
+            去設定 <Icon name="next" size={13} />
+          </button>
+        </span>
       </div>
     </div>
   ) : null;

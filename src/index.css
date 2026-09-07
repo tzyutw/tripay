@@ -411,7 +411,12 @@ input:focus { border-color:var(--w) }
 .empty p+p { font-size:var(--fs-sub);color:var(--gr);font-weight:400;margin-top:5px }
 .spin { padding:34px 0;text-align:center }
 .spin i { display:inline-block;width:20px;height:20px;border:2px solid var(--w); border-top-color:transparent;border-radius:var(--r-icon);font-style:normal }
+.toast { position:absolute;left:14px;right:14px;bottom:14px;z-index:60;background:#151C21;color:#fff; font-size:var(--fs-body);padding:10px 13px;border-radius:var(--r-base);box-shadow:0 6px 18px rgba(0,0,0,.28) }
+.topbar { position:sticky;top:0;z-index:30;background:#fff; padding-top:calc(16px + env(safe-area-inset-top)) }
 .hero { padding:30px 14px 13px;color:#fff;position:relative }
+.hero.collapsing { position:sticky;top:0;z-index:20; background-color:#0F5E9E; padding-top:calc(30px + env(safe-area-inset-top)) }
+.hero .navttl { position:absolute;left:50%;transform:translateX(-50%); max-width:56%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; font-size:var(--fs-strong);font-weight:700;opacity:0 }
+.hero.collapsing .dt { overflow:hidden }
 .hero .sc { position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 34%,rgba(0,0,0,.5)) }
 .hero .navrow { position:relative;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px }
 .hero .nb { font-size:var(--fs-body);font-weight:600;color:rgba(255,255,255,.92) }
@@ -550,6 +555,12 @@ input.auto { color:#9AA5AB }
 @media(prefers-reduced-motion:no-preference){.spin i{animation:sp 1s linear infinite} @keyframes sp{to{transform:rotate(360deg)}}}
 @media(prefers-reduced-motion:no-preference){ .anim.empty-anim .p1{animation:drift 3.4s ease-in-out infinite} .anim.empty-anim .p2{animation:drift 3.4s ease-in-out .4s infinite} .anim.fold .lines{animation:foldlines 1.4s 1 forwards} .anim.fold .sheetline{animation:foldsheet 1.4s 1 forwards} .anim.fold .plane{animation:planefly 1.4s 1 forwards} .anim.fold .trail{animation:trailtrace 1.4s 1 forwards} @keyframes drift{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes foldlines{0%{transform:scaleX(1);animation-timing-function:ease-in} 25%,100%{transform:scaleX(0)}} @keyframes foldsheet{0%,21%{transform:scaleX(1);opacity:1;animation-timing-function:cubic-bezier(.55,0,.5,1)} 50%{transform:scaleX(.06)} 50.01%{opacity:1} 61%,100%{transform:scaleX(.06);opacity:0}} @keyframes planefly{0%,50%{transform:none;opacity:0;stroke-dashoffset:100; animation-timing-function:cubic-bezier(.4,0,.9,.4)} 60%{opacity:1} 88%,100%{stroke-dashoffset:0;opacity:1} 100%{transform:translate(18px,-20px) rotate(-8deg)}} @keyframes trailtrace{0%,50%{clip-path:inset(-12% 100% -12% 0);opacity:1; animation-timing-function:cubic-bezier(.4,0,.9,.4)} 86%{clip-path:inset(-12% 0 -12% 0);opacity:1} 100%{clip-path:inset(-12% 0 -12% 0);opacity:.35}} }
 @keyframes dropback{0%{transform:scale(1.03)}60%{transform:scale(.99)}100%{transform:scale(1)}}
+@keyframes heroShrink{ from{padding-top:calc(30px + env(safe-area-inset-top));padding-bottom:13px} to  {padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:8px} }
+@keyframes heroTitle{ from{font-size:var(--fs-title);opacity:1;max-height:30px} to{font-size:0;opacity:0;max-height:0} }
+@keyframes heroDate{ from{opacity:1;max-height:24px;margin-top:4px} to{opacity:0;max-height:0;margin-top:0} }
+@keyframes heroNav{ from{margin-bottom:14px} to{margin-bottom:0} }
+@keyframes heroNavTtl{ from{opacity:0} to{opacity:1} }
+@supports (animation-timeline: scroll()) { .hero.collapsing{animation:heroShrink linear both;animation-timeline:scroll();animation-range:0 120px} .hero.collapsing .tt{animation:heroTitle linear both;animation-timeline:scroll();animation-range:0 120px} .hero.collapsing .dt{animation:heroDate linear both;animation-timeline:scroll();animation-range:0 90px} .hero.collapsing .navrow{animation:heroNav linear both;animation-timeline:scroll();animation-range:0 120px} .hero.collapsing .navttl{animation:heroNavTtl linear both;animation-timeline:scroll();animation-range:60px 120px} }
 @supports not (height:100dvh){.s00wrap{min-height:100vh}}
 
 
@@ -607,9 +618,21 @@ input.auto { color:#9AA5AB }
 
 /* #33-3 .note 只定義了字級；warn／calm 的著色照原型的語彙：
    warn 走 --out（要處理），calm 走 --wi（只是建議，不是錯誤）。 */
-.note.warn { color: var(--out); display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
-.note.calm { color: var(--wi); display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+/* 🔴 實作-V-3　圖示與文字被拆成兩行（Rozi 截圖：`⚠️` 單獨佔一行）。
+   根因是 `flex-wrap: wrap`：圖示與文字是**兩個 flex item**，
+   文字長到放不下時**整個 item 換行**，圖示就孤零零留在上一行。
+   改成不換行（`nowrap`）→ 文字在自己內部斷行；
+   `align-items: flex-start` 讓圖示對齊**第一行**而不是垂直置中。
+   ⚠️ `.note.calm` 裡除了文字還有一顆「去設定」，那顆**要能自己換行**，
+   所以它維持 `wrap`，只把圖示釘死在左邊。 */
+.note.warn { color: var(--out); display: flex; align-items: flex-start; gap: 5px;
+             flex-wrap: nowrap; margin-top: 6px; }
+.note.calm { color: var(--wi); display: flex; align-items: flex-start; gap: 5px; flex-wrap: wrap;
              background: #EEF5FB; border: 1px solid #BFD9EE; border-radius: var(--r-base); padding: 9px 11px; }
+/* 圖示固定在左，不參與收縮；往下推 2px 對齊第一行文字的視覺中線 */
+.note > svg { flex: none; margin-top: 2px; }
+/* 內文包一層才能「在自己內部斷行」而不是整塊換行 */
+.notebody { flex: 1; min-width: 0; }
 
 
 /* ══════════════════════════════════════════════════════════════

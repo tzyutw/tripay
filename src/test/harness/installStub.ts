@@ -12,7 +12,7 @@ const settled = st === 'settled';
 const archived = st === 'archived';
 /* `?expenses=none` 由 fixtures 統一解析——同一個參數不要在兩個檔各判一次 */
 const expenses2 = noExpenses ? [] : expenses;
-const rows: Record<string, unknown[]> = {
+const rows = {
   /* `?trip=missing`：查不到任何列——`.maybeSingle()` 會回 null，畫面要走「找不到」 */
   trips: tripMissing ? [] : [settled ? { ...trip, status: 'settled' }
                            : archived ? { ...trip, status: 'archived' } : trip],
@@ -26,26 +26,97 @@ const rows: Record<string, unknown[]> = {
 const writes: string[] = [];
 (window as unknown as { __WRITES__: string[] }).__WRITES__ = writes;
 
+let seqId = 9000;
+
 function chain(table: string) {
-  const data = rows[table] ?? [];
-  const result = { data, error: null, count: data.length };
+  /* ⚠️ `rows[table]` 會被寫入改動，所以**每次取用都要重讀**，
+     不能在函式開頭抓一份快照——抓了快照就等於寫進去也讀不到。 */
+  const R = rows as unknown as Record<string, Record<string, unknown>[]>;
+  const list = () => (R[table] ??= []);
   /* `.eq('id', …)` 要真的過濾——不然「編輯第 N 筆」永遠拿到第一筆，
      所有「載入既有消費」的斷言都會在錯的資料上跑（U-1-b 就是這樣差點驗不出來）。 */
-  let byId: string | null = null;
-  const one = () => (byId
-    ? (data as { id?: string }[]).find(x => x.id === byId) ?? null
-    : data[0] ?? null);
+  /* `.eq()` 要真的過濾——不然「編輯第 N 筆」永遠拿到第一筆（U-1-b 差點驗在錯的資料上），
+     而 `delete().eq('expense_id', …)` 會把整張表清掉。所以記下**每一個**條件，不只 id。 */
+  const conds: [string, unknown][] = [];
+  const hits = () => list().filter(x => conds.every(([k, v]) => String(x[k]) === String(v)));
+  const one = () => hits()[0] ?? null;
+  /* 🔴 讀出去要**複製一份**。回傳同一個陣列／物件參考的話，
+     react-query 的 structural sharing 會判定「沒變」→ 畫面不重繪，
+     於是「改了資料但清單沒更新」看起來像快取沒清（V-1 的斷言就這樣卡住過）。
+     真實的網路回應本來就是新物件。 */
+  const copy = (a: Record<string, unknown>[]) => a.map(x => ({ ...x }));
+  const res = () => { const d = copy(hits()); return { data: d, error: null, count: d.length }; };
+  /* 寫入之後 `.select()` 要回傳被動到的那幾列（PostgREST 的行為，
+     而且「斷言影響列數」那條帳務鐵律靠它） */
+  let affected: Record<string, unknown>[] | null = null;
+  let pending: null | (() => Record<string, unknown>[]) = null;
+  const flush = () => { if (pending) { affected = pending(); pending = null; } };
+  const out = () => (affected
+    ? { data: copy(affected), error: null, count: affected.length } : res());
+
   const c: Record<string, unknown> = {
-    then: (r: (v: typeof result) => unknown) => Promise.resolve(result).then(r),
-    single: () => Promise.resolve({ data: one(), error: null }),
-    maybeSingle: () => Promise.resolve({ data: one(), error: null }),
+    then: (r: (v: ReturnType<typeof res>) => unknown) => { flush(); return Promise.resolve(out()).then(r); },
+    single: () => { flush(); const d = affected ? affected[0] : one();
+      return Promise.resolve({ data: d ? { ...d } : null, error: null }); },
+    maybeSingle: () => { flush(); const d = affected ? affected[0] : one();
+      return Promise.resolve({ data: d ? { ...d } : null, error: null }); },
   };
   for (const m of ['select', 'neq', 'in', 'is', 'not', 'order', 'limit', 'range',
                    'filter', 'gte', 'lte', 'match', 'or', 'returns', 'abortSignal'])
     c[m] = () => c;
-  c.eq = (col: string, v: unknown) => { if (col === 'id') byId = String(v); return c; };
-  for (const m of ['insert', 'update', 'upsert', 'delete'])
-    c[m] = () => { writes.push(`${m}:${table}`); return c; };
+  c.eq = (col: string, v: unknown) => { conds.push([col, v]); return c; };
+
+  /* 🔴 實作-V-0　寫入要**真的改動假資料**。
+     改之前這裡只把動作記進 `__WRITES__`、完全不動 `rows`，
+     所以在量測靶上「改標題 → 存 → 重開」永遠讀到同一份原始假資料
+     ——**修好與沒修好量起來一模一樣**，V-1 的正反兩條停止條件都是假的。
+     `__WRITES__` 的記錄照舊，既有斷言在用它。
+
+     ⚠️ **寫入必須延後到真的 await 才執行**：PostgREST 的寫法是
+     `.update(row).eq('id', x)`，`.eq()` 在 `.update()` **之後**才被呼叫。
+     一收到 `.update()` 就動手的話 `byId` 還是 null，會把整張表都改掉。 */
+
+  c.insert = (payload: unknown) => {
+    writes.push(`insert:${table}`);
+    pending = () => {
+      const arr = (Array.isArray(payload) ? payload : [payload]) as Record<string, unknown>[];
+      const added = arr.map(r => ({ id: `x${++seqId}`, ...r }));
+      list().push(...added);
+      return added;
+    };
+    return c;
+  };
+  c.update = (patch: unknown) => {
+    writes.push(`update:${table}`);
+    pending = () => {
+      const hit = hits();
+      for (const r of hit) Object.assign(r, patch as Record<string, unknown>);
+      return hit;
+    };
+    return c;
+  };
+  c.upsert = (payload: unknown) => {
+    writes.push(`upsert:${table}`);
+    pending = () => {
+      const arr = (Array.isArray(payload) ? payload : [payload]) as Record<string, unknown>[];
+      return arr.map(r => {
+        const cur = list().find(x => x.id === r.id);
+        if (cur) { Object.assign(cur, r); return cur; }
+        const add = { id: `x${++seqId}`, ...r }; list().push(add); return add;
+      });
+    };
+    return c;
+  };
+  c.delete = () => {
+    writes.push(`delete:${table}`);
+    pending = () => {
+      const arr = list();
+      const hit = hits();
+      for (const r of hit) arr.splice(arr.indexOf(r), 1);
+      return hit;
+    };
+    return c;
+  };
   return c;
 }
 const stub = {

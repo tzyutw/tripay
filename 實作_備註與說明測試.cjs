@@ -141,7 +141,8 @@ const parseRgb = s => (s.match(/\d+/g) || []).slice(0, 3).map(Number);
   ok(noteUi.labels === 1, `「備註」標籤應恰好 1 個，實際 ${noteUi.labels}`);
   ok(['40px', '28px'].includes(noteUi.h), `備註欄高 ${noteUi.h}，不在 {40px,28px}`);
   ok(noteUi.fs >= 16, `備註欄字級 ${noteUi.fs} < 16（iOS 會放大整頁）`);
-  ok(noteUi.ph === '補一句，只有這裡看得到', `placeholder 不對：${noteUi.ph}`);
+  /* 實作-V-4：Rozi 2026-09-07 拍板縮短成「補一句」 */
+  ok(noteUi.ph === '補一句', `placeholder 不對：${noteUi.ph}`);
   ok(noteUi.v.includes('ZZ 這句備註只該出現在記一筆'), '備註沒有從既有消費載入——下面兩條反向斷言會假通過');
   const cap = await p.evaluate(async () => {
     const el = document.querySelector('input[aria-label="備註"]');

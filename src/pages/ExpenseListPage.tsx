@@ -342,8 +342,15 @@ export default function ExpenseListPage() {
       : e.type === 'individual' ? 'each' : 'split';
     const rowsOf = (key: string) => S.list
       .filter(e => (e.parts ?? []).includes(memberView) && segOf(e) === key)
-      .map(e => ({ e, mine: S.calcOf(e).shares?.[memberView] ?? null,
-                   paid: e.payer === memberView ? S.calcOf(e).twdTotal : null }));
+      /* 🔴 實作-V-2　贊助那一筆在這裡符號相反、而且被算進小計。
+         S-03 已經有正確的處理（`e.sponsor` → 負號＋收入色），新頁面沒抄過去。
+         `爸爸贊助 50,000` 不是 Alex「付了」50,000，所以也不顯示「你付的」。
+         ⚠️ 這一輪只修**顯示**，不動 `per[]` 的算法（那是帳務語意，要 Rozi 拍板）。 */
+      .map(e => {
+        const raw = S.calcOf(e).shares?.[memberView] ?? null;
+        return { e, mine: raw == null ? null : (e.sponsor ? -raw : raw),
+                 paid: !e.sponsor && e.payer === memberView ? S.calcOf(e).twdTotal : null };
+      });
 
     return (
       <div className="min-h-screen bg-bg flex flex-col">
@@ -384,7 +391,11 @@ export default function ExpenseListPage() {
                     <span className="a">
                       {mine == null
                         ? <span style={{ color: 'var(--out)' }}>還沒算清楚</span>
-                        : <span className="money">{money(mine)}</span>}
+                        /* 贊助＝收入，與 S-03 同一套語彙：負號＋ --in */
+                        : e.sponsor
+                          ? <span className="money" style={{ color: 'var(--in)' }}>
+                              −{money(-mine)}</span>
+                          : <span className="money">{money(mine)}</span>}
                     </span>
                   </button>
                 ))}
@@ -434,13 +445,19 @@ export default function ExpenseListPage() {
     <div className="min-h-screen bg-bg flex flex-col">
 
       {/* S-03-1　hero：目的地色調。副標只有日期區間，沒有成員 emoji */}
-      <div className="hero" style={{ background: destinationOf(trip.name, trip.id).gradient }}>
+      {/* 實作-V-6　`collapsing` 只掛在行程頁——分享頁共用 `.hero`，那裡沒有這個需求。
+          ⚠️ 用 `backgroundImage` 不用 `background` 簡寫：簡寫會把 CSS 給的
+          `background-color` 重設成 transparent，收合後就會透出捲過去的消費列。 */}
+      <div className="hero collapsing"
+        style={{ backgroundImage: destinationOf(trip.name, trip.id).gradient }}>
         <div className="sc" />
         <div className="navrow">
           {/* #28-6b hero 右上只留「返回」與「⋯」。編輯／複製／分享／封存／刪除全部進 ⋯ 選單 */}
           <button className="ic2" aria-label="返回" onClick={() => navigate('/')}>
             <Icon name="back" size={20} />
           </button>
+          {/* 收合之後大標會縮掉，行程名改在這一列顯示——不然只剩兩顆鍵，不知道在哪一趟 */}
+          <span className="navttl">{trip.name}</span>
           <button className="ic2" aria-label="更多" onClick={() => setMenuOpen(true)}>
             <Icon name="more" size={20} />
           </button>

@@ -445,8 +445,18 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
       }
       return eid;
     },
-    onSuccess: () => {
+    onSuccess: (eid) => {
+      /* 🔴 實作-V-1　編輯表單自己有一支 `['expense', expenseId]`（**單數**）的查詢，
+         但存檔後只清了 `['expenses', tripId]`（**複數**，整份清單）。
+         兩個 key 不同 → 單筆的快取沒被清 → 全站 `staleTime: 30_000`
+         讓她在 30 秒內重新打開同一筆會看到**舊資料**。
+         Rozi：「再重新進入該筆消費紀錄看，他更新的時間好像有時間差。」
+         ⚠️ 不要改 `staleTime`（那是全站設定），也不要在關表單前 await refetch
+         （她正在大量登錄，每一筆都慢一拍比偶爾看到舊資料更煩）。 */
       qc.invalidateQueries({ queryKey: ['expenses', tripId] });
+      qc.invalidateQueries({ queryKey: ['expense', eid] });
+      /* 事後補記的預設日期讀的是「最後建立的那一筆」，新增之後也要重取 */
+      qc.invalidateQueries({ queryKey: ['expense-dates', tripId] });
       toast(saveToastFor({
         pending: c.twdPending,
         blanks: c.blanks.map(id => members.find(m => m.id === id)?.name ?? ''),
@@ -466,6 +476,9 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['expenses', tripId] });
+      /* 刪掉的那一筆也要把單筆快取清掉，不然 30 秒內還讀得到它 */
+      qc.invalidateQueries({ queryKey: ['expense', expenseId] });
+      qc.invalidateQueries({ queryKey: ['expense-dates', tripId] });
       toast('刪掉了');
       /* 刪掉一筆與改掉一筆對結算的影響一樣——都會讓已結算的數字過期 */
       onClose(true);
@@ -730,7 +743,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
           <div className="fieldrow">
             <span className="lbl" style={{ width: 46 }}>備註</span>
             <input type="text" value={f.note} aria-label="備註"
-              placeholder="補一句，只有這裡看得到"
+              placeholder="補一句"
               onChange={e => set('note', e.target.value.slice(0, 200))} />
           </div>
         </div>

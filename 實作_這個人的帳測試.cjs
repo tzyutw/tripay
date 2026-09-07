@@ -133,9 +133,17 @@ const num = s => Number(String(s).replace(/[^\d.-]/g, ''));
       .map(x => (x.querySelector('.am .money') || {}).textContent)), 300));
   });
   const segSum = mv.segs.reduce((a, s) => a + s.sum, 0);
-  console.log(`   三段小計加總 ${segSum}｜總行程頁該成員列 ${perAmt[1]}`);
-  ok(Math.abs(segSum - num(perAmt[1])) <= 1,
-    `三段小計 ${segSum} 與總行程頁那一列 ${perAmt[1]} 對不起來`);
+  /* ⚠️ 實作-V-2 之後，贊助在這一頁是**負數**（與 S-03 一致），
+     而 `per[]` 仍把它當正數累加（那是帳務語意，Rozi 還沒拍板，這一輪不動）。
+     所以差額必須**剛好等於贊助的兩倍**——不是「兩邊相等」。
+     她拍板 `per[]` 要不要排除贊助之後，這條要改回相等。 */
+  const sponsorMine = mv.rows.filter(r => r.txt.includes('爸爸贊助'))
+    .reduce((a, r) => a + Number(r.mine), 0);
+  const gap = num(perAmt[1]) - segSum;
+  console.log(`   三段小計加總 ${segSum}｜總行程頁該成員列 ${perAmt[1]}｜差 ${gap}` +
+              `（贊助 ${sponsorMine} × −2 = ${-2 * sponsorMine}）`);
+  ok(Math.abs(gap - (-2 * sponsorMine)) <= 1,
+    `三段小計與總行程頁那一列的差 ${gap} 不等於贊助的兩倍——有別的東西也不一致`);
 
   /* 付款小字（正反兩面） */
   const withPaid = mv.rows.filter(r => r.paid != null);

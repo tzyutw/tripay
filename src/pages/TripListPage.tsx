@@ -56,8 +56,10 @@ export default function TripListPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col animate-slide-in">
-      {/* Header */}
-      <div className="px-5 pt-4 pb-0 flex items-center justify-between flex-shrink-0">
+      {/* 實作-V-5　頂部列固定在頂端（改之前是 static，往下捲就看不到「新增行程」與設定）。
+          底色必須不透明——不然捲過去的行程卡會透出來。
+          iOS 的瀏海／狀態列安全區由 `.topbar` 的 padding-top 處理。 */}
+      <div className="topbar px-5 pt-4 pb-0 flex items-center justify-between flex-shrink-0">
         <span className="font-sans text-title font-bold tracking-tight text-w">Tripay</span>
         <span className="flex items-center gap-2">
           {/* S-01-2　全形「＋」改用 Feather 的 add——同一個動作全站原本有兩種畫法 */}
