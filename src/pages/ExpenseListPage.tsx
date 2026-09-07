@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { deriveDisplayStatus } from '@/lib/deriveStatus';
 import { getCurrencySymbol } from '@/lib/currencies';
 import { destinationOf } from '@/lib/destinations';
-import { dateRange } from '@/lib/format';
+import { dateRange, money } from '@/lib/format';
 import { tripSummary, tripRate } from '@/lib/summary';
 import { useToast } from '@/contexts/ToastContext';
 import { MSG_SETTLED_STALE, MSG_ARCHIVED_TAP } from '@/lib/messages';
@@ -139,9 +139,13 @@ export default function ExpenseListPage() {
   /* S-03d 未定案清單：null＝不在該畫面；'all'＝全部；否則是成員 id */
   const qExpense     = sp.get('expense');
   const unsettledView = sp.get('unsettled');
+  /* 🔴 實作-U-2　點成員金額列 → **這個人的帳**（三段），不是「還沒算清楚」的篩選。
+     兩個版本從此不同頁，不再共用同一段渲染。 */
+  const memberView = sp.get('member');
   const formOpen      = newOpen || Boolean(qExpense);
   const editExpenseId = qExpense ?? undefined;
   const setUnsettledView = (v: string | null) => setSp(v ? { unsettled: v } : {}, { replace: true });
+  const openMember = (id: string) => setSp({ member: id }, { replace: true });
   const { toast: showToast } = useToast();
 
   // ── Queries ──────────────────────────────────────────────────────────────────
@@ -320,19 +324,85 @@ export default function ExpenseListPage() {
     );
   }
 
-  /* ── S-03d 未定案清單 ──────────────────────────────────────────────────────
-     兩種進入方式（點統計卡的人／點列表上方入口）走同一個畫面，
-     只有標題與範圍不同。規格就是原型的 renderS03d()。 */
+  /* ── 🔴 實作-U-2　`{名字} 的帳`：這個人的消費明細，分三段 ────────────────
+     Rozi 2026-09-07 在真機上點 `Ning $74,565` 進去看到「影響 Ning 的 · 0 筆」，
+     那是「還沒算清楚」的篩選檢視——她要的是這個人的帳怎麼算出來的。 */
+  if (memberView) {
+    const m = S.t.members.find(x => x.id === memberView);
+    if (!m) return <NotFound onBack={() => navigate('/')} />;
+    const SEGS = [
+      { key: 'split', name: '跟大家平分的' },
+      { key: 'each',  name: '各自付各的' },
+      { key: 'mine',  name: '只算我的' },
+    ] as const;
+    /* 每一筆歸到哪一段：只算一個人（參與者 1 位）→ 只算我的；
+       各付各的 → 各自付各的；其餘（2 人以上一起分）→ 跟大家平分的。 */
+    const segOf = (e: (typeof S.list)[number]) =>
+      e.type === 'single' || (e.parts ?? []).length === 1 ? 'mine'
+      : e.type === 'individual' ? 'each' : 'split';
+    const rowsOf = (key: string) => S.list
+      .filter(e => (e.parts ?? []).includes(memberView) && segOf(e) === key)
+      .map(e => ({ e, mine: S.calcOf(e).shares?.[memberView] ?? null,
+                   paid: e.payer === memberView ? S.calcOf(e).twdTotal : null }));
+
+    return (
+      <div className="min-h-screen bg-bg flex flex-col">
+        <div className="bar">
+          <button className="ic2" aria-label="返回" onClick={() => setSp({}, { replace: true })}>
+            <Icon name="back" size={20} />
+          </button>
+          <span className="ttl">{m.name} 的帳</span>
+          <span style={{ width: 40 }} />
+        </div>
+        {SEGS.map(seg => {
+          const rows = rowsOf(seg.key);
+          /* 沒有那一段的人**整段不顯示**，不要顯示 0 */
+          if (!rows.length) return null;
+          const known = rows.filter(r => r.mine != null);
+          const sum = known.reduce((a, r) => a + (r.mine as number), 0);
+          return (
+            <div key={seg.key} data-seg={seg.key} data-seg-n={rows.length}
+              data-seg-sum={known.length ? sum : 0}>
+              <div className="sec">
+                <span>{seg.name}</span>
+                <span className="secright">{rows.length} 筆　
+                  {/* 整段只有算不出來的筆時小計顯示「—」 */}
+                  {known.length ? money(sum) : '—'}</span>
+              </div>
+              <div className="gap" style={{ margin: '0 14px' }}>
+                {rows.map(({ e, mine, paid }) => (
+                  <button key={e.id} className="exprow" data-exp-row data-exp-id={e.id}
+                    data-mine={mine == null ? 'null' : String(mine)}
+                    {...(paid != null ? { 'data-paid': String(paid) } : {})}
+                    onClick={() => (isArchived ? showToast(MSG_ARCHIVED_TAP) : openEdit(e.id))}>
+                    <span className="ic">{e.emoji}</span>
+                    <span className="mid">
+                      <span className="t">{e.title}</span>
+                      {/* 他同時是付款人時才出現這一行小字 */}
+                      {paid != null && <span className="s">你付的 {money(paid)}</span>}
+                    </span>
+                    <span className="a">
+                      {mine == null
+                        ? <span style={{ color: 'var(--out)' }}>還沒算清楚</span>
+                        : <span className="money">{money(mine)}</span>}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        {!SEGS.some(x => rowsOf(x.key).length) && (
+          <div className="empty"><p>還沒有算到他頭上的消費。</p></div>)}
+        <div style={{ height: 18 }} />
+      </div>
+    );
+  }
+
+  /* ── S-03d 未定案清單（只剩「還沒算清楚」這一個入口）────────────────── */
   if (unsettledView) {
-    const byMember = unsettledView !== 'all';
-    const m = S.t.members.find(x => x.id === unsettledView);
-    const rows = byMember
-      ? S.unsettledList.filter(({ e, c }) =>
-          (e.parts ?? []).includes(unsettledView) && (c.twdPending || c.estimated[unsettledView]))
-      : S.unsettledList;
-    const title = byMember
-      ? `影響 ${m?.name ?? ''} 的 · ${rows.length} 筆`
-      : `還沒算清楚 · ${rows.length} 筆`;
+    const rows = S.unsettledList;
+    const title = `還沒算清楚 · ${rows.length} 筆`;
 
     return (
       <div className="min-h-screen bg-bg flex flex-col">
@@ -400,7 +470,7 @@ export default function ExpenseListPage() {
             <StatCardTotal S={S} open={statOpen} money={moneyOpts}
               onToggleTotal={() => setStatOpen(o => !o)} />
             {statOpen && <StatCardPerList S={S} money={moneyOpts}
-              onPickMember={id => setUnsettledView(id)} />}
+              onPickMember={openMember} />}
             {statOpen && <StatCardFoot S={S} />}
           </div>
 

@@ -297,3 +297,58 @@ describe('S-④　事後補記時跟著上一筆走', () => {
     expect(defaultExpDate({ end_date: null }, [e('2020-01-01', '2026-09-07T01:00:00Z')])).toBe(today);
   });
 });
+
+/* ══════════════════════════════════════════════════════════════
+   實作-U-1　填的是外幣、但外幣總額空白 → **每個人都算不出台幣**
+
+   production 的「藥局」：台幣 1,140、外幣總額空白、Ziyu 填 12000 韓元、
+   Ning 填 40000 韓元 → 改之前 `shares` 直接把 12000／40000 當成台幣，
+   那一筆的各人分擔加起來 52,000（灌水 50,860），
+   總花費 97,622 而四個成員加起來 148,482——**畫面上沒有一句話說它算錯了**。
+   ══════════════════════════════════════════════════════════════ */
+describe('U-①　外幣總額空白時不可以把外幣當台幣', () => {
+  const each = (o: Partial<FormState> = {}) => form({
+    kind: 'individual', fillCur: 'FOR', parts: [...M],
+    forAmt: '', twdAmt: '1140',
+    indiv: { [M[0]]: '12000', [M[1]]: '40000' }, ...o,
+  });
+
+  it('外幣總額空白＋有人沒填 → **每一個參與者**的 shares 都是 null', () => {
+    const f = each();
+    const c = calc(formToExpense(f, partsOfForm(f)) as never, tripOf(withRate), members);
+    expect(c.noAutoReason).toBe('noForeignTotal');
+    for (const id of M)
+      expect(c.shares[id], `${id} 應該算不出來，實際 ${c.shares[id]}`).toBeNull();
+    /* 反向：改之前這裡是 12000／40000（把外幣當台幣） */
+    expect(c.shares[M[0]]).not.toBe(12000);
+    expect(c.shares[M[1]]).not.toBe(40000);
+  });
+
+  it('存出去的 split_amount 也跟著是 null、split_pending 是 true', () => {
+    const { splitRows } = build(each());
+    for (const s of splitRows) {
+      expect(s.split_amount).toBeNull();
+      expect(s.split_pending).toBe(true);
+    }
+  });
+
+  it('外幣總額**有填**時照常比例回推（§2.2），這一條沒有被弄壞', () => {
+    const f = each({ forAmt: '52,000' });
+    const c = calc(formToExpense(f, partsOfForm(f)) as never, tripOf(withRate), members);
+    expect(c.noAutoReason).toBeNull();
+    /* 1140 × 12000/52000 = 263；1140 × 40000/52000 = 877 */
+    expect(c.shares[M[0]]).toBe(263);
+    expect(c.shares[M[1]]).toBe(877);
+    /* 差額歸付款人：加起來要等於整筆台幣 */
+    const sum = M.map(id => c.shares[id] ?? 0).reduce((a, x) => a + x, 0);
+    expect(sum).toBe(1140);
+  });
+
+  it('填台幣的「各自付各的」完全不受影響（反向）', () => {
+    const f = form({ kind: 'individual', fillCur: 'TWD', parts: [M[0], M[1]],
+                     twdAmt: '690', indiv: { [M[0]]: '276', [M[1]]: '414' } });
+    const c = calc(formToExpense(f, partsOfForm(f)) as never, tripOf(withRate), members);
+    expect(c.shares[M[0]]).toBe(276);
+    expect(c.shares[M[1]]).toBe(414);
+  });
+});

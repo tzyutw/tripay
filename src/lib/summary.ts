@@ -107,12 +107,20 @@ export function calc(
     } else {
       for (const id of parts) valInCur[id] = (id in manual) ? manual[id] : null;
     }
-    /* 換算台幣：比例回推（§2.2），不用匯率 */
+    /* 換算台幣：比例回推（§2.2 `各人台幣 = 台幣總額 × 各人外幣 ÷ 外幣總額`），不用匯率 */
     for (const id of parts) {
       const v = valInCur[id];
       if (v == null || twdPending) { shares[id] = null; continue; }
-      shares[id] = fillsAreForeign && forTotalEff
-        ? Math.round(twdTotal! * v / forTotalEff)                // R5 比例回推
+      /* 🔴 實作-U-1　填的是外幣、但**外幣總額空白**時，比例回推的分母缺了
+         → **每一個參與者都算不出台幣**，包含已經填了金額的人。
+         改之前這裡會掉進 `Math.round(v)`，**直接把外幣數字當成台幣**：
+         production 的「藥局」那筆台幣只有 1,140，各人分擔卻加到 52,000（灌水 50,860），
+         總花費 97,622 而四個成員加起來 148,482——**畫面上沒有任何一句話說它算錯了**。
+         §2.2 明寫用比例回推、§2.5 明寫「不得由系統推斷，那會猜錯」，
+         所以**不准拿行程匯率來補**這個分母。 */
+      if (fillsAreForeign && !forTotalEff) { shares[id] = null; continue; }
+      shares[id] = fillsAreForeign
+        ? Math.round(twdTotal! * v / forTotalEff!)               // R5 比例回推
         : Math.round(v);
     }
     if (!twdPending && e.payer_member_id && parts.includes(e.payer_member_id)

@@ -257,6 +257,9 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .btnrow.sticky{position:sticky;bottom:0;z-index:5}
 /* 實作-S-5　「金額」標題列：標籤在左、常駐的教學灰字在右。
    320px 下不得換行也不得橫向捲動。 */
+/* 實作-U-2　`{名字} 的帳` 的分段標頭：段名在左、筆數與小計在右 */
+.ui .sec>.secright{font-weight:600;color:var(--md);font-variant-numeric:tabular-nums}
+.ui .sec:has(.secright){display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .ui .lblrow{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .ui .lblrow>.lbl{margin-bottom:6px}
 .ui .lblnote{font-size:var(--fs-sub);color:var(--gr);white-space:nowrap;flex:none;margin-bottom:6px}
@@ -605,7 +608,13 @@ html.dev .ui .s00wrap{min-height:calc(100dvh - var(--devbar-h,54px))}
 .ui .txempty{margin:0 14px;padding:14px;text-align:center;font-size:var(--fs-body);color:var(--gr);
   background:#fff;border:1px solid var(--ln);border-radius:var(--r-base)}
 .ui .clearbtn{border:1px solid var(--w);color:var(--wi);font-size:var(--fs-body);font-weight:600;
-  padding:3px 8px;border-radius:var(--r-base);flex:none}
+  padding:3px 8px;border-radius:var(--r-base);flex:none;
+  /* 實作-U-4　只有 31px 高，手指按不到（「標記付清」是結算頁每一列的主要動作）。
+     沿用實作-R 那一套：**看得見的外觀不放大**，用透明 ::after 把可點區撐到 44×44。
+     不改 height／padding／字級——那會讓每一列變高、撞到版面回歸基準。 */
+  position:relative}
+.ui .clearbtn::after{content:'';position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);width:max(100%,var(--h-tap));height:var(--h-tap)}
 .ui .cleared{font-size:var(--fs-tag);font-weight:600;color:var(--in);display:inline-flex;align-items:center;gap:3px;flex:none}
 .ui .detailtoggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 28px);
   margin:0 14px;padding:11px 0;border-top:1px solid var(--ln);font-size:var(--fs-body);font-weight:600;color:var(--md)}
@@ -2050,7 +2059,12 @@ function calc(e, t) {
     parts.forEach(id => {
       const v = valInCur[id];
       if (v == null || twdPending) { shares[id] = null; return; }
-      shares[id] = fillsAreForeign && forTotalEff
+      /* 🔴 實作-U-1　填的是外幣、但**外幣總額空白**時，比例回推的分母缺了
+         → 每一個參與者都算不出台幣。改之前會掉進 `Math.round(v)`，
+         **直接把外幣數字當成台幣**（production 的「藥局」1,140 被算成 52,000）。
+         §2.2 用比例回推、§2.5「不得由系統推斷」——不准拿行程匯率補分母。 */
+      if (fillsAreForeign && !forTotalEff) { shares[id] = null; return; }
+      shares[id] = fillsAreForeign
         ? Math.round(twdTotal * v / forTotalEff)   // R5 比例回推
         : Math.round(v);
     });

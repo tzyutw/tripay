@@ -65,13 +65,16 @@ export function StatCardPerList({ S, readonly, money: mo, onPickMember }: StatCa
 }
 
 export function StatCardFoot({ S, readonly }: StatCardProps) {
-  const showApprox = S.t.members.some(m => S.approx[m.id]) && !S.readonly;
-  if (!showApprox) return null;
-  return (
-    <div className="foot">
-      標「約」的金額還沒算清楚{readonly ? '' : '，點名字看是哪幾筆'}
-    </div>
-  );
+  /* 🔴 實作-U-2-f　點名字看到的**已經不只是未定案**，是整個人的帳，
+     所以這一行改成常駐（原本「沒人被標『約』就整行不顯示」）。
+     Rozi 在真機上點 `Ning $74,565` 進去看到「影響 Ning 的 · 0 筆／都算清楚了」
+     ——那個入口常駐可點，但只有在有人被標「約」時才會被說明，
+     沒有未定案的人點下去就是一片空白，不知道自己看到了什麼。 */
+  if (readonly) {
+    const showApprox = S.t.members.some(m => S.approx[m.id]) && !S.readonly;
+    return showApprox ? <div className="foot">標「約」的金額還沒算清楚</div> : null;
+  }
+  return <div className="foot">點名字看這個人的帳是怎麼算出來的</div>;
 }
 
 /** 三段一起用的預設組合 */

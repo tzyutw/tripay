@@ -44,6 +44,8 @@ export interface SharedCalc {
      兩個值 `calc()` 本來就算好了，只是清單一直沒有用（顯示的都是台幣 × 匯率）。 */
   forTotalEff?: number | null;
   forTotalAuto?: boolean;
+  /** 實作-U-2　算到每個人頭上的台幣。算不出來時是 null（`calc()` 本來就有這個值） */
+  shares?: Record<string, number | null>;
 }
 
 /** tripSummary() 的結果 */

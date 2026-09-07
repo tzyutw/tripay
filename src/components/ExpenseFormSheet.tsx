@@ -18,7 +18,7 @@ import { parseAmount, formatAmount, caretAfterFormat } from '@/lib/amount';
 import { decimalsFor } from '@/lib/currencyTable';
 import { calc, tripRate } from '@/lib/summary';
 import type { ExpenseCalc } from '@/lib/summary';
-import { MSG_NO_RATE, MSG_TWD_PENDING, MSG_FILL_ONE } from '@/lib/messages';
+import { MSG_NO_RATE, MSG_TWD_PENDING, MSG_FILL_ONE, MSG_NO_FOR_TOTAL } from '@/lib/messages';
 import { useToast } from '@/contexts/ToastContext';
 import { Icon } from '@/components/Icon';
 import Seg from '@/components/shared/Seg';
@@ -813,6 +813,12 @@ function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
           );
         })}
       </div>
+
+      {/* 實作-U-1-b　外幣總額空白時**所有人都算不出台幣**（§2.2 的分母缺了）。
+          只在這個狀態顯示，其他狀態不得出現。 */}
+      {c.noAutoReason === 'noForeignTotal' && (
+        <div className="note warn"><Icon name="warn" size={14} /> {MSG_NO_FOR_TOTAL}</div>
+      )}
 
       <CmpRow c={c} fs={fs} fillCur={fillCur} />
     </div>

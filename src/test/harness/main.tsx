@@ -77,9 +77,11 @@ const s  = SCREENS[id] ?? SCREENS.s01;
 /* MemoryRouter 的 location 與 window.location 是兩回事——
    `useSearchParams()` 讀的是前者。量測靶的 `?unsettled=all` 這類參數
    要轉進 router 的初始路徑，不然元件根本收不到（第 1 項就是因此從沒被掃過）。 */
-const ROUTER_PARAMS = ['unsettled', 'expense'];
+const ROUTER_PARAMS = ['unsettled', 'expense', 'member'];
 const carried = new URLSearchParams();
 for (const k of ROUTER_PARAMS) { const v = Q0.get(k); if (v != null) carried.set(k, v); }
+/* `?member=<索引>` 寫索引比寫 uuid 好記；元件收到的仍是成員 id */
+if (/^\d+$/.test(carried.get('member') ?? '')) carried.set('member', M[Number(carried.get('member'))] ?? M[0]);
 const initialEntry = carried.toString() ? `${s.route}?${carried}` : s.route;
 (window as unknown as { __SCREEN__: string }).__SCREEN__ = id;
 (window as unknown as { __HUB__: string }).__HUB__ = M[1];

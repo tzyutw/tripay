@@ -68,6 +68,10 @@ export const settlementsMany = Q.get('settlements') === 'many';
 /** `?view=foreign`：整頁只有外幣的視角。**那裡不准變灰**——
  *  灰是給「台幣與外幣並列時分主從」用的，整頁灰掉會變成沒東西可讀。 */
 export const viewForeign = Q.get('view') === 'foreign';
+/** `?settle=hub`：都轉給同一個人。**production 唯一一趟 hub 是 Rozi 正在填的
+ *  `驗收：濟州島`，還沒結算過**——實作-T 做的結算三段在 hub 下一次都沒被驗過。
+ *  收款人刻意挑**不是付最多錢的那個人**，否則 direct 與 hub 會產生一樣的轉帳清單。 */
+export const settleHub = Q.get('settle') === 'hub';
 
 /** 該幣別「好記的那個方向」的代表值 → 正確的兩欄組合 */
 function fullRateColumns(code: string) {
@@ -85,6 +89,7 @@ export const trip = {
   share_token: 'tok', owner_member_id: M[0], collab_enabled: false, card_id: null,
   cover_path: null, settlement_mode: 'direct', hub_member_id: null,
   payment_methods: noPays ? null : ['現金', '信用卡', 'Linepay'],
+  ...(settleHub ? { settlement_mode: 'hub', hub_member_id: M[2] } : {}),
   /* `?rate=full`：**照該幣別正確的方向**組出兩欄（實作-Q-1）。
      先前寫死 `twd:1, for:0.21`，那對 KRW 是對的、對 JPY 是**反的**——
      於是 JPY 的端到端測試會拿到 1,469,048 而不是 64,785，
@@ -201,6 +206,8 @@ export const settlements = settlementsMany
  */
 export const settlementItems = (() => {
   const S = tripSummary(trip as never, expenses, 'active');
+  /* hub 模式時 `settleTrip()` 會把每個人都轉給中心人——**假結算也要照那個結果**，
+     不然 `?settle=hub` 進去看到的還是 direct 的清單，等於沒驗到。 */
   const { tx } = settleTrip(S, expenses, trip as never);
   return tx.map((x, i) => ({
     id: `i${i + 1}`, settlement_id: CONFIRMED_ID,

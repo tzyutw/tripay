@@ -343,6 +343,8 @@ input:focus { border-color:var(--w) }
 .btnrow { display:flex;gap:8px;padding:var(--btnrow-pt) 14px var(--btnrow-pb);background:#EDEEE8;border-top:1px solid var(--ln) }
 .btnpad { height:calc(var(--btnrow-pt) + var(--btnrow-pb) + var(--btnrow-btn));flex:none }
 .btnrow.sticky { position:sticky;bottom:0;z-index:5 }
+.sec>.secright { font-weight:600;color:var(--md);font-variant-numeric:tabular-nums }
+.sec:has(.secright) { display:flex;align-items:baseline;justify-content:space-between;gap:8px }
 .lblrow { display:flex;align-items:baseline;justify-content:space-between;gap:8px }
 .lblrow>.lbl { margin-bottom:6px }
 .lblnote { font-size:var(--fs-sub);color:var(--gr);white-space:nowrap;flex:none;margin-bottom:6px }
@@ -501,7 +503,8 @@ input.auto { color:#9AA5AB }
 .stats > .b > div { padding:11px 14px;text-align:center }
 .txsec { padding:10px 14px 5px;font-size:var(--fs-sub);font-weight:600;color:var(--gr) }
 .txempty { margin:0 14px;padding:14px;text-align:center;font-size:var(--fs-body);color:var(--gr); background:#fff;border:1px solid var(--ln);border-radius:var(--r-base) }
-.clearbtn { border:1px solid var(--w);color:var(--wi);font-size:var(--fs-body);font-weight:600; padding:3px 8px;border-radius:var(--r-base);flex:none }
+.clearbtn { border:1px solid var(--w);color:var(--wi);font-size:var(--fs-body);font-weight:600; padding:3px 8px;border-radius:var(--r-base);flex:none; position:relative }
+.clearbtn::after { content:'';position:absolute;left:50%;top:50%; transform:translate(-50%,-50%);width:max(100%,var(--h-tap));height:var(--h-tap) }
 .cleared { font-size:var(--fs-tag);font-weight:600;color:var(--in);display:inline-flex;align-items:center;gap:3px;flex:none }
 .detailtoggle { display:flex;align-items:center;justify-content:space-between;width:calc(100% - 28px); margin:0 14px;padding:11px 0;border-top:1px solid var(--ln);font-size:var(--fs-body);font-weight:600;color:var(--md) }
 .detailhd,.detailrow { display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:4px;padding:6px 9px;font-size:var(--fs-sub) }
