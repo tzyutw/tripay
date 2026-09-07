@@ -12,6 +12,11 @@ const settled = st === 'settled';
 const archived = st === 'archived';
 /* `?expenses=none` 由 fixtures 統一解析——同一個參數不要在兩個檔各判一次 */
 const expenses2 = noExpenses ? [] : expenses;
+function recordRpc<T extends { data: { trip?: unknown } | null }>(r: T): T {
+  (window as unknown as { __RPC_TRIP__: unknown }).__RPC_TRIP__ = r.data && r.data.trip;
+  return r;
+}
+
 const rows = {
   /* `?trip=missing`：查不到任何列——`.maybeSingle()` 會回 null，畫面要走「找不到」 */
   trips: tripMissing ? [] : [settled ? { ...trip, status: 'settled' }
@@ -148,10 +153,17 @@ function chain(table: string) {
 }
 const stub = {
   from: (t: string) => chain(t),
-  rpc: (_fn: string) => Promise.resolve({
+  /* 實作-W-1b　**把 rpc 真正端出去的那一份露出來**。
+     原本斷言讀的是 `__HARNESS_FIXTURE__.trip`（＝`rows.trips[0]`，一律套用過
+     `?state=`），所以 rpc 回原始 `trip` 的時候它照樣是 settled——
+     那條斷言在量「別人」，不是在量分享頁拿到什麼。 */
+  rpc: (_fn: string) => Promise.resolve(recordRpc({
     /* 分享頁的 RPC 查不到 token 時回 null（get_shared_trip 的實際行為） */
     data: tripMissing ? null : {
-      trip, members,
+      /* 🔴 實作-W-1b　**要端出套用過 `?state=` 的那一份**（`rows.trips[0]`），
+         不是 fixtures 匯入的原始 `trip`——原本分享頁永遠看到 `status:'active'`，
+         於是「已結算的行程在分享頁不標約」這件事在量測靶上**根本量不到**。 */
+      trip: rows.trips[0], members,
       expenses: expenses2.map(({ expense_splits: _s, ...e }) => e),
       splits: expenses2.flatMap(e => e.expense_splits),
       /* RPC 回的是這趟**所有**結算與**所有** items——分享頁自己挑 */
@@ -159,7 +171,7 @@ const stub = {
       settlement_items: noExpenses ? [] : allSettlementItems,
     },
     error: null,
-  }),
+  })),
   auth: {
     getUser: () => Promise.resolve({ data: { user: {
       id: 'u1', email: 'msziyu@gmail.com', user_metadata: { full_name: 'Rozi' },

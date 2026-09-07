@@ -63,7 +63,12 @@ export function ExpenseRow({ e, c, S, readonly, money: mo, onEdit, onReadonlyTap
     ? <span style={{ color: 'var(--out)' }}>還沒填</span>
     : e.sponsor
       ? <span className="money" style={{ color: 'var(--in)' }}>−{money(c.twdTotal, mo2)}</span>
-      : <>{(approx || backCalc) && <i className="approx">約</i>}
+      /* 🔴 實作-W-1　規格 §5.6：已結算／已封存**不顯示「約」**——
+         結算已經定案，提醒改變不了任何事，只會製造焦慮。
+         判斷來源就是 `StatCard` 已經在用的那一個（`S.readonly` ＝ 行程狀態），
+         不另外拉一條布林值層層傳下來的第二套。
+         ⚠️ §5.4 的橘紅左邊框**要留著**——§5.6 只列了三件事，邊框不在裡面。 */
+      : <>{(approx || backCalc) && !S.readonly && <i className="approx">約</i>}
           <span className="money">{money(c.twdTotal, mo2)}</span></>;
 
   const inner = (

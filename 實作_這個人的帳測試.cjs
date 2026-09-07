@@ -197,16 +197,31 @@ const num = s => Number(String(s).replace(/[^\d.-]/g, ''));
     ok(foot.txt === '點名字看這個人的帳是怎麼算出來的', `註腳不對：「${foot.txt}」`);
   }
 
-  /* ── 5 U-2-g 分享頁反向 ──────────────────────────────────────────────── */
+  /* ── 5 分享頁的成員列 ─────────────────────────────────────────────────
+     ⚠️ **這一條在實作-W-3 被 Rozi 推翻**（2026-09-07：「附圖的分享連結頁，
+     沒辦法點各自成員看他個人的消費紀錄」）。原本斷言「不得是 button」，
+     依據是驗收案例 A9「唯讀頁不得有編輯入口」——但**看某個人的帳怎麼算出來
+     是閱讀，不是編輯**。所以反過來驗：成員列要點得進去，而點進去那一頁
+     必須是唯讀的（A9 真正要守的東西改由那一頁的斷言守）。 */
   await go('screen=s06');
   const share = await p.evaluate(async () => {
     document.querySelector('.tot').click();
     await new Promise(r => setTimeout(r, 300));
     const rows = [...document.querySelectorAll('.perrow')];
-    return { n: rows.length, btn: rows.filter(x => x.tagName === 'BUTTON').length }; });
-  console.log(`   分享頁成員列 ${share.n}（button ${share.btn}）`);
+    return { n: rows.length, btn: rows.filter(x => x.tagName === 'BUTTON').length,
+             ro: rows.filter(x => x.classList.contains('ro')).length }; });
+  console.log(`   分享頁成員列 ${share.n}（button ${share.btn}／ro ${share.ro}）`);
   ok(share.n > 0, '分享頁沒有成員列，這條等於沒驗');
-  ok(share.btn === 0, '分享頁的成員列不得是 button（S-06-14：這裡的列不可點）');
+  ok(share.btn === share.n && share.ro === 0,
+    `分享頁的成員列要點得進去（W-3）：button ${share.btn}／${share.n}、還帶 ro 的 ${share.ro}`);
+  await go('screen=s06&member=0');
+  const shareRo = await p.evaluate(() => ({
+    n: document.querySelectorAll('.exprow').length,
+    btn: [...document.querySelectorAll('.exprow')].filter(x => x.tagName === 'BUTTON').length,
+    inputs: document.querySelectorAll('input, textarea, select').length }));
+  console.log(`   分享頁「{名字} 的帳」${shareRo.n} 列（button ${shareRo.btn}／輸入欄位 ${shareRo.inputs}）`);
+  ok(shareRo.n > 0, '分享頁的成員頁一列都沒有，A9 那條等於沒驗');
+  ok(shareRo.btn === 0 && shareRo.inputs === 0, 'A9 破了：分享頁的成員頁有可點的列或輸入欄位');
 
   /* ── 6 U-4 矮按鈕 ────────────────────────────────────────────────────── */
   console.log('');

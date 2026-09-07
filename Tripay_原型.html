@@ -646,9 +646,15 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .anim.fold .trail{clip-path:inset(-12% 0 -12% 0);opacity:.35}
 .ui .txrow{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--ln);
   border-radius:var(--r-base);padding:9px 14px;margin:0 14px 6px}
-.ui .txrow .who{font-size:var(--fs-body);font-weight:600}
+/* 🔴 實作-W-2　320px 放不下時「標記付清」會被擠出視窗 2px。
+   選方案 (a)：**中間那段可壓縮**（min-width:0 ＋ 截斷），按鈕與金額 flex:none。
+   選 (a) 不選 (b)（窄螢幕換兩行）的理由：(b) 會動到 390px 的列高，
+   而那是反向斷言在守的東西（390 必須維持單行）；(a) 只在真的塞不下時才截字。
+   ⚠️ 成員識別圖（emoji／填色圓底）**不得被截掉**——S-02c-10 的全站規則。 */
+.ui .txrow .who{font-size:var(--fs-body);font-weight:600;min-width:0}
 .ui .txrow .gv{font-size:var(--fs-sub);color:var(--gr)}
-.ui .txrow .amt{margin-left:auto;font-size:var(--fs-money);display:inline-flex;align-items:baseline}
+.ui .txrow .amt{margin-left:auto;font-size:var(--fs-money);display:inline-flex;
+  align-items:baseline;flex:none}
 .ui .txhead{padding:12px 14px 4px;font-size:var(--fs-body);font-weight:600}
 .ui .txtitle{padding:0 14px 2px;font-size:var(--fs-strong);font-weight:700}
 .ui .txsub{padding:0 14px 10px;font-size:var(--fs-sub);color:var(--gr)}
@@ -2306,7 +2312,11 @@ function expenseRow(e, c, S, opts) {
   const amt = pend ? '<span style="color:var(--out)">還沒填</span>'
     : e.sponsor
       ? `<span class="money" style="color:var(--in)">−${money(c.twdTotal).replace(/^[^\d]*/, m => m)}</span>`
-      : `${approx ? '<i class="approx">約</i>' : ''}<span class="money">${money(c.twdTotal)}</span>`;
+      /* 🔴 實作-W-1　規格 §5.6：已結算／已封存**不顯示「約」**——結算已經定案，
+         提醒改變不了任何事，只會製造焦慮。判斷來源與 statCard() 同一個
+         （`S.readonly` ＝ 行程狀態），不另外拉第二套。
+         ⚠️ §5.4 的橘紅左邊框要留著——§5.6 只列了三件事，邊框不在裡面。 */
+      : `${approx && !S.readonly ? '<i class="approx">約</i>' : ''}<span class="money">${money(c.twdTotal)}</span>`;
   const tag = o.readonly ? 'div' : 'button';
   const attr = o.readonly ? '' : ` data-editexp="${e.id}"`;
   /* 🔴 實作-U-6　§5.4 原本只有兩種狀態（整筆未定 → 橘紅左框；各自金額
@@ -3371,7 +3381,13 @@ function renderS06() {
   // #29-10 與 S-03-9／S-03-27 共用 statCard()。人均取消——每人分擔列已經取代它，
   // 而且人均只在均分時才有意義。S-06-6 編號保留、標為移除。
   const open6 = store.s06StatOpen;
-  const sc6 = statCard(S, { open: open6, totId: 's06stat', readonly: true });
+  /* 🔴 實作-W-3　分享頁的成員列**改成點得進去**（Rozi 2026-09-07：「沒辦法點
+     各自成員看他個人的消費紀錄」）。「看某個人的帳怎麼算出來」不是編輯，是閱讀
+     ——驗收案例 A9 要守的是「不得有編輯入口」，不是「不得有任何連結」。
+     `readonly:false` 之後註腳也會換成「點名字看這個人的帳是怎麼算出來的」，
+     與 S-03 同一句。**消費明細仍然是唯讀**（下面 expenseGroups 的 readonly:true 不動）。
+     ⚠️ 「約」的判定看的是 `S.readonly`（行程狀態），不是這個旗標，所以不受影響。 */
+  const sc6 = statCard(S, { open: open6, totId: 's06stat', readonly: false });
   h += `<div class="statcard">
     ${b('S-06-4', sc6.tot)}
     ${open6 ? b('S-06-14', sc6.per) : ''}

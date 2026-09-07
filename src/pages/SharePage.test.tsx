@@ -146,12 +146,15 @@ describe('B-6　S-06 分享頁', () => {
     expect(rows.length).toBeGreaterThan(0);
     expect(rows.every(r => r.tagName === 'DIV')).toBe(true);
 
+    /* ⚠️ 實作-W-3 推翻：成員列**要點得進去**（Rozi 2026-09-07）。
+       「看某個人的帳怎麼算出來」是閱讀不是編輯——A9 要守的是編輯入口，
+       改由「點進去那一頁全是 DIV、沒有輸入欄位」那條守（見批 W 的斷言）。 */
     const per = [...document.querySelectorAll('.perrow')];
     expect(per.length).toBe(4);
-    expect(per.every(r => r.tagName === 'DIV'), '每人分擔列不得可點').toBe(true);
+    expect(per.every(r => r.tagName === 'BUTTON'), '每人分擔列要點得進去').toBe(true);
+    expect(per.some(r => r.classList.contains('ro')), '不該還帶著 ro').toBe(false);
 
-    /* 註腳不寫「點名字看是哪幾筆」——那裡沒有 S-03d 可以進 */
-    expect(flat()).toContain('標「約」的金額還沒算清楚');
+    expect(flat()).toContain('點名字看這個人的帳是怎麼算出來的');
     expect(flat()).not.toContain('點名字看是哪幾筆');
   });
 

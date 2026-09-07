@@ -8,13 +8,15 @@
  * 消費明細改日期分組、列上不寫日期、待填列補左邊框。**這是預期的，不要補回去。**
  */
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { destinationOf } from '@/lib/destinations';
 import { deriveDisplayStatus } from '@/lib/deriveStatus';
 import { dateRange } from '@/lib/format';
 import { tripSummary, settleTrip } from '@/lib/summary';
 import ExpenseGroups from '@/components/shared/ExpenseGroups';
+import MemberLedger from '@/components/shared/MemberLedger';
+import { Icon } from '@/components/Icon';
 import TransferView from '@/components/shared/TransferView';
 import NotFound from '@/components/shared/NotFound';
 import { StatCardTotal, StatCardPerList, StatCardFoot } from '@/components/shared/StatCard';
@@ -54,6 +56,10 @@ export function pickConfirmed(
 export default function SharePage() {
   const { token } = useParams<{ token: string }>();
   const [statOpen, setStatOpen] = useState(false);
+  /* 實作-W-3　`?member=<id>` → 唯讀版的「{名字} 的帳」。
+     走 query 不走 state：裝置的返回鍵才會如預期回到分享頁。 */
+  const [sp, setSp] = useSearchParams();
+  const memberView = sp.get('member');
 
   const { data, isLoading, isError } = useQuery<SharedPayload | null>({
     queryKey: ['share', token],
@@ -91,6 +97,29 @@ export default function SharePage() {
         .map(i => ({ from: i.from_member_id, to: i.to_member_id, amount: i.amount }))
     : settleTrip(S, expenses, trip as never).tx;
 
+  /* 🔴 實作-W-3　唯讀版的「{名字} 的帳」。
+     ⚠️ 這一頁**不得有任何編輯入口**（驗收案例 A9）：消費列是 `<div>`、沒有
+        輸入欄位、沒有「編輯／刪除／記一筆」。三段結構與自己那邊是**同一支元件**。
+     ⚠️ 文案用「{名字}付的」不用「你付的」——分享連結的觀看者不是任何一位成員，
+        「你」指誰講不通。 */
+  if (memberView) {
+    const m = t.members.find(x => x.id === memberView);
+    if (!m) return <NotFound />;
+    return (
+      <div className="min-h-screen bg-bg flex flex-col">
+        <div className="bar">
+          <button className="ic2" aria-label="返回" onClick={() => setSp({}, { replace: true })}>
+            <Icon name="back" size={20} />
+          </button>
+          <span className="ttl">{m.name} 的帳</span>
+          <span style={{ width: 40 }} />
+        </div>
+        <MemberLedger S={S} memberId={memberView} readonly payerName={m.name} />
+        <div style={{ height: 18 }} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-bg flex flex-col">
 
@@ -111,10 +140,15 @@ export default function SharePage() {
 
       {/* S-06-4／14／15　與 S-03-9／27／28 共用 statCard()。
           S-06-5 外幣格與 S-06-6 人均因此消失——每人分擔列已經取代它們。 */}
+      {/* 🔴 實作-W-3　成員列改成點得進去（Rozi 2026-09-07：「沒辦法點各自成員
+          看他個人的消費紀錄」）。**「看某個人的帳怎麼算出來」不是編輯，是閱讀**
+          ——驗收案例 A9 要守的是「不得有編輯入口」，不是「不得有任何連結」。
+          `readonly` 拿掉之後 `StatCardFoot` 也會換成「點名字看這個人的帳
+          是怎麼算出來的」，與 S-03 同一句。 */}
       <div className="statcard">
         <StatCardTotal S={S} open={statOpen} readonly onToggleTotal={() => setStatOpen(o => !o)} />
-        {statOpen && <StatCardPerList S={S} readonly />}
-        {statOpen && <StatCardFoot S={S} readonly />}
+        {statOpen && <StatCardPerList S={S} onPickMember={id => setSp({ member: id }, { replace: true })} />}
+        {statOpen && <StatCardFoot S={S} />}
       </div>
 
       {/* S-06-7／8　與 S-05 共用同一個 TransferView（arrows 變體）——

@@ -124,8 +124,9 @@ describe('B-3　S-03 行程頁', () => {
     await show();
     fireEvent.click(screen.getByText('總花費'));          // #17-2 每人分擔預設收合，要展開才掃得到
 
-    /* 實作-J 之後每個成員識別自成節點（圓底與名字各一個 span），段數因此變多 */
-    expect(want('s03').list.length).toBe(94);             // 基準本身要有東西
+    /* 實作-J 之後每個成員識別自成節點（圓底與名字各一個 span），段數因此變多。
+       實作-X 又 +1：「只看共同的帳」那顆開關。 */
+    expect(want('s03').list.length).toBe(95);             // 基準本身要有東西
     const got = flat();
     const missing = want('s03').list.filter(t => !got.includes(t.replace(/\s+/g, '')));
     expect(missing, `原型有、App 沒有：${missing.join(' ｜ ')}`).toEqual([]);
