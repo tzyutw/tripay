@@ -171,6 +171,11 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   --fs-logo:44px;     /* 登入頁字標。這是圖形識別，不屬於文字階梯——唯一的例外 */
   --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#9B1B14;   /* #25-8 destructive 比提醒深一階；白字對比 7.7:1 */
   --ln:#DFE1DA;--gr:#6A7980;--md:#4C5B64;
+  /* 實作-S-7　**外幣金額**的字色。台幣是結算依據（主色），外幣只是對帳用的紀錄。
+     不能直接用 --gr：那是說明文字的灰，而且 placeholder 也是它——
+     有值的灰跟 placeholder 一樣的話，分不出「這格是空的」還是「填了東西」。
+     取 --md 這一階：對白底 7.03:1（AA 要 4.5），與 --gr 的 4.51 差 2.52。 */
+  --tx2:var(--md);
   /* 實作-P　輸入框高度**只有兩階**。改前是五種（46／41／40／38／28），
      沒有任何一種是刻意決定的——跟字級與圓角當初一樣，各處各自決定出來的。
      階 1 取 40 而不是 44：日期欄已經是 40，而**那一處在 iOS 上塌掉修過三次**
@@ -236,6 +241,15 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .btn.dg{background:var(--dg);color:#fff}
 .ui .btn:disabled{opacity:.4;cursor:not-allowed}
 .ui .btnrow{display:flex;gap:8px;padding:12px 14px 16px;background:#EDEEE8;border-top:1px solid var(--ln)}
+/* 實作-S-6　S-03 的主鈕貼在畫面下緣。底色必須不透明，否則底下的列會透出來。
+   iOS 底部安全區要留。**只有 S-03 掛 .sticky**，S-04 彈層底部那一排不動。 */
+.ui .btnrow.sticky{position:sticky;bottom:0;z-index:5;
+  padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+/* 實作-S-5　「金額」標題列：標籤在左、常駐的教學灰字在右。
+   320px 下不得換行也不得橫向捲動。 */
+.ui .lblrow{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.ui .lblrow>.lbl{margin-bottom:6px}
+.ui .lblnote{font-size:var(--fs-sub);color:var(--gr);white-space:nowrap;flex:none;margin-bottom:6px}
 /* #31-8 #29-8b 曾把切換器拆成兩套（分頁 .tabs／欄位 .seg），Rozi 收回：
    兩種都改成「消費／結算」那個樣子——淺灰底軌＋白色凸起 pill。
    全站只剩 .seg 一個 class，不再有實心主色的切換器。 */
@@ -316,6 +330,12 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .amtline input{flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;
   font-size:var(--fs-input);font-weight:500;font-variant-numeric:tabular-nums;text-align:right}
 .ui .amtline input:focus{border:0;outline:none}
+/* 實作-S-7　外幣欄用次階字色，一眼看得出「哪個金額在結算」。
+   `:not(.auto)` 是必要的：自動換算出來的值有自己的顏色，不要被蓋掉。
+   ⚠️ 只在「台幣與外幣並列」的地方變灰；整頁只有外幣的視角**不准**灰掉。 */
+.ui .amtline input.forcur:not(.auto){color:var(--tx2)}
+.ui .amtrow input.forcur:not(.auto){color:var(--tx2)}
+.ui .forcur{color:var(--tx2)}
 /* #22-9：各自金額一列一人——emoji 名字靠左、輸入框靠右。
    先前漏掉這條 CSS，div 退回 block，名字與輸入框才會堆成兩行。 */
 .ui .amtrow{display:flex;align-items:center;gap:9px;cursor:text;background:#fff;border:1px solid var(--ln);
@@ -1351,6 +1371,20 @@ function rateRows(form) {
   const plain = !raw.trim() || !dir ? null
     : dir === 'for-unit' ? `1 ${currencyName(cur)} ＝ ${esc(raw)} 台幣`
                          : `1 台幣 ＝ ${esc(raw)} ${currencyName(cur)}`;
+  /* 實作-S-1　換算範例。兩個方向的第一行長得幾乎一樣（只有幣別名互換），
+     掃過去分辨不出來；數量級差 22 倍的錯誤畫面上完全看不出來。
+     示範金額依幣別量級決定，換算走既有的 rateOf()——範例算出來的數字
+     必須跟真的記一筆時一致，不然範例會騙人。 */
+  const ex = (() => {
+    if (!plain) return null;
+    const n = parseFloat(raw);
+    const cols = dir === 'for-unit' ? { rateFor: 1, rateTwd: n } : { rateTwd: 1, rateFor: n };
+    const r = rateOf(cols);
+    if (!r) return null;
+    const sample = decimalsFor(cur) === 0 ? 10000 : 100;
+    return `花 <span class="forcur">${sample.toLocaleString('en-US')} ${currencyName(cur)}</span>，`
+         + `記成台幣 ${Math.round(sample / r).toLocaleString('en-US')}`;
+  })();
   return `<div class="ratebox">
       <div class="raterow" data-side="one">
         <span class="flag">${FLAG[cur] || '🏳️'}</span>
@@ -1359,7 +1393,8 @@ function rateRows(form) {
         <span class="code">${cur}</span></div>
     </div>
     ${plain
-      ? `<p class="hint" style="margin-top:7px"><b style="color:var(--ink)">${plain}</b>
+      ? `<p class="hint" style="margin-top:7px"><b style="color:var(--ink)">${plain}</b><br>
+           <span>${ex || ''}</span>
            <button class="ratelink" data-rateflip="1">換個方向</button></p>`
       : `<p class="hint">填一個數字就好，方向由系統判斷；判錯可以按「換個方向」</p>`}`;
 }
@@ -2041,7 +2076,9 @@ function tripSummary(tid) {
    同一句只寫一次，兩處都引用這裡（CLAUDE.md「同一句文案只准寫一次」）。 */
 const MSG_NO_RATE     = '先記著了。設好這趟的現金匯率就會自動換算。';
 const MSG_TWD_PENDING = '先記著了。補上台幣金額就會算進結算。';
-const MSG_FILL_ONE    = '填一邊就好，另一邊會自動換算';
+/* 實作-S-5　從金額欄下方移到「金額」那一列的右側，改成常駐的小灰字
+   （Rozi：兩段說明應該同時顯示）。文案縮短，拿掉「會」。 */
+const MSG_FILL_ONE    = '填一邊就好，另一邊自動換算';
 
 /* #17-3：整頁金額可切外幣顯示。結算恆為台幣，不受影響（既有決策）*/
 function money(v) {
@@ -2190,10 +2227,12 @@ function renderS03() {
 
   // #28-6b 底部只留一顆主鈕，且依狀態變。已結算態沒有主鈕——那時的主要動作是
   // 「逐筆標記付清」，那在結算分頁裡做，不在這裡。
+  /* 實作-S-6　貼在畫面下緣。消費一多，static 的按鈕會被排擠到 y=1457（視窗只有 844），
+     要捲到底才看得到。已結算態沒有 btnrow，那時也不需要留白。 */
   if (st === 'archived')
-    h += b('S-03-24', `<div class="btnrow"><button class="btn gh">重新開啟行程</button></div>`);
+    h += b('S-03-24', `<div class="btnrow sticky"><button class="btn gh">重新開啟行程</button></div>`);
   else if (st !== 'settled')
-    h += b('S-03-22', `<div class="btnrow"><button class="btn" id="s03add">${ic('add',16)} 記一筆</button></div>`);
+    h += b('S-03-22', `<div class="btnrow sticky"><button class="btn" id="s03add">${ic('add',16)} 記一筆</button></div>`);
   h += `<div id="s03toast"></div>`;
   $('#scr-s03').innerHTML = h;
   renderS03More();
@@ -2362,12 +2401,14 @@ function renderS04() {
       <input type="text" id="e-title" value="${esc(g.title)}" placeholder="例如：藥妝店"></div></div>`);
 
   // 金額（§2.3 §2.4 §2A.3）
-  h += b('S-04-4', `<div class="fld"><span class="lbl" data-group="兩列各自帶幣別標籤，非單一輸入欄">金額</span>
+  h += b('S-04-4', `<div class="fld">
+    <div class="lblrow"><span class="lbl" data-group="兩列各自帶幣別標籤，非單一輸入欄">金額</span>
+      <span class="lblnote">${MSG_FILL_ONE}</span></div>
     <div class="amtstack">
       ${b('S-04-5', `<label for="e-for" class="amtline${c.noAutoReason === 'noForeignTotal' ? ' needfill' : ''}">
         <span class="cur">${sym} ${cur}</span>
         <input type="text" inputmode="decimal" id="e-for" value="${esc(g.forAmt)}"
-          class="${c.forTotalAuto ? 'auto' : ''}" placeholder="${c.forTotalAuto ? c.forTotalEff : '0'}">
+          class="forcur${c.forTotalAuto ? ' auto' : ''}" placeholder="${c.forTotalAuto ? c.forTotalEff : '0'}">
         ${c.forTotalAuto ? b('S-04-30', '<span class="autotag">自動</span>', 'inl') : ''}</label>`)}
       ${b('S-04-6', `<label for="e-twd" class="amtline">
         <span class="cur">$ 台幣</span>
@@ -2422,7 +2463,8 @@ function paintS04() {
           <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div>`)
       : c.twdPending
         ? `<div class="note warn">${ic('warn',14)} ${MSG_TWD_PENDING}</div>`
-        : (tripRate(t) ? `<p class="hint">${MSG_FILL_ONE}</p>` : '');
+        /* 教學句已經常駐在標題右側，這裡不再重複——同一句寫兩份遲早會走鐘 */
+        : '';
   }
 
   const tb = document.getElementById('typebody');
@@ -2466,7 +2508,7 @@ function paintS04() {
         <span style="flex:1;font-size:var(--fs-body)">${esc(m.name||'')}</span>
         <span data-eauto="${id}">${auto ? '<span class="autotag">自動</span>' : ''}</span>
         <input type="text" inputmode="decimal" id="ei-${id}" data-eindiv="${id}" value="${esc(g.indiv[id] ?? '')}"
-          class="${auto ? 'auto' : ''}" placeholder="${
+          class="${c.fillsAreForeign ? 'forcur ' : ''}${auto ? 'auto' : ''}" placeholder="${
             c.noAutoReason ? '—' : (auto ? c.valInCur[id] : '0')}"></label>`;
       return i === 0 ? b('S-04-32', cell) : cell; }).join('')}</div>`;
     inner += `<div id="eachcmp"></div><div id="eachnote"></div>`;

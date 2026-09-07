@@ -13,9 +13,11 @@
 const fs = require('fs'), path = require('path');
 
 const MSG_FILE = 'src/lib/messages.ts';
+/* ⚠️ 第三句在實作-S-5 縮短了（拿掉「會」）——它從金額欄下方移到
+   「金額」標題列右側，改成常駐的小灰字。原型與 src 兩邊一起改。 */
 const MSGS = ['先記著了。設好這趟的現金匯率就會自動換算。',
               '先記著了。補上台幣金額就會算進結算。',
-              '填一邊就好，另一邊會自動換算'];
+              '填一邊就好，另一邊自動換算'];
 const NAMES = ['MSG_NO_RATE', 'MSG_TWD_PENDING', 'MSG_FILL_ONE'];
 
 const files = [];

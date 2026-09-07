@@ -57,14 +57,31 @@ export function emojiForTitle(title: string): string {
   return '➕';
 }
 
-/* #35-1 「記一筆」預設今天，不是行程出發日。
-   兩邊的邊界只夾一邊：今天晚於回程日 → 夾到回程日，否則行程結束後補記的帳會被
-   dayLabel() 算成「第 200 天」那種分組；今天早於出發日 → **不夾**，機票這類行前
-   支出本來就該落在「出發前」。回程日留空（當天來回）時不夾。
-   只影響新增；載入既有消費一律沿用那筆自己的日期。 */
-export function defaultExpDate(trip: { end_date?: string | null }): string {
+/**
+ * 「記一筆」的預設日期。**只影響新增**；載入既有消費一律沿用那筆自己的日期。
+ *
+ * 1. 今天在行程期間內 → 今天（旅遊中即時記帳，每天第一筆自然就是對的）
+ * 2. 今天早於出發日 → 今天，**不夾**（機票、旅平險本來就該落在「出發前」）
+ * 3. 今天晚於回程日（＝事後補記）→ **這趟最後建立的那一筆的日期**；
+ *    這趟還沒有任何消費 → 回程日
+ *
+ * 🔴 第 3 條是實作-S-4 新增的。原本一律夾到回程日，所以 Rozi 在 9 月補記
+ * 2 月的濟州島時**每一筆都預設回程日**，每筆都要手動改。
+ *
+ * ⚠️ 用 **`created_at` 最大的那一筆**（最後被建立的），**不是 `expense_date` 最大的**。
+ * 她是照天數順序往下補——用「日期最大」的話，她回頭補第 1 天之後，
+ * 下一筆又會跳回最後一天，等於沒修。
+ */
+export function defaultExpDate(
+  trip: { end_date?: string | null },
+  expenses: { expense_date: string; created_at: string; deleted_at?: string | null }[] = [],
+): string {
   const d = new Date().toISOString().slice(0, 10);
-  return trip.end_date && d > trip.end_date ? trip.end_date : d;
+  if (!trip.end_date || d <= trip.end_date) return d;
+  const live = expenses.filter(e => !e.deleted_at);
+  if (!live.length) return trip.end_date;
+  const last = live.reduce((a, b) => (b.created_at > a.created_at ? b : a));
+  return last.expense_date;
 }
 
 /** 這趟的支付方式清單。**沒有任何寫死的常數**——空清單時才退回單一「現金」。 */
@@ -149,6 +166,8 @@ export interface FormState {
   partsOpen: boolean;           // 「要排除誰？」是否展開
   onSpot: boolean;
   sponsor: boolean;
+  /** S-04 的備註。**只有這裡看得到**——S-03／S-05／S-06 都不顯示。不參與任何計算 */
+  note: string;
 }
 
 /** 這一筆有誰參與。`single`（只算一個人）就是那一位。 */
@@ -235,6 +254,8 @@ export function buildRows(
     split_fill_currency: f.fillCur,
     settled_on_spot: f.sponsor ? false : f.onSpot,
     is_sponsor: f.sponsor,
+    /* 空的時候存 **null 不是空字串**——空字串會讓「有沒有寫備註」多一個未定義分支 */
+    note: f.note.trim() === '' ? null : f.note.trim(),
   };
 
   const splitRows = parts.map(id => {
@@ -265,14 +286,17 @@ export function buildRows(
   return { row, splitRows, c };
 }
 
-function blank(trip: TripWithMembers, members: TripWithMembers['trip_members']): FormState {
+function blank(
+  trip: TripWithMembers, members: TripWithMembers['trip_members'],
+  recent: { expense_date: string; created_at: string; deleted_at?: string | null }[] = [],
+): FormState {
   return {
     title: '', emoji: '➕', emojiManual: false,
-    date: defaultExpDate(trip), forAmt: '', twdAmt: '',
+    date: defaultExpDate(trip, recent), forAmt: '', twdAmt: '',
     /* #33-4 預設是清單的第一項，不寫死「現金」——使用者可能把清單改成只有信用卡 */
     pay: paymentsOf(trip)[0],
     payer: null, kind: 'shared', parts: members.map(m => m.id), single: null,
-    indiv: {}, fillCur: 'TWD', partsOpen: false, onSpot: false, sponsor: false,
+    indiv: {}, fillCur: 'TWD', partsOpen: false, onSpot: false, sponsor: false, note: '',
   };
 }
 
@@ -295,6 +319,7 @@ function fromExpense(e: ExpenseWithSplits, members: TripWithMembers['trip_member
     single: e.individual_member_id,
     indiv, fillCur: e.split_fill_currency, partsOpen: false,
     onSpot: e.settled_on_spot, sponsor: e.is_sponsor,
+    note: e.note ?? '',
   };
 }
 
@@ -319,7 +344,29 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
     enabled: isEdit,
   });
 
+  /* 事後補記時要跟著「最後建立的那一筆」走（S-4），所以要知道這趟已經有哪些消費。
+     只讀 3 個欄位，不是整份消費——這支查詢每次開「記一筆」都會跑。 */
+  const { data: recent = [] } = useQuery({
+    queryKey: ['expense-dates', tripId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('expenses').select('expense_date, created_at, deleted_at')
+        .eq('trip_id', tripId).is('deleted_at', null)
+        .order('created_at', { ascending: false }).limit(1);
+      return (data ?? []) as { expense_date: string; created_at: string; deleted_at: string | null }[];
+    },
+    enabled: !isEdit,
+    staleTime: 0,
+  });
+
   const [f, setF] = useState<FormState>(() => blank(trip, members));
+  /* 查詢是非同步的：初始值算的時候還沒有資料，到位之後要把日期補正一次。
+     **只在使用者還沒動過日期時補**，不然會蓋掉他自己選的。 */
+  const dateTouched = useRef(false);
+  useEffect(() => {
+    if (isEdit || dateTouched.current || !recent.length) return;
+    setF(s2 => ({ ...s2, date: defaultExpDate(trip, recent) }));
+  }, [recent, isEdit, trip]);
   const [showDelete, setShowDelete] = useState(false);
   /* 付款人沒選時**不能靜默失敗**——按鈕看起來按得下去、按了什麼都不說，
      使用者只會覺得 App 壞了。用與其他欄位同一套 errors 機制。 */
@@ -461,7 +508,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
             <span className="v tnum">{md(f.date)}（{weekday(f.date)}）</span>
             <Icon name="calendar" size={16} />
             <input type="date" value={f.date} aria-label="記在"
-              onChange={e => set('date', e.target.value)} />
+              onChange={e => { dateTouched.current = true; set('date', e.target.value); }} />
           </div>
         </div>
 
@@ -496,13 +543,21 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
         {/* S-04-4／5／6　金額（§2.3 §2.4 §2A.3）。
             S-04-8：**沒有「之後再填」toggle**，空欄一律放行存檔。 */}
         <div className="fld">
-          <span className="lbl">金額</span>
+          {/* 實作-S-5　教學句移到標題右側，**永遠都在**；下面那一行只留警示。
+              兩句同時看得到（她要的），但不多佔一行；
+              視覺重量差很多：警示是橘色帶 icon 的獨立一行，教學是附屬在標題上的灰字。 */}
+          <div className="lblrow">
+            <span className="lbl">金額</span>
+            <span className="lblnote">{MSG_FILL_ONE}</span>
+          </div>
           <div className="amtstack">
             <label htmlFor="e-for"
               className={`amtline${c.noAutoReason === 'noForeignTotal' ? ' needfill' : ''}`}>
               <span className="cur">{sym} {cur}</span>
+              {/* 實作-S-7　外幣欄用次階字色，一眼看得出「哪個金額在結算」。
+                  台幣是結算依據，外幣是對帳用的紀錄。 */}
               <AmountInput id="e-for" value={f.forAmt} decimals={decimalsFor(cur)}
-                className={c.forTotalAuto ? 'auto' : ''}
+                className={`forcur${c.forTotalAuto ? ' auto' : ''}`}
                 placeholder={c.forTotalAuto ? formatAmount(String(c.forTotalEff), decimalsFor(cur)) : '0'}
                 onChange={v => set('forAmt', v)} />
               {/* S-04-30 外幣總額自動補入時標「自動」，仍可覆寫 */}
@@ -518,16 +573,14 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
             </label>
           </div>
 
-          {/* #29-2「填一邊就好」與匯率警告互斥：沒設匯率時只出警告，
-              不再多疊一句做不到的事 */}
+          {/* 下面這一行只留警示，兩者都不成立時什麼都不顯示——
+              教學句已經常駐在標題右側，這裡再寫一次就是同一句寫兩份。 */}
           {c.needRateLink ? (
             <div className="note warn">
               <Icon name="warn" size={14} /> {MSG_NO_RATE}
             </div>
           ) : c.twdPending ? (
             <div className="note warn"><Icon name="warn" size={14} /> {MSG_TWD_PENDING}</div>
-          ) : rate ? (
-            <p className="hint">{MSG_FILL_ONE}</p>
           ) : null}
         </div>
 
@@ -650,6 +703,20 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
           )}
         </div>
 
+        {/* 實作-S-3　備註。Rozi 2026-09-07：「『記一筆』要多一個備注欄，
+            但這個備注不用列在總行程頁。」
+            所以它**只在這一頁看得到**——S-03 消費列表、S-05 結算、S-06 分享頁都不顯示。
+            分享頁尤其不能顯示：那是給別人看的，不該預設外流。
+            選填、不參與任何計算、上限 200 字（超過就不再收字，不跳錯誤訊息）。 */}
+        <div className="fld">
+          <div className="fieldrow">
+            <span className="lbl" style={{ width: 46 }}>備註</span>
+            <input type="text" value={f.note} aria-label="備註"
+              placeholder="補一句，只有這裡看得到"
+              onChange={e => set('note', e.target.value.slice(0, 200))} />
+          </div>
+        </div>
+
         {/* S-04-23　刪除。**這是軟刪**，所以不要寫「無法復原」——那不誠實。
             它跟著內容捲，不是常駐動作。 */}
         {isEdit && (
@@ -734,7 +801,7 @@ function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
               {auto && <span className="autotag">自動</span>}
               <AmountInput id={`ei-${id}`} value={f.indiv[id] ?? ''}
                 decimals={c.fillsAreForeign ? decimalsFor(cur) : 0}
-                className={auto ? 'auto' : ''}
+                className={`${c.fillsAreForeign ? 'forcur' : ''}${auto ? ' auto' : ''}`.trim()}
                 placeholder={c.noAutoReason ? '—' : (auto ? formatAmount(String(c.valInCur[id]), 0) : '0')}
                 onChange={v => onAmt(id, v)} />
             </label>

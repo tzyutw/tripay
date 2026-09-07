@@ -49,6 +49,12 @@
   --md: #4C5B64;   /* 中階文字 */
   --ink:#151C21;   /* 內容色。原型裡是字面量，這裡一併收成變數 */
   --bg: #EDEEE8;   /* .ui 的底色 */
+  /* 實作-S-7　**外幣金額**的字色。台幣是結算依據（主色），外幣只是對帳用的紀錄。
+     不能直接用 --gr：那是說明文字的灰，而且 placeholder 也是它——
+     有值的灰跟 placeholder 一樣的話，分不出「這格是空的」還是「填了東西」。
+     取 --md 這一階：對白底 7.03:1（AA 要 4.5），與 --gr 的 4.51 差 2.52。
+     用 var 不用第二個字面值——同一個值兩個名字遲早會走鐘。 */
+  --tx2: var(--md);
 }
 
 body {
@@ -314,6 +320,10 @@ input:focus { border-color:var(--w) }
 .btn.dg { background:var(--dg);color:#fff }
 .btn:disabled { opacity:.4;cursor:not-allowed }
 .btnrow { display:flex;gap:8px;padding:12px 14px 16px;background:#EDEEE8;border-top:1px solid var(--ln) }
+.btnrow.sticky { position:sticky;bottom:0;z-index:5; padding-bottom:calc(16px + env(safe-area-inset-bottom)) }
+.lblrow { display:flex;align-items:baseline;justify-content:space-between;gap:8px }
+.lblrow>.lbl { margin-bottom:6px }
+.lblnote { font-size:var(--fs-sub);color:var(--gr);white-space:nowrap;flex:none;margin-bottom:6px }
 .seg { display:flex;gap:2px;background:#E2E4DD;border-radius:calc(var(--r-base) + 5px);padding:2px }
 .seg button { flex:1;padding:7px 0;font-size:var(--fs-body);font-weight:600; color:var(--md);background:transparent;border-radius:calc(var(--r-base) + 3px) }
 .seg button.on { background:#fff;border:1px solid var(--ln);color:#151C21; box-shadow:0 1px 2px rgba(0,0,0,.06) }
@@ -341,6 +351,9 @@ input:focus { border-color:var(--w) }
 .amtline .cur { width:58px;flex:none;font-size:var(--fs-body);font-weight:600;color:var(--md) }
 .amtline input { flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0; font-size:var(--fs-input);font-weight:500;font-variant-numeric:tabular-nums;text-align:right }
 .amtline input:focus { border:0;outline:none }
+.amtline input.forcur:not(.auto) { color:var(--tx2) }
+.amtrow input.forcur:not(.auto) { color:var(--tx2) }
+.forcur { color:var(--tx2) }
 .amtrow { display:flex;align-items:center;gap:9px;cursor:text;background:#fff;border:1px solid var(--ln); border-radius:var(--r-base);padding:7px 14px }
 .amtrow input { width:96px;flex:none;text-align:right;background:#F4F5F1;padding:5px 8px; border:1px solid transparent;font-size:var(--fs-input);font-variant-numeric:tabular-nums }
 .amtrow input:focus { border-color:var(--w);background:#fff }
@@ -507,6 +520,20 @@ input.auto { color:#9AA5AB }
 @keyframes dropback{0%{transform:scale(1.03)}60%{transform:scale(.99)}100%{transform:scale(1)}}
 @supports not (height:100dvh){.s00wrap{min-height:100vh}}
 
+
+/* 實作-S-6　清單底部的留白：`.btnrow.sticky` 貼在下緣時會蓋住最後一筆。
+   高度＝按鈕列的高度（12+16 內距 ＋ 44 按鈕 ＝ 72，取 74 留一點餘裕）。
+   用 padding 不用 margin——margin 會被相鄰邊界收合掉。
+   ⚠️ 只在真的有 `.btnrow` 時才渲染這個 spacer（已結算態沒有主鈕）。 */
+.btnpad { height: 74px; flex: none; }
+
+/* 實作-S-5　窄螢幕塞不下就縮短文字。**必須排在產生區塊之後**——
+   排前面會被抽取器搬過來的 `.lblnote` base 蓋掉（同特異度，後者生效）。
+   用 ::after 換字，不要在 JS 裡分支：兩份文案分開寫遲早會走鐘。 */
+@media (max-width: 359px) {
+  .lblnote { font-size: 0; }
+  .lblnote::after { content: '填一邊就好'; font-size: var(--fs-sub); }
+}
 
 /* S-05 自己帶著導覽列（‹ 結算）。放進 S-03 的「結算」分頁就變成兩顆返回鍵疊在一起，
    用 CSS 收起來——**不動 S-05 的輸出**（原型的做法一樣）。 */

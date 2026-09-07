@@ -57,7 +57,9 @@ const SCREENS: Record<string, ScreenDef> = {
   s03:  { route: '/trips/t1', paths: TRIP_PATHS, el: <ExpenseListPage /> },
   s03d: { route: '/trips/t1', path: '/trips/:id', el: <ExpenseListPage /> },
   s04:  { route: '/trips/t1', path: '/trips/:id',
-          el: <ExpenseFormSheet tripId="t1" trip={trip as never} onClose={() => {}} /> },
+          el: <ExpenseFormSheet tripId="t1" trip={trip as never}
+                expenseId={new URLSearchParams(location.search).get('exp') ?? undefined}
+                onClose={() => {}} /> },
   /* S-05 的「先去看一下」與警示層那一列會導回 `/trips/:id`（實作-Q-3），
      所以兩邊的路徑都要註冊——少一條就是導過去一片空白，看起來像功能壞掉。 */
   s05:  { route: '/trips/t1/settlement',

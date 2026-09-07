@@ -73,6 +73,9 @@ export interface Expense {
   expense_type: ExpenseType;
   settled_on_spot: boolean;   // 共同但當場各付各的：記錄但不進結算
   is_sponsor: boolean;        // 外部贊助/回饋：負額共同項，平均扣進每人應付
+  /* 016 */
+  note: string | null;        // 記一筆的備註。**只在 S-04 顯示**——
+                              // S-03／S-05／S-06 都不顯示（Rozi 2026-09-07）。不參與計算
   /* 015 */
   twd_from_rate: boolean;     // twd_amount 是系統用行程匯率算的（true）還是使用者打的（false）。
                               // 改匯率時只有 true 的會被重算——**不要用 exchange_rate 有沒有值來猜**

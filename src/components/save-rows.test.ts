@@ -6,7 +6,8 @@
  * 只驗畫面文字的測試對這兩條完全沒有防守能力。
  */
 import { describe, it, expect } from 'vitest';
-import { buildRows, partsOfForm, formToExpense, type FormState } from './ExpenseFormSheet';
+import { buildRows, partsOfForm, formToExpense, defaultExpDate,
+         type FormState } from './ExpenseFormSheet';
 import { backfillRows } from './TripFormSheet';
 import { calc, tripRate } from '@/lib/summary';
 import type { TripWithMembers } from '@/types/database';
@@ -26,7 +27,7 @@ const form = (o: Partial<FormState> = {}): FormState => ({
   title: '藥妝店', emoji: '💄', emojiManual: false, date: '2026-03-15',
   forAmt: '', twdAmt: '', pay: '現金', payer: M[0], kind: 'shared',
   parts: [...M], single: null, indiv: {}, fillCur: 'TWD',
-  partsOpen: false, onSpot: false, sponsor: false, ...o,
+  partsOpen: false, onSpot: false, sponsor: false, note: '', ...o,
 });
 const build = (f: FormState, r: typeof withRate | typeof noRate = withRate) =>
   buildRows(f, tripOf(r), members, { tripId: 't1', userId: 'u1' });
@@ -219,5 +220,80 @@ describe('Q-①d　存檔時標記「這個台幣是系統算的」', () => {
     expect(row.foreign_amount).toBe(308500);
     expect(row.twd_amount).toBe(64785);
     expect(Number.isNaN(row.twd_amount as number)).toBe(false);
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════
+   實作-S-3　備註存出去的形狀
+   Rozi：「『記一筆』要多一個備注欄，但這個備注不用列在總行程頁」
+   ══════════════════════════════════════════════════════════════ */
+describe('S-③　備註', () => {
+  it('填了字 → note 就是那串字（前後空白去掉）', () => {
+    const { row } = build(form({ note: '  刷玉山卡，之後要對帳  ' }));
+    expect(row.note).toBe('刷玉山卡，之後要對帳');
+  });
+
+  it('沒填 → **null 不是空字串**', () => {
+    /* 空字串會讓「有沒有寫備註」多一個未定義分支——查詢與顯示都得多判一次 */
+    expect(build(form()).row.note).toBeNull();
+    expect(build(form({ note: '   ' })).row.note).toBeNull();
+  });
+
+  it('備註不參與任何計算：加了備註，金額與分帳逐欄不變', () => {
+    const a = build(form({ forAmt: '5,000', kind: 'individual', parts: [M[0], M[1]],
+                           fillCur: 'FOR', twdAmt: '690', indiv: { [M[0]]: '12000', [M[1]]: '18000' } }));
+    const b2 = build(form({ forAmt: '5,000', kind: 'individual', parts: [M[0], M[1]],
+                            fillCur: 'FOR', twdAmt: '690', indiv: { [M[0]]: '12000', [M[1]]: '18000' },
+                            note: '有備註' }));
+    expect({ ...b2.row, note: null }).toEqual({ ...a.row, note: null });
+    expect(b2.splitRows).toEqual(a.splitRows);
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════
+   實作-S-4　「記在」的預設日期
+   Rozi：「我現在要填寫舊的行程，要自己手動每一筆改日期」
+   ══════════════════════════════════════════════════════════════ */
+describe('S-④　事後補記時跟著上一筆走', () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const past = { end_date: '2020-02-22' };
+  const future = { end_date: '2099-12-31' };
+  const e = (d: string, c: string, del: string | null = null) =>
+    ({ expense_date: d, created_at: c, deleted_at: del });
+
+  it('今天在行程期間內 → 今天', () => {
+    expect(defaultExpDate({ end_date: future.end_date }, [])).toBe(today);
+  });
+
+  it('今天早於出發日 → 今天，**不夾到出發日**（機票這類行前支出該落在「出發前」）', () => {
+    expect(defaultExpDate(future, [e('2099-01-01', '2099-01-01T00:00:00Z')])).toBe(today);
+  });
+
+  it('事後補記 → **最後建立**的那一筆的日期，不是日期最大的那一筆', () => {
+    /* created_at T1<T2<T3，expense_date 故意排成 D3 < D1 < D2。
+       用「日期最大」的寫法會回 2020-02-20（D2），那是錯的——
+       她照天數順序往下補，回頭補第 1 天之後下一筆又會跳回最後一天。 */
+    const rows = [
+      e('2020-02-15', '2026-09-07T01:00:00Z'),   // T1 / D1
+      e('2020-02-20', '2026-09-07T02:00:00Z'),   // T2 / D2 ← 日期最大
+      e('2020-02-14', '2026-09-07T03:00:00Z'),   // T3 / D3 ← 最後建立
+    ];
+    expect(defaultExpDate(past, rows)).toBe('2020-02-14');
+  });
+
+  it('事後補記 ＋ 這趟沒有任何消費 → 回程日', () => {
+    expect(defaultExpDate(past, [])).toBe('2020-02-22');
+  });
+
+  it('軟刪除的那筆是最後建立的 → 要跳過它', () => {
+    const rows = [
+      e('2020-02-15', '2026-09-07T01:00:00Z'),
+      e('2020-02-18', '2026-09-07T09:00:00Z', '2026-09-07T10:00:00Z'),   // 已刪，不算
+    ];
+    expect(defaultExpDate(past, rows)).toBe('2020-02-15');
+  });
+
+  it('回程日留空（當天來回）→ 今天', () => {
+    expect(defaultExpDate({ end_date: null }, [e('2020-01-01', '2026-09-07T01:00:00Z')])).toBe(today);
   });
 });

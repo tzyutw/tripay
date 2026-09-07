@@ -128,7 +128,10 @@ export default function ExpenseListPage() {
      用 query 不用 state 的理由與實作-O-8 相同：跨 route 的 state 會被丟掉。 */
   const [sp, setSp] = useSearchParams();
   const [newOpen,         setNewOpen]         = useState(false);
-  const [currencyMode,    setCurrencyMode]    = useState<'TWD' | 'FOR'>('TWD');
+  /* 量測靶要能直接進「整頁只有外幣」的視角（實作-S-7 的反向斷言要用）。
+     production bundle 讀不到這個參數也不會怎樣——預設仍是 TWD。 */
+  const [currencyMode,    setCurrencyMode]    = useState<'TWD' | 'FOR'>(
+    () => (new URLSearchParams(window.location.search).get('view') === 'foreign' ? 'FOR' : 'TWD'));
   const [deleteConfirm,   setDeleteConfirm]   = useState('');
   /* S-03-33 分段控制：切換檢視不是動作。「結算」分頁的內容就是 S-05 整頁 */
   const [tab,             setTab]             = useState<'exp' | 'settle'>('exp');
@@ -443,10 +446,15 @@ export default function ExpenseListPage() {
               onReadonlyTap={isArchived ? () => showToast(MSG_ARCHIVED_TAP) : undefined} />
           )}
 
-          {/* #28-6b 底部只留一顆主鈕，且依狀態變。已結算態沒有主鈕——
-              那時的主要動作是「逐筆標記付清」，在結算分頁裡做，不在這裡。 */}
+          {/* 🔴 實作-S-6　主鈕**貼在畫面下緣**（`.btnrow.sticky`）。
+              Rozi：「消費紀錄變多之後就會被排擠到後面」——量到的是
+              y=1457／視窗只有 844，要捲到底才看得到。
+              清單底部要留白，否則最後一筆會被蓋住；留白跟著 `.btnrow` 存不存在走
+              （已結算態沒有主鈕，那時不需要留白）。
+              #28-6b 底部只留一顆主鈕，且依狀態變。 */}
+          {(isArchived || !isSettled) && <div className="btnpad" />}
           {isArchived && (
-            <div className="btnrow">
+            <div className="btnrow sticky">
               <button className="btn gh" disabled={unarchiveMutation.isPending}
                 onClick={() => unarchiveMutation.mutate()}>
                 {unarchiveMutation.isPending ? '處理中…' : '重新開啟行程'}
@@ -454,7 +462,7 @@ export default function ExpenseListPage() {
             </div>
           )}
           {!isArchived && !isSettled && (
-            <div className="btnrow">
+            <div className="btnrow sticky">
               <button className="btn" onClick={openNew}>
                 <Icon name="add" size={16} /> 記一筆
               </button>

@@ -63,7 +63,8 @@ const SCREENS = ['s00','s01','s02','s02b','s03','s03d','s04','s05','s06','s07','
               `s04 28px ${count('screen=s04','28px')} 個`);
   ok(count('screen=s02', '40px') >= 4, `s02 的 40px 應 ≥4，實際 ${count('screen=s02','40px')}`);
   ok(count('screen=s02b', '40px') >= 4, `s02b 的 40px 應 ≥4，實際 ${count('screen=s02b','40px')}`);
-  ok(count('screen=s04', '28px') === 3, `s04 的 28px 應恰好 3，實際 ${count('screen=s04','28px')}`);
+  /* 實作-S-3 之後多了備註欄，列內嵌入的輸入框從 3 個變 4 個（品項／外幣／台幣／備註） */
+  ok(count('screen=s04', '28px') === 4, `s04 的 28px 應恰好 4，實際 ${count('screen=s04','28px')}`);
 
   /* ── 4 token 化：CSS 與元件裡都不得再有輸入框高度的字面值 ─────────────── */
   const css = fs.readFileSync('src/index.css', 'utf8');

@@ -10,7 +10,10 @@
  * **用一行白話把系統的理解攤開**，判錯時按「換個方向」救得回來。
  * 只顯示不給救，跟不顯示一樣糟。
  */
-import { FLAG, decimalsFor, currencyName, TWD_PER_UNIT, type RateDir } from '@/lib/currencyTable';
+import { FLAG, decimalsFor, currencyName, TWD_PER_UNIT, rateColumns,
+         type RateDir } from '@/lib/currencyTable';
+import { tripRate } from '@/lib/summary';
+import { formatAmount } from '@/lib/amount';
 
 export interface CashRateProps {
   currency: string;
@@ -34,11 +37,44 @@ export function ratePlaceholder(code: string): string {
   return n >= 10 ? String(Math.round(n)) : String(Number(n.toPrecision(2)));
 }
 
+/**
+ * 實作-S-1　示範金額。依幣別量級決定，**不要寫死一張表**：
+ * 沒有輔幣單位的（JPY／KRW／VND／IDR）用 10,000，其餘（USD／EUR 這種）用 100。
+ */
+export function sampleAmountFor(code: string): number {
+  return decimalsFor(code) === 0 ? 10000 : 100;
+}
+
+/**
+ * 「花 10,000 日圓，記成台幣 2,100」。
+ *
+ * 🔴 為什麼要這一行（Rozi 2026-09-07：「說明變得不太清楚，沒有案例顯示差別在哪」）：
+ * 兩個方向的第一行長得幾乎一模一樣（只有兩個幣別名互換、數字還是同一個），
+ * 掃過去分辨不出來。而上一次方向填反，帳從 64,785 變成 1,469,048（差 22 倍）——
+ * **畫面上沒有任何地方會讓她看出這個差別**。換算範例的數量級一眼就看得出來。
+ *
+ * ⚠️ 換算走**既有的** `tripRate()`，不另寫算式——範例算出來的數字必須跟
+ * 真的記一筆時算出來的完全一致，不然範例會騙人。
+ * ⚠️ 不要用「約」字：那是「金額未定案」的專用標記（`.approx`），
+ * 用在這裡會被誤讀成「這筆帳還沒算準」。
+ */
+export function rateExample(code: string, n: string, dir: RateDir | null):
+  { foreign: string; twd: string } | null {
+  const num = Number(String(n).replace(/,/g, ''));
+  if (!dir || !Number.isFinite(num) || num <= 0) return null;
+  const rate = tripRate(rateColumns(num, dir) as never);
+  if (!rate) return null;
+  const sample = sampleAmountFor(code);
+  return { foreign: `${formatAmount(String(sample), 0)} ${currencyName(code)}`,
+           twd: formatAmount(String(Math.round(sample / rate)), 0) };
+}
+
 export default function CashRate({ currency, value, dir, onChange, onFlip }: CashRateProps) {
   const code = currency;
   const filled = value.trim() !== '' && dir != null;
   const name = currencyName(code);
   /* 白話那一行：把系統的理解攤開。幣別名走 currencyName()，不要自己寫中文。 */
+  const ex = rateExample(currency, value, dir);
   const plain = dir === 'for-unit'
     ? `1 ${name} ＝ ${value} 台幣`
     : `1 台幣 ＝ ${value} ${name}`;
@@ -64,6 +100,10 @@ export default function CashRate({ currency, value, dir, onChange, onFlip }: Cas
       {filled ? (
         <p className="hint" style={{ marginTop: 7 }}>
           <b style={{ color: 'var(--ink)' }}>{plain}</b>
+          <br />
+          {/* 第二行：她看得懂單位的換算範例。次級字級＋灰字，不另開卡片或分隔線。
+              外幣數字用次階字色、台幣用主色——與 S-04 的兩欄同一套語彙。 */}
+          {ex && <span>花 <span className="forcur">{ex.foreign}</span>，記成台幣 {ex.twd}</span>}
           {' '}
           <button type="button" className="ratelink" onClick={onFlip}>換個方向</button>
         </p>

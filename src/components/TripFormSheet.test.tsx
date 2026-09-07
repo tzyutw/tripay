@@ -88,7 +88,18 @@ describe('B-1　S-02 建立行程', () => {
     expect(document.querySelectorAll('[autofocus]')).toHaveLength(0);
   });
 
-  it('不要用字元充當 icon（✕ ＋ ✓ 都不行）', async () => {
+  /* 實作-S-2：這一條原本只測**建立頁沒有成員**的狀態，
+     所以成員列那顆 `✕` 從來沒被掃到過。改成**成員列有渲染出來**的狀態下掃整個 sheet。 */
+  it('不要用字元充當 icon（✕ ＋ ✓ 都不行）——成員列有渲染出來的狀態', async () => {
+    render(<TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} />);
+    /* 守門：先確認成員列真的畫出來了，否則這條會因為沒東西可掃而假通過 */
+    await waitFor(() => expect(screen.getByText('Rozi')).toBeInTheDocument());
+    expect(document.querySelectorAll('.rowb .tap44').length).toBeGreaterThanOrEqual(4);
+    const txt = document.body.textContent ?? '';
+    for (const ch of ['✕', '＋', '✓', '⠿', '×']) expect(txt).not.toContain(ch);
+  });
+
+  it('建立頁（沒有成員）也不得有字元 icon', async () => {
     render(<TripFormSheet onClose={() => {}} onCreated={() => {}} />);
     await waitFor(() => expect(screen.getByText('這趟去哪？')).toBeInTheDocument());
     const txt = document.body.textContent ?? '';

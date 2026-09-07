@@ -64,6 +64,9 @@ export const forOnly = Q.get('forOnly') === '1';
 /** `?settlements=many`：**Rozi 真實資料的形狀**——一趟有十幾次結算，
  *  只有一次是 confirmed。不挑就會把同樣三筆轉帳畫十二遍（實作-G 咬過一次）。 */
 export const settlementsMany = Q.get('settlements') === 'many';
+/** `?view=foreign`：整頁只有外幣的視角。**那裡不准變灰**——
+ *  灰是給「台幣與外幣並列時分主從」用的，整頁灰掉會變成沒東西可讀。 */
+export const viewForeign = Q.get('view') === 'foreign';
 
 /** 該幣別「好記的那個方向」的代表值 → 正確的兩欄組合 */
 function fullRateColumns(code: string) {
@@ -132,8 +135,11 @@ const forOnlyExpense = mk({
 });
 
 const baseExpenses: ExpenseWithSplits[] = [
+  /* 備註只在 S-04 看得到——S-03／S-05／S-06 都不顯示（Rozi 2026-09-07）。
+     這一筆帶備註，就是給那三條反向斷言當靶子的。 */
   mk({ title: '機票 ×4', category_emoji: '✈️', expense_date: '2026-02-10',
-       twd_amount: 28400, payment_method: 'credit_card', payer_member_id: M[0] }),
+       twd_amount: 28400, payment_method: 'credit_card', payer_member_id: M[0],
+       note: 'ZZ 這句備註只該出現在記一筆' }),
   mk({ title: '黑豬肉晚餐', category_emoji: '🍜', expense_date: '2026-03-14',
        foreign_amount: 108000, twd_amount: 2480, payment_method: 'credit_card', payer_member_id: M[2] }),
   mk({ title: '藥妝店', category_emoji: '🛍️', expense_date: '2026-03-15',

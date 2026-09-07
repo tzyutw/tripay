@@ -751,7 +751,10 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                          ⚠️ 不要放大 ✕ 本身，也不要把 border box 撐大——那會把同一列的內容擠掉。 */
                       className={`tap44 text-sm ml-1 w-6 h-6 flex items-center justify-center ${used > 0 ? 'text-[#D8D2CC] cursor-not-allowed' : 'text-gr'}`}
                     >
-                      ✕
+                      {/* 實作-S-2　`✕` 是文字字元，樣子由系統字體決定、大小跟字級走，
+                          違反 `Icon.tsx` 開頭那條規則。換成 Feather 的 close。
+                          ⚠️ `tap44` 與 `w-6 h-6` 都要留著——實作-R 剛把可點區撐到 44×44。 */}
+                      <Icon name="close" size={16} />
                     </button>
                   </div>
                   );
