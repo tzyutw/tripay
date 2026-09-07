@@ -839,7 +839,10 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
           </div>
 
           {/* Action buttons */}
-          <div className="px-5 pt-[14px] pb-8 flex gap-[10px] flex-shrink-0 border-t border-black/[0.05]">
+          {/* Y-1　這張 sheet 是 fixed inset-0，這一列就貼在視窗最下緣——
+              沒有安全區時維持 32px（不改既有外觀），有瀏海的機型才往下多留。 */}
+          <div className="px-5 pt-[14px] flex gap-[10px] flex-shrink-0 border-t border-black/[0.05]"
+               style={{ paddingBottom: 'calc(32px + var(--sab))' }}>
             <button
               onClick={onClose}
               className="flex-1 h-[50px] bg-white text-w rounded-base border-[1.5px] border-w text-body font-bold active:scale-[0.97] transition-transform duration-100"

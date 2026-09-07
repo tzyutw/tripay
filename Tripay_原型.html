@@ -171,6 +171,14 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   --fs-logo:44px;     /* 登入頁字標。這是圖形識別，不屬於文字階梯——唯一的例外 */
   --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#9B1B14;   /* #25-8 destructive 比提醒深一階；白字對比 7.7:1 */
   --ln:#DFE1DA;--gr:#6A7980;--md:#4C5B64;
+  /* 🔴 實作-Y-1　安全區。`index.html` 少了 `viewport-fit=cover`，
+     iOS 根本不把安全區交給頁面 → 這六處的 `env()` 一律回 0，**從來沒生效過**。
+     於是瀏海那一塊由 iOS 用 `theme-color` 畫、下面那塊由頁面畫，
+     兩個顏色＝Rozi 看到的「底色分兩塊」。
+     ⚠️ 收成變數還有一個理由：**量測靶量不到 `env()`**（無頭瀏覽器永遠 0），
+     收成變數之後 `?sat=59` 才有東西可以覆寫。往後不要再直接寫 `env()`。 */
+  --sat:env(safe-area-inset-top, 0px);
+  --sab:env(safe-area-inset-bottom, 0px);
   /* 實作-S-7 ／ T-9　**外幣金額**的字色。台幣是結算依據（主色），外幣只是對帳用的紀錄。
      S-7 先用 --md（7.03），Rozi 2026-09-07 回報「在手機上顏色還是有點深，
      跟台幣沒辦法馬上分辨」→ 改用 --gr（4.51）。
@@ -200,8 +208,17 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   font-size:var(--fs-body);font-weight:600;color:#151C21;box-shadow:0 1px 3px rgba(0,0,0,.24)}
 .gmark{flex:none}
 .ui .tnum{font-variant-numeric:tabular-nums}
-.ui .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;
-  background:#fff;border-bottom:1px solid var(--ln)}
+/* 實作-Y-4　標題列的底色要跟它下面的內容區一致（Rozi：「要跟下方消費紀錄區塊一樣」）。
+   四個畫面都是白列配灰底：{名字} 的帳／還沒算清楚／結算／設定。
+   分隔線保留——同色時它就是唯一的分界。
+   ⚠️ 第五個使用者是 `MoreSheet`（⋯ 那張表單）。**實測它的容器本來就是 --bg**
+   （`min-h-screen bg-bg`），所以不需要覆寫；標題列與內容同色，靠 border-bottom
+   的 --ln 分隔（量到 rgb(223,225,218)，兩側都不同色）。 */
+/* Y-1　`.bar` 是**畫面最上緣**的標題列（結算／設定／某人的帳／還沒算清楚／⋯ 表單），
+   viewport-fit=cover 之後它會被瀏海蓋住，所以 padding-top 要含安全區。 */
+.ui .bar{display:flex;align-items:center;justify-content:space-between;
+  padding:calc(12px + var(--sat)) 14px 12px;
+  background:var(--bg);border-bottom:1px solid var(--ln)}
 .ui .lbl{display:block;font-size:var(--fs-body);font-weight:600;color:var(--md);margin-bottom:6px}
 /* #33-2 iOS 的原生 date input **讓內容決定寬度**，不照我們給的欄寬；
    空值時渲染「年/月/日」，寬度又跟有值時不同——所以在 iPhone 上兩個框不一樣大、
@@ -249,7 +266,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
    返回與設定鍵的 Y 軸一樣嗎」——返回鈕距頂 30px，這裡原本距底只有 16px）。
    ⚠️ 三個數字收成變數：清單底部的留白要**跟著按鈕列的高度走**，
    不要在別的地方再寫死一次（實作-S 的 74px 就是寫死的第二個數字）。 */
-.ui{--btnrow-pt:12px;--btnrow-pb:calc(30px + env(safe-area-inset-bottom));--btnrow-btn:46px}
+.ui{--btnrow-pt:12px;--btnrow-pb:calc(30px + var(--sab));--btnrow-btn:46px}
 .ui .btnrow{display:flex;gap:8px;padding:var(--btnrow-pt) 14px var(--btnrow-pb);background:#EDEEE8;border-top:1px solid var(--ln)}
 .ui .btnpad{height:calc(var(--btnrow-pt) + var(--btnrow-pb) + var(--btnrow-btn));flex:none}
 /* 實作-S-6　S-03 的主鈕貼在畫面下緣。底色必須不透明，否則底下的列會透出來。
@@ -418,7 +435,14 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 /* ══ 批二：S-03 / S-03d / S-04 / S-05 ══ */
 /* 實作-V-5　首頁頂部列固定。底色不透明，安全區留在 padding-top。 */
 .ui .topbar{position:sticky;top:0;z-index:30;background:#fff;
-  padding-top:calc(16px + env(safe-area-inset-top))}
+  padding-top:calc(16px + var(--sat))}
+/* 實作-Y-3　往上多畫 12px。Rozi 在真機上看到頂部列與狀態列之間有約 1px 的縫，
+   捲動時卡片會透出來——那是 iOS 的合成層次像素問題，無頭瀏覽器重現不了。
+   ⚠️ **要用往上延伸的塗色，不是位移元素本身**：負 margin／transform 會讓
+   `.topbar` 的 top 變成負值，V-5 的停止條件與 C6 的可點區量測都會跟著位移。
+   ⚠️ `pointer-events:none`，否則 C6 的「中心點命中自己」會抓到它。 */
+.ui .topbar::before{content:'';position:absolute;left:0;right:0;top:-12px;height:12px;
+  background:inherit;pointer-events:none}
 
 /* 🔴 實作-V-6　行程頁的 hero：**捲動時黏在頂端縮成一條**（iOS large-title 那種收合）。
    改之前 `position:relative`，往下捲整塊消失，返回鍵與 ⋯ 選單跟著不見。
@@ -430,10 +454,24 @@ html.anno .b .bdg:hover{background:#0F5E9E}
    只是沒有縮小的過渡。 */
 .ui .hero{padding:30px 14px 13px;color:#fff;position:relative}
 .ui .hero.collapsing{position:sticky;top:0;z-index:20;
-  /* 底色不透明：漸層走 background-image，底下再墊一層實色，
-     捲過去的消費列才不會透出來 */
-  background-color:#0F5E9E;
-  padding-top:calc(30px + env(safe-area-inset-top))}
+  /* 🔴 實作-Y-2　收合態一律**工作色富士青**，而且**與 index.html 的 theme-color
+     同一個值**——這是雙保險：就算某個裝置的安全區還是失效，
+     退回 theme-color 畫的那一塊也還是同一個藍，不會分兩塊。
+     Rozi：「底色不要分兩塊，請改成藍色」。
+     展開態維持行程色漸層（她沒有要改那個），漸層會連安全區一起蓋滿。 */
+  background-color:#1276C4;
+  padding-top:calc(30px + var(--sat))}
+/* 收合之後不要行程色漸層——那是「分兩塊」的另一半來源 */
+/* 漸層是元件用 inline style 給的，keyframe 蓋不掉 inline 的 background-image。
+   改用一層 ::after 遮罩：收合時把工作色鋪滿，展開時透明。 */
+.ui .hero.collapsing::after{content:'';position:absolute;inset:0;background:#1276C4;opacity:0;
+  pointer-events:none;z-index:0}
+.ui .hero.collapsing>*{position:relative;z-index:1}
+@supports (animation-timeline: scroll()) {
+  .ui .hero.collapsing::after{animation:heroFlat linear both;
+    animation-timeline:scroll();animation-range:40px 110px}
+}
+@keyframes heroFlat{ from{opacity:0} to{opacity:1} }
 /* 收合之後標題移到與返回鍵同一列（不然光是 navrow 就 40px，塞不進 56px 的一條） */
 .ui .hero .navttl{position:absolute;left:50%;transform:translateX(-50%);
   max-width:56%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -447,8 +485,8 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   .ui .hero.collapsing .navttl{animation:heroNavTtl linear both;animation-timeline:scroll();animation-range:60px 120px}
 }
 @keyframes heroShrink{
-  from{padding-top:calc(30px + env(safe-area-inset-top));padding-bottom:13px}
-  to  {padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:8px}
+  from{padding-top:calc(30px + var(--sat));padding-bottom:13px}
+  to  {padding-top:calc(8px + var(--sat));padding-bottom:8px}
 }
 @keyframes heroTitle{ from{font-size:var(--fs-title);opacity:1;max-height:30px}
                       to{font-size:0;opacity:0;max-height:0} }
@@ -621,7 +659,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
    上留白 1／品牌區／下留白 1.35／登入鈕貼底。品牌落在約 40% 高度＝光學中心，
    人眼看幾何置中會覺得偏低。塞不下時退回自然排列並可捲動，不硬撐也不裁切。 */
 .ui .s00wrap{background:linear-gradient(158deg,#0B2233 0%,#0F5E9E 48%,#1276C4 100%);
-  padding:0 26px calc(32px + env(safe-area-inset-bottom));
+  padding:0 26px calc(32px + var(--sab));
   display:flex;flex-direction:column;align-items:center;
   min-height:100dvh;box-sizing:border-box}
 /* 真機模式底部有畫面切換器，可用高度要扣掉它，否則登入鈕會被蓋住 */

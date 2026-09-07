@@ -96,7 +96,9 @@ export default function SharePage() {
 
       {/* S-06-1／2／3 */}
       <div className="hero" style={{
-        background: destinationOf(trip.name, trip.id).gradient, paddingTop: 22,
+        background: destinationOf(trip.name, trip.id).gradient,
+        /* Y-1　viewport-fit=cover 之後 hero 會延伸到瀏海底下，22px 要含安全區 */
+        paddingTop: 'calc(22px + var(--sat))',
       }}>
         <div className="sc" />
         <span className="viewtag"><span className="stamp">朋友檢視</span></span>

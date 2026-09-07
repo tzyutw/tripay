@@ -156,8 +156,14 @@ input, textarea, select { font-size: var(--fs-input); }
   /* 實作-T-6　底部主鈕列。收成變數是因為**清單底部的留白要跟著它走**——
      實作-S 把留白寫死成 74px，這一輪改底部距離時那個數字就對不上了。
      `--btnrow-pb` 取 30px 與上方返回鈕距頂的 30px 對稱（Rozi 指定）。 */
+  /* 🔴 實作-Y-1　安全區。`viewport-fit=cover` 沒寫的時候 `env()` 一律回 0，
+     這幾處**從來沒生效過**；而且量測靶量不到 `env()`（無頭瀏覽器永遠 0），
+     收成變數之後 `?sat=59` 才有東西可以覆寫。**往後不要再直接寫 `env()`。** */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+
   --btnrow-pt: 12px;
-  --btnrow-pb: calc(30px + env(safe-area-inset-bottom));
+  --btnrow-pb: calc(30px + var(--sab));
   --btnrow-btn: 46px;
 }
 
@@ -235,7 +241,7 @@ input, textarea, select { font-size: var(--fs-input); }
    ══════════════════════════════════════════════════════════════ */
 .s00wrap {
   background: linear-gradient(158deg, #0B2233 0%, #0F5E9E 48%, #1276C4 100%);
-  padding: 0 26px calc(32px + env(safe-area-inset-bottom));
+  padding: 0 26px calc(32px + var(--sab));
   display: flex; flex-direction: column; align-items: center;
   min-height: 100dvh; box-sizing: border-box;
 }
@@ -320,7 +326,7 @@ input, textarea, select { font-size: var(--fs-input); }
 .flexrow > .b { flex:1;min-width:0 }
 .money { font-variant-numeric:tabular-nums;font-weight:600;font-size:var(--fs-money) }
 .tnum { font-variant-numeric:tabular-nums }
-.bar { display:flex;align-items:center;justify-content:space-between;padding:12px 14px; background:#fff;border-bottom:1px solid var(--ln) }
+.bar { display:flex;align-items:center;justify-content:space-between; padding:calc(12px + var(--sat)) 14px 12px; background:var(--bg);border-bottom:1px solid var(--ln) }
 .lbl { display:block;font-size:var(--fs-body);font-weight:600;color:var(--md);margin-bottom:6px }
 .datefield { position:relative;display:flex;align-items:center;width:100%;min-width:0 }
 .datefield input[type=date] { -webkit-appearance:none;appearance:none; flex:1;width:100%;min-width:0;padding-right:32px; height:var(--h-field);box-sizing:border-box }
@@ -412,9 +418,12 @@ input:focus { border-color:var(--w) }
 .spin { padding:34px 0;text-align:center }
 .spin i { display:inline-block;width:20px;height:20px;border:2px solid var(--w); border-top-color:transparent;border-radius:var(--r-icon);font-style:normal }
 .toast { position:absolute;left:14px;right:14px;bottom:14px;z-index:60;background:#151C21;color:#fff; font-size:var(--fs-body);padding:10px 13px;border-radius:var(--r-base);box-shadow:0 6px 18px rgba(0,0,0,.28) }
-.topbar { position:sticky;top:0;z-index:30;background:#fff; padding-top:calc(16px + env(safe-area-inset-top)) }
+.topbar { position:sticky;top:0;z-index:30;background:#fff; padding-top:calc(16px + var(--sat)) }
+.topbar::before { content:'';position:absolute;left:0;right:0;top:-12px;height:12px; background:inherit;pointer-events:none }
 .hero { padding:30px 14px 13px;color:#fff;position:relative }
-.hero.collapsing { position:sticky;top:0;z-index:20; background-color:#0F5E9E; padding-top:calc(30px + env(safe-area-inset-top)) }
+.hero.collapsing { position:sticky;top:0;z-index:20; background-color:#1276C4; padding-top:calc(30px + var(--sat)) }
+.hero.collapsing::after { content:'';position:absolute;inset:0;background:#1276C4;opacity:0; pointer-events:none;z-index:0 }
+.hero.collapsing>* { position:relative;z-index:1 }
 .hero .navttl { position:absolute;left:50%;transform:translateX(-50%); max-width:56%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; font-size:var(--fs-strong);font-weight:700;opacity:0 }
 .hero.collapsing .dt { overflow:hidden }
 .hero .sc { position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 34%,rgba(0,0,0,.5)) }
@@ -496,7 +505,7 @@ input.auto { color:#9AA5AB }
 .fieldrow.datefield>.lbl,.fieldrow.datefield>.v { line-height:22px;margin:0 }
 .fieldrow.datefield>.v { flex:1;min-width:0;font-size:var(--fs-input); font-weight:600;color:#151C21 }
 .fieldrow.datefield>input[type=date] { position:absolute;inset:0;opacity:0;padding:0; line-height:var(--h-field) }
-.s00wrap { background:linear-gradient(158deg,#0B2233 0%,#0F5E9E 48%,#1276C4 100%); padding:0 26px calc(32px + env(safe-area-inset-bottom)); display:flex;flex-direction:column;align-items:center; min-height:100dvh;box-sizing:border-box }
+.s00wrap { background:linear-gradient(158deg,#0B2233 0%,#0F5E9E 48%,#1276C4 100%); padding:0 26px calc(32px + var(--sab)); display:flex;flex-direction:column;align-items:center; min-height:100dvh;box-sizing:border-box }
 .s00pad { min-height:24px }
 .s00brand { display:flex;flex-direction:column;align-items:center;flex:none;align-self:stretch }
 .s00col { width:min(240px,100%);display:flex;flex-direction:column;align-items:stretch;align-self:center }
@@ -555,11 +564,13 @@ input.auto { color:#9AA5AB }
 @media(prefers-reduced-motion:no-preference){.spin i{animation:sp 1s linear infinite} @keyframes sp{to{transform:rotate(360deg)}}}
 @media(prefers-reduced-motion:no-preference){ .anim.empty-anim .p1{animation:drift 3.4s ease-in-out infinite} .anim.empty-anim .p2{animation:drift 3.4s ease-in-out .4s infinite} .anim.fold .lines{animation:foldlines 1.4s 1 forwards} .anim.fold .sheetline{animation:foldsheet 1.4s 1 forwards} .anim.fold .plane{animation:planefly 1.4s 1 forwards} .anim.fold .trail{animation:trailtrace 1.4s 1 forwards} @keyframes drift{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes foldlines{0%{transform:scaleX(1);animation-timing-function:ease-in} 25%,100%{transform:scaleX(0)}} @keyframes foldsheet{0%,21%{transform:scaleX(1);opacity:1;animation-timing-function:cubic-bezier(.55,0,.5,1)} 50%{transform:scaleX(.06)} 50.01%{opacity:1} 61%,100%{transform:scaleX(.06);opacity:0}} @keyframes planefly{0%,50%{transform:none;opacity:0;stroke-dashoffset:100; animation-timing-function:cubic-bezier(.4,0,.9,.4)} 60%{opacity:1} 88%,100%{stroke-dashoffset:0;opacity:1} 100%{transform:translate(18px,-20px) rotate(-8deg)}} @keyframes trailtrace{0%,50%{clip-path:inset(-12% 100% -12% 0);opacity:1; animation-timing-function:cubic-bezier(.4,0,.9,.4)} 86%{clip-path:inset(-12% 0 -12% 0);opacity:1} 100%{clip-path:inset(-12% 0 -12% 0);opacity:.35}} }
 @keyframes dropback{0%{transform:scale(1.03)}60%{transform:scale(.99)}100%{transform:scale(1)}}
-@keyframes heroShrink{ from{padding-top:calc(30px + env(safe-area-inset-top));padding-bottom:13px} to  {padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:8px} }
+@keyframes heroFlat{ from{opacity:0} to{opacity:1} }
+@keyframes heroShrink{ from{padding-top:calc(30px + var(--sat));padding-bottom:13px} to  {padding-top:calc(8px + var(--sat));padding-bottom:8px} }
 @keyframes heroTitle{ from{font-size:var(--fs-title);opacity:1;max-height:30px} to{font-size:0;opacity:0;max-height:0} }
 @keyframes heroDate{ from{opacity:1;max-height:24px;margin-top:4px} to{opacity:0;max-height:0;margin-top:0} }
 @keyframes heroNav{ from{margin-bottom:14px} to{margin-bottom:0} }
 @keyframes heroNavTtl{ from{opacity:0} to{opacity:1} }
+@supports (animation-timeline: scroll()) { .hero.collapsing::after{animation:heroFlat linear both; animation-timeline:scroll();animation-range:40px 110px} }
 @supports (animation-timeline: scroll()) { .hero.collapsing{animation:heroShrink linear both;animation-timeline:scroll();animation-range:0 120px} .hero.collapsing .tt{animation:heroTitle linear both;animation-timeline:scroll();animation-range:0 120px} .hero.collapsing .dt{animation:heroDate linear both;animation-timeline:scroll();animation-range:0 90px} .hero.collapsing .navrow{animation:heroNav linear both;animation-timeline:scroll();animation-range:0 120px} .hero.collapsing .navttl{animation:heroNavTtl linear both;animation-timeline:scroll();animation-range:60px 120px} }
 @supports not (height:100dvh){.s00wrap{min-height:100vh}}
 
@@ -638,7 +649,7 @@ input.auto { color:#9AA5AB }
 /* ══════════════════════════════════════════════════════════════
    實作-B-6／B-7　原型在 S-06／S-07 用 inline style 畫的幾塊，收成 class。
    ══════════════════════════════════════════════════════════════ */
-.viewtag  { position: absolute; top: 10px; right: 12px; }
+.viewtag  { position: absolute; top: calc(10px + var(--sat)); right: 12px; }  /* Y-1 安全區 */
 .sharefoot { margin-top: 12px; padding: 12px 14px 16px; background: var(--bg);
              border-top: 1px solid var(--ln); display: flex; align-items: center; gap: 9px; }
 .sharefoot p { margin: 0; flex: 1; font-size: var(--fs-body); color: var(--md); }

@@ -76,6 +76,15 @@ const SCREENS: Record<string, ScreenDef> = {
 };
 
 const Q0 = new URLSearchParams(location.search);
+/* 🔴 實作-Y-1　`env(safe-area-inset-*)` 在無頭瀏覽器**永遠是 0**，
+   所以安全區這一整批在量測靶上一條都驗不到。
+   `?sat=59` 直接覆寫 `--sat`（59 是 iPhone 瀏海的高度），不帶參數維持 0。 */
+{
+  const sat = Q0.get('sat');
+  if (sat) document.documentElement.style.setProperty('--sat', `${Number(sat)}px`);
+  const sab = Q0.get('sab');
+  if (sab) document.documentElement.style.setProperty('--sab', `${Number(sab)}px`);
+}
 const id = Q0.get('screen') ?? 's01';
 const s  = SCREENS[id] ?? SCREENS.s01;
 /* MemoryRouter 的 location 與 window.location 是兩回事——
