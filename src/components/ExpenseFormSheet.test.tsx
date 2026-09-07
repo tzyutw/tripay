@@ -374,3 +374,55 @@ describe('I-②　沒選付款人不可以靜默失敗', () => {
     expect(err!.textContent).toBe('先選這筆是誰付的');
   });
 });
+
+/* ══════════════════════════════════════════════════════════════
+   實作-U-7　外幣總額空白時的四層提示
+   Rozi：「這一筆金額不是一定不對，是他現在資訊不夠完整……
+   是在我們的標示不夠清楚，才會造成這樣子的問題。」
+   ══════════════════════════════════════════════════════════════ */
+describe('U-⑦　存檔後的第五種 toast', () => {
+  it('這個狀態下**不得**回「先照均分算」——那句是假的（根本沒有均分）', () => {
+    const s = saveToastFor({ pending: false, blanks: ['小美', '阿明'],
+                             noForTotal: true, cur: 'KRW' });
+    expect(s).not.toContain('照均分算');
+    expect(s).toContain('算不出來');
+    expect(s).toContain('KRW');
+    for (const n of ['小美', '阿明']) expect(s).toContain(n);
+  });
+
+  it('1 人／2 人／3 人以上三種寫法', () => {
+    const one = saveToastFor({ pending: false, blanks: ['小美'], noForTotal: true, cur: 'KRW' });
+    expect(one).toContain('小美 的金額算不出來');
+    const two = saveToastFor({ pending: false, blanks: ['小美', '阿明'], noForTotal: true, cur: 'KRW' });
+    expect(two).toContain('小美 和 阿明');
+    const many = saveToastFor({ pending: false, blanks: ['小美', '阿明', '小魚'],
+                                noForTotal: true, cur: 'KRW' });
+    expect(many).toContain('還有 3 人');
+    /* 3 人以上不寫名字 */
+    for (const n of ['小美', '阿明', '小魚']) expect(many).not.toContain(n);
+  });
+
+  it('**既有四條逐字不變**（反向）', () => {
+    expect(saveToastFor({ pending: true, blanks: [] }))
+      .toBe('已存。這筆金額還沒填，之後補上就會算進總花費。');
+    expect(saveToastFor({ pending: false, blanks: ['小美'] }))
+      .toBe('已存。小美 的金額由總額推算。');
+    expect(saveToastFor({ pending: false, blanks: ['小美', '阿明'] }))
+      .toBe('已存。小美 和 阿明 的金額還沒填，先照均分算。');
+    expect(saveToastFor({ pending: false, blanks: ['a', 'b', 'c'] }))
+      .toBe('已存。還有 3 人的金額還沒填，先照均分算。');
+    expect(saveToastFor({ pending: false, blanks: [] })).toBe('記下來了');
+  });
+
+  it('警示句不得寫成「錯了」的語氣', async () => {
+    const { msgNoForTotal } = await import('@/lib/messages');
+    const s = msgNoForTotal(['小美', '阿明'], 'KRW');
+    for (const bad of ['錯', '錯誤', '無效', '請修正'])
+      expect(s, `不該出現「${bad}」——是資訊不完整，不是錯`).not.toContain(bad);
+    expect(s).toContain('補上');
+    expect(s).toContain('填 0');
+    /* 一律用「他們」，不猜性別 */
+    expect(s).toContain('他們');
+    expect(msgNoForTotal(['小美'], 'KRW')).toContain('幫他填 0');
+  });
+});

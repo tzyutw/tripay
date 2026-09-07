@@ -18,7 +18,8 @@ import { parseAmount, formatAmount, caretAfterFormat } from '@/lib/amount';
 import { decimalsFor } from '@/lib/currencyTable';
 import { calc, tripRate } from '@/lib/summary';
 import type { ExpenseCalc } from '@/lib/summary';
-import { MSG_NO_RATE, MSG_TWD_PENDING, MSG_FILL_ONE, MSG_NO_FOR_TOTAL } from '@/lib/messages';
+import { MSG_NO_RATE, MSG_TWD_PENDING, MSG_FILL_ONE,
+         msgNeedForTotal, msgNoForTotal, msgSavedNoForTotal } from '@/lib/messages';
 import { useToast } from '@/contexts/ToastContext';
 import { Icon } from '@/components/Icon';
 import Seg from '@/components/shared/Seg';
@@ -94,8 +95,14 @@ export function paymentsOf(trip: { payment_methods: unknown }): string[] {
 
 /** 規格 §4：存檔後四種提示。
  *  整筆金額未填時**只顯示第一句**，不再依人數顯示其他提示。 */
-export function saveToastFor({ pending, blanks }: { pending: boolean; blanks: string[] }): string {
+export function saveToastFor(
+  { pending, blanks, noForTotal, cur }:
+  { pending: boolean; blanks: string[]; noForTotal?: boolean; cur?: string },
+): string {
   if (pending)            return '已存。這筆金額還沒填，之後補上就會算進總花費。';
+  /* 🔴 實作-U-7-c　**排在人數分支之前**：下面那兩句寫「先照均分算」，
+     在「外幣總額空白」這個狀態下是假的——根本沒有均分，是算不出來。 */
+  if (noForTotal && blanks.length) return msgSavedNoForTotal(blanks, cur ?? '');
   if (blanks.length === 1) return `已存。${blanks[0]} 的金額由總額推算。`;
   if (blanks.length === 2) return `已存。${blanks[0]} 和 ${blanks[1]} 的金額還沒填，先照均分算。`;
   if (blanks.length >= 3)  return `已存。還有 ${blanks.length} 人的金額還沒填，先照均分算。`;
@@ -443,6 +450,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
       toast(saveToastFor({
         pending: c.twdPending,
         blanks: c.blanks.map(id => members.find(m => m.id === id)?.name ?? ''),
+        noForTotal: c.noAutoReason === 'noForeignTotal', cur,
       }));
       onClose(true);
     },
@@ -553,7 +561,12 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
               視覺重量差很多：警示是橘色帶 icon 的獨立一行，教學是附屬在標題上的灰字。 */}
           <div className="lblrow">
             <span className="lbl">金額</span>
-            <span className="lblnote">{MSG_FILL_ONE}</span>
+            {/* 🔴 實作-U-7-a　紅框的觸發條件正是 `noAutoReason==='noForeignTotal'`
+                ——**系統知道卡在哪，只是嘴上不說**。這個狀態下要說卡在哪，
+                不是說「填一邊就好」（那句在這裡是誤導）。 */}
+            <span className="lblnote">
+              {c.noAutoReason === 'noForeignTotal' ? msgNeedForTotal(cur) : MSG_FILL_ONE}
+            </span>
           </div>
           <div className="amtstack">
             <label htmlFor="e-for"
@@ -804,9 +817,13 @@ function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
               <Avatar emoji={m?.emoji} name={m?.name} index={members.findIndex(x => x.id === id)} />
               <span className="flex-1 text-body">{m?.name ?? ''}</span>
               {auto && <span className="autotag">自動</span>}
+              {/* 實作-U-7-d　外幣總額空白時，**只有沒填的那幾格**加紅框
+                  （已經填了的不加）。沿用金額區同一套 `.needfill`，
+                  **只紅框、不加字**——Rozi 明講欄位維持橫槓。 */}
               <AmountInput id={`ei-${id}`} value={f.indiv[id] ?? ''}
                 decimals={c.fillsAreForeign ? decimalsFor(cur) : 0}
-                className={`${c.fillsAreForeign ? 'forcur' : ''}${auto ? ' auto' : ''}`.trim()}
+                className={`${c.fillsAreForeign ? 'forcur' : ''}${auto ? ' auto' : ''}${
+                  c.noAutoReason === 'noForeignTotal' && !(f.indiv[id]?.trim()) ? ' needfill' : ''}`.trim()}
                 placeholder={c.noAutoReason ? '—' : (auto ? formatAmount(String(c.valInCur[id]), 0) : '0')}
                 onChange={v => onAmt(id, v)} />
             </label>
@@ -817,7 +834,8 @@ function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
       {/* 實作-U-1-b　外幣總額空白時**所有人都算不出台幣**（§2.2 的分母缺了）。
           只在這個狀態顯示，其他狀態不得出現。 */}
       {c.noAutoReason === 'noForeignTotal' && (
-        <div className="note warn"><Icon name="warn" size={14} /> {MSG_NO_FOR_TOTAL}</div>
+        <div className="note warn"><Icon name="warn" size={14} />{' '}
+          {msgNoForTotal(c.blanks.map(id => members.find(x => x.id === id)?.name ?? ''), cur)}</div>
       )}
 
       <CmpRow c={c} fs={fs} fillCur={fillCur} />

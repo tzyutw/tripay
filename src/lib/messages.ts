@@ -37,3 +37,39 @@ export const MSG_ARCHIVED_TAP = '這趟封存了。要改的話，先按下面�
    否則只是把錯的數字換成看不懂的狀態。
    逐字取自 `規格_金額未定案與幣別.md` §2.3。 */
 export const MSG_NO_FOR_TOTAL = '還沒填外幣總額，先補上才算得出各自要付多少';
+
+/* ══════════════════════════════════════════════════════════════
+   實作-U-7　外幣總額空白時的四層提示。
+   Rozi：「這一筆金額不是一定不對，是他現在資訊不夠完整……
+   他還不知道說這一筆帳不清楚，是不清楚在另外兩個人到底是零，
+   還是他們有要負擔的金額。所以我覺得是在我們的標示不夠清楚。」
+   ⚠️ 語氣不能寫成「錯了」——是資訊不完整，不是錯。
+   ⚠️ 一律用「他們」，不要猜性別。
+   ══════════════════════════════════════════════════════════════ */
+
+/** 名字們：1 人直接寫、2 人用「和」、3 人以上不寫名字改寫人數 */
+function nameList(names: string[]): string {
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} 和 ${names[1]}`;
+  return `還有 ${names.length} 人`;
+}
+
+/** U-7-a　金額區的灰字：這個狀態下要說「卡在哪」，不是說「填一邊就好」 */
+export function msgNeedForTotal(cur: string): string {
+  return `還需要 ${cur} 總額`;
+}
+
+/** U-7-b　各自金額區下方的警示：**點名是誰沒填**，並給出兩條解除路徑 */
+export function msgNoForTotal(names: string[], cur: string): string {
+  const they = names.length === 1 ? '他' : '他們';
+  /* 名字後面留一個空格（與其他文案的「{名字} 的金額」一致）；
+     「還有 N 人」是量詞不是名字，後面**不留空格**——指令原文就是「還有 {N} 人沒填」。 */
+  const head = names.length >= 3 ? `還有 ${names.length} 人沒填` : `${nameList(names)} 還沒填`;
+  return `${head}，不知道是 0 還是有金額。補上 ${cur} 總額，或幫${they}填 0。`;
+}
+
+/** U-7-c　存檔後的第五種 toast。**排在人數分支之前**——那幾句寫「先照均分算」，
+ *  在這個狀態下是假的（根本沒有均分，是算不出來）。 */
+export function msgSavedNoForTotal(names: string[], cur: string): string {
+  return `已存。還沒填 ${cur} 總額，${nameList(names)} 的金額算不出來，補上總額就會算進去。`;
+}

@@ -372,6 +372,7 @@ input:focus { border-color:var(--w) }
 .amtstack { display:flex;flex-direction:column;gap:10px }
 .amtline { display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln); border-radius:var(--r-base);padding:12px 14px;cursor:text }
 .amtline.needfill { border-color:var(--out);background:#FBF0EC }
+.amtrow input.needfill { border-color:var(--out);background:#FBF0EC }
 .amtline .cur { width:58px;flex:none;font-size:var(--fs-body);font-weight:600;color:var(--md) }
 .amtline input { flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;line-height:var(--h-inline); font-size:var(--fs-input);font-weight:500;font-variant-numeric:tabular-nums;text-align:right }
 .amtline input:focus { border:0;outline:none }

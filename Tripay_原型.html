@@ -339,6 +339,9 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .amtline{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln);
   border-radius:var(--r-base);padding:12px 14px;cursor:text}
 .ui .amtline.needfill{border-color:var(--out);background:#FBF0EC}
+/* 實作-U-7-d　各自金額那幾格也用同一套（只有沒填的那幾格）。
+   **只紅框、不加字**——欄位維持橫槓。 */
+.ui .amtrow input.needfill{border-color:var(--out);background:#FBF0EC}
 .ui .amtline .cur{width:58px;flex:none;font-size:var(--fs-body);font-weight:600;color:var(--md)}
 .ui .amtline input{flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;line-height:var(--h-inline);
   font-size:var(--fs-input);font-weight:500;font-variant-numeric:tabular-nums;text-align:right}

@@ -73,9 +73,12 @@ const num = s => Number(String(s).replace(/[^\d.-]/g, ''));
   ok(expId !== null, '找不到那一筆的 id，下一條等於沒驗');
   await go(`screen=s04&fill=noforetotal&exp=${expId}`);
   const hintOn = await p.evaluate(() => document.body.textContent || '');
-  console.log(`   編輯那一筆 → 有「還沒填外幣總額…」 ${hintOn.includes('還沒填外幣總額，先補上才算得出各自要付多少')}`);
-  ok(hintOn.includes('還沒填外幣總額，先補上才算得出各自要付多少'),
-    '算不出來卻沒告訴使用者要補哪一格');
+  /* ⚠️ U-7-b 把這句改成**點名是誰沒填**的版本（Rozi：「標示不夠清楚」），
+     所以這裡驗的是「有沒有講出卡在哪＋怎麼解除」，不是那句舊字面。 */
+  const hintHas = ['總額', '補上', '填 0'].every(x => hintOn.includes(x));
+  console.log(`   編輯那一筆 → 講得出要補什麼 ${hintHas}`);
+  ok(hintHas, '算不出來卻沒告訴使用者要補哪一格');
+  ok(!hintOn.includes('先照均分算'), '這個狀態不該說「先照均分算」——根本沒有均分');
   await go('screen=s04&fill=for');
   const hintOff = await p.evaluate(() => document.body.textContent || '');
   ok(!hintOff.includes('還沒填外幣總額'), '外幣總額有值時不該出現那句（反向）');
@@ -267,6 +270,87 @@ const num = s => Number(String(s).replace(/[^\d.-]/g, ''));
     console.log(`   hub 三段：差額加總 ${z}`);
     ok(z === 0, `hub 模式差額加總應為 0，實際 ${z}`);
   }
+
+  /* ── U-7　四層提示 ───────────────────────────────────────────────────── */
+  console.log('');
+  const expIdOf = async q => { await go(q); return p.evaluate(() => {
+    const fx = window.__HARNESS_FIXTURE__;
+    const e = (fx.expenses || []).find(x => x.expense_type === 'individual'
+      && x.split_fill_currency === 'FOR' && x.foreign_amount == null);
+    return e ? e.id : null; }); };
+
+  for (const [n, want] of [[1, null], [2, '和'], [3, '還有 3 人']]) {
+    const id = await expIdOf(`screen=s03&blanks=${n}`);
+    ok(id !== null, `?blanks=${n} 沒有造出那一筆，這條等於沒驗`);
+    await go(`screen=s04&blanks=${n}&exp=${id}`);
+    const r = await p.evaluate(() => ({
+      note: (document.querySelector('.lblnote') || {}).textContent || '',
+      warn: [...document.querySelectorAll('.note.warn')].map(x => x.textContent.trim()).join(' | '),
+      needfill: [...document.querySelectorAll('.amtrow input')].map(x => ({
+        v: x.value, red: x.classList.contains('needfill') })),
+      all: (document.body.textContent || '') }));
+    console.log(`   blanks=${n}：灰字「${r.note}」｜警示「${r.warn.slice(0, 60)}」｜` +
+                `紅框 ${r.needfill.filter(x => x.red).length}/${r.needfill.length}`);
+    /* 21／22　灰字依情境切換 */
+    ok(!r.note.includes('填一邊就好'), `blanks=${n}：灰字還在說「填一邊就好」——那是誤導`);
+    ok(r.note.includes('總額'), `blanks=${n}：灰字沒說卡在哪：「${r.note}」`);
+    /* 23／24　警示點名 */
+    ok(r.warn.includes('補上') && r.warn.includes('填 0'), '警示沒給解除路徑');
+    if (want) ok(r.warn.includes(want), `blanks=${n} 的文案不對：${r.warn}`);
+    if (n === 3) {
+      const fxNames = await p.evaluate(() => (window.__HARNESS_FIXTURE__.members || []).map(m => m.name));
+      for (const nm of fxNames)
+        ok(!r.warn.includes(nm), `3 人以上不該寫名字，卻出現「${nm}」`);
+    }
+    /* 25　不得寫成「錯了」 */
+    for (const bad of ['錯', '無效', '請修正'])
+      ok(!r.warn.includes(bad), `警示不該出現「${bad}」——是資訊不完整，不是錯`);
+    /* 26　同一張表單不得同時出現兩句 */
+    ok(!(r.all.includes('填一邊就好') && r.all.includes('還需要')),
+      '同一張表單同時出現「填一邊就好」與「還需要…總額」');
+    /* 31／32　只有沒填的那幾格加紅框 */
+    const empty = r.needfill.filter(x => !x.v), filled = r.needfill.filter(x => x.v);
+    ok(empty.length === n, `沒填的格子應有 ${n} 個，實際 ${empty.length}`);
+    ok(empty.every(x => x.red), `沒填的格子沒有全部加紅框`);
+    ok(filled.every(x => !x.red), `已填的格子被誤標紅框`);
+    ok(!r.all.includes('尚未填寫') && !r.all.includes('未填寫'), '欄位加了字（應該只有紅框）');
+  }
+
+  /* 22／33　反向：外幣總額有值時一切照舊 */
+  const idFor = await expIdOf('screen=s03&fill=for');
+  await go(`screen=s04&fill=for&exp=${idFor}`);
+  const okState = await p.evaluate(() => ({
+    note: (document.querySelector('.lblnote') || {}).textContent || '',
+    red: document.querySelectorAll('.needfill').length,
+    all: (document.body.textContent || '') }));
+  console.log(`   外幣總額有值：灰字「${okState.note}」｜紅框 ${okState.red}`);
+  ok(okState.note === '填一邊就好，另一邊自動換算', `反向：灰字應維持原句，實際「${okState.note}」`);
+  ok(okState.red === 0, `反向：外幣總額有值時不該有紅框，實際 ${okState.red}`);
+  ok(!okState.all.includes('還需要'), '反向：不該出現「還需要…總額」');
+
+  /* 27　320px 不溢出 */
+  await p.setViewport({ width: 320, height: 844, isMobile: true, hasTouch: true });
+  const id320 = await expIdOf('screen=s03&blanks=2');
+  await go(`screen=s04&blanks=2&exp=${id320}`);
+  const narrow = await p.evaluate(() => {
+    const el = document.querySelector('.lblnote'), row = document.querySelector('.lblrow');
+    return { over: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+             fits: el && row ? el.getBoundingClientRect().right <= row.getBoundingClientRect().right + 1 : null,
+             txt: el ? el.textContent : null }; });
+  console.log(`   @320 灰字「${narrow.txt}」｜塞得下 ${narrow.fits}｜整頁橫向捲動 ${narrow.over}`);
+  ok(narrow.fits === true, '@320 灰字溢出容器');
+  ok(!narrow.over, '@320 整頁橫向捲動');
+  await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+
+  /* 34　反向：規格 §4「一律允許存檔」不得被弄壞 */
+  const id34 = await expIdOf('screen=s03&blanks=2');
+  await go(`screen=s04&blanks=2&exp=${id34}`);
+  const saveable = await p.evaluate(() => {
+    const b2 = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === '記下來');
+    return b2 ? { disabled: b2.disabled, exists: true } : { exists: false }; });
+  console.log(`   「記下來」存在 ${saveable.exists}｜被 disable ${saveable.disabled}`);
+  ok(saveable.exists, '找不到「記下來」');
+  ok(saveable.disabled === false, '有人沒填就把儲存鍵 disable 了——規格 §4 明訂不得擋');
 
   console.log(`\n   pageerror：${errs.length ? errs.join(' | ') : '無'}`);
   ok(errs.length === 0, `有 ${errs.length} 個 pageerror`);

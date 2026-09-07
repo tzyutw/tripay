@@ -75,6 +75,8 @@ export const settleHub = Q.get('settle') === 'hub';
 /** `?fill=noforetotal`：各自付各的、填的是外幣、**外幣總額空白**、還有人沒填。
  *  這就是 production「藥局」那一筆的形狀——改之前它會把外幣數字當成台幣。 */
 export const fillNoForTotal = Q.get('fill') === 'noforetotal';
+/** `?blanks=1|2|3`：外幣總額空白時**幾個人沒填**——三種文案各要有假資料走過 */
+export const blanksN = Number(Q.get('blanks') || 0);
 
 /** 該幣別「好記的那個方向」的代表值 → 正確的兩欄組合 */
 function fullRateColumns(code: string) {
@@ -183,10 +185,23 @@ const noForTotalExpense = mk({
   payer_member_id: M[1],
 });
 
+/** `?blanks=N`：**恰好 N 個人沒填**（其餘都填了），驗 1／2／3 人三種文案。
+ *  外幣總額一樣空白——那才是這個狀態。 */
+const blanksExpense = (n: number) => {
+  const filled: Record<string, number> = {};
+  for (let i = 0; i < M.length - n; i++) filled[M[i]] = 10000 * (i + 1);
+  return mk({
+    title: `藥局（${n} 人沒填）`, category_emoji: '💄', expense_date: '2026-03-17',
+    twd_amount: 1140, foreign_amount: null, expense_type: 'individual',
+    split_fill_currency: 'FOR', indivFor: filled, payer_member_id: M[0],
+  });
+};
+
 /* 兩個新模式各自**只掛那一筆**——總額與每人分擔就只反映它，
    量得出「這一筆有沒有被結算跳過／有沒有整筆算到付款人頭上」。 */
 export const expenses: ExpenseWithSplits[] =
   fillFor ? [fillForExpense] : forOnly ? [forOnlyExpense]
+  : blanksN > 0 ? [blanksExpense(blanksN)]
   : fillNoForTotal ? [...baseExpenses, noForTotalExpense] : baseExpenses;
 
 /** 這一趟被 confirmed 的那一次結算的 id */
