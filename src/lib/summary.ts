@@ -9,7 +9,7 @@
  * 兩者本來就分開：這裡要畫出「還沒填完」的樣子，引擎只認填完的。
  */
 import type { Trip, TripMember, ExpenseWithSplits } from '@/types/database';
-import type { SharedExpense, SharedCalc, SharedSummary, SharedTrip } from '@/components/shared/types';
+import type { SharedExpense, SharedCalc, SharedSummary, SharedTrip, SelfPaidBucket } from '@/components/shared/types';
 
 /** 這趟的現金匯率：1 外幣 = rate 台幣。兩欄任一沒填就是 null（換算不了） */
 export function tripRate(t: Pick<Trip, 'cash_rate_twd' | 'cash_rate_foreign'>): number | null {
@@ -172,12 +172,37 @@ export function toSharedExpense(e: ExpenseWithSplits, members: TripMember[]): Sh
   };
 }
 
+/**
+ * 實作-X-0　一筆消費算不算「自己幫自己付的」。
+ *
+ * 兩個條件任一成立：
+ *   (a) `expense_type === 'personal'`（畫面上標「自己的」那種）
+ *   (b) 實際參與者剛好一個人，而且那個人就是付款人
+ *
+ * ⚠️ **(a) 不可以省**：`personal` 那種筆根本沒有參與列（`parts` 是空陣列），
+ *    只用 (b) 會整批漏掉（原型的「阿明的計程車」就是）。
+ * ⚠️ **不可以用 `individual_member_id` 代替 (b)**：正式帳裡有筆
+ *    `expense_type='shared'`、`individual_member_id` 是 null、
+ *    但使用者把其他人全部取消勾選只留自己——要看**實際的參與列**。
+ * ⚠️ 反向：「別人付、只算某一個人」（參與一人但**不是**付款人）會產生欠款，
+ *    絕對不能收起來。
+ */
+export function isSelfPaid(row: ExpenseWithSplits, se: SharedExpense): boolean {
+  if (row.expense_type === 'personal') return true;
+  const parts = se.parts ?? [];
+  return parts.length === 1 && parts[0] === row.payer_member_id;
+}
+
 /** 規格 §5.1 §5.2 §5.6。移植自原型 tripSummary()。 */
 export function tripSummary(
   trip: Trip & { trip_members: TripMember[] },
   expenses: ExpenseWithSplits[],
   displayStatus: string,
+  /* 實作-X　「只看共同的帳」。**篩選放在引擎裡**，不在畫面層各算一套——
+     總行程頁、`{名字} 的帳` 與統計卡三處都吃這一份結果，才不會對不起來。 */
+  opts: { onlyShared?: boolean } = {},
 ): SharedSummary & { unsettledList: { e: SharedExpense; c: ExpenseCalc }[] } {
+  const onlyShared = Boolean(opts.onlyShared);
   const members = [...trip.trip_members].sort((a, b) => a.sort_order - b.sort_order);
   const readonly = displayStatus === 'settled' || displayStatus === 'archived';   // §5.6
 
@@ -199,11 +224,31 @@ export function tripSummary(
   const calcCache = new Map<string, ExpenseCalc>();
   const unsettledList: { e: SharedExpense; c: ExpenseCalc }[] = [];
   const list: SharedExpense[] = [];
+  const self: SelfPaidBucket = {
+    list: [], total: 0, pending: 0, forRaw: 0, forBackTwd: 0, hasRaw: false,
+  };
 
   for (const row of expenses) {
     const c = calc(row, trip, members);
     calcCache.set(row.id, c);
     const se = toSharedExpense(row, members);
+
+    /* §5.2 同筆只算一次。**放在篩選之前**——「有 N 筆還沒算清楚」是
+       「你的資料還沒填完」，跟現在想看哪一批帳無關；讓它跟著開關變，
+       等於一個開關可以把警告藏起來。 */
+    if (c.unsettled) unsettledList.push({ e: se, c });
+
+    if (onlyShared && isSelfPaid(row, se)) {
+      self.list.push(se);
+      /* 口徑與下面的 `total` 一模一樣，恆等式才會成立 */
+      if (!c.twdPending && !row.is_sponsor) {
+        self.total += c.twdTotal;
+        if (c.forTotalEff != null && !c.forTotalAuto) { self.forRaw += c.forTotalEff; self.hasRaw = true; }
+        else self.forBackTwd += c.twdTotal;
+      } else if (c.twdPending) self.pending += 1;
+      continue;
+    }
+
     list.push(se);
 
     /* 總花費排除贊助（負額），否則把總支出灌低；當場就清了仍計入（確實花了） */
@@ -217,11 +262,10 @@ export function tripSummary(
       if (s != null) per[id] = (per[id] ?? 0) + s;
       if (c.twdPending || c.estimated[id]) approx[id] = true;     // §5.1 (a)(b)
     }
-    if (c.unsettled) unsettledList.push({ e: se, c });            // §5.2 同筆只算一次
   }
 
   return {
-    t, list, readonly, total, per, approx, unsettledList,
+    t, list, readonly, total, per, approx, unsettledList, onlyShared, self,
     forTotalRaw, forTotalBackTwd, forTotalHasRaw,
     calcOf: (e: SharedExpense) => calcCache.get(e.id) ?? {
       twdTotal: 0, twdPending: true, estimated: {}, forTotalEff: null, forTotalAuto: false,

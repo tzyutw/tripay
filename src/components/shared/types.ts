@@ -62,6 +62,25 @@ export interface SharedSummary {
   forTotalRaw?: number;
   forTotalBackTwd?: number;
   forTotalHasRaw?: boolean;
+  /* 實作-X　「只看共同的帳」。開關打開時 `list`／`total`／`per` 都**已經**是篩過的，
+     被收起來的那幾筆整包放在 `self` 裡給摘要行用。
+     ⚠️ `unsettledList` 不受影響——那是「你的資料還沒填完」，跟想看哪一批帳無關。 */
+  onlyShared?: boolean;
+  self?: SelfPaidBucket;
+}
+
+/** 被「只看共同的帳」收起來的那幾筆（自己幫自己付的） */
+export interface SelfPaidBucket {
+  list: SharedExpense[];
+  /** 台幣合計。**只加算得出來、且不是贊助的那幾筆**——與 `total` 的口徑一致，
+      否則「總花費(關) − 共同的帳(開) ＝ 摘要行」這條恆等式不會成立 */
+  total: number;
+  /** 收起來的筆裡算不出台幣的有幾筆。它們的金額**不混進** `total` */
+  pending: number;
+  /** 外幣視角用，口徑與 `forTotalRaw`／`forTotalBackTwd` 相同 */
+  forRaw: number;
+  forBackTwd: number;
+  hasRaw: boolean;
 }
 
 /** 一筆轉帳 */

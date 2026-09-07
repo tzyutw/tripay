@@ -15,7 +15,7 @@ const EMOJI = ['🐵', '🐱', '🍋', '🐟'];
 
 function mkMembers(withEmoji: boolean): TripMember[] {
   return NAMES.map((name, i) => ({
-    id: M[i], trip_id: 't1', name, emoji: withEmoji ? EMOJI[i] : '', sort_order: i,
+    id: M[i], trip_id: TRIP_ID, name, emoji: withEmoji ? EMOJI[i] : '', sort_order: i,
     linked_profile_id: null, person_id: null, user_id: null, role: null,
     created_at: '2026-03-01',
   })) as TripMember[];
@@ -78,6 +78,18 @@ export const fillNoForTotal = Q.get('fill') === 'noforetotal';
 /** `?blanks=1|2|3`：外幣總額空白時**幾個人沒填**——三種文案各要有假資料走過 */
 export const blanksN = Number(Q.get('blanks') || 0);
 
+/* 實作-X　`?expenses=allself`：**每一筆都是自己買給自己的**。
+   開關打開後清單會是空的——停止條件 16 要驗那時有沒有一句話說明為什麼空。 */
+export const allSelf = Q.get('expenses') === 'allself';
+/* 實作-X　`?tripid=t2`：換一趟行程。開關的記憶是**以 trip id 為 key**，
+   沒有第二個 id 就驗不出「不同行程各自記」（只驗一趟等於沒驗）。 */
+export const TRIP_ID = Q.get('tripid') || 't1';
+/* 實作-X　`?selfpending=1`：多一筆**自己買給自己、而且金額還沒填**的消費。
+   ⚠️ 沒有這一筆，「未定案入口不受開關影響」那條斷言**永遠是綠的**——
+   base 假資料裡自己買的兩筆都填了金額，把 unsettledList 搬到篩選後面也照樣過關。
+   「查了但沒查到」與「沒有問題」在輸出裡長得一模一樣。 */
+export const selfPending = Q.get('selfpending') === '1';
+
 /** 該幣別「好記的那個方向」的代表值 → 正確的兩欄組合 */
 function fullRateColumns(code: string) {
   const p = TWD_PER_UNIT[code] ?? 1;
@@ -88,7 +100,7 @@ function fullRateColumns(code: string) {
 export const members: TripMember[] = mkMembers(membersHaveEmoji);
 
 export const trip = {
-  id: 't1', owner_id: 'u1', name: '2026 濟州島四寶團', emoji: '✈️',
+  id: TRIP_ID, owner_id: 'u1', name: '2026 濟州島四寶團', emoji: '✈️',
   currency: currencyOverride || 'KRW',
   start_date: '2026-03-14', end_date: '2026-03-18', status: 'active', kind: 'trip',
   share_token: 'tok', owner_member_id: M[0], collab_enabled: false, card_id: null,
@@ -113,7 +125,7 @@ function mk(o: Record<string, unknown>): ExpenseWithSplits {
   /* 各人只填外幣時走這一袋——`calc()` 讀的是 `split_amount_foreign` */
   const indivFor = (o.indivFor as Record<string, number>) ?? {};
   return {
-    id: `e${seq}`, trip_id: 't1', created_by: 'u1', title: '', category_emoji: '➕',
+    id: `e${seq}`, trip_id: TRIP_ID, created_by: 'u1', title: '', category_emoji: '➕',
     expense_date: '2026-03-14', foreign_amount: null, twd_amount: null, exchange_rate: null,
     foreign_pending: false, twd_pending: false, payment_method: 'cash',
     expense_type: 'shared', settled_on_spot: false, is_sponsor: false,
@@ -199,8 +211,24 @@ const blanksExpense = (n: number) => {
 
 /* 兩個新模式各自**只掛那一筆**——總額與每人分擔就只反映它，
    量得出「這一筆有沒有被結算跳過／有沒有整筆算到付款人頭上」。 */
+const allSelfExpenses: ExpenseWithSplits[] = [
+  /* (b) 參與者一人且就是付款人 */
+  mk({ title: '自己的紀念品', category_emoji: '🛍️', expense_date: '2026-03-16',
+       twd_amount: 860, parts: [M[1]], individual_member_id: M[1], payer_member_id: M[1] }),
+  /* (a) personal——這種**沒有參與列**，只用 (b) 判斷會整批漏掉 */
+  mk({ title: '自己的計程車', category_emoji: '🚕', expense_date: '2026-03-17',
+       twd_amount: 300, parts: [], expense_type: 'personal', payer_member_id: M[2] }),
+];
+
+const selfPendingExpense = () => mk({
+  title: '自己買的（還沒填）', category_emoji: '🛍️', expense_date: '2026-03-17',
+  parts: [M[1]], individual_member_id: M[1], payer_member_id: M[1],
+});
+
 export const expenses: ExpenseWithSplits[] =
-  fillFor ? [fillForExpense] : forOnly ? [forOnlyExpense]
+  selfPending ? [...baseExpenses, selfPendingExpense()]
+  : allSelf ? allSelfExpenses
+  : fillFor ? [fillForExpense] : forOnly ? [forOnlyExpense]
   : blanksN > 0 ? [blanksExpense(blanksN)]
   : fillNoForTotal ? [...baseExpenses, noForTotalExpense] : baseExpenses;
 
@@ -215,13 +243,13 @@ export const CONFIRMED_ID = 'stl-confirmed';
 export const settlements = settlementsMany
   ? [
       ...Array.from({ length: 10 }, (_, i) => ({
-        id: `stl-old-${i}`, trip_id: 't1', status: 'superseded',
+        id: `stl-old-${i}`, trip_id: TRIP_ID, status: 'superseded',
         settled_at: `2026-03-${String(19 - i).padStart(2, '0')}`,
       })),
-      { id: CONFIRMED_ID, trip_id: 't1', status: 'confirmed', settled_at: '2026-03-20' },
-      { id: 'stl-draft', trip_id: 't1', status: 'draft', settled_at: null },
+      { id: CONFIRMED_ID, trip_id: TRIP_ID, status: 'confirmed', settled_at: '2026-03-20' },
+      { id: 'stl-draft', trip_id: TRIP_ID, status: 'draft', settled_at: null },
     ]
-  : [{ id: CONFIRMED_ID, trip_id: 't1', status: 'confirmed', settled_at: '2026-03-20' }];
+  : [{ id: CONFIRMED_ID, trip_id: TRIP_ID, status: 'confirmed', settled_at: '2026-03-20' }];
 
 /**
  * confirmed 那一次的轉帳。

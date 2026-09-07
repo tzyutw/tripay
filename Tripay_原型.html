@@ -536,6 +536,23 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .statcard .foot{padding:8px 14px 11px;font-size:var(--fs-sub);color:var(--gr)}
 .ui .curswitch{padding:10px 14px;background:#fff;border-bottom:1px solid var(--ln)}
 .ui .listhd{padding:14px 14px 4px;font-size:var(--fs-sub);font-weight:600;color:var(--gr)}
+/* 實作-X-1　「只看共同的帳」。**一顆真的開關**，不是印著字的貼紙：
+   未開描邊、開了填實——與 .selchip 同一套選取語彙，不另開第二套（打勾框那種）。
+   位置在統計卡與消費清單標頭之間：它同時影響上面的數字與下面的清單，
+   掛在任何一邊都會讓另一邊的變化顯得莫名其妙。 */
+.ui .swrow{display:flex;padding:10px 14px;background:#fff;border-bottom:1px solid var(--ln)}
+.ui .swchip{display:inline-flex;align-items:center;gap:6px;box-sizing:border-box;
+  min-height:var(--h-tap);padding:0 16px;border-radius:999px;
+  border:1.5px solid var(--ln);background:#fff;color:var(--md);
+  font-size:var(--fs-body);font-weight:600;text-align:left}
+.ui .swchip.on{border-color:var(--w);background:var(--w);color:#fff}
+/* 摘要行：開關收起來的那幾筆的去處。點得進去，所以列尾有方向指示的 ›（裸 icon）。 */
+.ui .selfsum{display:flex;align-items:center;justify-content:space-between;width:100%;
+  min-height:var(--h-tap);margin:2px 0 0;padding:11px 14px;background:#fff;
+  border-top:1px solid var(--ln);border-bottom:1px solid var(--ln);
+  font-size:var(--fs-sub);font-weight:600;color:var(--gr);text-align:left}
+.ui .selfsum .money{color:var(--md)}
+.ui .selfsum .pend{font-weight:500;color:var(--gr)}
 .ui .unsettled{display:flex;align-items:center;justify-content:space-between;width:100%;
   margin:0 0 4px;padding:10px 14px;background:#FBF0EC;border-top:1px solid #E8C4B8;
   border-bottom:1px solid #E8C4B8;font-size:var(--fs-body);font-weight:600;color:var(--out);text-align:left}
@@ -2070,6 +2087,7 @@ store.expenses = { t1: demoExpenses(), t2: [], t3: [], t4: [], t5: [] };   // �
 store.s03Trip = 't1';
 store.s03Filter = null;     // {kind:'all'|'member', memberId}
 store.s03StatOpen = false;  // #17-2 統計卡預設收合
+store.s03OnlyShared = false;  // 實作-X-1 「只看共同的帳」預設關（看全部）
 store.s03Tab = 'exp';       // #28-6a 消費／結算兩個分頁
 store.s06StatOpen = false;  // #29-10 分享頁的統計卡，與 S-03 同一套
 store.s03Cur = 'TWD';       // #17-3 幣別切換
@@ -2172,23 +2190,45 @@ function calc(e, t) {
 }
 
 /* ── 行程層級彙總（規格 §5.1 §5.2）── */
-function tripSummary(tid) {
-  const t = tripOf(tid), list = expsOf(tid);
+/* 實作-X-0　一筆算不算「自己幫自己付的」。兩個條件任一成立：
+   (a) `personal`（歷史資料的個人購物，**根本沒有參與列**，只用 (b) 會整批漏掉）
+   (b) 參與者剛好一人，而且那個人就是付款人。
+   ⚠️ 反向：「別人付、只算某一個人」（幫小美買的藥）參與一人但**不是**付款人，
+      那會產生欠款，絕對不能收起來。 */
+function isSelfPaid(e) {
+  if (e.personal) return true;
+  const parts = e.parts || [];
+  return parts.length === 1 && parts[0] === e.payer;
+}
+function tripSummary(tid, opts) {
+  const onlyShared = !!(opts && opts.onlyShared);
+  const t = tripOf(tid), all = expsOf(tid);
   const readonly = statusOf(t) === 'settled' || statusOf(t) === 'archived';   // §5.6
   let total = 0;
   const per = {}, approx = {};
   t.members.forEach(m => { per[m.id] = 0; approx[m.id] = false; });
-  const unsettledList = [];
-  list.forEach(e => {
+  const unsettledList = [], list = [];
+  const self = { list: [], total: 0, pending: 0 };
+  all.forEach(e => {
     const c = calc(e, t);
+    /* §5.2 同筆只算一次。**放在篩選之前**——「有 N 筆還沒算清楚」是
+       「你的資料還沒填完」，跟現在想看哪一批帳無關。 */
+    if (c.unsettled) unsettledList.push({ e, c });
+    if (onlyShared && isSelfPaid(e)) {
+      self.list.push(e);
+      /* 口徑與 total 一致，恆等式才成立：算不出來的只報筆數、不混進金額 */
+      if (!c.twdPending && !e.sponsor) self.total += c.twdTotal;
+      else if (c.twdPending) self.pending += 1;
+      return;
+    }
+    list.push(e);
     if (!c.twdPending && !e.sponsor) total += c.twdTotal;
     (e.parts || []).forEach(id => {
       if (c.shares[id] != null) per[id] += c.shares[id];
       if (c.twdPending || c.estimated[id]) approx[id] = true;     // §5.1 (a)(b)
     });
-    if (c.unsettled) unsettledList.push({ e, c });                 // §5.2 同筆只算一次
   });
-  return { t, list, readonly, total, per, approx, unsettledList };
+  return { t, list, readonly, total, per, approx, unsettledList, onlyShared, self };
 }
 </script>
 
@@ -2284,7 +2324,7 @@ function expenseRow(e, c, S, opts) {
 }
 
 function renderS03() {
-  const S = tripSummary(store.s03Trip), t = S.t, st = statusOf(t);
+  const S = tripSummary(store.s03Trip, { onlyShared: store.s03OnlyShared }), t = S.t, st = statusOf(t);
   const nUn = S.unsettledList.length;
   const anyApprox = t.members.some(m => S.approx[m.id]);
 
@@ -2340,6 +2380,12 @@ function renderS03() {
     ${nGap ? `<p class="hint">有 ${nGap} 筆還沒換算成台幣，上面的總花費不含它們。${
       rateNow ? '' : `<a href="#s02b" class="ratelink">設現金匯率 ${ic('next',13)}</a>`}</p>` : ''}</div>`);
 
+  /* 實作-X-1　「只看共同的帳」。位置在統計卡與清單標頭之間：它同時影響上面的
+     數字與下面的清單，掛在任何一邊都會讓另一邊的變化顯得莫名其妙。
+     一顆真的按鈕，未開描邊、開了填實——與 .selchip 同一套選取語彙。 */
+  h += b('S-03-34', `<div class="swrow"><button class="swchip${store.s03OnlyShared ? ' on' : ''}"
+    aria-pressed="${store.s03OnlyShared}" data-s03only="1">只看共同的帳</button></div>`);
+
   h += `<div class="listhd"><span>消費紀錄 · ${S.list.length} 筆</span></div>`;
   if (nUn > 0 && !S.readonly)
     h += b('S-03-29', `<button class="unsettled" data-openfilter="all"><span>${ic('warn',16)} 有 ${nUn} 筆還沒算清楚</span>${ic('next',16)}</button>`);
@@ -2352,10 +2398,20 @@ function renderS03() {
         <rect class="p2" x="26" y="18" width="30" height="22" rx="2" fill="#fff" stroke="#1276C4" stroke-width="1.6"/>
         <path class="p2" d="M32 25h18M32 30h12" stroke="#7CBEEC" stroke-width="1.6" stroke-linecap="round"/>
       </svg>
-      <p style="margin-top:10px">第一筆從哪裡開始？</p><p>早餐、計程車、門票，都可以記</p></div>`);
+      ${store.s03OnlyShared && S.self.list.length
+        ? '<p style="margin-top:10px">這趟還沒有共同的帳。</p><p>記的每一筆都是自己買給自己的</p>'
+        : '<p style="margin-top:10px">第一筆從哪裡開始？</p><p>早餐、計程車、門票，都可以記</p>'}</div>`);
   } else {
     h += expenseGroups(S, { headId: 'S-03-15', rowId: 'S-03-16' });
   }
+  /* 實作-X-1　摘要行：被收起來的那幾筆的去處。
+     錢不會憑空消失——總花費(關) − 共同的帳(開) 就等於這一行的金額。
+     算不出台幣的只報筆數，不把金額混進來。 */
+  if (store.s03OnlyShared && S.self.list.length)
+    h += b('S-03-35', `<button class="selfsum" data-openself="1"><span>另有 ${
+      S.self.list.length} 筆自己買的 · <span class="money">${money(S.self.total)}</span>${
+      S.self.pending ? `<span class="pend">（另有 ${S.self.pending} 筆還沒算清楚）</span>` : ''
+    }</span>${ic('next',16)}</button>`);
 
   // #28-6b 底部只留一顆主鈕，且依狀態變。已結算態沒有主鈕——那時的主要動作是
   // 「逐筆標記付清」，那在結算分頁裡做，不在這裡。
@@ -2414,7 +2470,9 @@ function syncSettlePane() {
 function statCard(S, o) {
   const t = S.t;
   const showApprox = t.members.some(m => S.approx[m.id]) && !S.readonly;
-  const tot = `<button class="tot" id="${o.totId}"><span>總花費</span>
+  /* 實作-X-1　開關打開之後這個數字不再是「這趟花了多少」，
+     標題還寫「總花費」的話，那個數字就是在說謊。 */
+  const tot = `<button class="tot" id="${o.totId}"><span>${S.onlyShared ? '共同的帳' : '總花費'}</span>
       <span class="totright">${showApprox ? '<i class="approx">約</i>' : ''}<b class="money">${money(S.total)}</b>
       ${ic(o.open ? 'up' : 'down', 16)}</span></button>`;
   const per = `<div class="perlist">${t.members.map(m => {
@@ -2947,6 +3005,8 @@ Object.assign(INDEX, {
     ['S-03-31','⋯ 選單觸發鈕','op','<b>新（#28-6b）</b>：hero 右上唯一的一顆。原本那排四個 icon 混了三種層級——每天要用的只有記帳、複製行程產出的是新行程屬於首頁、設定是 App 層級的，這是違和感的來源'],
     ['S-03-32','⋯ 選單','op','<b>新（#28-6b）</b>：沿用既有的 <code>.sheet</code> 底部彈層，不新造第三種。內容依狀態變——準備／旅途中 4 項、已結算 5 項（多「封存行程」）、已封存 3 項（沒有「編輯行程」）'],
     ['S-03-33','消費／結算分段控制','op','<b>新（#28-6a）</b>：兩格，切換<b>檢視</b>不是動作。「結算」分頁的內容就是 S-05 整頁，<b>S-05 的編號、內容與行為一律未動</b>，只改了從哪裡進去'],
+    ['S-03-34','「只看共同的帳」開關','op','<b>新（實作-X，Rozi 2026-09-07）</b>：把自己買給自己的那幾筆收起來——它們對結算完全沒有影響（她的濟州島 132 筆裡有 41 筆是）。判斷：<code>personal</code>，或參與者剛好一人且就是付款人。<b>「別人付、只算某一個人」不算</b>，那會產生欠款。位置在統計卡與清單標頭之間：它同時影響上面的數字與下面的清單。開著時統計卡標題改成「共同的帳」——不改的話那個數字就是在說謊。預設關，按過之後記住這一趟的選擇'],
+    ['S-03-35','被收起來那幾筆的摘要行','op','<b>新（實作-X）</b>：<code>另有 N 筆自己買的 · $金額</code>，點得進去看那幾筆。金額只含<b>算得出台幣</b>的，算不出來的接一句「（另有 M 筆還沒算清楚）」——混進去的話「總花費(關) − 共同的帳(開) ＝ 這一行」就不成立了。<b>「有 N 筆還沒算清楚」的 N 不受開關影響</b>：那是資料還沒填完，跟想看哪一批帳無關'],
   ],
   s03d: [
     ['S-03d-1','標題','op','<b>新</b>：從入口進＝「還沒算清楚 · N 筆」；從成員進＝「影響 {名字} 的 · N 筆」'],
@@ -3073,6 +3133,7 @@ document.addEventListener('click', ev => {
     tr.rateTwd = '1'; tr.rateFor = '45';
     render(); return; }
   if (t.closest('#s03stat')) { store.s03StatOpen = !store.s03StatOpen; renderS03(); return; }
+  if (t.closest('[data-s03only]')) { store.s03OnlyShared = !store.s03OnlyShared; renderS03(); return; }
   const tb = hit('data-s03tab');
   if (tb) {
     store.s03Tab = tb.dataset.s03tab;

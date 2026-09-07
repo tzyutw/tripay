@@ -142,6 +142,23 @@ export default function ExpenseListPage() {
   /* 🔴 實作-U-2　點成員金額列 → **這個人的帳**（三段），不是「還沒算清楚」的篩選。
      兩個版本從此不同頁，不再共用同一段渲染。 */
   const memberView = sp.get('member');
+  /* 🔴 實作-X-1　「只看共同的帳」。自己買給自己的那幾筆對結算完全沒有影響
+     （Rozi 的濟州島 132 筆裡有 41 筆是），清單上三成的列跟「誰要給誰多少」無關。
+     ⚠️ 預設是**關**（看全部）；按過之後記住**這一趟**的選擇，不同行程各自記。
+        存 localStorage 就夠了——不為了這個加資料庫欄位。
+     量測靶用 `?onlyshared=1` 直接以開啟狀態載入（與 `?view=foreign` 同一個做法）：
+     靠腳本去點按鈕再等 render，量到的會是動畫中途的狀態。 */
+  const swKey = `tripay.onlyshared.${tripId}`;
+  const [onlyShared, setOnlyShared] = useState<boolean>(() => {
+    if (new URLSearchParams(window.location.search).get('onlyshared') === '1') return true;
+    try { return localStorage.getItem(swKey) === '1'; } catch { return false; }
+  });
+  const toggleOnlyShared = () => setOnlyShared(v => {
+    try { localStorage.setItem(swKey, v ? '0' : '1'); } catch { /* 隱私模式寫不進去就算了 */ }
+    return !v;
+  });
+  /* 摘要行點進去的那一頁：被收起來的那幾筆 */
+  const selfView = sp.get('self') === '1';
   const formOpen      = newOpen || Boolean(qExpense);
   const editExpenseId = qExpense ?? undefined;
   const setUnsettledView = (v: string | null) => setSp(v ? { unsettled: v } : {}, { replace: true });
@@ -239,8 +256,8 @@ export default function ExpenseListPage() {
   // ── 行程層彙總（規格 §5.1 §5.2）──────────────────────────────────────────────
   const display = trip ? deriveDisplayStatus(trip) : 'active';
   const S = useMemo(
-    () => trip ? tripSummary(trip, expenses, display) : null,
-    [trip, expenses, display],
+    () => trip ? tripSummary(trip, expenses, display, { onlyShared }) : null,
+    [trip, expenses, display, onlyShared],
   );
 
   // ── Loading ───────────────────────────────────────────────────────────────────
@@ -321,6 +338,50 @@ export default function ExpenseListPage() {
         onDelete={() => { setDeleteConfirm(''); navigate(`/trips/${tripId}/delete`); }}
         onClose={back}
       />
+    );
+  }
+
+  /* 🔴 實作-X-1　摘要行。**S-03 與「{名字} 的帳」共用同一個**——
+     同一句文案不准寫兩次（CLAUDE.md：兩處分開寫遲早會走鐘）。
+     金額＝被收起來、而且**算得出台幣**的那幾筆的合計；算不出來的只報筆數，
+     不把它們的金額混進上面那個數字，否則「總花費(關) − 共同的帳(開) ＝ 這一行」
+     這條恆等式就不成立。 */
+  const selfBucket = S.self ?? { list: [], total: 0, pending: 0, forRaw: 0, forBackTwd: 0, hasRaw: false };
+  const selfMoneyOpts = moneyOpts?.sym && moneyOpts.rate && selfBucket.hasRaw
+    ? { ...moneyOpts, raw: selfBucket.forRaw + Math.round(selfBucket.forBackTwd * moneyOpts.rate) }
+    : moneyOpts;
+  const SelfSummaryRow = () => (
+    <button className="selfsum" onClick={() => setSp({ self: '1' }, { replace: true })}>
+      <span>
+        另有 {selfBucket.list.length} 筆自己買的 ·{' '}
+        <span className="money">{money(selfBucket.total, selfMoneyOpts)}</span>
+        {selfBucket.pending > 0 &&
+          <span className="pend">（另有 {selfBucket.pending} 筆還沒算清楚）</span>}
+      </span>
+      <Icon name="next" size={16} />
+    </button>
+  );
+
+  /* ── 🔴 實作-X-1　摘要行點進去：被收起來的那幾筆 ─────────────────────── */
+  if (selfView) {
+    const rows = selfBucket.list;
+    return (
+      <div className="min-h-screen bg-bg flex flex-col">
+        <div className="bar">
+          <button className="ic2" aria-label="返回" onClick={() => setSp({}, { replace: true })}>
+            <Icon name="back" size={20} />
+          </button>
+          <span className="ttl">自己買的</span>
+          <span style={{ width: 40 }} />
+        </div>
+        <div className="sec">自己買的 · {rows.length} 筆</div>
+        {rows.length
+          ? <ExpenseGroups S={{ ...S, list: rows }} readonly={isArchived} money={moneyOpts}
+              onEdit={openEdit}
+              onReadonlyTap={isArchived ? () => showToast(MSG_ARCHIVED_TAP) : undefined} />
+          : <div className="empty"><p>沒有自己買給自己的消費。</p></div>}
+        <div style={{ height: 18 }} />
+      </div>
     );
   }
 
@@ -405,6 +466,9 @@ export default function ExpenseListPage() {
         })}
         {!SEGS.some(x => rowsOf(x.key).length) && (
           <div className="empty"><p>還沒有算到他頭上的消費。</p></div>)}
+        {/* 實作-X-2　開關開著的時候這一頁也少了幾筆，不說一聲的話
+            三段加總跟剛剛點的那個數字就對不起來 */}
+        {onlyShared && selfBucket.list.length > 0 && <SelfSummaryRow />}
         <div style={{ height: 18 }} />
       </div>
     );
@@ -513,6 +577,17 @@ export default function ExpenseListPage() {
             )}
           </div>
 
+          {/* 🔴 實作-X-1　「只看共同的帳」。**位置在統計卡與清單標頭之間**：
+              它同時影響上面的數字與下面的清單，掛在任何一邊都會讓另一邊的變化
+              顯得莫名其妙。一顆真的按鈕，未開描邊、開了填實——與 .selchip
+              同一套選取語彙，不另開打勾框那種第二套。 */}
+          <div className="swrow">
+            <button className={`swchip${onlyShared ? ' on' : ''}`}
+              aria-pressed={onlyShared} onClick={toggleOnlyShared}>
+              只看共同的帳
+            </button>
+          </div>
+
           <div className="listhd"><span>消費紀錄 · {S.list.length} 筆</span></div>
 
           {/* S-03-29　未定案入口。N＝0 整條不顯示 */}
@@ -526,10 +601,19 @@ export default function ExpenseListPage() {
           {expLoading && <div className="spin"><i /></div>}
 
           {!expLoading && !S.list.length ? (
-            <div className="empty">
-              <p style={{ marginTop: 10 }}>第一筆從哪裡開始？</p>
-              <p>早餐、計程車、門票，都可以記</p>
-            </div>
+            /* 實作-X-1　開關把清單篩空時要說一句為什麼，不得是一片空白——
+               不然看起來像資料不見了。 */
+            onlyShared && selfBucket.list.length > 0 ? (
+              <div className="empty">
+                <p style={{ marginTop: 10 }}>這趟還沒有共同的帳。</p>
+                <p>記的每一筆都是自己買給自己的</p>
+              </div>
+            ) : (
+              <div className="empty">
+                <p style={{ marginTop: 10 }}>第一筆從哪裡開始？</p>
+                <p>早餐、計程車、門票，都可以記</p>
+              </div>
+            )
           ) : (
             /* ⚠️ `S.readonly`（summary.ts）同時在管 §5.6 的「不顯示約／不顯示未定案入口」，
                那對已結算是**成立的**，一個字都不要動。
@@ -538,6 +622,10 @@ export default function ExpenseListPage() {
               onEdit={openEdit}
               onReadonlyTap={isArchived ? () => showToast(MSG_ARCHIVED_TAP) : undefined} />
           )}
+
+          {/* 實作-X-1　被收起來的那幾筆的去處。錢不會憑空消失：
+              總花費(關) − 共同的帳(開) 就等於這一行的金額。 */}
+          {onlyShared && selfBucket.list.length > 0 && <SelfSummaryRow />}
 
           {/* 🔴 實作-S-6　主鈕**貼在畫面下緣**（`.btnrow.sticky`）。
               Rozi：「消費紀錄變多之後就會被排擠到後面」——量到的是

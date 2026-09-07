@@ -14,7 +14,7 @@ import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ToastProvider } from '@/contexts/ToastContext';
 import '@/index.css';
 
-import { trip, expenses, members, settlementItems, allSettlementItems, settlements, CONFIRMED_ID, M } from './fixtures';
+import { trip, expenses, members, settlementItems, allSettlementItems, settlements, CONFIRMED_ID, M, TRIP_ID } from './fixtures';
 
 /* 樁必須在任何畫面模組被 evaluate 之前掛上 window——
    所以它住在獨立的模組裡，並且排在所有畫面 import 之前。 */
@@ -47,6 +47,9 @@ function RouteProbe() {
 /** 同一個元件掛在多條路徑上時要全部註冊——少一條，導過去就是空白畫面 */
 const TRIP_PATHS = ['/trips/:id', '/trips/:id/more', '/trips/:id/edit',
                     '/trips/:id/share', '/trips/:id/copy', '/trips/:id/delete'];
+/* 實作-X　`?tripid=` 換一趟：初始路徑要跟著換，不然 `useParams().id` 還是 t1，
+   「開關的記憶以 trip id 為 key」那一條就驗不到。 */
+const T = `/trips/${TRIP_ID}`;
 
 interface ScreenDef {
   route: string; path?: string; paths?: string[]; el?: React.ReactNode;
@@ -57,22 +60,22 @@ const SCREENS: Record<string, ScreenDef> = {
   s00:  { route: '/login',    el: <LoginPage /> },
   s01:  { route: '/',         el: <TripListPage /> },
   s02:  { route: '/',         el: <TripFormSheet onClose={() => {}} onCreated={() => {}} /> },
-  s02b: { route: '/',         el: <TripFormSheet tripId="t1" onClose={() => {}} onCreated={() => {}} /> },
-  s03:  { route: '/trips/t1', paths: TRIP_PATHS, el: <ExpenseListPage /> },
-  s03d: { route: '/trips/t1', path: '/trips/:id', el: <ExpenseListPage /> },
-  s04:  { route: '/trips/t1', path: '/trips/:id',
-          el: <ExpenseFormSheet tripId="t1" trip={trip as never}
+  s02b: { route: '/',         el: <TripFormSheet tripId={TRIP_ID} onClose={() => {}} onCreated={() => {}} /> },
+  s03:  { route: T, paths: TRIP_PATHS, el: <ExpenseListPage /> },
+  s03d: { route: T, path: '/trips/:id', el: <ExpenseListPage /> },
+  s04:  { route: T, path: '/trips/:id',
+          el: <ExpenseFormSheet tripId={TRIP_ID} trip={trip as never}
                 expenseId={new URLSearchParams(location.search).get('exp') ?? undefined}
                 onClose={() => {}} /> },
   /* S-05 的「先去看一下」與警示層那一列會導回 `/trips/:id`（實作-Q-3），
      所以兩邊的路徑都要註冊——少一條就是導過去一片空白，看起來像功能壞掉。 */
-  s05:  { route: '/trips/t1/settlement',
+  s05:  { route: `${T}/settlement`,
           routes: [{ path: '/trips/:id/settlement', el: <SettlementPage /> },
                    ...TRIP_PATHS.map(pt => ({ path: pt, el: <ExpenseListPage /> }))] },
   s06:  { route: '/share/tok', path: '/share/:token', el: <SharePage /> },
   s07:  { route: '/settings', el: <SettingsPage /> },
   /* 實作-L-4　「⋯」改成獨立頁面之後要能單獨量它 */
-  s03more: { route: '/trips/t1/more', paths: TRIP_PATHS, el: <ExpenseListPage /> },
+  s03more: { route: `${T}/more`, paths: TRIP_PATHS, el: <ExpenseListPage /> },
 };
 
 const Q0 = new URLSearchParams(location.search);

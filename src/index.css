@@ -458,6 +458,12 @@ input:focus { border-color:var(--w) }
 .statcard .foot { padding:8px 14px 11px;font-size:var(--fs-sub);color:var(--gr) }
 .curswitch { padding:10px 14px;background:#fff;border-bottom:1px solid var(--ln) }
 .listhd { padding:14px 14px 4px;font-size:var(--fs-sub);font-weight:600;color:var(--gr) }
+.swrow { display:flex;padding:10px 14px;background:#fff;border-bottom:1px solid var(--ln) }
+.swchip { display:inline-flex;align-items:center;gap:6px;box-sizing:border-box; min-height:var(--h-tap);padding:0 16px;border-radius:999px; border:1.5px solid var(--ln);background:#fff;color:var(--md); font-size:var(--fs-body);font-weight:600;text-align:left }
+.swchip.on { border-color:var(--w);background:var(--w);color:#fff }
+.selfsum { display:flex;align-items:center;justify-content:space-between;width:100%; min-height:var(--h-tap);margin:2px 0 0;padding:11px 14px;background:#fff; border-top:1px solid var(--ln);border-bottom:1px solid var(--ln); font-size:var(--fs-sub);font-weight:600;color:var(--gr);text-align:left }
+.selfsum .money { color:var(--md) }
+.selfsum .pend { font-weight:500;color:var(--gr) }
 .unsettled { display:flex;align-items:center;justify-content:space-between;width:100%; margin:0 0 4px;padding:10px 14px;background:#FBF0EC;border-top:1px solid #E8C4B8; border-bottom:1px solid #E8C4B8;font-size:var(--fs-body);font-weight:600;color:var(--out);text-align:left }
 .exprow { display:flex;align-items:center;gap:9px;width:100%;text-align:left; margin:0 14px 5px;width:calc(100% - 28px);background:#fff;border:1px solid var(--ln); border-radius:var(--r-base);padding:8px 10px }
 .exprow.pend { border-left:2px solid var(--out) }

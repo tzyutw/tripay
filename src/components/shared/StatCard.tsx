@@ -28,7 +28,9 @@ export function StatCardTotal({ S, open, money: mo, onToggleTotal }: StatCardPro
   const showApprox = S.t.members.some(m => S.approx[m.id]) && !S.readonly;
   return (
     <button className="tot" onClick={onToggleTotal}>
-      <span>總花費</span>
+      {/* 🔴 實作-X-1　開關打開之後這個數字**不再是「這趟花了多少」**，
+          標題還寫「總花費」的話，那個數字就是在說謊。 */}
+      <span>{S.onlyShared ? '共同的帳' : '總花費'}</span>
       <span className="totright">
         {showApprox && <i className="approx">約</i>}
         {/* 實作-T-7　外幣視角的總花費：填過外幣的那幾筆用**原值**加總，
