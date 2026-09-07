@@ -521,7 +521,10 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
                 ⚠️ 兩種狀態**共用同一個尺寸**（`EMOJI_BOX`），
                 切換編輯時外框大小不變——變了整列會跳動。 */}
             {inline.editing === 'exp' ? (
-              <span className="avatar tap44" style={EMOJI_BOX}>
+              /* 實作-T-3　擴張區掛在外層（`::after` 不能掛在 `<input>` 上），
+                 點 44×44 範圍內任何一處都把焦點交還給裡面那個框。 */
+              <span className="avatar tap44" style={EMOJI_BOX}
+                onMouseDown={e => { e.preventDefault(); inline.inputRef.current?.focus(); }}>
                 <input ref={inline.inputRef} type="text" maxLength={4} defaultValue=""
                   aria-label="類別 emoji"
                   onBlur={e => inline.commit(e.target.value)}
@@ -531,7 +534,9 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
               /* tap44：28×28 的圓圈不變，可點區用透明 ::after 撐到 44×44 */
               <button type="button" className="avatar tap44" style={EMOJI_BOX}
                 aria-label="類別 emoji" onClick={() => inline.begin('exp')}>
-                {f.emoji}
+                {/* 實作-T-3　`f.emoji` 是空字串時原本是一個**空圓圈**，沒有任何提示，
+                    看不出那裡可以點。放一個淡色的 Feather 圖示（**不要用文字字元**）。 */}
+                {f.emoji || <Icon name="edit" size={14} />}
               </button>
             )}
             <span className="lbl" style={{ width: 46 }}>花費</span>

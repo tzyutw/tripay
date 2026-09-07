@@ -165,8 +165,11 @@ describe('B-5　S-05 已結算：逐筆標記付清', () => {
     await show();
     fireEvent.click(screen.getByText(/查看計算依據/));
 
-    /* 實作-J 之後成員識別自成節點，段數從 67 變 71 */
-    expect((screens as Record<string, { list: string[] }>).s05.list.length).toBe(77);
+    /* 實作-J 之後成員識別自成節點，段數 67→71→77；
+       實作-T-4 把「應分攤」拆成三段（每段一個名稱、一個筆數、一個金額），
+       所以又多了幾段——**這個數字是守「原型有沒有被誰砍掉一段」用的**，
+       不是守「剛好幾段」，改動時跟著原型走。 */
+    expect((screens as Record<string, { list: string[] }>).s05.list.length).toBe(104);
     const got = flat();
     const missing = (screens as Record<string, { list: string[] }>).s05.list
       .filter(t => !got.includes(t.replace(/\s+/g, '')));

@@ -16,6 +16,12 @@ export interface StatCardProps {
   onPickMember?: (memberId: string) => void;
 }
 
+/** 外幣視角的總花費要「原值優先」。`raw` 有值時 `money()` 就原樣顯示、不回推。 */
+function totalOpts(S: SharedSummary, mo?: MoneyOpts): MoneyOpts | undefined {
+  if (!mo?.sym || !mo.rate || !S.forTotalHasRaw) return mo;
+  return { ...mo, raw: (S.forTotalRaw ?? 0) + Math.round((S.forTotalBackTwd ?? 0) * mo.rate) };
+}
+
 export function StatCardTotal({ S, open, money: mo, onToggleTotal }: StatCardProps) {
   /* 「約」看的是**行程狀態**（S.readonly：已結算／已封存就不再標約），
      不是 readonly prop——那個只管「這一頁能不能點」。分享頁照樣要看到「約」。 */
@@ -25,7 +31,9 @@ export function StatCardTotal({ S, open, money: mo, onToggleTotal }: StatCardPro
       <span>總花費</span>
       <span className="totright">
         {showApprox && <i className="approx">約</i>}
-        <b className="money">{money(S.total, mo)}</b>
+        {/* 實作-T-7　外幣視角的總花費：填過外幣的那幾筆用**原值**加總，
+            其餘才用台幣 × 匯率回推。台幣視角（`mo.sym` 未給）完全不受影響。 */}
+        <b className="money">{money(S.total, totalOpts(S, mo))}</b>
         <Icon name={open ? 'up' : 'down'} size={16} />
       </span>
     </button>

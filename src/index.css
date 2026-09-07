@@ -49,12 +49,13 @@
   --md: #4C5B64;   /* 中階文字 */
   --ink:#151C21;   /* 內容色。原型裡是字面量，這裡一併收成變數 */
   --bg: #EDEEE8;   /* .ui 的底色 */
-  /* 實作-S-7　**外幣金額**的字色。台幣是結算依據（主色），外幣只是對帳用的紀錄。
-     不能直接用 --gr：那是說明文字的灰，而且 placeholder 也是它——
-     有值的灰跟 placeholder 一樣的話，分不出「這格是空的」還是「填了東西」。
-     取 --md 這一階：對白底 7.03:1（AA 要 4.5），與 --gr 的 4.51 差 2.52。
+  /* 實作-S-7 ／ T-9　**外幣金額**的字色。台幣是結算依據（主色），外幣只是對帳的紀錄。
+     S-7 先取 --md（對白底 7.03），Rozi 2026-09-07 回報「在手機上顏色還是有點深，
+     跟台幣金額沒辦法馬上分辨」→ 改用 --gr（4.51）。
+     ⚠️ **不能再更淡**：#7E8B92 只有 3.5，低於 WCAG AA，數字會讀不清楚——這是下限。
+     placeholder 是 #9CA3AF（2.54），與 4.51 相差 1.97，填了跟沒填仍分得出來。
      用 var 不用第二個字面值——同一個值兩個名字遲早會走鐘。 */
-  --tx2: var(--md);
+  --tx2: var(--gr);
 }
 
 body {
@@ -75,8 +76,20 @@ input, textarea, select { font-size: var(--fs-input); }
   from { transform: translateX(100%); opacity: 0; }
   to   { transform: translateX(0);    opacity: 1; }
 }
-.animate-slide-in {
-  animation: slideInRight 200ms ease forwards;
+/* 🔴 實作-T-8　`translateX(100%)` 會把文件撐成兩倍寬：那 200ms 之內
+   `documentElement.scrollWidth` 是 780（視窗 390），手機瀏覽器為了塞下會自動
+   縮小顯示，動畫結束才彈回——**那就是 Rozi 看到的「變窄再變寬」的閃爍**。
+
+   ⚠️ **裁切必須發生在「被位移的元素的父層」**：`overflow` 裁的是自己的內容，
+   位移的如果是自己，裁了也沒用（第一版就是這樣寫的，量出來還是 780）。
+   所以動畫掛到子層、`.animate-slide-in` 只當裁切容器。
+   用 `clip` 不用 `hidden`：`hidden` 會建立捲動容器，裡面的
+   `position:sticky`（S-03 的「記一筆」）就黏不住了。
+   ⚠️ 不要把動畫拿掉——那是既有的視覺設計，只是實作方式會撐寬文件。 */
+.animate-slide-in { overflow-x: clip; }
+.animate-slide-in > * { animation: slideInRight 200ms ease forwards; }
+@supports not (overflow-x: clip) {
+  .animate-slide-in { overflow-x: hidden; }
 }
 
 /* ── Bottom Sheet ─────────────────── */
@@ -139,6 +152,13 @@ input, textarea, select { font-size: var(--fs-input); }
   --h-field: 40px;    /* 階 1 · 獨立欄位：行程名、新增成員、新增支付方式、日期、匯率 */
   --h-inline: 28px;   /* 階 2 · 列內嵌入：S-04 的品項與兩個金額欄 */
   --h-tap: 44px;      /* 可點區下限，不是視覺尺寸 */
+
+  /* 實作-T-6　底部主鈕列。收成變數是因為**清單底部的留白要跟著它走**——
+     實作-S 把留白寫死成 74px，這一輪改底部距離時那個數字就對不上了。
+     `--btnrow-pb` 取 30px 與上方返回鈕距頂的 30px 對稱（Rozi 指定）。 */
+  --btnrow-pt: 12px;
+  --btnrow-pb: calc(30px + env(safe-area-inset-bottom));
+  --btnrow-btn: 46px;
 }
 
 /* 不是 <input> 但長得像欄位的控制項（幣別下拉）也要對齊階 1。
@@ -310,6 +330,7 @@ input, textarea, select { font-size: var(--fs-input); }
 .hint { font-size:var(--fs-sub);color:var(--gr);margin:5px 0 0;line-height:1.45 }
 .err { font-size:var(--fs-sub);color:var(--out);margin:5px 0 0 }
 .fld { padding:0 14px 14px }
+.tripform .fld { padding-left:0;padding-right:0 }
 input:where([type=text]),input:where([type=number]),input:where([type=date]) { box-sizing:border-box; background:#fff; border:1px solid var(--ln); border-radius:var(--r-base); padding:0 10px; font-size:var(--fs-input); color:#151C21; outline:none }
 :where(input[type=text],input[type=number],input[type=date]) { width:100%; height:var(--h-field) }
 input:focus { border-color:var(--w) }
@@ -319,8 +340,9 @@ input:focus { border-color:var(--w) }
 .btn.qt { background:#fff;color:var(--md);border:1px solid var(--ln) }
 .btn.dg { background:var(--dg);color:#fff }
 .btn:disabled { opacity:.4;cursor:not-allowed }
-.btnrow { display:flex;gap:8px;padding:12px 14px 16px;background:#EDEEE8;border-top:1px solid var(--ln) }
-.btnrow.sticky { position:sticky;bottom:0;z-index:5; padding-bottom:calc(16px + env(safe-area-inset-bottom)) }
+.btnrow { display:flex;gap:8px;padding:var(--btnrow-pt) 14px var(--btnrow-pb);background:#EDEEE8;border-top:1px solid var(--ln) }
+.btnpad { height:calc(var(--btnrow-pt) + var(--btnrow-pb) + var(--btnrow-btn));flex:none }
+.btnrow.sticky { position:sticky;bottom:0;z-index:5 }
 .lblrow { display:flex;align-items:baseline;justify-content:space-between;gap:8px }
 .lblrow>.lbl { margin-bottom:6px }
 .lblnote { font-size:var(--fs-sub);color:var(--gr);white-space:nowrap;flex:none;margin-bottom:6px }
@@ -349,7 +371,7 @@ input:focus { border-color:var(--w) }
 .amtline { display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln); border-radius:var(--r-base);padding:12px 14px;cursor:text }
 .amtline.needfill { border-color:var(--out);background:#FBF0EC }
 .amtline .cur { width:58px;flex:none;font-size:var(--fs-body);font-weight:600;color:var(--md) }
-.amtline input { flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0; font-size:var(--fs-input);font-weight:500;font-variant-numeric:tabular-nums;text-align:right }
+.amtline input { flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;line-height:var(--h-inline); font-size:var(--fs-input);font-weight:500;font-variant-numeric:tabular-nums;text-align:right }
 .amtline input:focus { border:0;outline:none }
 .amtline input.forcur:not(.auto) { color:var(--tx2) }
 .amtrow input.forcur:not(.auto) { color:var(--tx2) }
@@ -360,7 +382,7 @@ input:focus { border-color:var(--w) }
 .amtrow input.auto { color:#9AA5AB }
 .fieldrow { display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--ln); border-radius:var(--r-base);padding:7px 14px }
 .fieldrow>.lbl { display:block;width:68px;flex:none;margin:0;font-size:var(--fs-body);white-space:nowrap }
-.fieldrow>input { flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;font-size:var(--fs-input) }
+.fieldrow>input { flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;font-size:var(--fs-input); line-height:var(--h-inline) }
 .fieldrow>input:focus { border:0;outline:none }
 .fieldrow.wide>.lbl { width:auto }
 .autotag { font-size:var(--fs-tag);letter-spacing:.06em;color:var(--gr); border:1px solid var(--ln);border-radius:var(--r-base);padding:1px 4px;flex:none }
@@ -465,7 +487,7 @@ input.auto { color:#9AA5AB }
 .fieldrow.datefield { height:var(--h-field);padding:0 14px }
 .fieldrow.datefield>.lbl,.fieldrow.datefield>.v { line-height:22px;margin:0 }
 .fieldrow.datefield>.v { flex:1;min-width:0;font-size:var(--fs-input); font-weight:600;color:#151C21 }
-.fieldrow.datefield>input[type=date] { position:absolute;inset:0;opacity:0;padding:0 }
+.fieldrow.datefield>input[type=date] { position:absolute;inset:0;opacity:0;padding:0; line-height:var(--h-field) }
 .s00wrap { background:linear-gradient(158deg,#0B2233 0%,#0F5E9E 48%,#1276C4 100%); padding:0 26px calc(32px + env(safe-area-inset-bottom)); display:flex;flex-direction:column;align-items:center; min-height:100dvh;box-sizing:border-box }
 .s00pad { min-height:24px }
 .s00brand { display:flex;flex-direction:column;align-items:center;flex:none;align-self:stretch }
@@ -487,6 +509,11 @@ input.auto { color:#9AA5AB }
 .detailhd span:not(:first-child),.detailrow span:not(:first-child) { text-align:right }
 .detailrow { border-bottom:1px solid #F5F6F3 }
 .detailrow:last-child { border-bottom:0 }
+.detailparts { padding:2px 9px 8px;display:flex;flex-direction:column;gap:2px }
+.detailparts>div { display:grid;grid-template-columns:1fr auto auto;gap:8px; align-items:baseline;font-size:var(--fs-sub);color:var(--gr) }
+.detailparts i { font-style:normal;font-size:var(--fs-tag);color:var(--gr) }
+.detailparts b { font-weight:600;color:var(--md);font-size:var(--fs-sub); font-variant-numeric:tabular-nums;min-width:64px;text-align:right }
+[data-settle-row] .detailrow { border-bottom:0 }
 .bar .bk { font-size:var(--fs-body);font-weight:600;color:var(--wi) }
 .bar .ttl { font-size:var(--fs-body);font-weight:600;color:var(--md) }
 .tcard { margin:11px 14px 0;background:#fff;padding:14px;border:1px solid var(--ln);border-radius:var(--r-base); display:block;width:calc(100% - 28px);text-align:left }
@@ -503,6 +530,7 @@ input.auto { color:#9AA5AB }
 .mtag { display:inline-flex;align-items:center;gap:4px;min-width:0;vertical-align:middle }
 .mtag>.trunc { min-width:0 }
 .avatar input { width:100%;height:100%;text-align:center;padding:0;border:0;background:#fff;font-size:var(--fs-input) }
+.avatar.tap44:has(input) { overflow:visible;cursor:text }
 .ratebox { background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden }
 .raterow { display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #F1F2EE }
 .raterow:last-child { border-bottom:0 }
@@ -520,12 +548,6 @@ input.auto { color:#9AA5AB }
 @keyframes dropback{0%{transform:scale(1.03)}60%{transform:scale(.99)}100%{transform:scale(1)}}
 @supports not (height:100dvh){.s00wrap{min-height:100vh}}
 
-
-/* 實作-S-6　清單底部的留白：`.btnrow.sticky` 貼在下緣時會蓋住最後一筆。
-   高度＝按鈕列的高度（12+16 內距 ＋ 44 按鈕 ＝ 72，取 74 留一點餘裕）。
-   用 padding 不用 margin——margin 會被相鄰邊界收合掉。
-   ⚠️ 只在真的有 `.btnrow` 時才渲染這個 spacer（已結算態沒有主鈕）。 */
-.btnpad { height: 74px; flex: none; }
 
 /* 實作-S-5　窄螢幕塞不下就縮短文字。**必須排在產生區塊之後**——
    排前面會被抽取器搬過來的 `.lblnote` base 蓋掉（同特異度，後者生效）。

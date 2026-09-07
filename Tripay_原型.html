@@ -171,11 +171,12 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   --fs-logo:44px;     /* 登入頁字標。這是圖形識別，不屬於文字階梯——唯一的例外 */
   --w:#1276C4;--wi:#0F5E9E;--in:#276E45;--out:#B03A22;--dg:#9B1B14;   /* #25-8 destructive 比提醒深一階；白字對比 7.7:1 */
   --ln:#DFE1DA;--gr:#6A7980;--md:#4C5B64;
-  /* 實作-S-7　**外幣金額**的字色。台幣是結算依據（主色），外幣只是對帳用的紀錄。
-     不能直接用 --gr：那是說明文字的灰，而且 placeholder 也是它——
-     有值的灰跟 placeholder 一樣的話，分不出「這格是空的」還是「填了東西」。
-     取 --md 這一階：對白底 7.03:1（AA 要 4.5），與 --gr 的 4.51 差 2.52。 */
-  --tx2:var(--md);
+  /* 實作-S-7 ／ T-9　**外幣金額**的字色。台幣是結算依據（主色），外幣只是對帳用的紀錄。
+     S-7 先用 --md（7.03），Rozi 2026-09-07 回報「在手機上顏色還是有點深，
+     跟台幣沒辦法馬上分辨」→ 改用 --gr（4.51）。
+     ⚠️ **不能再更淡**：#7E8B92 只有 3.5，低於 WCAG AA，數字會讀不清楚。
+     placeholder 是 #9CA3AF（2.54），與 4.51 相差 1.97——填了跟沒填仍分得出來。 */
+  --tx2:var(--gr);
   /* 實作-P　輸入框高度**只有兩階**。改前是五種（46／41／40／38／28），
      沒有任何一種是刻意決定的——跟字級與圓角當初一樣，各處各自決定出來的。
      階 1 取 40 而不是 44：日期欄已經是 40，而**那一處在 iOS 上塌掉修過三次**
@@ -229,6 +230,10 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .hint{font-size:var(--fs-sub);color:var(--gr);margin:5px 0 0;line-height:1.45}
 .ui .err{font-size:var(--fs-sub);color:var(--out);margin:5px 0 0}
 .ui .fld{padding:0 14px 14px}
+/* 實作-T-5　`.fld` 自己帶 14px 左右內距，放進**已經有內距的捲動區**時會變成
+   雙重內距——同一頁出現 350 與 322 兩種寬度（Rozi 看到的「欄位被改窄」）。
+   在那個容器裡把 `.fld` 的左右內距歸零，全頁對齊 350。 */
+.ui .tripform .fld{padding-left:0;padding-right:0}
 .ui input[type=text],.ui input[type=number],.ui input[type=date]{width:100%;height:var(--h-field);
   box-sizing:border-box;background:#fff;
   border:1px solid var(--ln);border-radius:var(--r-base);padding:0 10px;font-size:var(--fs-input);color:#151C21;outline:none}
@@ -240,11 +245,16 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .btn.qt{background:#fff;color:var(--md);border:1px solid var(--ln)}
 .ui .btn.dg{background:var(--dg);color:#fff}
 .ui .btn:disabled{opacity:.4;cursor:not-allowed}
-.ui .btnrow{display:flex;gap:8px;padding:12px 14px 16px;background:#EDEEE8;border-top:1px solid var(--ln)}
+/* 實作-T-6　底部距離與上方的返回鈕對稱（Rozi：「太貼近底部，可以跟上方
+   返回與設定鍵的 Y 軸一樣嗎」——返回鈕距頂 30px，這裡原本距底只有 16px）。
+   ⚠️ 三個數字收成變數：清單底部的留白要**跟著按鈕列的高度走**，
+   不要在別的地方再寫死一次（實作-S 的 74px 就是寫死的第二個數字）。 */
+.ui{--btnrow-pt:12px;--btnrow-pb:calc(30px + env(safe-area-inset-bottom));--btnrow-btn:46px}
+.ui .btnrow{display:flex;gap:8px;padding:var(--btnrow-pt) 14px var(--btnrow-pb);background:#EDEEE8;border-top:1px solid var(--ln)}
+.ui .btnpad{height:calc(var(--btnrow-pt) + var(--btnrow-pb) + var(--btnrow-btn));flex:none}
 /* 實作-S-6　S-03 的主鈕貼在畫面下緣。底色必須不透明，否則底下的列會透出來。
    iOS 底部安全區要留。**只有 S-03 掛 .sticky**，S-04 彈層底部那一排不動。 */
-.ui .btnrow.sticky{position:sticky;bottom:0;z-index:5;
-  padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+.ui .btnrow.sticky{position:sticky;bottom:0;z-index:5}
 /* 實作-S-5　「金額」標題列：標籤在左、常駐的教學灰字在右。
    320px 下不得換行也不得橫向捲動。 */
 .ui .lblrow{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
@@ -327,7 +337,7 @@ html.anno .b .bdg:hover{background:#0F5E9E}
   border-radius:var(--r-base);padding:12px 14px;cursor:text}
 .ui .amtline.needfill{border-color:var(--out);background:#FBF0EC}
 .ui .amtline .cur{width:58px;flex:none;font-size:var(--fs-body);font-weight:600;color:var(--md)}
-.ui .amtline input{flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;
+.ui .amtline input{flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;line-height:var(--h-inline);
   font-size:var(--fs-input);font-weight:500;font-variant-numeric:tabular-nums;text-align:right}
 .ui .amtline input:focus{border:0;outline:none}
 /* 實作-S-7　外幣欄用次階字色，一眼看得出「哪個金額在結算」。
@@ -351,7 +361,10 @@ html.anno .b .bdg:hover{background:#0F5E9E}
    把下面那一列往上擠，看起來像日期框跑版。加寬到 68 並禁止折行——
    寬度不足時寧可擠壓輸入框，也不要把標籤折斷。各列標籤仍等寬對齊。 */
 .ui .fieldrow>.lbl{display:block;width:68px;flex:none;margin:0;font-size:var(--fs-body);white-space:nowrap}
-.ui .fieldrow>input{flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;font-size:var(--fs-input)}
+.ui .fieldrow>input{flex:1;min-width:0;height:var(--h-inline);box-sizing:border-box;border:0;background:transparent;padding:0;font-size:var(--fs-input);
+  /* 實作-T-2　行盒要跟框一樣高。桌機上幾何是置中的，但 height 28 對 line-height 24——
+     iOS 會用自己的行盒去擺游標，於是游標看起來偏下（Rozi：「游標會有點跑版」）。 */
+  line-height:var(--h-inline)}
 .ui .fieldrow>input:focus{border:0;outline:none}
 .ui .fieldrow.wide>.lbl{width:auto}
 .ui .autotag{font-size:var(--fs-tag);letter-spacing:.06em;color:var(--gr);
@@ -554,7 +567,10 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .fieldrow.datefield>.lbl,.ui .fieldrow.datefield>.v{line-height:22px;margin:0}
 .ui .fieldrow.datefield>.v{flex:1;min-width:0;font-size:var(--fs-input);
   font-weight:600;color:#151C21}
-.ui .fieldrow.datefield>input[type=date]{position:absolute;inset:0;opacity:0;padding:0}
+.ui .fieldrow.datefield>input[type=date]{position:absolute;inset:0;opacity:0;padding:0;
+  /* 行盒跟著自己的框走（這一列是 --h-field 不是 --h-inline）——
+     不一致的話 iOS 會用自己的行盒擺游標（實作-T-2 同一個毛病） */
+  line-height:var(--h-field)}
 /* #32-5 原本容器寫死 min-height:520px，在 844px 的手機上根本沒撐滿——
    內容只能待在上半部，這才是「整體偏上」的根因，不是對齊沒設好。
    改成跟著可用高度走（100dvh 避開 iOS 網址列伸縮），三段 flex 分配：
@@ -598,6 +614,18 @@ html.dev .ui .s00wrap{min-height:calc(100dvh - var(--devbar-h,54px))}
 .ui .detailhd span:not(:first-child),.ui .detailrow span:not(:first-child){text-align:right}
 .ui .detailrow{border-bottom:1px solid #F5F6F3}
 .ui .detailrow:last-child{border-bottom:0}
+/* 實作-T-4　「應分攤」的組成。原本那張表只給結果不給組成——
+   Rozi 看不出這個數字是從哪幾筆來的。名稱用白話，筆數放右邊。
+   沒有那一段的人整段不顯示（不要顯示 0）。 */
+.ui .detailparts{padding:2px 9px 8px;display:flex;flex-direction:column;gap:2px}
+.ui .detailparts>div{display:grid;grid-template-columns:1fr auto auto;gap:8px;
+  align-items:baseline;font-size:var(--fs-sub);color:var(--gr)}
+.ui .detailparts i{font-style:normal;font-size:var(--fs-tag);color:var(--gr)}
+.ui .detailparts b{font-weight:600;color:var(--md);font-size:var(--fs-sub);
+  font-variant-numeric:tabular-nums;min-width:64px;text-align:right}
+.ui [data-settle-row]{border-bottom:1px solid #F5F6F3}
+.ui [data-settle-row]:last-child{border-bottom:0}
+.ui [data-settle-row] .detailrow{border-bottom:0}
 .ui .bar .bk{font-size:var(--fs-body);font-weight:600;color:var(--wi)}
 .ui .bar .ttl{font-size:var(--fs-body);font-weight:600;color:var(--md)}
 
@@ -623,6 +651,11 @@ html.dev .ui .s00wrap{min-height:calc(100dvh - var(--devbar-h,54px))}
 .ui .mtag{display:inline-flex;align-items:center;gap:4px;min-width:0;vertical-align:middle}
 .ui .mtag>.trunc{min-width:0}
 .ui .avatar input{width:100%;height:100%;text-align:center;padding:0;border:0;background:#fff;font-size:var(--fs-input)}
+/* 實作-T-3　點得到，但**點完那格只有 26×26**，手機上很難再點一次。
+   ⚠️ `::after` 不能掛在 `<input>` 上——replaced element 不渲染虛擬元素。
+   所以擴張區掛在外層的 `.avatar.tap44`，並讓它把焦點交還給裡面的 input：
+   點 44×44 範圍內任何一處都會聚焦到那個框。看得見的圓圈不放大。 */
+.ui .avatar.tap44:has(input){overflow:visible;cursor:text}
 .ui .ratebox{background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden}
 .ui .raterow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #F1F2EE}
 .ui .raterow:last-child{border-bottom:0}
@@ -2648,11 +2681,35 @@ function renderS05() {
             </div>`; }).join('')}</div>`)}
           ${b('S-05-13', `<div style="margin-top:9px;background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden">
             <div class="detailhd"><span>成員</span><span>實際付出</span><span>應分攤</span><span>差額</span></div>
+            ${/* 🔴 實作-T-4　把「應分攤」拆成組成。
+                  Rozi：「應該要看得到怎麼算出來的細節，例如第一段四人均分的費用，
+                  第二段是幫人代墊、被代墊的費用」——原本這張表只給結果不給組成。
+                  ⚠️ 只是把既有的計算攤開，**不改任何算式**。
+                  「他先付出去的」排除 personal（自己的那幾筆沒有人分攤，
+                  算進來的話「實際付出 − 應分攤 = 差額」就對不上）。 */''}
             ${t.members.map(m => { const v = net[m.id];
-              const paid = S.list.filter(e => e.payer === m.id && !e.onSpot).reduce((a,e) => a + (calc(e,t).twdTotal||0), 0);
-              return `<div class="detailrow tnum"><span style="font-family:var(--sans);display:flex;align-items:center;gap:4px;min-width:0">${avatarHTML(m, t.members.indexOf(m), 20)}<span>${esc(m.name)}</span></span>
-                <span>${paid.toLocaleString()}</span><span>${(paid-v).toLocaleString()}</span>
-                <span style="color:${v>=0?'var(--in)':'var(--out)'}">${v>=0?'+':''}${v.toLocaleString()}</span></div>`; }).join('')}
+              let shared=0, sharedN=0, named=0, namedN=0, paid=0, paidN=0;
+              for (const e of S.list) {
+                const c = calc(e, t);
+                /*  是共用形狀上的旗標，不是 type（type 只有 shared／individual／single） */
+                if (!e.onSpot && !e.personal && e.payer === m.id && !c.twdPending) { paid += c.twdTotal; paidN++; }
+                const sh = c.shares[m.id];
+                if (sh == null || sh === 0 || e.onSpot) continue;
+                if (e.type === 'single' || e.type === 'individual') { named += sh; namedN++; }
+                else { shared += sh; sharedN++; }
+              }
+              const due = shared + named;
+              const sg = x => x < 0 ? `−${money(-x)}` : money(x);
+              return `<div data-settle-row data-member="${m.id}" data-shared="${shared}" data-named="${named}"
+                  data-due="${due}" data-paid="${paid}" data-diff="${v}">
+                <div class="detailrow tnum"><span style="font-family:var(--sans);display:flex;align-items:center;gap:4px;min-width:0">${avatarHTML(m, t.members.indexOf(m), 20)}<span>${esc(m.name)}</span></span>
+                  <span>${paid.toLocaleString()}</span><span>${due.toLocaleString()}</span>
+                  <span style="color:${v>=0?'var(--in)':'var(--out)'}">${v>=0?'+':''}${v.toLocaleString()}</span></div>
+                <div class="detailparts">
+                  ${sharedN ? `<div><span>一起分的</span><i>${sharedN} 筆</i><b class="money">${sg(shared)}</b></div>` : ''}
+                  ${namedN ? `<div><span>指名算他的</span><i>${namedN} 筆</i><b class="money">${sg(named)}</b></div>` : ''}
+                  ${paidN ? `<div><span>他先付出去的</span><i>${paidN} 筆</i><b class="money">−${money(paid)}</b></div>` : ''}
+                </div></div>`; }).join('')}
           </div>`)}
           ${b('S-05-14', `<p class="hint">待填的筆不進結算，所以這裡的數字可能小於總花費</p>`)}
         </div>` : '')

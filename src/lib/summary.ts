@@ -181,6 +181,10 @@ export function tripSummary(
   };
 
   let total = 0;
+  /* 實作-T-7　外幣視角的總花費：**使用者填過外幣的那幾筆用原值加總**，其餘回推。
+     `forTotalRaw` 是「已經有原值的那部分」，`forTotalBackTwd` 是「還要回推的台幣部分」。
+     ⚠️ 這裡**不改任何計算**——台幣的 `total` 一行都沒動，只是多算一組給外幣視角看。 */
+  let forTotalRaw = 0, forTotalBackTwd = 0, forTotalHasRaw = false;
   const per: Record<string, number> = {}, approx: Record<string, boolean> = {};
   for (const m of members) { per[m.id] = 0; approx[m.id] = false; }
 
@@ -195,7 +199,11 @@ export function tripSummary(
     list.push(se);
 
     /* 總花費排除贊助（負額），否則把總支出灌低；當場就清了仍計入（確實花了） */
-    if (!c.twdPending && !row.is_sponsor) total += c.twdTotal;
+    if (!c.twdPending && !row.is_sponsor) {
+      total += c.twdTotal;
+      if (c.forTotalEff != null && !c.forTotalAuto) { forTotalRaw += c.forTotalEff; forTotalHasRaw = true; }
+      else forTotalBackTwd += c.twdTotal;
+    }
     for (const id of se.parts ?? []) {
       const s = c.shares[id];
       if (s != null) per[id] = (per[id] ?? 0) + s;
@@ -206,8 +214,9 @@ export function tripSummary(
 
   return {
     t, list, readonly, total, per, approx, unsettledList,
+    forTotalRaw, forTotalBackTwd, forTotalHasRaw,
     calcOf: (e: SharedExpense) => calcCache.get(e.id) ?? {
-      twdTotal: 0, twdPending: true, estimated: {},
+      twdTotal: 0, twdPending: true, estimated: {}, forTotalEff: null, forTotalAuto: false,
     } as SharedCalc,
   };
 }

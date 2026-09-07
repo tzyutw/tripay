@@ -241,12 +241,33 @@ describe('B-3　S-03d 未定案清單', () => {
     expect(screen.getByText(/影響 小美 的 · \d+ 筆/)).toBeInTheDocument();
   });
 
-  it('列是唯讀的——那裡不該點進編輯', async () => {
+  /* 🔴 實作-T-1　**這條原本是反過來鎖著的**。
+     Rozi：「『還沒算清楚』，這個消費紀錄點不進去，應該要可以點進去。」
+     這一頁本來就是要她去補資料的，不給點等於這一頁沒有用。 */
+  it('列點得進編輯——這一頁就是要去補資料的', async () => {
     await show();
     fireEvent.click(document.querySelector('.unsettled')!);
     const rows = [...document.querySelectorAll('.exprow')];
     expect(rows.length).toBeGreaterThan(0);
-    expect(rows.every(r => r.tagName === 'DIV'), '未定案清單的列不得是 button').toBe(true);
+    expect(rows.every(r => r.tagName === 'BUTTON'), '未定案清單的列要點得下去').toBe(true);
+    fireEvent.click(rows[0]);
+    await waitFor(() => expect(screen.getByText('記下來')).toBeInTheDocument());
+  });
+
+  it('封存態的未定案清單維持唯讀，但點下去要講話', async () => {
+    state.trips = [{ ...trip, status: 'archived' }];
+    render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
+    await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
+    const entry = document.querySelector('.unsettled');
+    /* 封存態沒有未定案入口（§5.6），改用 query 直接進那一頁 */
+    if (!entry) {
+      render(<Page />, { route: '/trips/t1?unsettled=all', path: TRIP_PATHS });
+      await waitFor(() => expect(document.querySelector('.exprow')).not.toBeNull());
+    } else fireEvent.click(entry);
+    const rows = [...document.querySelectorAll('.exprow')];
+    expect(rows.length).toBeGreaterThan(0);
+    fireEvent.click(rows[0]);
+    expect(flat(), '封存態不該開編輯表單').not.toContain('記下來');
   });
 });
 

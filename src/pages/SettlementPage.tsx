@@ -159,6 +159,53 @@ export default function SettlementPage() {
     [trip]
   );
 
+  /** 負數要寫成「−$ 9,605」，不要讓 `money()` 吐出「$ -9,605」——
+   *  減號跑到貨幣符號後面，掃過去會看成一個奇怪的數字。 */
+  const signed = (v: number) => (v < 0 ? `−${money(-v)}` : money(v));
+
+  /**
+   * 🔴 實作-T-4　把「應分攤」拆成組成。
+   *
+   * Rozi：「應該要看得到怎麼算出來的細節，例如第一段四人均分的費用，
+   * 第二段是幫人代墊、被代墊的費用」。
+   *
+   * ⚠️ **不准改任何計算**——這裡只是把 `calc()` 已經算好的 `shares[id]`
+   * 依「這一筆是一起分還是指名算他的」分兩堆，加起來一定等於原本的應分攤。
+   * 「他先付出去的」就是原本那張表的「實際付出」，一個字都沒改。
+   */
+  const breakdownOf = useMemo(() => {
+    const cache = new Map<string, {
+      shared: number; sharedN: number; named: number; namedN: number;
+      paid: number; paidN: number; due: number;
+    }>();
+    return (id: string) => {
+      const hit = cache.get(id);
+      if (hit) return hit;
+      let shared = 0, sharedN = 0, named = 0, namedN = 0, paid = 0, paidN = 0;
+      for (const e of expenses) {
+        if (!trip) break;
+        const c = calc(e, trip, trip.trip_members);
+        /* 「他先付出去的」＝**代別人墊的**。`personal`（自己的）那幾筆沒有任何人分攤，
+           算進來的話 `實際付出 − 應分攤` 就對不上 `差額`（實測差 300，就是那一筆）。
+           原本那張表把 personal 算進「實際付出」，而「應分攤」是用 `paid − 差額`
+           反推的，所以帳面自洽但兩欄都不誠實。 */
+        if (!e.settled_on_spot && e.expense_type !== 'personal'
+            && e.payer_member_id === id && !c.twdPending) {
+          paid += c.twdTotal; paidN += 1;
+        }
+        const share = c.shares[id];
+        /* 分攤是 0 的不算一段——「指名算他的 1 筆 $ 0」讀起來像壞掉 */
+        if (share == null || share === 0 || e.settled_on_spot) continue;
+        /* 「指名算他的」＝只算一個人／各付各的；其餘是一起分的 */
+        if (e.individual_member_id || e.expense_type === 'individual') { named += share; namedN += 1; }
+        else { shared += share; sharedN += 1; }
+      }
+      const out = { shared, sharedN, named, namedN, paid, paidN, due: shared + named };
+      cache.set(id, out);
+      return out;
+    };
+  }, [expenses, trip]);
+
   // ── Mutations ─────────────────────────────────────────────────────────────────
 
   const calculateMutation = useMutation({
@@ -461,28 +508,51 @@ export default function SettlementPage() {
             })}
           </div>
 
-          {/* S-05-13　對帳表 */}
+          {/* 🔴 實作-T-4　把「應分攤」拆成組成。
+              Rozi：「應該要看得到怎麼算出來的細節，例如第一段四人均分的費用，
+              第二段是幫人代墊、被代墊的費用」。
+              原本那張四欄表**只給結果不給組成**——她看不出這個數字是從哪幾筆來的。
+              ⚠️ 這一段只是把既有的計算過程攤開，**不准改任何計算邏輯**。
+              名稱用白話，不要用 shared／individual 這種欄位名。 */}
           <div className="detailtable">
             <div className="detailhd">
               <span>成員</span><span>實際付出</span><span>應分攤</span><span>差額</span>
             </div>
             {t.members.map((m, i) => {
               const v = netFromItems.find(x => x.id === m.id)?.net ?? net[m.id] ?? 0;
-              const paid = expenses
-                .filter(e => e.payer_member_id === m.id && !e.settled_on_spot)
-                .reduce((a, e) => a + (calc(e, trip, trip.trip_members).twdTotal || 0), 0);
+              const b = breakdownOf(m.id);
               return (
-                <div className="detailrow tnum" key={m.id}>
-                  <span style={{ fontFamily: 'var(--sans)', display: 'flex',
-                                 alignItems: 'center', gap: 4, minWidth: 0 }}>
-                    <Avatar emoji={m.emoji} name={m.name} index={i} size={20} />
-                    <span className="trunc">{m.name}</span>
-                  </span>
-                  <span>{paid.toLocaleString()}</span>
-                  <span>{(paid - v).toLocaleString()}</span>
-                  <span style={{ color: v >= 0 ? 'var(--in)' : 'var(--out)' }}>
-                    {v >= 0 ? '+' : ''}{v.toLocaleString()}
-                  </span>
+                <div key={m.id}
+                  data-settle-row data-member={m.id}
+                  data-shared={b.shared} data-named={b.named}
+                  data-due={b.due} data-paid={b.paid} data-diff={v}>
+                  <div className="detailrow tnum">
+                    <span style={{ fontFamily: 'var(--sans)', display: 'flex',
+                                   alignItems: 'center', gap: 4, minWidth: 0 }}>
+                      <Avatar emoji={m.emoji} name={m.name} index={i} size={20} />
+                      <span className="trunc">{m.name}</span>
+                    </span>
+                    <span>{b.paid.toLocaleString()}</span>
+                    <span>{b.due.toLocaleString()}</span>
+                    <span style={{ color: v >= 0 ? 'var(--in)' : 'var(--out)' }}>
+                      {v >= 0 ? '+' : ''}{v.toLocaleString()}
+                    </span>
+                  </div>
+                  {/* 組成。**沒有那一段的人整段不顯示**，不要顯示 0 */}
+                  <div className="detailparts">
+                    {b.sharedN > 0 && (
+                      <div><span>一起分的</span><i>{b.sharedN} 筆</i>
+                        <b className="money">{signed(b.shared)}</b></div>
+                    )}
+                    {b.namedN > 0 && (
+                      <div><span>指名算他的</span><i>{b.namedN} 筆</i>
+                        <b className="money">{signed(b.named)}</b></div>
+                    )}
+                    {b.paidN > 0 && (
+                      <div><span>他先付出去的</span><i>{b.paidN} 筆</i>
+                        <b className="money">−{money(b.paid)}</b></div>
+                    )}
+                  </div>
                 </div>
               );
             })}

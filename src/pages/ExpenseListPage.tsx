@@ -345,9 +345,15 @@ export default function ExpenseListPage() {
         </div>
         <div className="sec">{title}</div>
         {rows.length
-          ? <ExpenseGroups
+          ? /* 🔴 實作-T-1　這一頁的列**原本是 `readonly` 的 `<div>`，點下去完全沒反應**。
+               Rozi：「『還沒算清楚』，這個消費紀錄點不進去，應該要可以點進去。」
+               這一頁本來就是要她去補資料的，不給點等於這一頁沒有用。
+               封存態仍維持唯讀（與 S-03 一致）。 */
+            <ExpenseGroups
               S={{ ...S, list: rows.map(r => r.e) }}
-              readonly money={moneyOpts} />
+              readonly={isArchived} money={moneyOpts}
+              onEdit={openEdit}
+              onReadonlyTap={isArchived ? () => showToast(MSG_ARCHIVED_TAP) : undefined} />
           : <div className="empty"><p>都算清楚了。</p><p>沒有需要補的筆數</p></div>}
         <div style={{ height: 18 }} />
       </div>

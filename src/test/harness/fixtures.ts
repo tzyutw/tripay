@@ -3,6 +3,7 @@
  * 所以資料也要是真實形狀，不能用一兩筆敷衍——短內容量不出溢出。 */
 import type { Trip, TripMember, ExpenseWithSplits } from '@/types/database';
 import { rateColumns, rateDirection, TWD_PER_UNIT } from '@/lib/currencyTable';
+import { tripSummary, settleTrip } from '@/lib/summary';
 
 export const M = ['m0', 'm1', 'm2', 'm3'];
 
@@ -189,12 +190,24 @@ export const settlements = settlementsMany
     ]
   : [{ id: CONFIRMED_ID, trip_id: 't1', status: 'confirmed', settled_at: '2026-03-20' }];
 
-/** confirmed 那一次的轉帳（分享頁只該畫這三筆） */
-export const settlementItems = [
-  { id: 'i1', settlement_id: CONFIRMED_ID, from_member_id: M[3], to_member_id: M[0], amount: 20220, is_cleared: true },
-  { id: 'i2', settlement_id: CONFIRMED_ID, from_member_id: M[2], to_member_id: M[0], amount: 17740, is_cleared: false },
-  { id: 'i3', settlement_id: CONFIRMED_ID, from_member_id: M[1], to_member_id: M[0], amount: 8220,  is_cleared: false },
-];
+/**
+ * confirmed 那一次的轉帳。
+ *
+ * 🔴 **從假消費真的算出來**，不要寫死金額（實作-T-4 才發現的）：
+ * 原本寫死 20220/17740/8220，與這些消費算出來的淨額對不起來，
+ * 於是結算頁「應分攤 − 實際付出 = 差額」那條恆等式在假資料上就是不成立的
+ * ——**驗不了，也分不出是實作錯還是假資料錯**。
+ * 真實的 confirmed 結算本來就是從消費算出來的，假資料照做才守得住那條恆等式。
+ */
+export const settlementItems = (() => {
+  const S = tripSummary(trip as never, expenses, 'active');
+  const { tx } = settleTrip(S, expenses, trip as never);
+  return tx.map((x, i) => ({
+    id: `i${i + 1}`, settlement_id: CONFIRMED_ID,
+    from_member_id: x.from, to_member_id: x.to, amount: x.amount,
+    is_cleared: i === 0,
+  }));
+})();
 
 /** **每一次結算都帶自己的 items**——不然「有沒有挑對」與「只有一組資料」長得一樣 */
 export const allSettlementItems = settlements.flatMap(st =>

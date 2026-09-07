@@ -81,8 +81,10 @@ describe('B-4　S-04 記一筆', () => {
        原型的 renderS04() 不會依標題重算它，填了標題反而對不上。 */
     fireEvent.change(document.getElementById('e-twd')!, { target: { value: '1200' } });
     /* 「要排除誰？」以外的都在預設狀態就看得到；R2 那一段本來就收合 */
-    /* 實作-J 之後每個成員識別自成一個文字節點（原本 `🐵 Rozi` 是一段），所以段數變多 */
-    expect(want.list.length).toBe(33);
+    /* 實作-J 之後每個成員識別自成一個文字節點（原本 `🐵 Rozi` 是一段），所以段數變多；
+       實作-S-3 又多了「備註」那一段。這個數字守的是「原型有沒有被誰砍掉一段」，
+       不是守「剛好幾段」——改動原型時跟著走。 */
+    expect(want.list.length).toBe(34);
     const got = flat();
     const missing = want.list.filter(t => !got.includes(t.replace(/\s+/g, '')));
     expect(missing, `原型有、App 沒有：${missing.join(' ｜ ')}`).toEqual([]);

@@ -52,11 +52,19 @@ export function ExpenseRow({ e, c, S, readonly, money: mo, onEdit, onReadonlyTap
   const approx = !pend && Object.keys(c.estimated).length > 0;
 
   /* #22-3：贊助是負額共同項，金額顯示負數並用收款綠，與一般支出區隔 */
+  /* 🔴 實作-T-7　外幣視角下，**使用者自己填過的外幣原樣顯示**，
+     沒填過的才用台幣 × 匯率回推——而且回推的要標「約」，讓她一眼分得出
+     哪些是她填的、哪些是系統算的。台幣視角完全不受影響（`mo.sym` 是 undefined）。 */
+  const ownFor = mo?.sym && c.forTotalEff != null && c.forTotalAuto === false
+    ? c.forTotalEff : null;
+  const backCalc = Boolean(mo?.sym) && ownFor == null;
+  const mo2 = ownFor != null ? { ...mo, raw: ownFor } : mo;
   const amt = pend
     ? <span style={{ color: 'var(--out)' }}>還沒填</span>
     : e.sponsor
-      ? <span className="money" style={{ color: 'var(--in)' }}>−{money(c.twdTotal, mo)}</span>
-      : <>{approx && <i className="approx">約</i>}<span className="money">{money(c.twdTotal, mo)}</span></>;
+      ? <span className="money" style={{ color: 'var(--in)' }}>−{money(c.twdTotal, mo2)}</span>
+      : <>{(approx || backCalc) && <i className="approx">約</i>}
+          <span className="money">{money(c.twdTotal, mo2)}</span></>;
 
   const inner = (
     <>

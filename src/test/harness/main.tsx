@@ -71,8 +71,16 @@ const SCREENS: Record<string, ScreenDef> = {
   s03more: { route: '/trips/t1/more', paths: TRIP_PATHS, el: <ExpenseListPage /> },
 };
 
-const id = new URLSearchParams(location.search).get('screen') ?? 's01';
+const Q0 = new URLSearchParams(location.search);
+const id = Q0.get('screen') ?? 's01';
 const s  = SCREENS[id] ?? SCREENS.s01;
+/* MemoryRouter 的 location 與 window.location 是兩回事——
+   `useSearchParams()` 讀的是前者。量測靶的 `?unsettled=all` 這類參數
+   要轉進 router 的初始路徑，不然元件根本收不到（第 1 項就是因此從沒被掃過）。 */
+const ROUTER_PARAMS = ['unsettled', 'expense'];
+const carried = new URLSearchParams();
+for (const k of ROUTER_PARAMS) { const v = Q0.get(k); if (v != null) carried.set(k, v); }
+const initialEntry = carried.toString() ? `${s.route}?${carried}` : s.route;
 (window as unknown as { __SCREEN__: string }).__SCREEN__ = id;
 (window as unknown as { __HUB__: string }).__HUB__ = M[1];
 /* 把當次真正掛上去的假資料露出來給驗收程式查。
@@ -94,8 +102,24 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={qc}>
       <ToastProvider>
-        <MemoryRouter initialEntries={[s.route]}>
+        <MemoryRouter initialEntries={[initialEntry]}>
           <RouteProbe />
+          {/* `?anim=1`：把畫面包進 production 真正用的 `.animate-slide-in`
+              （`App.tsx` 的 `PageSlide`）。實作-T-8 的「動畫期間會不會撐寬文件」
+              要在這個包裝下才量得到——量測靶原本沒有它，所以那個閃爍從沒被掃過。
+              預設不包，才不會動到既有的版面基準。 */}
+          {Q0.get('anim') === '1'
+            ? <div className="animate-slide-in">{renderScreen(s)}</div>
+            : renderScreen(s)}
+        </MemoryRouter>
+      </ToastProvider>
+    </QueryClientProvider>
+  </StrictMode>,
+);
+
+function renderScreen(s: ScreenDef) {
+  return (
+    <>
           {s.routes
             ? <Routes>{s.routes.map(r => <Route key={r.path} path={r.path} element={r.el} />)}</Routes>
             : s.paths
@@ -103,8 +127,6 @@ createRoot(document.getElementById('root')!).render(
               : s.path
                 ? <Routes><Route path={s.path} element={s.el} /></Routes>
                 : s.el}
-        </MemoryRouter>
-      </ToastProvider>
-    </QueryClientProvider>
-  </StrictMode>,
-);
+    </>
+  );
+}

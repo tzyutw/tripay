@@ -583,7 +583,9 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
           </div>
 
           {/* Scrollable body */}
-          <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pt-4 pb-0">
+          {/* `tripform`：這個捲動區已經有 20px 左右內距，裡面的 `.fld` 不要再加 14px
+              ——雙重內距會讓同一頁出現 350 與 322 兩種寬度（實作-T-5）。 */}
+          <div className="tripform flex-1 overflow-y-auto scrollbar-hide px-5 pt-4 pb-0">
 
 
             {/* S-02b-14　行程名稱。**兩頁同一個名字**「這趟叫什麼？」

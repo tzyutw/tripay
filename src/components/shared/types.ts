@@ -39,6 +39,11 @@ export interface SharedCalc {
   twdTotal: number;
   twdPending: boolean;                    // 整筆還沒填台幣
   estimated: Record<string, boolean>;     // 哪些成員的金額是「約」
+  /* 實作-T-7　外幣視角要**優先顯示使用者自己填的數字**，不要顯示回推值。
+     `forTotalEff` 是這一筆的外幣總額、`forTotalAuto` 說它是不是系統推算出來的。
+     兩個值 `calc()` 本來就算好了，只是清單一直沒有用（顯示的都是台幣 × 匯率）。 */
+  forTotalEff?: number | null;
+  forTotalAuto?: boolean;
 }
 
 /** tripSummary() 的結果 */
@@ -50,6 +55,11 @@ export interface SharedSummary {
   per: Record<string, number>;            // 每人分擔
   approx: Record<string, boolean>;        // 哪幾個人的分擔是「約」
   readonly?: boolean;
+  /* 實作-T-7　外幣視角的總花費：填過外幣的那幾筆用原值加總（`forTotalRaw`），
+     其餘用台幣回推（`forTotalBackTwd` × 匯率）。`forTotalHasRaw` 說有沒有原值可用。 */
+  forTotalRaw?: number;
+  forTotalBackTwd?: number;
+  forTotalHasRaw?: boolean;
 }
 
 /** 一筆轉帳 */
@@ -63,4 +73,6 @@ export interface Transfer {
 export interface MoneyOpts {
   sym?: string;
   rate?: number | null;
+  /** 實作-T-7　使用者自己填的外幣原值。有值就原樣顯示，不用台幣回推 */
+  raw?: number | null;
 }

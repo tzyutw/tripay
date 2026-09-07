@@ -37,8 +37,15 @@ export function weekday(iso: string): string {
  * 金額。結算恆為台幣；統計可切外幣（決策 34）。
  * 原型的 money() 直接讀全域 store，元件不能那樣做——幣別與匯率當參數傳進來。
  */
-export function money(v: number, opts: { sym?: string; rate?: number | null } = {}): string {
-  const { sym, rate } = opts;
+export function money(
+  v: number,
+  opts: { sym?: string; rate?: number | null; raw?: number | null } = {},
+): string {
+  const { sym, rate, raw } = opts;
+  /* 實作-T-7　外幣視角下**使用者自己填過的數字原樣顯示**，不要拿台幣去回推。
+     Rozi：「消費紀錄內有填外幣數字，總行程頁的外幣紀錄就要顯示使用者填寫的，
+     不要顯示自己回推的。」她截圖裡「₩ 692,235」正好等於 15,383 × 45，就是回推出來的。 */
+  if (sym && raw != null && Number.isFinite(raw)) return `${sym} ${Math.round(raw).toLocaleString()}`;
   if (sym && rate) return `${sym} ${Math.round(v * rate).toLocaleString()}`;
   return `$ ${Math.round(v).toLocaleString()}`;
 }
