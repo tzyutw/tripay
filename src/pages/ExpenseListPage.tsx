@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -149,6 +149,23 @@ export default function ExpenseListPage() {
         存 localStorage 就夠了——不為了這個加資料庫欄位。
      量測靶用 `?onlyshared=1` 直接以開啟狀態載入（與 `?view=foreign` 同一個做法）：
      靠腳本去點按鈕再等 render，量到的會是動畫中途的狀態。 */
+  /* 🔴 實作-Z-2　收合狀態由門檻切換決定，不用捲動驅動動畫（見下面 hero 的註解）。
+     ⚠️ **用 callback ref 不用 `useRef` ＋ `useEffect([])`**：這一頁在資料回來之前
+     會先 `return <spin>`，那時哨兵還沒進 DOM，`ref.current` 是 null，
+     而空依賴的 effect 之後**不會再跑一次**——觀察器就永遠沒掛上。
+     callback ref 是在節點真的接上時才被呼叫的，沒有這個時序問題。 */
+  const [compact, setCompact] = useState(false);
+  const ioRef = useRef<IntersectionObserver | null>(null);
+  const sentinelRef = useCallback((el: HTMLDivElement | null) => {
+    ioRef.current?.disconnect();
+    ioRef.current = null;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([e]) => setCompact(!e.isIntersecting), { threshold: 0 });
+    io.observe(el);
+    ioRef.current = io;
+  }, []);
+  useEffect(() => () => ioRef.current?.disconnect(), []);
+
   const swKey = `tripay.onlyshared.${tripId}`;
   const [onlyShared, setOnlyShared] = useState<boolean>(() => {
     if (new URLSearchParams(window.location.search).get('onlyshared') === '1') return true;
@@ -446,28 +463,47 @@ export default function ExpenseListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col">
+    <div className="min-h-screen bg-bg flex flex-col" style={{ position: 'relative' }}>
+
+      {/* 🔴 實作-Z-2　收合的哨兵。放在**捲得走**的地方（sticky 的 wrapper 裡面的
+          東西會跟著黏住，永遠不會離開視窗）。越過 110px 就切 `.is-compact`。
+          用 IntersectionObserver 不用捲動事件／捲動驅動動畫：後者的進度綁在
+          捲動範圍上，iOS Safari 的網址列一伸縮，範圍就變、進度就跳——
+          Rozi 看到的抖動與「名字停在淡出到一半」都是這麼來的。 */}
+      <div ref={sentinelRef} aria-hidden
+        style={{ position: 'absolute', top: 0, left: 0, width: 1, height: 110, pointerEvents: 'none' }} />
 
       {/* S-03-1　hero：目的地色調。副標只有日期區間，沒有成員 emoji */}
-      {/* 實作-V-6　`collapsing` 只掛在行程頁——分享頁共用 `.hero`，那裡沒有這個需求。
-          ⚠️ 用 `backgroundImage` 不用 `background` 簡寫：簡寫會把 CSS 給的
-          `background-color` 重設成 transparent，收合後就會透出捲過去的消費列。 */}
-      <div className="hero collapsing"
-        style={{ backgroundImage: destinationOf(trip.name, trip.id).gradient }}>
-        <div className="sc" />
-        <div className="navrow">
-          {/* #28-6b hero 右上只留「返回」與「⋯」。編輯／複製／分享／封存／刪除全部進 ⋯ 選單 */}
-          <button className="ic2" aria-label="返回" onClick={() => navigate('/')}>
-            <Icon name="back" size={20} />
-          </button>
-          {/* 收合之後大標會縮掉，行程名改在這一列顯示——不然只剩兩顆鍵，不知道在哪一趟 */}
-          <span className="navttl">{trip.name}</span>
-          <button className="ic2" aria-label="更多" onClick={() => setMenuOpen(true)}>
-            <Icon name="more" size={20} />
-          </button>
+      {/* 🔴 實作-Z-2　外面包一層 `.herowrap` 承擔安全區的留白與塗色，
+          `.hero` 本身高度固定——`env(safe-area-inset-top)` 在 iOS 上會變，
+          放進 sticky 元素自己的 padding 就會讓那一條的高度跟著跳。
+          漸層畫在 wrapper 上，一路蓋滿安全區，所以沒有接縫。
+          🔴 實作-Z-1　收合時 `backgroundImage` 要**真的拿掉**：Y-2 只設了
+          `background-color`，而漸層是 `background-image`、蓋在它上面，
+          畫出來還是綠漸層。
+          ⚠️ 這裡與 CSS 的 `.herowrap.is-compact{background-image:none !important}`
+          **兩道都在**，而且**各自都夠**（`!important` 蓋得過 inline style，
+          實測拿掉任一道都還是純藍，兩道都拿掉才會變回漸層）。
+          留兩道是因為 inline style 這一端最容易在改版時被順手加回來。 */}
+      <div className={`herowrap${compact ? ' is-compact' : ''}`}
+        style={compact ? undefined : { backgroundImage: destinationOf(trip.name, trip.id).gradient }}>
+        <div className="hero">
+          <div className="sc" />
+          <div className="navrow">
+            {/* #28-6b hero 右上只留「返回」與「⋯」。編輯／複製／分享／封存／刪除全部進 ⋯ 選單 */}
+            <button className="ic2" aria-label="返回" onClick={() => navigate('/')}>
+              <Icon name="back" size={20} />
+            </button>
+            {/* 收合之後大標會縮掉，行程名改在這一列顯示——不然只剩兩顆鍵，不知道在哪一趟。
+                ⚠️ Z-2：收合時它就是要在，**不透明、不做淡入淡出** */}
+            <span className="navttl">{trip.name}</span>
+            <button className="ic2" aria-label="更多" onClick={() => setMenuOpen(true)}>
+              <Icon name="more" size={20} />
+            </button>
+          </div>
+          <div className="tt">{trip.name}</div>
+          <div className="dt tnum">{dateRange(trip.start_date, trip.end_date)}</div>
         </div>
-        <div className="tt">{trip.name}</div>
-        <div className="dt tnum">{dateRange(trip.start_date, trip.end_date)}</div>
       </div>
 
       {/* S-03-33　分段控制 */}
@@ -517,18 +553,17 @@ export default function ExpenseListPage() {
             )}
           </div>
 
-          {/* 🔴 實作-X-1　「只看共同的帳」。**位置在統計卡與清單標頭之間**：
-              它同時影響上面的數字與下面的清單，掛在任何一邊都會讓另一邊的變化
-              顯得莫名其妙。一顆真的按鈕，未開描邊、開了填實——與 .selchip
-              同一套選取語彙，不另開打勾框那種第二套。 */}
-          <div className="swrow">
+          {/* 🔴 實作-Z-3　「只看共同的帳」搬進清單標頭那一行的右邊
+              （Rozi：「按鈕有點太大了，長得太明顯」）。字級與左邊的標頭同一級、
+              不粗體、不填色；開著時只有文字變成工作色。
+              可點區靠 `::after` 撐到 44，不是把字或按鈕撐大。 */}
+          <div className="listhd">
+            <span>消費紀錄 · {S.list.length} 筆</span>
             <button className={`swchip${onlyShared ? ' on' : ''}`}
               aria-pressed={onlyShared} onClick={toggleOnlyShared}>
               只看共同的帳
             </button>
           </div>
-
-          <div className="listhd"><span>消費紀錄 · {S.list.length} 筆</span></div>
 
           {/* S-03-29　未定案入口。N＝0 整條不顯示 */}
           {nUn > 0 && !S.readonly && (

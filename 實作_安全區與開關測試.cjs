@@ -84,28 +84,40 @@ const SCREENS = ['s00','s01','s02','s02b','s03','s04','s05','s06','s07',
   /* 5～9　hero */
   console.log('');
   await go('screen=s03&sat=59');
+  /* ⚠️ 實作-Z 之後，收合條是 `.herowrap`（`.hero` 只是它裡面固定高度的那一層），
+     而且**不再用 `::after` 遮罩**——遮罩是給捲動驅動動畫用的，Z-2 換成門檻切換
+     之後直接改底色就好。收合態的「畫出來到底是不是藍的」由
+     `實作_收合與開關瘦身測試.cjs` **讀像素**驗（`background-color` 會被
+     `background-image` 蓋住，只看它就是 Z-1 漏掉一整輪的原因）。
+     這裡留下的是安全區那一半：**安全區與 hero／收合條必須是同一塊**。 */
   const hero = await p.evaluate(async () => {
-    const h = document.querySelector('.hero');
-    const open = { h: h.getBoundingClientRect().height,
-                   img: getComputedStyle(h).backgroundImage,
+    const wrap = document.querySelector('.herowrap');
+    if (!wrap) return null;
+    const cs0 = getComputedStyle(wrap);
+    const open = { h: wrap.getBoundingClientRect().height,
+                   img: cs0.backgroundImage,
                    e1: document.elementFromPoint(195, 4), e2: document.elementFromPoint(195, 79) };
-    const openSame = (open.e1 === open.e2) || (h.contains(open.e1) && h.contains(open.e2));
-    window.scrollTo(0, 400); await new Promise(r => setTimeout(r, 250));
-    const cs = getComputedStyle(h), af = getComputedStyle(h, '::after');
+    const openSame = (open.e1 === open.e2) || (wrap.contains(open.e1) && wrap.contains(open.e2));
+    window.scrollTo(0, 400); await new Promise(r => setTimeout(r, 450));
+    const cs = getComputedStyle(wrap);
     const s1 = document.elementFromPoint(195, 4), s2 = document.elementFromPoint(195, 79);
     return { openH: open.h, openImg: open.img.includes('linear-gradient'), openSame,
-             shutBg: cs.backgroundColor, afterBg: af.backgroundColor, afterOp: Number(af.opacity),
-             shutSame: (s1 === s2) || (h.contains(s1) && h.contains(s2)),
-             all: cs.cssText || '' };
+             compact: wrap.classList.contains('is-compact'),
+             shutBg: cs.backgroundColor, shutImg: cs.backgroundImage,
+             shutSame: (s1 === s2) || (wrap.contains(s1) && wrap.contains(s2)) };
   });
-  console.log(`   hero 展開 ${Math.round(hero.openH)}（漸層 ${hero.openImg}）｜收合底色 ${hero.shutBg}` +
-              `／遮罩 ${hero.afterBg} 不透明度 ${hero.afterOp}｜安全區與收合條同一塊 ${hero.shutSame}`);
+  console.log(`   hero 展開 ${hero && Math.round(hero.openH)}（漸層 ${hero && hero.openImg}）｜` +
+              `收合 is-compact ${hero && hero.compact}／底色 ${hero && hero.shutBg}` +
+              `／background-image ${hero && String(hero.shutImg).slice(0, 12)}｜` +
+              `安全區與它同一塊：展開 ${hero && hero.openSame}／收合 ${hero && hero.shutSame}`);
+  ok(hero !== null, '找不到 .herowrap，這一段等於沒驗');
+  ok(hero.compact, '捲了 400px 還沒收合——下面三條沒有意義');
   ok(hero.openSame, '展開態：安全區與 hero 不是同一塊');
   ok(hero.shutSame, '收合態：安全區與收合條不是同一塊（Rozi 看到的「分兩塊」）');
   ok(hero.shutBg === hex2rgb(themeColor),
     `收合態底色 ${hero.shutBg} 不等於 theme-color ${themeColor}（${hex2rgb(themeColor)}）`);
-  ok(hero.afterOp >= 0.98 && hero.afterBg === hex2rgb(themeColor),
-    `收合態的遮罩沒有蓋成工作色（${hero.afterBg} @ ${hero.afterOp}）`);
+  ok(hero.shutImg === 'none',
+    `收合態還有 background-image（${hero.shutImg}）——它會蓋在底色上面，畫出來還是漸層`);
   ok(hero.shutBg !== 'rgb(15, 94, 158)', '收合態還是舊的 #0F5E9E');
   ok(hero.openImg && hero.openH >= 140, '展開態的行程色漸層被改掉了（反向）');
 
@@ -114,7 +126,9 @@ const SCREENS = ['s00','s01','s02','s02b','s03','s04','s05','s06','s07',
   await go('screen=s01&sat=59');
   const gap = await p.evaluate(async () => {
     document.documentElement.style.minHeight = '2400px';
-    const bar = document.querySelector('.topbar');
+    /* ⚠️ 實作-Z-2 之後黏住並負責往上塗色的是 `.topbarwrap`（安全區從 `.topbar`
+       的 padding 搬出去，那一條的高度才不會隨 iOS 網址列伸縮而跳）。 */
+    const bar = document.querySelector('.topbarwrap');
     const bad = [], tops = [];
     for (const y of [300, 300.33, 300.5, 300.67, 301.25]) {
       window.scrollTo(0, y); await new Promise(r => setTimeout(r, 120));
@@ -132,25 +146,25 @@ const SCREENS = ['s00','s01','s02','s02b','s03','s04','s05','s06','s07',
     document.documentElement.style.minHeight = '';
     return { bad: bad.slice(0, 3), n: bad.length, tops, btns };
   });
-  console.log(`   topbar：縫 ${gap.n} 處${gap.n ? '（' + gap.bad.join('、') + '）' : ''}｜` +
+  console.log(`   topbarwrap：縫 ${gap.n} 處${gap.n ? '（' + gap.bad.join('、') + '）' : ''}｜` +
               `top ${gap.tops.map(x => x.toFixed(2)).join(',')}｜按鈕命中自己 ${gap.btns.join(',')}`);
   ok(gap.n === 0, `頂部列上方有縫，${gap.n} 個取樣點命中別的東西`);
-  ok(gap.tops.every(t => t >= 0 && t <= 4), `topbar 被位移了（top ${gap.tops.join(',')}）——不准用負 margin 解`);
+  ok(gap.tops.every(t => t >= 0 && t <= 4), `topbarwrap 被位移了（top ${gap.tops.join(',')}）——不准用負 margin 解`);
   ok(gap.btns.length > 0 && gap.btns.every(Boolean), '::before 吃掉了按鈕的點擊');
   /* 無頭瀏覽器重現不了那 1px（指令自己也這麼寫），所以直接量「往上塗色」這件事本身，
      否則把 ::before 拿掉這條照樣綠——等於沒驗。 */
   const before = await p.evaluate(() => {
-    const bar = document.querySelector('.topbar');
+    const bar = document.querySelector('.topbarwrap');
     const b = getComputedStyle(bar, '::before'), s = getComputedStyle(bar);
     return { content: b.content, top: b.top, height: b.height, pos: b.position,
              bg: b.backgroundColor, pe: b.pointerEvents, barBg: s.backgroundColor,
              mt: s.marginTop, tf: s.transform };
   });
-  console.log(`   topbar::before content ${before.content}｜top ${before.top}｜高 ${before.height}｜` +
+  console.log(`   topbarwrap::before content ${before.content}｜top ${before.top}｜高 ${before.height}｜` +
               `${before.pos}｜底色 ${before.bg}（列 ${before.barBg}）｜pointer-events ${before.pe}｜` +
               `列的 margin-top ${before.mt}／transform ${before.tf}`);
   ok(before.content !== 'none' && before.pos === 'absolute',
-    'topbar 沒有往上塗色的 ::before');
+    'topbarwrap 沒有往上塗色的 ::before');
   ok(parseFloat(before.top) <= -8 && parseFloat(before.height) >= 8,
     `::before 往上塗的高度不足（top ${before.top}／height ${before.height}）`);
   ok(before.bg === before.barBg, `::before 的底色 ${before.bg} 跟頂部列 ${before.barBg} 不同`);

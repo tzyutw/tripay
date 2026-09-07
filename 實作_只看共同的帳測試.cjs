@@ -179,8 +179,13 @@ const num = s => Number(String(s).replace(/[^\d-]/g, ''));
          不然量到的是「被主鈕蓋住」而不是「可點區不夠」。 */
       el.scrollIntoView({ block: 'center' });
       const b = el.getBoundingClientRect();
+      /* ⚠️ 實作-Z-3 之後開關本體只有 13px 高，可點區是**透明的 `::after`** 撐出來的
+         （縮小的是看得見的字，不是可點目標）。只量 border box 會誤判成「按不到」。 */
+      const af = getComputedStyle(el, '::after');
+      const w = Math.max(b.width, parseFloat(af.width) || 0);
+      const h = Math.max(b.height, parseFloat(af.height) || 0);
       const hit = document.elementFromPoint(Math.round(b.left + b.width / 2), Math.round(b.top + b.height / 2));
-      return { w: b.width, h: b.height, self: !!hit && (hit === el || el.contains(hit)) };
+      return { w, h, self: !!hit && (hit === el || el.contains(hit)) };
     }, sel);
     console.log(`   ${sel.padEnd(10)} ${r && Math.round(r.w)}×${r && Math.round(r.h)}｜中心命中自己 ${r && r.self}`);
     ok(r !== null, `找不到 ${sel}，這條等於沒驗`);

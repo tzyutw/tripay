@@ -58,8 +58,14 @@ export default function TripListPage() {
     <div className="min-h-screen bg-white flex flex-col animate-slide-in">
       {/* 實作-V-5　頂部列固定在頂端（改之前是 static，往下捲就看不到「新增行程」與設定）。
           底色必須不透明——不然捲過去的行程卡會透出來。
-          iOS 的瀏海／狀態列安全區由 `.topbar` 的 padding-top 處理。 */}
-      <div className="topbar px-5 pt-4 pb-0 flex items-center justify-between flex-shrink-0">
+          🔴 實作-Z-2　安全區從 `.topbar` 搬到外面的 `.topbarwrap`：
+          `env(safe-area-inset-top)` 在 iOS 上會隨網址列伸縮而變，放在 sticky 元素
+          自己的 padding 裡，那一條的高度就會跟著跳——Rozi：「首頁放名稱的地方
+          在滑動的時候會一直抖動，看得很不舒服」。
+          ⚠️ `pt-4` 拿掉：`.topbar` 的 padding-top 由 CSS 給固定的 16px，
+          留在這裡會被 utility 蓋回去，等於安全區白搬。 */}
+      <div className="topbarwrap flex-shrink-0">
+      <div className="topbar px-5 pb-0 flex items-center justify-between">
         <span className="font-sans text-title font-bold tracking-tight text-w">Tripay</span>
         <span className="flex items-center gap-2">
           {/* S-01-2　全形「＋」改用 Feather 的 add——同一個動作全站原本有兩種畫法 */}
@@ -80,6 +86,7 @@ export default function TripListPage() {
             <Icon name="settings" size={20} />
           </button>
         </span>
+      </div>
       </div>
 
       {/* Trip list */}

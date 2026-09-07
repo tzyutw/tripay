@@ -418,14 +418,23 @@ input:focus { border-color:var(--w) }
 .spin { padding:34px 0;text-align:center }
 .spin i { display:inline-block;width:20px;height:20px;border:2px solid var(--w); border-top-color:transparent;border-radius:var(--r-icon);font-style:normal }
 .toast { position:absolute;left:14px;right:14px;bottom:14px;z-index:60;background:#151C21;color:#fff; font-size:var(--fs-body);padding:10px 13px;border-radius:var(--r-base);box-shadow:0 6px 18px rgba(0,0,0,.28) }
-.topbar { position:sticky;top:0;z-index:30;background:#fff; padding-top:calc(16px + var(--sat)) }
-.topbar::before { content:'';position:absolute;left:0;right:0;top:-12px;height:12px; background:inherit;pointer-events:none }
+.topbarwrap { position:sticky;top:0;z-index:30;background:#fff;padding-top:var(--sat) }
+.topbar { background:#fff;padding-top:16px }
+.topbarwrap::before { content:'';position:absolute;left:0;right:0;top:-12px;height:12px; background:inherit;pointer-events:none }
+.herowrap { position:relative;padding-top:var(--sat) }
+.herowrap.is-compact { position:sticky;top:0;z-index:20; background-image:none !important;background-color:#1276C4 }
 .hero { padding:30px 14px 13px;color:#fff;position:relative }
-.hero.collapsing { position:sticky;top:0;z-index:20; background-color:#1276C4; padding-top:calc(30px + var(--sat)) }
-.hero.collapsing::after { content:'';position:absolute;inset:0;background:#1276C4;opacity:0; pointer-events:none;z-index:0 }
-.hero.collapsing>* { position:relative;z-index:1 }
+.herowrap.is-compact .hero { padding-top:8px;padding-bottom:8px }
+.hero { transition:padding .18s ease }
 .hero .navttl { position:absolute;left:50%;transform:translateX(-50%); max-width:56%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; font-size:var(--fs-strong);font-weight:700;opacity:0 }
-.hero.collapsing .dt { overflow:hidden }
+.herowrap.is-compact .navttl { opacity:1 }
+.hero .tt { transition:font-size .18s ease,opacity .18s ease,max-height .18s ease }
+.hero .dt { overflow:hidden;transition:opacity .18s ease,max-height .18s ease,margin-top .18s ease }
+.hero .navrow { transition:margin-bottom .18s ease }
+.herowrap.is-compact .tt { font-size:0;opacity:0;max-height:0 }
+.herowrap.is-compact .dt { opacity:0;max-height:0;margin-top:0 }
+.herowrap.is-compact .navrow { margin-bottom:0 }
+.herowrap.is-compact .sc { display:none }
 .hero .sc { position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 34%,rgba(0,0,0,.5)) }
 .hero .navrow { position:relative;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px }
 .hero .nb { font-size:var(--fs-body);font-weight:600;color:rgba(255,255,255,.92) }
@@ -458,9 +467,10 @@ input:focus { border-color:var(--w) }
 .statcard .foot { padding:8px 14px 11px;font-size:var(--fs-sub);color:var(--gr) }
 .curswitch { padding:10px 14px;background:#fff;border-bottom:1px solid var(--ln) }
 .listhd { padding:14px 14px 4px;font-size:var(--fs-sub);font-weight:600;color:var(--gr) }
-.swrow { display:flex;padding:10px 14px;background:#fff;border-bottom:1px solid var(--ln) }
-.swchip { display:inline-flex;align-items:center;gap:6px;box-sizing:border-box; min-height:var(--h-tap);padding:0 16px;border-radius:999px; border:1.5px solid var(--ln);background:#fff;color:var(--md); font-size:var(--fs-body);font-weight:600;text-align:left }
-.swchip.on { border-color:var(--w);background:var(--w);color:#fff }
+.listhd { display:flex;align-items:center;justify-content:space-between }
+.swchip { position:relative;display:inline-flex;align-items:center;gap:4px; background:none;border:0;padding:0; font-size:var(--fs-sub);font-weight:600;color:var(--gr) }
+.swchip.on { color:#1276C4 }
+.swchip::after { content:'';position:absolute;left:50%;top:50%; transform:translate(-50%,-50%);width:max(100%,44px);height:var(--h-tap) }
 .selfsum { display:flex;align-items:center;justify-content:space-between;width:100%; min-height:var(--h-tap);margin:2px 0 0;padding:11px 14px;background:#fff; border-top:1px solid var(--ln);border-bottom:1px solid var(--ln); font-size:var(--fs-sub);font-weight:600;color:var(--gr);text-align:left }
 .selfsum .money { color:var(--md) }
 .selfsum .pend { font-weight:500;color:var(--gr) }
@@ -570,24 +580,6 @@ input.auto { color:#9AA5AB }
 @media(prefers-reduced-motion:no-preference){.spin i{animation:sp 1s linear infinite} @keyframes sp{to{transform:rotate(360deg)}}}
 @media(prefers-reduced-motion:no-preference){ .anim.empty-anim .p1{animation:drift 3.4s ease-in-out infinite} .anim.empty-anim .p2{animation:drift 3.4s ease-in-out .4s infinite} .anim.fold .lines{animation:foldlines 1.4s 1 forwards} .anim.fold .sheetline{animation:foldsheet 1.4s 1 forwards} .anim.fold .plane{animation:planefly 1.4s 1 forwards} .anim.fold .trail{animation:trailtrace 1.4s 1 forwards} @keyframes drift{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes foldlines{0%{transform:scaleX(1);animation-timing-function:ease-in} 25%,100%{transform:scaleX(0)}} @keyframes foldsheet{0%,21%{transform:scaleX(1);opacity:1;animation-timing-function:cubic-bezier(.55,0,.5,1)} 50%{transform:scaleX(.06)} 50.01%{opacity:1} 61%,100%{transform:scaleX(.06);opacity:0}} @keyframes planefly{0%,50%{transform:none;opacity:0;stroke-dashoffset:100; animation-timing-function:cubic-bezier(.4,0,.9,.4)} 60%{opacity:1} 88%,100%{stroke-dashoffset:0;opacity:1} 100%{transform:translate(18px,-20px) rotate(-8deg)}} @keyframes trailtrace{0%,50%{clip-path:inset(-12% 100% -12% 0);opacity:1; animation-timing-function:cubic-bezier(.4,0,.9,.4)} 86%{clip-path:inset(-12% 0 -12% 0);opacity:1} 100%{clip-path:inset(-12% 0 -12% 0);opacity:.35}} }
 @keyframes dropback{0%{transform:scale(1.03)}60%{transform:scale(.99)}100%{transform:scale(1)}}
-@keyframes heroFlat{ from{opacity:0} to{opacity:1} }
-@keyframes heroShrink{ from{padding-top:calc(30px + var(--sat));padding-bottom:13px} to  {padding-top:calc(8px + var(--sat));padding-bottom:8px} }
-@keyframes heroTitle{ from{font-size:var(--fs-title);opacity:1;max-height:30px} to{font-size:0;opacity:0;max-height:0} }
-@keyframes heroDate{ from{opacity:1;max-height:24px;margin-top:4px} to{opacity:0;max-height:0;margin-top:0} }
-@keyframes heroNav{ from{margin-bottom:14px} to{margin-bottom:0} }
-@keyframes heroNavTtl{ from{opacity:0} to{opacity:1} }
-@supports (animation-timeline: scroll()) { .hero.collapsing::after{animation:heroFlat linear both; animation-timeline:scroll();animation-range:40px 110px} }
-@supports (animation-timeline: scroll()) { .hero.collapsing{animation:heroShrink linear both;animation-timeline:scroll();animation-range:0 120px} .hero.collapsing .tt{animation:heroTitle linear both;animation-timeline:scroll();animation-range:0 120px} .hero.collapsing .dt{animation:heroDate linear both;animation-timeline:scroll();animation-range:0 90px} .hero.collapsing .navrow{animation:heroNav linear both;animation-timeline:scroll();animation-range:0 120px} .hero.collapsing .navttl{animation:heroNavTtl linear both;animation-timeline:scroll();animation-range:60px 120px} }
-@supports not (height:100dvh){.s00wrap{min-height:100vh}}
-
-
-/* 實作-S-5　窄螢幕塞不下就縮短文字。**必須排在產生區塊之後**——
-   排前面會被抽取器搬過來的 `.lblnote` base 蓋掉（同特異度，後者生效）。
-   用 ::after 換字，不要在 JS 裡分支：兩份文案分開寫遲早會走鐘。 */
-@media (max-width: 359px) {
-  .lblnote { font-size: 0; }
-  .lblnote::after { content: '填一邊就好'; font-size: var(--fs-sub); }
-}
 
 /* S-05 自己帶著導覽列（‹ 結算）。放進 S-03 的「結算」分頁就變成兩顆返回鍵疊在一起，
    用 CSS 收起來——**不動 S-05 的輸出**（原型的做法一樣）。 */

@@ -433,66 +433,69 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 
 
 /* ══ 批二：S-03 / S-03d / S-04 / S-05 ══ */
-/* 實作-V-5　首頁頂部列固定。底色不透明，安全區留在 padding-top。 */
-.ui .topbar{position:sticky;top:0;z-index:30;background:#fff;
-  padding-top:calc(16px + var(--sat))}
+/* 實作-V-5　首頁頂部列固定，底色不透明。
+   🔴 實作-Z-2　**安全區從 `.topbar` 的 padding 搬到外面的 `.topbarwrap`**。
+   `env(safe-area-inset-top)` 在 iOS 上會隨網址列伸縮而變，放在 sticky 元素
+   自己的 padding 裡，那一條的高度就會跟著跳——Rozi：「首頁放名稱的地方
+   在滑動的時候會一直抖動」。搬出去之後 `.topbar` 高度固定，
+   安全區那一塊由 wrapper 的 padding 塗同一個白。 */
+.ui .topbarwrap{position:sticky;top:0;z-index:30;background:#fff;padding-top:var(--sat)}
+.ui .topbar{background:#fff;padding-top:16px}
 /* 實作-Y-3　往上多畫 12px。Rozi 在真機上看到頂部列與狀態列之間有約 1px 的縫，
    捲動時卡片會透出來——那是 iOS 的合成層次像素問題，無頭瀏覽器重現不了。
    ⚠️ **要用往上延伸的塗色，不是位移元素本身**：負 margin／transform 會讓
    `.topbar` 的 top 變成負值，V-5 的停止條件與 C6 的可點區量測都會跟著位移。
    ⚠️ `pointer-events:none`，否則 C6 的「中心點命中自己」會抓到它。 */
-.ui .topbar::before{content:'';position:absolute;left:0;right:0;top:-12px;height:12px;
+.ui .topbarwrap::before{content:'';position:absolute;left:0;right:0;top:-12px;height:12px;
   background:inherit;pointer-events:none}
 
-/* 🔴 實作-V-6　行程頁的 hero：**捲動時黏在頂端縮成一條**（iOS large-title 那種收合）。
-   改之前 `position:relative`，往下捲整塊消失，返回鍵與 ⋯ 選單跟著不見。
-   高度與字級隨捲動位置變化——用 CSS 的 `animation-timeline: scroll()` 做，
-   不用 JS 監聽捲動（監聽會在每一幀重繪整頁）。
-   ⚠️ 只掛在**行程頁**的 hero（`.hero.collapsing`）——分享頁共用 `.hero`，
-   那裡沒有這個需求，不要順手改它。
-   ⚠️ 不支援 scroll-timeline 的瀏覽器：hero 仍然黏在頂端、返回鍵與標題都在，
-   只是沒有縮小的過渡。 */
+/* 🔴 實作-Z-2　行程頁的 hero：**捲動時黏在頂端縮成一條**（iOS large-title 那種）。
+   ⚠️ **不要再用 `animation-timeline: scroll()`。** V-6 當初用捲動驅動動畫，
+   加上 Y-1 的 `viewport-fit=cover` 之後，iOS Safari 的網址列一伸縮，
+   可視高度與安全區都會變 → 捲動範圍變 → 動畫進度跳掉。
+   Rozi 在真機上看到的就是這個：**首頁頂部一直抖、行程名停在淡出到一半**。
+   改成**門檻切換**：`IntersectionObserver` 監看一個哨兵元素，越過門檻就切
+   `.is-compact`，過渡交給 CSS `transition`。IO 不是每一幀都跑，
+   網址列伸縮影響不到它。
+
+   ⚠️ **安全區不准放進會影響高度的 padding**（Z-2）。
+   `env(safe-area-inset-top)` 在 iOS 上會變，放進 sticky 元素的 padding
+   就會讓那一條的高度跟著跳。改成外面包一層 `.herowrap` 承擔安全區留白，
+   `.hero` 本身**高度固定**。漸層畫在 `.herowrap` 上，一路蓋滿安全區，
+   所以不會有接縫；收合時整個 wrapper 換成純 `#1276C4`。 */
+.ui .herowrap{position:relative;padding-top:var(--sat)}
+.ui .herowrap.is-compact{position:sticky;top:0;z-index:20;
+  /* 🔴 實作-Z-1　收合態要**畫出來就是藍的**。Y-2 只設了 background-color，
+     而漸層是 background-image、蓋在它上面——使用者看到的還是綠漸層。
+     這裡把 image 拿掉，`#1276C4` 才真的露出來（＝index.html 的 theme-color，
+     就算某台裝置的安全區失效，退回 theme-color 也還是同一個藍）。 */
+  background-image:none !important;background-color:#1276C4}
 .ui .hero{padding:30px 14px 13px;color:#fff;position:relative}
-.ui .hero.collapsing{position:sticky;top:0;z-index:20;
-  /* 🔴 實作-Y-2　收合態一律**工作色富士青**，而且**與 index.html 的 theme-color
-     同一個值**——這是雙保險：就算某個裝置的安全區還是失效，
-     退回 theme-color 畫的那一塊也還是同一個藍，不會分兩塊。
-     Rozi：「底色不要分兩塊，請改成藍色」。
-     展開態維持行程色漸層（她沒有要改那個），漸層會連安全區一起蓋滿。 */
-  background-color:#1276C4;
-  padding-top:calc(30px + var(--sat))}
-/* 收合之後不要行程色漸層——那是「分兩塊」的另一半來源 */
-/* 漸層是元件用 inline style 給的，keyframe 蓋不掉 inline 的 background-image。
-   改用一層 ::after 遮罩：收合時把工作色鋪滿，展開時透明。 */
-.ui .hero.collapsing::after{content:'';position:absolute;inset:0;background:#1276C4;opacity:0;
-  pointer-events:none;z-index:0}
-.ui .hero.collapsing>*{position:relative;z-index:1}
-@supports (animation-timeline: scroll()) {
-  .ui .hero.collapsing::after{animation:heroFlat linear both;
-    animation-timeline:scroll();animation-range:40px 110px}
-}
-@keyframes heroFlat{ from{opacity:0} to{opacity:1} }
-/* 收合之後標題移到與返回鍵同一列（不然光是 navrow 就 40px，塞不進 56px 的一條） */
+/* 收合條本身**不含安全區**——高度固定，網址列伸縮時不會跳 */
+.ui .herowrap.is-compact .hero{padding-top:8px;padding-bottom:8px}
+.ui .hero{transition:padding .18s ease}
+/* 收合之後標題移到與返回鍵同一列（不然光是 navrow 就 40px，塞不進一條） */
 .ui .hero .navttl{position:absolute;left:50%;transform:translateX(-50%);
   max-width:56%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   font-size:var(--fs-strong);font-weight:700;opacity:0}
-.ui .hero.collapsing .dt{overflow:hidden}
-@supports (animation-timeline: scroll()) {
-  .ui .hero.collapsing{animation:heroShrink linear both;animation-timeline:scroll();animation-range:0 120px}
-  .ui .hero.collapsing .tt{animation:heroTitle linear both;animation-timeline:scroll();animation-range:0 120px}
-  .ui .hero.collapsing .dt{animation:heroDate linear both;animation-timeline:scroll();animation-range:0 90px}
-  .ui .hero.collapsing .navrow{animation:heroNav linear both;animation-timeline:scroll();animation-range:0 120px}
-  .ui .hero.collapsing .navttl{animation:heroNavTtl linear both;animation-timeline:scroll();animation-range:60px 120px}
+/* ⚠️ 收合態的行程名**不准靠 opacity 動畫決定**（Rozi：「滑下去之後名字才不見」）。
+   收合時它就是要在：不透明、不做淡入淡出。 */
+.ui .herowrap.is-compact .navttl{opacity:1}
+.ui .hero .tt{transition:font-size .18s ease,opacity .18s ease,max-height .18s ease}
+.ui .hero .dt{overflow:hidden;transition:opacity .18s ease,max-height .18s ease,margin-top .18s ease}
+.ui .hero .navrow{transition:margin-bottom .18s ease}
+.ui .herowrap.is-compact .tt{font-size:0;opacity:0;max-height:0}
+.ui .herowrap.is-compact .dt{opacity:0;max-height:0;margin-top:0}
+.ui .herowrap.is-compact .navrow{margin-bottom:0}
+/* 🔴 實作-Z-1　收合態把 `.sc` 那層暗色遮罩也關掉。它存在是為了讓白字壓在
+   行程色漸層上還讀得到；收合態底下是純 `#1276C4`，遮罩只會把藍色壓濁
+   ——實測收合條的像素是 rgb(16,103,171) 而不是 rgb(18,118,196)，
+   Rozi 要的「純藍」就被它吃掉了。
+   白字壓 #1276C4 的對比實算是 **4.76:1**（超過 AA 的 4.5），不需要遮罩。 */
+.ui .herowrap.is-compact .sc{display:none}
+@media (prefers-reduced-motion: reduce){
+  .ui .hero,.ui .hero .tt,.ui .hero .dt,.ui .hero .navrow{transition:none}
 }
-@keyframes heroShrink{
-  from{padding-top:calc(30px + var(--sat));padding-bottom:13px}
-  to  {padding-top:calc(8px + var(--sat));padding-bottom:8px}
-}
-@keyframes heroTitle{ from{font-size:var(--fs-title);opacity:1;max-height:30px}
-                      to{font-size:0;opacity:0;max-height:0} }
-@keyframes heroDate{ from{opacity:1;max-height:24px;margin-top:4px} to{opacity:0;max-height:0;margin-top:0} }
-@keyframes heroNav{ from{margin-bottom:14px} to{margin-bottom:0} }
-@keyframes heroNavTtl{ from{opacity:0} to{opacity:1} }
 .ui .hero .sc{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 34%,rgba(0,0,0,.5))}
 .ui .hero .navrow{position:relative;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .ui .hero .nb{font-size:var(--fs-body);font-weight:600;color:rgba(255,255,255,.92)}
@@ -536,16 +539,18 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 .ui .statcard .foot{padding:8px 14px 11px;font-size:var(--fs-sub);color:var(--gr)}
 .ui .curswitch{padding:10px 14px;background:#fff;border-bottom:1px solid var(--ln)}
 .ui .listhd{padding:14px 14px 4px;font-size:var(--fs-sub);font-weight:600;color:var(--gr)}
-/* 實作-X-1　「只看共同的帳」。**一顆真的開關**，不是印著字的貼紙：
-   未開描邊、開了填實——與 .selchip 同一套選取語彙，不另開第二套（打勾框那種）。
-   位置在統計卡與消費清單標頭之間：它同時影響上面的數字與下面的清單，
-   掛在任何一邊都會讓另一邊的變化顯得莫名其妙。 */
-.ui .swrow{display:flex;padding:10px 14px;background:#fff;border-bottom:1px solid var(--ln)}
-.ui .swchip{display:inline-flex;align-items:center;gap:6px;box-sizing:border-box;
-  min-height:var(--h-tap);padding:0 16px;border-radius:999px;
-  border:1.5px solid var(--ln);background:#fff;color:var(--md);
-  font-size:var(--fs-body);font-weight:600;text-align:left}
-.ui .swchip.on{border-color:var(--w);background:var(--w);color:#fff}
+/* 🔴 實作-Z-3　「只看共同的帳」**移進「消費紀錄 · N 筆」那一行的右邊**，
+   不再自己佔一列。Rozi：「按鈕有點太大了，長得太明顯，我覺得不好看。」
+   字級與左邊的標頭同一級、不粗體、不填色；開著時**只有文字變成工作色**。
+   ⚠️ 可點區仍要 ≥44×44——用透明的 `::after` 擴張撐（與 `.clearbtn` 同一套做法），
+   **不是把字級或按鈕撐大**。 */
+.ui .listhd{display:flex;align-items:center;justify-content:space-between}
+.ui .swchip{position:relative;display:inline-flex;align-items:center;gap:4px;
+  background:none;border:0;padding:0;
+  font-size:var(--fs-sub);font-weight:600;color:var(--gr)}
+.ui .swchip.on{color:#1276C4}
+.ui .swchip::after{content:'';position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);width:max(100%,44px);height:var(--h-tap)}
 /* 摘要行：開關收起來的那幾筆的去處。點得進去，所以列尾有方向指示的 ›（裸 icon）。 */
 .ui .selfsum{display:flex;align-items:center;justify-content:space-between;width:100%;
   min-height:var(--h-tap);margin:2px 0 0;padding:11px 14px;background:#fff;
@@ -2338,14 +2343,20 @@ function renderS03() {
   const nUn = S.unsettledList.length;
   const anyApprox = t.members.some(m => S.approx[m.id]);
 
-  let h = b('S-03-1', `<div class="hero" style="background:${toneFor(t.name, t.tone, t.toneSeq)}">
+  /* 實作-Z-2　hero 外面包一層 `.herowrap`：安全區的留白與塗色由它承擔，
+     `.hero` 本身高度固定（iOS 網址列伸縮時才不會跳）。漸層畫在 wrapper 上，
+     一路蓋滿安全區，所以沒有接縫。 */
+  let h = b('S-03-1', `<div class="herowrap" style="background:${toneFor(t.name, t.tone, t.toneSeq)}">
+    <div class="hero">
     <div class="sc"></div>
     <div class="navrow">
       ${b('S-03-2', `<button class="ic2" aria-label="返回">${ic('back',20)}</button>`)}
+      <span class="navttl">${esc(t.name)}</span>
       ${b('S-03-31', `<button class="ic2" id="s03more" aria-label="更多">${ic('more',20)}</button>`)}
     </div>
     ${b('S-03-7', `<div class="tt">${esc(t.name)}</div>`)}
     ${b('S-03-8', `<div class="dt tnum">${dateRange(t.start, t.end)}</div>`)}
+    </div>
   </div>`);
 
   // #28-6a 分段控制：切換檢視，不是動作。「結算」分頁的內容就是 S-05 整頁。
@@ -2390,13 +2401,12 @@ function renderS03() {
     ${nGap ? `<p class="hint">有 ${nGap} 筆還沒換算成台幣，上面的總花費不含它們。${
       rateNow ? '' : `<a href="#s02b" class="ratelink">設現金匯率 ${ic('next',13)}</a>`}</p>` : ''}</div>`);
 
-  /* 實作-X-1　「只看共同的帳」。位置在統計卡與清單標頭之間：它同時影響上面的
-     數字與下面的清單，掛在任何一邊都會讓另一邊的變化顯得莫名其妙。
-     一顆真的按鈕，未開描邊、開了填實——與 .selchip 同一套選取語彙。 */
-  h += b('S-03-34', `<div class="swrow"><button class="swchip${store.s03OnlyShared ? ' on' : ''}"
-    aria-pressed="${store.s03OnlyShared}" data-s03only="1">只看共同的帳</button></div>`);
-
-  h += `<div class="listhd"><span>消費紀錄 · ${S.list.length} 筆</span></div>`;
+  /* 🔴 實作-Z-3　「只看共同的帳」搬進清單標頭那一行的右邊（Rozi：按鈕太大太明顯）。
+     它同時影響上面的數字與下面的清單，掛在標頭上仍然說得通——標頭本來就是
+     「下面這些是什麼」的說明，而 N 也會跟著它變。 */
+  h += `<div class="listhd"><span>消費紀錄 · ${S.list.length} 筆</span>${
+    b('S-03-34', `<button class="swchip${store.s03OnlyShared ? ' on' : ''}"
+      aria-pressed="${store.s03OnlyShared}" data-s03only="1">只看共同的帳</button>`)}</div>`;
   if (nUn > 0 && !S.readonly)
     h += b('S-03-29', `<button class="unsettled" data-openfilter="all"><span>${ic('warn',16)} 有 ${nUn} 筆還沒算清楚</span>${ic('next',16)}</button>`);
 
@@ -3015,7 +3025,7 @@ Object.assign(INDEX, {
     ['S-03-31','⋯ 選單觸發鈕','op','<b>新（#28-6b）</b>：hero 右上唯一的一顆。原本那排四個 icon 混了三種層級——每天要用的只有記帳、複製行程產出的是新行程屬於首頁、設定是 App 層級的，這是違和感的來源'],
     ['S-03-32','⋯ 選單','op','<b>新（#28-6b）</b>：沿用既有的 <code>.sheet</code> 底部彈層，不新造第三種。內容依狀態變——準備／旅途中 4 項、已結算 5 項（多「封存行程」）、已封存 3 項（沒有「編輯行程」）'],
     ['S-03-33','消費／結算分段控制','op','<b>新（#28-6a）</b>：兩格，切換<b>檢視</b>不是動作。「結算」分頁的內容就是 S-05 整頁，<b>S-05 的編號、內容與行為一律未動</b>，只改了從哪裡進去'],
-    ['S-03-34','「只看共同的帳」開關','op','<b>新（實作-X，Rozi 2026-09-07）</b>：把自己買給自己的那幾筆收起來——它們對結算完全沒有影響（她的濟州島 132 筆裡有 41 筆是）。判斷：<code>personal</code>，或參與者剛好一人且就是付款人。<b>「別人付、只算某一個人」不算</b>，那會產生欠款。位置在統計卡與清單標頭之間：它同時影響上面的數字與下面的清單。開著時統計卡標題改成「共同的帳」——不改的話那個數字就是在說謊。預設關，按過之後記住這一趟的選擇'],
+    ['S-03-34','「只看共同的帳」開關','op','<b>新（實作-X，Rozi 2026-09-07）／位置與樣式改（實作-Z-3）</b>：把自己買給自己的那幾筆收起來——它們對結算完全沒有影響（她的濟州島 132 筆裡有 41 筆是）。判斷：<code>personal</code>，或參與者剛好一人且就是付款人。<b>「別人付、只算某一個人」不算</b>，那會產生欠款。<b>位置在「消費紀錄 · N 筆」那一行的右邊</b>（原本自己佔一列 65px，Rozi：「按鈕有點太大了，長得太明顯」）。字級與標頭同一級、不粗體、不填色，開著時<b>只有文字變成工作色</b>；可點區靠透明的 <code>::after</code> 撐到 44。開著時統計卡標題改成「共同的帳」——不改的話那個數字就是在說謊。預設關，按過之後記住這一趟的選擇'],
     ['S-03-35','被收起來那幾筆的摘要行','op','<b>新（實作-X）</b>：<code>另有 N 筆自己買的 · $金額</code>，點得進去看那幾筆。金額只含<b>算得出台幣</b>的，算不出來的接一句「（另有 M 筆還沒算清楚）」——混進去的話「總花費(關) − 共同的帳(開) ＝ 這一行」就不成立了。<b>「有 N 筆還沒算清楚」的 N 不受開關影響</b>：那是資料還沒填完，跟想看哪一批帳無關'],
   ],
   s03d: [

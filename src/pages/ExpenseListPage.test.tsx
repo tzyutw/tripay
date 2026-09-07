@@ -125,8 +125,10 @@ describe('B-3　S-03 行程頁', () => {
     fireEvent.click(screen.getByText('總花費'));          // #17-2 每人分擔預設收合，要展開才掃得到
 
     /* 實作-J 之後每個成員識別自成節點（圓底與名字各一個 span），段數因此變多。
-       實作-X 又 +1：「只看共同的帳」那顆開關。 */
-    expect(want('s03').list.length).toBe(95);             // 基準本身要有東西
+       實作-X 又 +1：「只看共同的帳」那顆開關。
+       實作-Z 再 +1：收合條的 `.navttl`（行程名在收合後要看得到），
+       所以行程名在 s03 出現兩次——**內容沒有新增**，只是同一句多一個節點。 */
+    expect(want('s03').list.length).toBe(96);             // 基準本身要有東西
     const got = flat();
     const missing = want('s03').list.filter(t => !got.includes(t.replace(/\s+/g, '')));
     expect(missing, `原型有、App 沒有：${missing.join(' ｜ ')}`).toEqual([]);

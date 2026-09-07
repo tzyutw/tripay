@@ -222,8 +222,12 @@ const alpha = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return 1;
   /* ── 12／13　V-5 首頁頂部列 ──────────────────────────────────────────── */
   console.log('');
   await go('screen=s01');
+  /* ⚠️ 實作-Z-2 之後**黏住的是 `.topbarwrap`**，安全區的留白搬到它身上，
+     `.topbar` 只負責固定高度（`env()` 在 iOS 上會變，放在 sticky 元素自己的
+     padding 裡會讓那一條的高度跟著跳 → Rozi 看到的抖動）。
+     這一條要驗的東西沒變：**捲動後還黏在頂端、底色不透明、不蓋住下面的內容**。 */
   const top = await p.evaluate(async () => {
-    const bar = document.querySelector('.topbar');
+    const bar = document.querySelector('.topbarwrap');
     if (!bar) return null;
     const r0 = bar.getBoundingClientRect();
     const next = bar.parentElement.children[1];
@@ -240,7 +244,7 @@ const alpha = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return 1;
   });
   console.log(`   頂部列 高 ${top && Math.round(top.h)}｜捲 ${top && top.scrolled}px 後 top ${top && Math.round(top.after)}｜` +
               `底色 ${top && top.bg}｜下一塊 top ${top && Math.round(top.nextTop)}`);
-  ok(top !== null, '找不到 .topbar，這條等於沒驗');
+  ok(top !== null, '找不到 .topbarwrap，這條等於沒驗');
   ok(top.scrolled >= 200, `頁面沒有真的捲動（${top.scrolled}px），這條等於沒驗`);
   ok(top.after <= 4, `捲動後頂部列沒有黏住（top ${top.after}）`);
   ok(alpha(top.bg) === 1, `頂部列底色不是不透明：${top.bg}`);
@@ -251,13 +255,16 @@ const alpha = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return 1;
   for (const w of [320, 390, 414]) {
     await p.setViewport({ width: w, height: 844, isMobile: true, hasTouch: true });
     await go('screen=s03');
+    /* ⚠️ 實作-Z-2 之後收合條是 `.herowrap`（`.hero` 只是它裡面固定高度的那一層）。
+       量高度／黏頂／底色都要看 wrapper，量鍵與日期仍看 `.hero` 裡面。 */
     const st = await p.evaluate(async () => {
+      const wrap = document.querySelector('.herowrap');
       const hero = document.querySelector('.hero');
-      if (!hero) return null;
+      if (!hero || !wrap) return null;
       const out = [];
       for (const y of [0, 100, 200, 300, 400]) {
         window.scrollTo(0, y); await new Promise(r => setTimeout(r, 200));
-        const r2 = hero.getBoundingClientRect();
+        const r2 = wrap.getBoundingClientRect();
         const keys = ['返回', '更多'].map(k => {
           const el = hero.querySelector(`[aria-label="${k}"]`);
           if (!el) return null;
@@ -271,7 +278,7 @@ const alpha = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return 1;
         out.push({ y, h: r2.height, top: r2.top, keys,
           dt: hero.querySelector('.dt').getBoundingClientRect().height,
           ttlSeen: (hero.innerText || '').includes('濟州島'),
-          bg: getComputedStyle(hero).backgroundColor,
+          bg: getComputedStyle(wrap).backgroundColor,
           sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth });
       }
       window.scrollTo(0, 0); await new Promise(r => setTimeout(r, 200));
@@ -279,7 +286,7 @@ const alpha = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return 1;
         .filter(x => { const q = x.getBoundingClientRect(); return q.top >= 0 && q.bottom <= window.innerHeight; }).length;
       return { out, inView };
     });
-    if (!st) { ok(false, `@${w} 找不到 .hero`); continue; }
+    if (!st) { ok(false, `@${w} 找不到 .herowrap／.hero`); continue; }
     const open = st.out[0], shut = st.out[st.out.length - 1];
     console.log(`   @${w} hero 高 ${st.out.map(x => Math.round(x.h)).join('→')}｜` +
                 `收合後 top ${Math.round(shut.top)}｜日期高 ${Math.round(shut.dt)}｜` +
