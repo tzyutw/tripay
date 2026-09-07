@@ -28,6 +28,24 @@ const writes: string[] = [];
 
 let seqId = 9000;
 
+/* `expenses.expense_splits` 是巢狀查出來的一份，寫入 `expense_splits` 時要同步維護，
+   否則「存完再打開」看不到剛填的分帳（真實的 PostgREST 是即時 join 出來的）。 */
+const expenseRows = () => (rows as unknown as
+  Record<string, Record<string, unknown>[]>).expenses ?? [];
+function attachSplit(r: Record<string, unknown>) {
+  const e = expenseRows().find(x => x.id === r.expense_id);
+  if (!e) return;
+  if (!e.expense_splits) e.expense_splits = [];
+  (e.expense_splits as Record<string, unknown>[]).push(r);
+}
+function detachSplit(r: Record<string, unknown>) {
+  const e = expenseRows().find(x => x.id === r.expense_id);
+  const arr = e && (e.expense_splits as Record<string, unknown>[] | undefined);
+  if (!arr) return;
+  const i = arr.indexOf(r);
+  if (i >= 0) arr.splice(i, 1);
+}
+
 function chain(table: string) {
   /* ⚠️ `rows[table]` 會被寫入改動，所以**每次取用都要重讀**，
      不能在函式開頭抓一份快照——抓了快照就等於寫進去也讀不到。 */
@@ -82,6 +100,13 @@ function chain(table: string) {
       const arr = (Array.isArray(payload) ? payload : [payload]) as Record<string, unknown>[];
       const added = arr.map(r => ({ id: `x${++seqId}`, ...r }));
       list().push(...added);
+      /* 🔴 H-1　真實的 PostgREST 對 `select('*, expense_splits(*)')` **一定回一個陣列**，
+         空的就是 `[]`。新列少了這個欄位的話，`e.expense_splits.filter(...)` 會拿到
+         undefined → 整個 app 白屏，而那是**量測靶造出來的假故障**。
+         ⚠️ 不要跑去產品那一行加 `?? []` 繞過——那等於把量測靶的問題藏起來。 */
+      if (table === 'expenses') for (const r of added) (r as Record<string, unknown>).expense_splits ??= [];
+      /* 分帳列要掛回它所屬的那一筆消費，不然存完再打開會看不到自己剛填的分帳 */
+      if (table === 'expense_splits') for (const r of added) attachSplit(r);
       return added;
     };
     return c;
@@ -113,6 +138,8 @@ function chain(table: string) {
       const arr = list();
       const hit = hits();
       for (const r of hit) arr.splice(arr.indexOf(r), 1);
+      /* 巢狀的那一份也要清掉，不然「改分帳方式」會愈存愈多 */
+      if (table === 'expense_splits') for (const r of hit) detachSplit(r);
       return hit;
     };
     return c;

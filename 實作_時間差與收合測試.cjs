@@ -85,6 +85,37 @@ const alpha = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return 1;
   ok(reopened.value === 'ZZ 立刻要看到的新標題',
     `1 秒內重開讀到的是舊資料「${reopened.value}」——單筆快取沒被清`);
 
+  /* 4　**新增**路徑也要清單筆快取（H-1：先前量測靶的 insert 沒帶 expense_splits，
+     一點開就白屏，所以這條從來沒被量到） */
+  await go('screen=s03');
+  const added = await p.evaluate(async () => {
+    const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    const add = [...document.querySelectorAll('button')].find(x => x.textContent.includes('記一筆'));
+    if (!add) return { err: '找不到「記一筆」' };
+    add.click(); await new Promise(r => setTimeout(r, 500));
+    const title = document.querySelector('input[aria-label="花費"]');
+    set.call(title, 'ZZ新增的一筆'); title.dispatchEvent(new Event('input', { bubbles: true }));
+    const twd = document.getElementById('e-twd');
+    set.call(twd, '999'); twd.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 150));
+    const payer = [...document.querySelectorAll('.chips .chip')].find(x => x.textContent.includes('Alex'));
+    if (payer) payer.click();
+    await new Promise(r => setTimeout(r, 150));
+    [...document.querySelectorAll('button')].find(x => x.textContent.trim() === '記下來').click();
+    let row = null;
+    for (let i = 0; i < 24 && !row; i++) { await new Promise(r => setTimeout(r, 50));
+      row = [...document.querySelectorAll('.exprow')]
+        .find(x => (x.querySelector('.t') || {}).textContent === 'ZZ新增的一筆'); }
+    if (!row) return { err: '清單上沒有新增那一筆' };
+    row.click(); await new Promise(r => setTimeout(r, 600));
+    const v = document.querySelector('input[aria-label="花費"]');
+    return { value: v ? v.value : null };
+  });
+  console.log(`   V-1 新增後立刻點開，表單裡是「${added.value ?? added.err}」`);
+  ok(!added.err, `新增路徑沒走完：${added.err}`);
+  ok(added.value === 'ZZ新增的一筆', `新增後點開讀到「${added.value}」`);
+  ok(errs.length === 0, `新增路徑噴了 pageerror：${errs.join(' | ')}`);
+
   /* 3　不得順手改 staleTime */
   const appSrc = fs.readFileSync('src/App.tsx', 'utf8');
   ok(/staleTime:\s*30_000/.test(appSrc), 'App.tsx 的 staleTime 被動過了（那是全站設定）');
