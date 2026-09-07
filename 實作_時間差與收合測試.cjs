@@ -85,6 +85,20 @@ const alpha = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return 1;
   ok(reopened.value === 'ZZ 立刻要看到的新標題',
     `1 秒內重開讀到的是舊資料「${reopened.value}」——單筆快取沒被清`);
 
+  /* H-1　新插入的消費**一定要帶 `expense_splits`**（真實 PostgREST 對
+     `select('*, expense_splits(*)')` 一定回陣列，空的就是 `[]`）。
+     ⚠️ 要**直接對樁驗**：走畫面的話分帳列會跟著插入、順手把陣列建起來，
+     這條就永遠是綠的（第一版的金絲雀就是這樣沒紅）。 */
+  await go('screen=s03');
+  const nested = await p.evaluate(async () => {
+    const sb = window.__SUPABASE_STUB__;
+    const r = await sb.from('expenses')
+      .insert({ trip_id: 't1', title: 'ZZ 沒有分帳的一筆', twd_amount: 1 }).select().single();
+    return { has: Array.isArray(r.data && r.data.expense_splits), type: typeof (r.data || {}).expense_splits };
+  });
+  console.log(`   H-1 新插入的消費帶 expense_splits 陣列 ${nested.has}（型別 ${nested.type}）`);
+  ok(nested.has, '新插入的消費沒有 expense_splits——產品那一行會拿到 undefined 而白屏');
+
   /* 4　**新增**路徑也要清單筆快取（H-1：先前量測靶的 insert 沒帶 expense_splits，
      一點開就白屏，所以這條從來沒被量到） */
   await go('screen=s03');
