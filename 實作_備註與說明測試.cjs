@@ -120,7 +120,15 @@ const parseRgb = s => (s.match(/\d+/g) || []).slice(0, 3).map(Number);
 
   /* ── 5 備註只在 S-04 ─────────────────────────────────────────────────── */
   console.log('');
-  await go('screen=s04&exp=e1');
+  /* ⚠️ 不要寫死 `exp=e1`——樁現在真的會依 id 過濾，而 fixture 的 seq
+     會隨著新增假資料而位移。從 `__HARNESS_FIXTURE__` 查那一筆的 id。 */
+  await go('screen=s03');
+  const noteId = await p.evaluate(() => {
+    const fx = window.__HARNESS_FIXTURE__;
+    const e = (fx.expenses || []).find(x => x.note);
+    return e ? e.id : null; });
+  ok(noteId !== null, '假資料裡沒有帶備註的消費，下面三條等於沒驗');
+  await go(`screen=s04&exp=${noteId}`);
   const noteUi = await p.evaluate(() => {
     const el = document.querySelector('input[aria-label="備註"]');
     if (!el) return null;

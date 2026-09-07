@@ -2190,7 +2190,13 @@ function expenseRow(e, c, S, opts) {
       : `${approx ? '<i class="approx">約</i>' : ''}<span class="money">${money(c.twdTotal)}</span>`;
   const tag = o.readonly ? 'div' : 'button';
   const attr = o.readonly ? '' : ` data-editexp="${e.id}"`;
-  const rowHtml = `<${tag} class="exprow${pend ? ' pend' : ''}"${attr}>
+  /* 🔴 實作-U-6　§5.4 原本只有兩種狀態（整筆未定 → 橘紅左框；各自金額
+     is_estimated → 加「約」）。**第三種**是「整筆台幣有填、但各自金額算不出來」
+     ——calc() 因為 noAutoReason 不標 estimated，兩種樣式都套不上，看起來完全正常。
+     沿用橘紅左框；金額欄照常顯示台幣總額（那個數字是真的）。 */
+  const parts0 = e.parts || [];
+  const cantSplit = !pend && parts0.length > 0 && parts0.every(id => c.shares[id] == null);
+  const rowHtml = `<${tag} class="exprow${pend || cantSplit ? ' pend' : ''}"${attr}>
     <span class="ic">${e.emoji}</span>
     <span class="mid"><span class="t">${esc(e.title)}</span>
       <span class="s">${payer ? `<span class="mtag">${avatarHTML(payer, t.members.indexOf(payer), 20)}<span class="trunc">${esc(payer.name)}</span></span>` : ''} ${badges.join(' ')}</span></span>
@@ -2341,9 +2347,13 @@ function statCard(S, o) {
         ? `<div class="perrow ro">${inner}</div>`
         : `<button class="perrow" data-permember="${m.id}">${inner}</button>`;
     }).join('')}</div>`;
-  const foot = showApprox
-    ? `<div class="foot">標「約」的金額還沒算清楚${o.readonly ? '' : '，點名字看是哪幾筆'}</div>`
-    : '';
+  /* 🔴 實作-U-2-f　點名字看到的**已經不只是未定案**，是整個人的帳（三段），
+     所以這一行改成常駐。改之前「沒人被標『約』就整行不顯示」——
+     Rozi 點 `Ning $74,565` 進去看到「影響 Ning 的 · 0 筆／都算清楚了」，
+     那個入口常駐可點，卻只在有人被標「約」時才被說明。 */
+  const foot = o.readonly
+    ? (showApprox ? `<div class="foot">標「約」的金額還沒算清楚</div>` : '')
+    : `<div class="foot">點名字看這個人的帳是怎麼算出來的</div>`;
   return { tot, per, foot };
 }
 function RULES_CUR_SYM(c) { const f = CURRENCIES.find(x => x[0] === c); return f ? f[2] : '¥'; }

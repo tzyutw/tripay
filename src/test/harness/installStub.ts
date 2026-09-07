@@ -29,14 +29,21 @@ const writes: string[] = [];
 function chain(table: string) {
   const data = rows[table] ?? [];
   const result = { data, error: null, count: data.length };
+  /* `.eq('id', …)` 要真的過濾——不然「編輯第 N 筆」永遠拿到第一筆，
+     所有「載入既有消費」的斷言都會在錯的資料上跑（U-1-b 就是這樣差點驗不出來）。 */
+  let byId: string | null = null;
+  const one = () => (byId
+    ? (data as { id?: string }[]).find(x => x.id === byId) ?? null
+    : data[0] ?? null);
   const c: Record<string, unknown> = {
     then: (r: (v: typeof result) => unknown) => Promise.resolve(result).then(r),
-    single: () => Promise.resolve({ data: data[0] ?? null, error: null }),
-    maybeSingle: () => Promise.resolve({ data: data[0] ?? null, error: null }),
+    single: () => Promise.resolve({ data: one(), error: null }),
+    maybeSingle: () => Promise.resolve({ data: one(), error: null }),
   };
-  for (const m of ['select', 'eq', 'neq', 'in', 'is', 'not', 'order', 'limit', 'range',
+  for (const m of ['select', 'neq', 'in', 'is', 'not', 'order', 'limit', 'range',
                    'filter', 'gte', 'lte', 'match', 'or', 'returns', 'abortSignal'])
     c[m] = () => c;
+  c.eq = (col: string, v: unknown) => { if (col === 'id') byId = String(v); return c; };
   for (const m of ['insert', 'update', 'upsert', 'delete'])
     c[m] = () => { writes.push(`${m}:${table}`); return c; };
   return c;

@@ -81,7 +81,18 @@ export function ExpenseRow({ e, c, S, readonly, money: mo, onEdit, onReadonlyTap
     </>
   );
 
-  const cls = `exprow${pend ? ' pend' : ''}`;
+  /* 🔴 實作-U-6　§5.4 原本只定義兩種狀態（整筆未定 → 橘紅左框；各自金額
+     `is_estimated` → 加「約」）。**「藥局」是第三種**：整筆台幣有填（所以不是整筆未定），
+     但各自金額算不出來——`calc()` 因為 `noAutoReason` 而不標 `estimated`，
+     所以也拿不到「約」。**兩種樣式都套不上，於是它看起來完全正常。**
+     Rozi：「我在這麼多筆消費紀錄裡，看不出來哪一些還需要再做調整。」
+     沿用既有的橘紅左框（不新做一套顏色）；金額欄照常顯示台幣總額——
+     那個數字是真的，寫「還沒填」會是假的。
+     已結算／已封存維持 §5.6：不顯示這個標記。 */
+  const parts0 = e.parts ?? [];
+  const cantSplit = !pend && !S.readonly && parts0.length > 0
+    && parts0.every(id => c.shares?.[id] == null);
+  const cls = `exprow${pend || cantSplit ? ' pend' : ''}`;
   /* 封存態的列**維持不可編輯**（決策 B），但點下去要有話講——
      現在完全沒反應，跟壞掉分不出來。 */
   if (readonly)

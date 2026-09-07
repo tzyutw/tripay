@@ -72,6 +72,9 @@ export const viewForeign = Q.get('view') === 'foreign';
  *  `驗收：濟州島`，還沒結算過**——實作-T 做的結算三段在 hub 下一次都沒被驗過。
  *  收款人刻意挑**不是付最多錢的那個人**，否則 direct 與 hub 會產生一樣的轉帳清單。 */
 export const settleHub = Q.get('settle') === 'hub';
+/** `?fill=noforetotal`：各自付各的、填的是外幣、**外幣總額空白**、還有人沒填。
+ *  這就是 production「藥局」那一筆的形狀——改之前它會把外幣數字當成台幣。 */
+export const fillNoForTotal = Q.get('fill') === 'noforetotal';
 
 /** 該幣別「好記的那個方向」的代表值 → 正確的兩欄組合 */
 function fullRateColumns(code: string) {
@@ -171,10 +174,20 @@ const baseExpenses: ExpenseWithSplits[] = [
        twd_amount: 50000, payer_member_id: M[0], is_sponsor: true }),
 ];
 
+/** `?fill=noforetotal` 專用：台幣 1,140、外幣總額空白、兩人填了外幣、兩人沒填。
+ *  形狀逐項照 production 的「藥局」抄——那一筆改之前被算成 52,000。 */
+const noForTotalExpense = mk({
+  title: '藥局（外幣總額空白）', category_emoji: '💄', expense_date: '2026-03-17',
+  twd_amount: 1140, foreign_amount: null, expense_type: 'individual',
+  split_fill_currency: 'FOR', indivFor: { [M[0]]: 12000, [M[1]]: 40000 },
+  payer_member_id: M[1],
+});
+
 /* 兩個新模式各自**只掛那一筆**——總額與每人分擔就只反映它，
    量得出「這一筆有沒有被結算跳過／有沒有整筆算到付款人頭上」。 */
 export const expenses: ExpenseWithSplits[] =
-  fillFor ? [fillForExpense] : forOnly ? [forOnlyExpense] : baseExpenses;
+  fillFor ? [fillForExpense] : forOnly ? [forOnlyExpense]
+  : fillNoForTotal ? [...baseExpenses, noForTotalExpense] : baseExpenses;
 
 /** 這一趟被 confirmed 的那一次結算的 id */
 export const CONFIRMED_ID = 'stl-confirmed';

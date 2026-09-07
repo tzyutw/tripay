@@ -230,15 +230,25 @@ describe('B-3　S-03d 未定案清單', () => {
     expect(missing, `原型有、App 沒有：${missing.join(' ｜ ')}`).toEqual([]);
   });
 
-  it('從統計卡的人進來：同一個畫面，只有標題與範圍不同', async () => {
+  /* 🔴 實作-U-2　從統計卡的人進來，改成 **`{名字} 的帳`**（三段），
+     不再是「還沒算清楚」的篩選檢視。
+     Rozi 點 `Ning $74,565` 進去看到「影響 Ning 的 · 0 筆／都算清楚了」——
+     那個入口常駐可點，但沒有未定案的人點下去就是一片空白。 */
+  it('從統計卡的人進來：`{名字} 的帳`，三段各自的小計加起來等於那一列的金額', async () => {
     await show();
     fireEvent.click(screen.getByText('總花費'));
     /* 實作-J 之後消費列的付款人也會出現「小美」，要指定是統計卡那一列 */
     const row = [...document.querySelectorAll('.perrow')]
       .find(r => (r.textContent ?? '').includes('小美'))!;
     expect(row, '統計卡裡找不到小美那一列').toBeTruthy();
+    const amt = Number(((row.querySelector('.am .money')?.textContent) ?? '')
+      .replace(/[^\d.-]/g, ''));
     fireEvent.click(row);
-    expect(screen.getByText(/影響 小美 的 · \d+ 筆/)).toBeInTheDocument();
+    expect(screen.getByText('小美 的帳')).toBeInTheDocument();
+    const segs = [...document.querySelectorAll('[data-seg]')];
+    expect(segs.length, '一段都沒有').toBeGreaterThan(0);
+    const sum = segs.reduce((a, e) => a + Number((e as HTMLElement).dataset.segSum), 0);
+    expect(Math.abs(sum - amt), `三段小計 ${sum} 與那一列的 ${amt} 對不起來`).toBeLessThanOrEqual(1);
   });
 
   /* 🔴 實作-T-1　**這條原本是反過來鎖著的**。
