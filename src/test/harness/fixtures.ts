@@ -211,8 +211,10 @@ const baseExpenses: ExpenseWithSplits[] = [
   mk({ title: '機場接送', category_emoji: '🚌', expense_date: '2026-03-18',
        twd_amount: 1600, payer_member_id: M[0], settled_on_spot: true }),
   mk({ title: '計程車', category_emoji: '🚕', expense_date: '2026-03-16', payer_member_id: M[0] }),
+  /* 🔴 贊助的 `twd_amount` 在 production 是**負數**（Rozi 那筆「導遊贊助」是 −50000）。
+     假資料原本寫正數——常設 C10 說的「借了正式資料的名字、形狀卻不同」。 */
   mk({ title: '爸爸贊助', category_emoji: '💝', expense_date: '2026-03-14',
-       twd_amount: 50000, payer_member_id: M[0], is_sponsor: true }),
+       twd_amount: -50000, payer_member_id: M[0], is_sponsor: true }),
 ];
 
 /** `?fill=remainder` 專用（規格 §47）：外幣總額**有值**、剩餘**不為 0**、一人沒填。

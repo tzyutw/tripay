@@ -124,7 +124,8 @@ const parseRgb = s => (s.match(/\d+/g) || []).slice(0, 3).map(Number);
            `data-due` 不再輸出（「應分攤」那一欄不存在了），改用卡片上真的印出來的
            `data-fronted`。恆等式改成卡片自己的那一條：
            **幫大家先付的 − 一起分的 − 各付各的 ＝ 差額**。 */
-        fronted: +e.dataset.fronted, paid: +e.dataset.paid, diff: +e.dataset.diff,
+        fronted: +e.dataset.fronted, sponsor: +(e.dataset.sponsor ?? 0),
+        paid: +e.dataset.paid, diff: +e.dataset.diff,
         parts: (e.querySelector('.detailparts') || {}).textContent || '' })),
       txt: document.body.textContent || '' };
   });
@@ -137,8 +138,11 @@ const parseRgb = s => (s.match(/\d+/g) || []).slice(0, 3).map(Number);
     '三段的白話名稱沒有全部出現');
   for (const r of st.rows) {
     /* 卡片上印出來的那條算式，使用者自己就能對一遍 */
-    ok(r.fronted - r.shared - r.each === r.diff,
-      `${r.m}：幫大家先付 ${r.fronted} − 一起分 ${r.shared} − 各付各的 ${r.each} ≠ 差額 ${r.diff}`);
+    /* ⚠️ 贊助折抵是**條件式的第五行**（只有這趟有贊助時才出現），恆等式要含它：
+       **幫大家先付的 − 一起分的 − 各付各的 ＋ 贊助折抵 ＝ 差額**。 */
+    ok(r.fronted - r.shared - r.each + r.sponsor === r.diff,
+      `${r.m}：幫大家先付 ${r.fronted} − 一起分 ${r.shared} − 各付各的 ${r.each}` +
+      ` ＋ 贊助折抵 ${r.sponsor} ≠ 差額 ${r.diff}`);
     /* AC-2：幫大家先付的 ＝ 他付出去的全部 − 他自己買給自己的 */
     ok(r.paid - r.self === r.fronted,
       `${r.m}：data-paid ${r.paid} − data-self ${r.self} ≠ data-fronted ${r.fronted}`);

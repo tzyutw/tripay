@@ -88,8 +88,10 @@ export default function MemberLedger(
                         ? <span style={{ color: 'var(--out)' }}>還沒算清楚</span>
                         /* 贊助＝收入，與 S-03 同一套語彙：負號＋ --in */
                         : e.sponsor
+                          /* 先取絕對值再決定符號——贊助的原值本來就是負的，
+                             `-mine` 之後再加負號就會印出 `−$ -50,000` */
                           ? <span className="money" style={{ color: 'var(--in)' }}>
-                              −{money(-mine, mo)}</span>
+                              −{money(Math.abs(mine), mo)}</span>
                           : <span className="money">{money(mine, mo)}</span>}
                     </span>
                   </>

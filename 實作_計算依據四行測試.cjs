@@ -50,7 +50,7 @@ const num = t => Number(String(t).replace(/[^\d-]/g, '')) * (/[−-]/.test(Strin
     member: n.dataset.member, paid: Number(n.dataset.paid),
     diff: Number(n.dataset.diff), shared: Number(n.dataset.shared),
     self: Number(n.dataset.self), each: Number(n.dataset.each),
-    fronted: Number(n.dataset.fronted),
+    fronted: Number(n.dataset.fronted), sponsor: Number(n.dataset.sponsor ?? 0),
     parts: [...n.querySelectorAll('.detailparts > div')].map(d => ({
       /* 分隔線那一列沒有 span／i／b，先濾掉；「差額」不是四行之一，也濾掉 */
       label: (d.querySelector('span') || {}).textContent,
@@ -81,7 +81,8 @@ const num = t => Number(String(t).replace(/[^\d-]/g, '')) * (/[−-]/.test(Strin
   console.log(`   未結算展開：${r0.length} 位成員`);
   ok(r0.length > 0, '展開後一位成員都沒有，下面全部等於沒驗');
   for (const m of r0) {
-    const labels = m.parts.map(x => x.label);
+    /* 贊助折抵是條件式的第五行，不在固定四行之內 */
+    const labels = m.parts.map(x => x.label).filter(x => x !== '贊助折抵');
     console.log(`   ${m.member.slice(0, 6)}…　${m.parts.map(x => `${x.label} ${x.n} ${x.amt}`).join('｜')}`);
     ok(JSON.stringify(labels) === JSON.stringify(LABELS),
       `四行標籤不對：${JSON.stringify(labels)}`);
@@ -117,9 +118,10 @@ const num = t => Number(String(t).replace(/[^\d-]/g, '')) * (/[−-]/.test(Strin
   for (const m of r0) {
     /* AC 之後卡片上沒有「應分攤」了，改驗卡片自己印出來的那條算式 */
     console.log(`   ${m.member.slice(0, 6)}…　幫大家先付 ${m.fronted} − 一起分 ${m.shared}` +
-                ` − 各付各的 ${m.each} = ${m.fronted - m.shared - m.each}｜差額 ${m.diff}｜自己買 ${m.self}`);
-    ok(m.fronted - m.shared - m.each === m.diff,
-      `三行加不起來：${m.fronted - m.shared - m.each} ≠ ${m.diff}`);
+                ` − 各付各的 ${m.each} ＋ 贊助 ${m.sponsor} = ${m.fronted - m.shared - m.each + m.sponsor}` +
+                `｜差額 ${m.diff}｜自己買 ${m.self}`);
+    ok(m.fronted - m.shared - m.each + m.sponsor === m.diff,
+      `算式加不起來：${m.fronted - m.shared - m.each + m.sponsor} ≠ ${m.diff}`);
   }
   /* 拆之前的「指名算他的」＝ 自己買 ＋ 各付各的（只是換呈現，總額不變） */
   const namedSum = r0.map(m => m.self + m.each);

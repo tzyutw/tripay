@@ -285,12 +285,16 @@ const num = s => Number(String(s).replace(/[^\d.-]/g, ''));
       m: e.dataset.member, s: +e.dataset.shared,
       self: +e.dataset.self, each: +e.dataset.each,
       /* ⚠️ 實作-AC 拿掉四欄表，`data-due` 不再輸出；改驗卡片上真的印出來的那條算式 */
-      fronted: +e.dataset.fronted, paid: +e.dataset.paid, diff: +e.dataset.diff })); });
+      fronted: +e.dataset.fronted, sponsor: +(e.dataset.sponsor ?? 0),
+      paid: +e.dataset.paid, diff: +e.dataset.diff })); });
   ok(hubSettle !== null && hubSettle.length > 0, 'hub 模式展不開計算依據，這條等於沒驗');
   if (hubSettle) {
     for (const r of hubSettle) {
-      ok(r.fronted - r.s - r.each === r.diff,
-        `hub ${r.m}：幫大家先付 ${r.fronted} − 一起分 ${r.s} − 各付各的 ${r.each} ≠ 差額 ${r.diff}`);
+      /* ⚠️ 贊助折抵是**條件式的第五行**（只有這趟有贊助時才出現），恆等式要含它：
+         **幫大家先付的 − 一起分的 − 各付各的 ＋ 贊助折抵 ＝ 差額**。 */
+      ok(r.fronted - r.s - r.each + r.sponsor === r.diff,
+        `hub ${r.m}：幫大家先付 ${r.fronted} − 一起分 ${r.s} − 各付各的 ${r.each}` +
+        ` ＋ 贊助折抵 ${r.sponsor} ≠ 差額 ${r.diff}`);
       ok(r.paid - r.self === r.fronted,
         `hub ${r.m}：data-paid ${r.paid} − data-self ${r.self} ≠ data-fronted ${r.fronted}`);
     }

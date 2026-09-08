@@ -186,6 +186,9 @@ describe('B-5　S-05 已結算：逐筆標記付清', () => {
       '成員', '實際付出', '應分攤', '他先付出去的',                  // 實作-AC 拿掉四欄表
       '32,220', '+46,680', '−$ 78,900', '1,895', '10,615', '-8,720',
       '−$ 1,895', '-17,740', '−$ 2,480', '-20,220',
+      /* AC 追加：卡片裡的敘述句只寫名字，不再帶識別圖（Rozi 2026-09-08）；
+         贊助改成負數之後金額也跟著變。 */
+      '🐟 小魚 給你', '🍋 阿明 給你', '🐱 小美 給你', '78,900',
     ];
     const missing = (screens as Record<string, { list: string[] }>).s05.list
       .filter(t => !got.includes(t.replace(/\s+/g, '')))
@@ -459,7 +462,7 @@ describe('AB　breakdownFor：四行組成', () => {
     /* 回傳的是 0，不是 undefined／不存在——畫面才畫得出「0 筆 $ 0」 */
     expect(Object.keys(b).sort()).toEqual(
       ['due', 'each', 'eachN', 'fronted', 'frontedN', 'paid', 'paidN',
-       'self', 'selfN', 'shared', 'sharedN']);
+       'self', 'selfN', 'shared', 'sharedN', 'sponsor', 'sponsorN']);
   });
 
   /* 🔴 實作-AC-2　`fronted` ＝ `paid` 扣掉他自己買給自己的那幾筆。

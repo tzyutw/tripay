@@ -47,11 +47,15 @@ export interface Breakdown {
      實測正式資料：Mei 的「他先付出去的 3 筆 −$2,299」**整筆都是她自己買的**，
      她一毛錢都沒幫大家墊——那個數字現在正在誤導使用者。 */
   fronted: number; frontedN: number;
+  /* 🔴 贊助折抵（Rozi 2026-09-08）：「贊助的項目應該獨立出來，不要放在一起分的
+     名目裡面」。她的「一起分的 1 筆 −$12,500」其實是贊助，畫面上看不出來。
+     **正數**（那是替你抵掉的錢，不是你要付的）；行為本身不改，只是拆出來看得見。 */
+  sponsor: number; sponsorN: number;
   due: number;                       // 應分攤 ＝ shared + self + each
 }
 export const EMPTY_BREAKDOWN: Breakdown = {
   shared: 0, sharedN: 0, self: 0, selfN: 0, each: 0, eachN: 0,
-  paid: 0, paidN: 0, fronted: 0, frontedN: 0, due: 0,
+  paid: 0, paidN: 0, fronted: 0, frontedN: 0, sponsor: 0, sponsorN: 0, due: 0,
 };
 
 /**
@@ -78,13 +82,16 @@ export function breakdownFor(
   id: string,
 ): Breakdown {
   let shared = 0, sharedN = 0, self = 0, selfN = 0, each = 0, eachN = 0;
-  let paid = 0, paidN = 0, fronted = 0, frontedN = 0;
+  let paid = 0, paidN = 0, fronted = 0, frontedN = 0, sponsor = 0, sponsorN = 0;
   for (const e of expenses) {
     const c = calc(e, trip, trip.trip_members);
     const mine = isSelfPaid(e, toSharedExpense(e, trip.trip_members));
     /* 「他付出去的」＝**代別人墊的**。`personal`（自己的）那幾筆沒有任何人分攤，
        算進來的話 `實際付出 − 應分攤` 就對不上 `差額`（實測差 300，就是那一筆）。 */
-    if (!e.settled_on_spot && e.expense_type !== 'personal'
+    /* ⚠️ 贊助**不算「他付出去的」**：它的 `twd_amount` 是負數（錢是進來的，
+       不是他墊出去的），算進來會讓 Alex 的「幫大家先付」變成 −21,100。
+       與 `personal`／`當場就清了` 同一類：不進這一欄。 */
+    if (!e.settled_on_spot && e.expense_type !== 'personal' && !e.is_sponsor
         && e.payer_member_id === id && !c.twdPending) {
       paid += c.twdTotal; paidN += 1;
       /* 🔴 AC-2　他自己買給自己的那幾筆**不算幫大家墊**——錢左手換右手，
@@ -96,12 +103,25 @@ export function breakdownFor(
        ⚠️ 這是針對單筆，不是針對整行：整行為 0 時仍然要顯示（AB-2，Rozi 拍板）。 */
     if (share == null || share === 0 || e.settled_on_spot) continue;
     if (mine) { self += share; selfN += 1; }
+    /* 🔴 贊助**先攔下來**，不要併進「一起分的」。
+       這一行要**同時吃兩件事**，帳才守得住：
+         ① 他被抵掉的那一份（`-share`，一般是正的）
+         ② 他若是**收下贊助的那個人**，那筆錢是替大家收的（`twdTotal`，負的）
+       只算 ① 的話，收款人那一側 50,000 憑空消失，四人差額加總會變成 50,000
+       而不是 0——實測過。付款人同時是受益人時兩者相抵，剩下的才是他真正的責任。
+       ⚠️ 這只是把既有的 `shares`／`twdTotal` 換一個位置呈現，**沒有改任何計算**。 */
+    else if (e.is_sponsor) {
+      sponsor += -share + (e.payer_member_id === id ? c.twdTotal : 0);
+      sponsorN += 1;
+    }
     else if (e.individual_member_id || e.expense_type === 'individual') { each += share; eachN += 1; }
     else { shared += share; sharedN += 1; }
   }
   /* 應分攤 ＝ 前三行相加。**數值與拆之前逐元相同**，這一節只換呈現不改計算。 */
+  /* ⚠️ `due`（應分攤）維持原意＝一起分＋自己買＋各付各的**再加回贊助的負額**，
+     這樣拆出贊助之後總額還是與拆之前逐元相同（這一節不准改計算）。 */
   return { shared, sharedN, self, selfN, each, eachN, paid, paidN, fronted, frontedN,
-           due: shared + self + each };
+           sponsor, sponsorN, due: shared + self + each - sponsor };
 }
 
 export default function SettlementPage() {

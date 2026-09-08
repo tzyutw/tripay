@@ -62,7 +62,10 @@ export function ExpenseRow({ e, c, S, readonly, money: mo, onEdit, onReadonlyTap
   const amt = pend
     ? <span style={{ color: 'var(--out)' }}>還沒填</span>
     : e.sponsor
-      ? <span className="money" style={{ color: 'var(--in)' }}>−{money(c.twdTotal, mo2)}</span>
+      /* 🔴 贊助的金額在資料庫**本來就是負數**，格式化再加一個負號就變成
+         `−$ -50,000`（Rozi 的截圖）。**先取絕對值再決定符號**。 */
+      ? <span className="money" style={{ color: 'var(--in)' }}>
+          −{money(Math.abs(c.twdTotal), mo2)}</span>
       /* 🔴 實作-W-1　規格 §5.6：已結算／已封存**不顯示「約」**——
          結算已經定案，提醒改變不了任何事，只會製造焦慮。
          判斷來源就是 `StatCard` 已經在用的那一個（`S.readonly` ＝ 行程狀態），

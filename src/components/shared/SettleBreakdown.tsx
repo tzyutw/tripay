@@ -8,7 +8,7 @@
  * ⚠️ 兩頁**必須是同一支元件**（驗收會驗）。分享頁另寫一套就是「移植檢查」那條陷阱。
  * ⚠️ 這裡**不做任何計算**——`breakdown`／`net`／`tx` 都由呼叫端算好傳進來。
  */
-import { money, memberLabel } from '@/lib/format';
+import { money } from '@/lib/format';
 import Avatar from './Avatar';
 import type { SharedTrip, Transfer } from './types';
 
@@ -19,6 +19,8 @@ export interface BreakdownLike {
   self: number;   selfN: number;
   each: number;   eachN: number;
   fronted: number; frontedN: number;
+  /** 贊助折抵。**正數**——那是替你抵掉的錢，不是你要付的 */
+  sponsor: number; sponsorN: number;
   /** 他付出去的**全部**（含自己買給自己的）。AC-2 明訂保留原意，供其他斷言用 */
   paid: number;
 }
@@ -43,12 +45,13 @@ export default function SettleBreakdown({ t, tx, net, breakdownOf }: SettleBreak
         const mine = tx.filter(x => x.from === m.id || x.to === m.id);
         /* 差額 ＝ 第一行 − 第二行 − 第三行。**三行真的加得起來**，
            不是把結果印出來就算數——這一頁存在的理由就是讓人能自己對一遍。 */
-        const diff = b.fronted - b.shared - b.each;
+        const diff = b.fronted - b.shared - b.each + b.sponsor;
         return (
           <div className="netcard" key={m.id}
             data-settle-row data-member={m.id}
             data-shared={b.shared} data-self={b.self} data-each={b.each}
-            data-fronted={b.fronted} data-paid={b.paid} data-diff={diff}>
+            data-fronted={b.fronted} data-paid={b.paid} data-sponsor={b.sponsor}
+            data-diff={diff}>
             <div className="netrow">
               <Avatar emoji={m.emoji} name={m.name} index={i} />
               <span className="flex-1 text-body font-semibold">{m.name}</span>
@@ -61,10 +64,14 @@ export default function SettleBreakdown({ t, tx, net, breakdownOf }: SettleBreak
               <div className="netwho">
                 {mine.map(x => (
                   <div key={`${x.from}>${x.to}`}>
+                    {/* 🔴 Rozi 2026-09-08：「我只要它出現 NING 就可以了」。
+                        `memberLabel()` 會在沒有 emoji 時退回名字第一個字，
+                        於是句子裡印成「N NING」。**句子裡的成員只寫名字**；
+                        卡片標題那一行仍然放識別圖（那裡是在標示這張卡是誰的）。 */}
                     {x.from === m.id
-                      ? <>給 {memberLabel(t.members.find(y => y.id === x.to)!)}{' '}
+                      ? <>給 {t.members.find(y => y.id === x.to)!.name}{' '}
                           <span className="money inline">{money(x.amount)}</span></>
-                      : <>{memberLabel(t.members.find(y => y.id === x.from)!)} 給你{' '}
+                      : <>{t.members.find(y => y.id === x.from)!.name} 給你{' '}
                           <span className="money inline">{money(x.amount)}</span></>}
                   </div>
                 ))}
@@ -79,6 +86,15 @@ export default function SettleBreakdown({ t, tx, net, breakdownOf }: SettleBreak
                 <b className="money">{signedAmt(-b.shared)}</b></div>
               <div><span>各付各的</span><i>{b.eachN} 筆</i>
                 <b className="money">{signedAmt(-b.each)}</b></div>
+              {/* 🔴 只在**這趟有贊助時**才出現（0 筆整行不顯示）——與另外四行的規則
+                  不同，這是刻意的：大部分行程沒有贊助，多一行 0 是雜訊。
+                  金額顯示成正數並帶 `+`，那是替你抵掉的錢。 */}
+              {b.sponsorN > 0 && (
+                <div><span>贊助折抵</span><i>{b.sponsorN} 筆</i>
+                  {/* 正的才加 `+`（那是替你抵掉的錢）；**收下贊助的那個人是負的**
+                      ——那筆錢他替大家收著，要吐回去。不准印成 `+$ -37,500`。 */}
+                  <b className="money">{b.sponsor > 0 ? `+${money(b.sponsor)}` : signedAmt(b.sponsor)}</b></div>
+              )}
               <div className="partsline" />
               <div className="diffline"><span>差額</span><i />
                 <b className="money">{signedAmt(diff)}</b></div>
