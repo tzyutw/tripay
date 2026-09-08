@@ -49,7 +49,12 @@ export default function MemberLedger(
        ⚠️ 這裡只管**顯示**，不動 `per[]` 的算法（帳務語意要 Rozi 拍板）。 */
     .map(e => {
       const raw = S.calcOf(e).shares?.[memberId] ?? null;
-      return { e, mine: raw == null ? null : (e.sponsor ? -raw : raw),
+      /* 🔴 實作-AD-1　**贊助不要再取負號**。那個 `-raw` 是假資料的贊助還是
+         正數時留下來的補償；production 的贊助 `twd_amount` 是負數，
+         `shares` 因此已經是 −12,500，再取負就變成 +12,500 加進段小計——
+         逐筆列出來的是 −12,500、小計卻多算 25,000（＝12,500 × 2）。
+         **段小計 ＝ 底下逐筆金額的加總**，贊助照它實際的負數算。 */
+      return { e, mine: raw,
                paid: !e.sponsor && e.payer === memberId ? S.calcOf(e).twdTotal : null };
     });
 

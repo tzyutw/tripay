@@ -21,6 +21,8 @@ export interface BreakdownLike {
   fronted: number; frontedN: number;
   /** 贊助折抵。**正數**——那是替你抵掉的錢，不是你要付的 */
   sponsor: number; sponsorN: number;
+  /** 代收要發出去。**負數**，只有收下贊助的那個人有 */
+  sponsorHeld: number; sponsorHeldN: number;
   /** 他付出去的**全部**（含自己買給自己的）。AC-2 明訂保留原意，供其他斷言用 */
   paid: number;
 }
@@ -45,13 +47,13 @@ export default function SettleBreakdown({ t, tx, net, breakdownOf }: SettleBreak
         const mine = tx.filter(x => x.from === m.id || x.to === m.id);
         /* 差額 ＝ 第一行 − 第二行 − 第三行。**三行真的加得起來**，
            不是把結果印出來就算數——這一頁存在的理由就是讓人能自己對一遍。 */
-        const diff = b.fronted - b.shared - b.each + b.sponsor;
+        const diff = b.fronted - b.shared - b.each + b.sponsor + b.sponsorHeld;
         return (
           <div className="netcard" key={m.id}
             data-settle-row data-member={m.id}
             data-shared={b.shared} data-self={b.self} data-each={b.each}
             data-fronted={b.fronted} data-paid={b.paid} data-sponsor={b.sponsor}
-            data-diff={diff}>
+            data-sponsorheld={b.sponsorHeld} data-diff={diff}>
             <div className="netrow">
               <Avatar emoji={m.emoji} name={m.name} index={i} />
               <span className="flex-1 text-body font-semibold">{m.name}</span>
@@ -91,9 +93,14 @@ export default function SettleBreakdown({ t, tx, net, breakdownOf }: SettleBreak
                   金額顯示成正數並帶 `+`，那是替你抵掉的錢。 */}
               {b.sponsorN > 0 && (
                 <div><span>贊助折抵</span><i>{b.sponsorN} 筆</i>
-                  {/* 正的才加 `+`（那是替你抵掉的錢）；**收下贊助的那個人是負的**
-                      ——那筆錢他替大家收著，要吐回去。不准印成 `+$ -37,500`。 */}
-                  <b className="money">{b.sponsor > 0 ? `+${money(b.sponsor)}` : signedAmt(b.sponsor)}</b></div>
+                  {/* 替你抵掉的錢，所以帶 `+` */}
+                  <b className="money">+{money(b.sponsor)}</b></div>
+              )}
+              {/* 🔴 實作-AD-2（B 案）：**只有收下贊助的那個人**才有這一行。
+                  併進「贊助折抵」的話 Ning 會顯示 −$37,500，看不出那 5 萬是代收的。 */}
+              {b.sponsorHeldN > 0 && (
+                <div><span>代收要發出去</span><i>{b.sponsorHeldN} 筆</i>
+                  <b className="money">{signedAmt(b.sponsorHeld)}</b></div>
               )}
               <div className="partsline" />
               <div className="diffline"><span>差額</span><i />

@@ -51,11 +51,17 @@ export interface Breakdown {
      名目裡面」。她的「一起分的 1 筆 −$12,500」其實是贊助，畫面上看不出來。
      **正數**（那是替你抵掉的錢，不是你要付的）；行為本身不改，只是拆出來看得見。 */
   sponsor: number; sponsorN: number;
+  /* 🔴 實作-AD-2（Rozi 拍板 B 案）：**收贊助的那個人拆兩行**。
+     贊助折抵是「他被抵掉的那一份」（正）；這一個是「贊助給他、他要發出去的」（負）。
+     併成一行的話 Ning 顯示 −$37,500，看不出那 5 萬是代收的。
+     不是付款人時為 0，整行不顯示。 */
+  sponsorHeld: number; sponsorHeldN: number;
   due: number;                       // 應分攤 ＝ shared + self + each
 }
 export const EMPTY_BREAKDOWN: Breakdown = {
   shared: 0, sharedN: 0, self: 0, selfN: 0, each: 0, eachN: 0,
-  paid: 0, paidN: 0, fronted: 0, frontedN: 0, sponsor: 0, sponsorN: 0, due: 0,
+  paid: 0, paidN: 0, fronted: 0, frontedN: 0,
+  sponsor: 0, sponsorN: 0, sponsorHeld: 0, sponsorHeldN: 0, due: 0,
 };
 
 /**
@@ -82,7 +88,8 @@ export function breakdownFor(
   id: string,
 ): Breakdown {
   let shared = 0, sharedN = 0, self = 0, selfN = 0, each = 0, eachN = 0;
-  let paid = 0, paidN = 0, fronted = 0, frontedN = 0, sponsor = 0, sponsorN = 0;
+  let paid = 0, paidN = 0, fronted = 0, frontedN = 0;
+  let sponsor = 0, sponsorN = 0, sponsorHeld = 0, sponsorHeldN = 0;
   for (const e of expenses) {
     const c = calc(e, trip, trip.trip_members);
     const mine = isSelfPaid(e, toSharedExpense(e, trip.trip_members));
@@ -103,16 +110,15 @@ export function breakdownFor(
        ⚠️ 這是針對單筆，不是針對整行：整行為 0 時仍然要顯示（AB-2，Rozi 拍板）。 */
     if (share == null || share === 0 || e.settled_on_spot) continue;
     if (mine) { self += share; selfN += 1; }
-    /* 🔴 贊助**先攔下來**，不要併進「一起分的」。
-       這一行要**同時吃兩件事**，帳才守得住：
-         ① 他被抵掉的那一份（`-share`，一般是正的）
-         ② 他若是**收下贊助的那個人**，那筆錢是替大家收的（`twdTotal`，負的）
-       只算 ① 的話，收款人那一側 50,000 憑空消失，四人差額加總會變成 50,000
-       而不是 0——實測過。付款人同時是受益人時兩者相抵，剩下的才是他真正的責任。
+    /* 🔴 贊助**先攔下來**，不要併進「一起分的」，而且**拆成兩行**（AD-2，B 案）：
+         ① `sponsor`     他被抵掉的那一份（`-share`，正的）
+         ② `sponsorHeld` 他若是收下贊助的那個人，那筆替大家收的錢（`twdTotal`，負的）
+       ⚠️ ② **不能省**：只算 ① 的話收款人那一側 50,000 憑空消失，
+          四人差額加總會變成 50,000 而不是 0（實測過）。
        ⚠️ 這只是把既有的 `shares`／`twdTotal` 換一個位置呈現，**沒有改任何計算**。 */
     else if (e.is_sponsor) {
-      sponsor += -share + (e.payer_member_id === id ? c.twdTotal : 0);
-      sponsorN += 1;
+      sponsor += -share; sponsorN += 1;
+      if (e.payer_member_id === id) { sponsorHeld += c.twdTotal; sponsorHeldN += 1; }
     }
     else if (e.individual_member_id || e.expense_type === 'individual') { each += share; eachN += 1; }
     else { shared += share; sharedN += 1; }
@@ -121,7 +127,8 @@ export function breakdownFor(
   /* ⚠️ `due`（應分攤）維持原意＝一起分＋自己買＋各付各的**再加回贊助的負額**，
      這樣拆出贊助之後總額還是與拆之前逐元相同（這一節不准改計算）。 */
   return { shared, sharedN, self, selfN, each, eachN, paid, paidN, fronted, frontedN,
-           sponsor, sponsorN, due: shared + self + each - sponsor };
+           sponsor, sponsorN, sponsorHeld, sponsorHeldN,
+           due: shared + self + each - sponsor };
 }
 
 export default function SettlementPage() {

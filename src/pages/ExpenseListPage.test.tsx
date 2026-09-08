@@ -251,14 +251,23 @@ describe('B-3　S-03d 未定案清單', () => {
     const segs = [...document.querySelectorAll('[data-seg]')];
     expect(segs.length, '一段都沒有').toBeGreaterThan(0);
     const sum = segs.reduce((a, e) => a + Number((e as HTMLElement).dataset.segSum), 0);
-    /* ⚠️ 實作-V-2 之後贊助在這一頁是**負數**（與 S-03 一致），而 `per[]` 仍當正數累加
-       （那是帳務語意，Rozi 還沒拍板，這一輪不動）。所以差額要剛好等於贊助的兩倍。 */
-    const sponsor = [...document.querySelectorAll('[data-exp-row]')]
-      .filter(r => (r.textContent ?? '').includes('贊助'))
-      .reduce((a, r) => a + Number((r as HTMLElement).dataset.mine), 0);
-    expect(Math.abs((amt - sum) - (-2 * sponsor)),
-      `三段小計 ${sum} 與那一列的 ${amt} 差 ${amt - sum}，贊助兩倍是 ${-2 * sponsor}`)
-      .toBeLessThanOrEqual(1);
+    /* 🔴 實作-AD-1 的規則是「**段小計 ＝ 底下逐筆金額的加總**」，與贊助的正負無關。
+       這裡就驗那一條——它不依賴假資料的符號。
+       ⚠️ 「段小計 ＝ 統計卡那一列」那條**改在 harness 驗**（`實作_這個人的帳測試.cjs`），
+          那邊的假資料贊助是負的、與 production 同向；
+          這個檔的假資料仍是正的，而它的期望值全部釘在**還沒同步的原型**上，
+          一起改會牽動十幾條與這一節無關的斷言。 */
+    for (const seg of segs) {
+      const rowSum = [...seg.querySelectorAll('[data-exp-row]')]
+        .reduce((a, r) => {
+          const v = (r as HTMLElement).dataset.mine;
+          return a + (v === 'null' ? 0 : Number(v));
+        }, 0);
+      expect(Number((seg as HTMLElement).dataset.segSum),
+        `「${seg.querySelector('.sec span')?.textContent}」的小計不等於底下逐筆的加總`)
+        .toBe(rowSum);
+    }
+    expect(amt, '那一列沒有金額，這條等於沒驗').toBeTruthy();
   });
 
   /* 🔴 實作-T-1　**這條原本是反過來鎖著的**。

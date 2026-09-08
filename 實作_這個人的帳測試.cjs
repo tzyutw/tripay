@@ -133,17 +133,18 @@ const num = s => Number(String(s).replace(/[^\d.-]/g, ''));
       .map(x => (x.querySelector('.am .money') || {}).textContent)), 300));
   });
   const segSum = mv.segs.reduce((a, s) => a + s.sum, 0);
-  /* ⚠️ 實作-V-2 之後，贊助在這一頁是**負數**（與 S-03 一致），
-     而 `per[]` 仍把它當正數累加（那是帳務語意，Rozi 還沒拍板，這一輪不動）。
-     所以差額必須**剛好等於贊助的兩倍**——不是「兩邊相等」。
-     她拍板 `per[]` 要不要排除贊助之後，這條要改回相等。 */
+  /* 🔴 實作-AD-1 之後**兩邊必須相等**。
+     這條原本驗「差剛好等於贊助的兩倍」——那是在把一個 bug 當成規格記著。
+     真正的成因不是 `per[]`，是**段小計把贊助當成正數在加**（逐筆卻顯示負數）。
+     AD-1 改成「段小計 ＝ 底下逐筆金額的加總」，差就歸零了。 */
   const sponsorMine = mv.rows.filter(r => r.txt.includes('爸爸贊助'))
     .reduce((a, r) => a + Number(r.mine), 0);
   const gap = num(perAmt[1]) - segSum;
   console.log(`   三段小計加總 ${segSum}｜總行程頁該成員列 ${perAmt[1]}｜差 ${gap}` +
               `（贊助 ${sponsorMine} × −2 = ${-2 * sponsorMine}）`);
-  ok(Math.abs(gap - (-2 * sponsorMine)) <= 1,
-    `三段小計與總行程頁那一列的差 ${gap} 不等於贊助的兩倍——有別的東西也不一致`);
+  ok(Math.abs(gap) <= 1,
+    `三段小計 ${segSum} 與總行程頁那一列 ${perAmt[1]} 對不起來（差 ${gap}）`);
+  ok(sponsorMine < 0, `這一頁的贊助應該是負數（與 S-03 一致），實際 ${sponsorMine}——這條等於沒靶`);
 
   /* 付款小字（正反兩面） */
   const withPaid = mv.rows.filter(r => r.paid != null);
@@ -286,15 +287,17 @@ const num = s => Number(String(s).replace(/[^\d.-]/g, ''));
       self: +e.dataset.self, each: +e.dataset.each,
       /* ⚠️ 實作-AC 拿掉四欄表，`data-due` 不再輸出；改驗卡片上真的印出來的那條算式 */
       fronted: +e.dataset.fronted, sponsor: +(e.dataset.sponsor ?? 0),
+      held: +(e.dataset.sponsorheld ?? 0),
       paid: +e.dataset.paid, diff: +e.dataset.diff })); });
   ok(hubSettle !== null && hubSettle.length > 0, 'hub 模式展不開計算依據，這條等於沒驗');
   if (hubSettle) {
     for (const r of hubSettle) {
       /* ⚠️ 贊助折抵是**條件式的第五行**（只有這趟有贊助時才出現），恆等式要含它：
          **幫大家先付的 − 一起分的 − 各付各的 ＋ 贊助折抵 ＝ 差額**。 */
-      ok(r.fronted - r.s - r.each + r.sponsor === r.diff,
+      /* AD-2：收贊助的人多一行「代收要發出去」，恆等式要含它 */
+      ok(r.fronted - r.s - r.each + r.sponsor + r.held === r.diff,
         `hub ${r.m}：幫大家先付 ${r.fronted} − 一起分 ${r.s} − 各付各的 ${r.each}` +
-        ` ＋ 贊助折抵 ${r.sponsor} ≠ 差額 ${r.diff}`);
+        ` ＋ 贊助折抵 ${r.sponsor} ＋ 代收 ${r.held} ≠ 差額 ${r.diff}`);
       ok(r.paid - r.self === r.fronted,
         `hub ${r.m}：data-paid ${r.paid} − data-self ${r.self} ≠ data-fronted ${r.fronted}`);
     }

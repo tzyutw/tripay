@@ -37,7 +37,8 @@ const STALE_HINT = '這次結算之後帳有變動，數字跟現在的帳不一
   const cards = () => p.$$eval('[data-settle-row]', ns => ns.map(n => ({
     m: n.dataset.member,
     shared: +n.dataset.shared, self: +n.dataset.self, each: +n.dataset.each,
-    fronted: +n.dataset.fronted, sponsor: +(n.dataset.sponsor ?? 0), diff: +n.dataset.diff,
+    fronted: +n.dataset.fronted, sponsor: +(n.dataset.sponsor ?? 0),
+    held: +(n.dataset.sponsorheld ?? 0), diff: +n.dataset.diff,
     avatarsInHead: n.querySelectorAll('.netrow .avatar').length,
     avatarsInWho: n.querySelectorAll('.netwho .avatar').length,
     /* ⚠️ 四行的標籤要**排除「差額」那一列**——它不是四行之一，它是三行的結果。
@@ -78,7 +79,7 @@ const STALE_HINT = '這次結算之後帳有變動，數字跟現在的帳不一
   for (const c of c0) {
     /* 「贊助折抵」是**條件式的第五行**（只有這趟有贊助時才出現），
        不在固定四行之內；順序另外驗（要落在「各付各的」與分隔線之間）。 */
-    ok(JSON.stringify(c.labels.filter(x => x !== '贊助折抵')) === JSON.stringify(LABELS),
+    ok(JSON.stringify(c.labels.filter(x => !['贊助折抵', '代收要發出去'].includes(x))) === JSON.stringify(LABELS),
       `${c.m} 的四行標籤或順序不對：${JSON.stringify(c.labels)}`);
     if (c.labels.includes('贊助折抵'))
       ok(c.labels.indexOf('贊助折抵') === c.labels.indexOf('各付各的') + 1,
@@ -104,13 +105,13 @@ const STALE_HINT = '這次結算之後帳有變動，數字跟現在的帳不一
   for (const c of c0) {
     console.log(`   ${c.m}　幫大家先付 ${c.fronted} − 一起分 ${c.shared} − 各付各的 ${c.each} = ` +
                 `${c.fronted - c.shared - c.each}｜差額 ${c.diff}｜自己買 ${c.self}｜標題「${c.head.trim()}」`);
-    ok(c.fronted - c.shared - c.each + c.sponsor === c.diff,
-      `${c.m}：算式加不起來（${c.fronted - c.shared - c.each + c.sponsor} ≠ ${c.diff}）`);
+    ok(c.fronted - c.shared - c.each + c.sponsor + c.held === c.diff,
+      `${c.m}：算式加不起來（${c.fronted - c.shared - c.each + c.sponsor + c.held} ≠ ${c.diff}）`);
     ok(c.fronted === WANT[c.m],
       `${c.m} 的「他幫大家先付的」應為 ${WANT[c.m]}，實際 ${c.fronted}` +
       (c.m === 'm1' ? '（1,895 是沒扣掉他自己買的紀念品 860）' : ''));
     if (c.self !== 0)
-      ok(c.fronted - c.shared - c.each + c.sponsor - c.self !== c.diff,
+      ok(c.fronted - c.shared - c.each + c.sponsor + c.held - c.self !== c.diff,
         `${c.m}：把自己買的加進算式竟然還是等於差額——那條反向沒有意義`);
     /* 標題的「要給出／可以拿回」要跟差額一致 */
     const headNum = Number((c.head.match(/[\d,]+/) || ['0'])[0].replace(/,/g, ''));
@@ -176,7 +177,7 @@ const STALE_HINT = '這次結算之後帳有變動，數字跟現在的帳不一
   console.log(`   stale：卡片差額 ${cs.map(c => c.diff).join('、')}`);
   console.log(`         凍結值反推 ${cs.map(c => frozenNet[c.m]).join('、')}`);
   const staleTxt = await p.evaluate(() => document.body.innerText);
-  ok(cs.every(c => c.fronted - c.shared - c.each + c.sponsor === c.diff), 'stale 狀態下算式加不起來');
+  ok(cs.every(c => c.fronted - c.shared - c.each + c.sponsor + c.held === c.diff), 'stale 狀態下算式加不起來');
   ok(cs.some(c => c.diff !== frozenNet[c.m]),
     '卡片的差額與凍結值一模一樣——AC-4 沒生效，或假資料的 stale 沒生效');
   /* ⚠️ 「卡片標題與 data-diff 一致」**要在 stale 這一頁驗**。
@@ -229,7 +230,7 @@ const STALE_HINT = '這次結算之後帳有變動，數字跟現在的帳不一
   const c6 = await cards();
   console.log(`   分享頁卡片 ${c6.length} 張｜第一張的行：${c6[0] && c6[0].labels.join('／')}`);
   ok(c6.length === 4, `分享頁卡片數應為 4，實際 ${c6.length}`);
-  ok(c6[0] && JSON.stringify(c6[0].labels.filter(x => x !== '贊助折抵')) === JSON.stringify(LABELS),
+  ok(c6[0] && JSON.stringify(c6[0].labels.filter(x => !['贊助折抵', '代收要發出去'].includes(x))) === JSON.stringify(LABELS),
     `分享頁的四行標籤與結算頁不同：${c6[0] && JSON.stringify(c6[0].labels)}`);
   const ro = await p.evaluate(() => {
     const box = document.querySelector('.detailtoggle').nextElementSibling;
@@ -324,14 +325,34 @@ const STALE_HINT = '這次結算之後帳有變動，數字跟現在的帳不一
        **收下贊助的那個人是負的**（他替大家收著 50,000，扣掉自己那份 12,500
        還有 37,500 要吐回去）——一律印 `+` 會變成 `+$ -37,500`。
        所以：正的帶 `+`、負的帶 `−`，兩種都不准出現疊兩層的負號。 */
+    /* AD-2 之後贊助折抵**一律是正的**——收款人那一側已經拆到「代收要發出去」 */
     if (r.has) {
-      const c2 = sp.find(x => x.m === r.m);
-      ok(c2.sponsor > 0 ? /^\+\$ /.test(r.amt) : /^−\$ /.test(r.amt),
-        `${r.m} 的贊助折抵符號不對（data-sponsor ${c2.sponsor}）：「${r.amt}」`);
+      ok(/^\+\$ /.test(r.amt), `${r.m} 的贊助折抵沒有帶 +：「${r.amt}」`);
       ok(!/\$\s*-/.test(r.amt), `${r.m} 的贊助折抵疊了兩層負號：「${r.amt}」`);
     }
   }
   ok(spRows.some(r => r.has), '四張卡都沒有贊助折抵——這一組等於沒驗');
+  /* 🔴 AD-2　「代收要發出去」**只有收下贊助的那個人**有 */
+  const held = await p.$$eval('[data-settle-row]', ns => ns.map(n => ({
+    m: n.dataset.member, v: +(n.dataset.sponsorheld ?? 0),
+    has: [...n.querySelectorAll('.detailparts > div')]
+      .some(d => (d.querySelector('span') || {}).textContent === '代收要發出去'),
+    amt: (() => { const d = [...n.querySelectorAll('.detailparts > div')]
+      .find(x => (x.querySelector('span') || {}).textContent === '代收要發出去');
+      return d ? d.querySelector('b').textContent.trim() : null; })() })));
+  console.log(`   代收要發出去：${held.map(h => `${h.m} ${h.has ? h.amt : '（無）'}`).join('、')}`);
+  ok(held.filter(h => h.has).length === 1,
+    `應該恰好一位成員有「代收要發出去」，實際 ${held.filter(h => h.has).length} 位`);
+  for (const h of held) {
+    ok(h.has === (h.v !== 0), `${h.m}：那一行的有無跟 data-sponsorheld（${h.v}）對不上`);
+    if (h.has) {
+      ok(/^−\$ /.test(h.amt), `${h.m} 的「代收要發出去」應該是負的：「${h.amt}」`);
+      ok(!/\$\s*-/.test(h.amt), `${h.m} 的「代收要發出去」疊了兩層負號：「${h.amt}」`);
+    }
+  }
+  /* 贊助折抵現在**一律是正的**（收款人那一側搬到「代收要發出去」了） */
+  ok(sp.every(c => c.sponsor >= 0), `贊助折抵不該有負數：${sp.map(c => c.sponsor).join('、')}`);
+
   /* 26　data-shared 不含贊助：贊助那筆每人 −12,500，併回去的話 shared 會少 12,500 */
   console.log(`   data-shared：${sp.map(c => `${c.m}=${c.shared}`).join('、')}｜` +
               `data-sponsor：${sp.map(c => c.sponsor).join('、')}`);

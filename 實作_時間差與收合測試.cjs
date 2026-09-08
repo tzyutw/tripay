@@ -172,11 +172,12 @@ const alpha = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return 1;
       .querySelector('.am .money') || {}).textContent || '').replace(/[^\d.-]/g, ''))), 300)); });
   const gap = per0 - sums.segSum;
   console.log(`   段小計 ${sums.segSum}｜統計卡 ${per0}｜差 ${gap}（贊助 ${sums.sponsorMine} × −2 = ${-2 * sums.sponsorMine}）`);
-  /* ⚠️ `per[]` 把贊助當**正數**累加，新頁面當**負數**——差剛好是 2×。
-     `per[]` 要不要排除贊助是 Rozi 的決策，這一輪明文不動，所以這條驗「差額剛好等於那一筆」，
-     而不是「兩邊相等」。她拍板之後這條要改成相等。 */
-  ok(Math.abs(gap - (-2 * sums.sponsorMine)) <= 1,
-    `段小計與統計卡的差 ${gap} 不等於贊助的兩倍 ${-2 * sums.sponsorMine}——有別的東西也不一致`);
+  /* 🔴 實作-AD-1 之後**兩邊必須相等**。
+     這條原本驗「差剛好是贊助的兩倍」——那是在把一個 bug 當成規格記著：
+     段小計把贊助當正數加、逐筆卻顯示負數。AD-1 把段小計改成「底下逐筆的加總」，
+     差就歸零了。**Rozi 拍板統計頁維持現狀（甲案），錯的是段小計不是 `per[]`。** */
+  ok(Math.abs(gap) <= 1,
+    `段小計 ${sums.segSum} 與統計卡 ${per0} 對不起來（差 ${gap}）`);
 
   /* ── 8／9／10　V-3 警示行 ────────────────────────────────────────────── */
   console.log('');

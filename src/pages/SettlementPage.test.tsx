@@ -462,7 +462,8 @@ describe('AB　breakdownFor：四行組成', () => {
     /* 回傳的是 0，不是 undefined／不存在——畫面才畫得出「0 筆 $ 0」 */
     expect(Object.keys(b).sort()).toEqual(
       ['due', 'each', 'eachN', 'fronted', 'frontedN', 'paid', 'paidN',
-       'self', 'selfN', 'shared', 'sharedN', 'sponsor', 'sponsorN']);
+       'self', 'selfN', 'shared', 'sharedN', 'sponsor', 'sponsorHeld',
+       'sponsorHeldN', 'sponsorN']);
   });
 
   /* 🔴 實作-AC-2　`fronted` ＝ `paid` 扣掉他自己買給自己的那幾筆。
@@ -510,5 +511,44 @@ describe('AB　breakdownFor：四行組成', () => {
     const c = breakdownFor(withBoth, trip, M[0]);
     expect(c.paid).toBe(a.paid);
     expect(c.paidN).toBe(a.paidN);
+  });
+});
+
+/* 🔴 實作-AD　贊助：段小計符號、卡片拆出「代收要發出去」。 */
+describe('AD　贊助拆兩行（breakdownFor）', () => {
+  const trip = baseTrip as unknown as Parameters<typeof breakdownFor>[1];
+  /* 導遊贊助 5 萬、M1 收的、四人平分抵 12,500。**production 的 twd_amount 是負數。** */
+  const spon = mk({ title: '導遊贊助', twd_amount: -50000,
+                    payer_member_id: M[1], is_sponsor: true });
+  const split = mk({ title: '機場接送', twd_amount: 1600, payer_member_id: M[0] });
+  const list = [spon, split] as unknown as Parameters<typeof breakdownFor>[0];
+
+  it('只有收贊助的那個人有 sponsorHeld，其餘為 0', () => {
+    const holder = breakdownFor(list, trip, M[1]);
+    expect(holder.sponsorHeldN).toBe(1);
+    expect(holder.sponsorHeld).toBe(-50000);
+    for (const id of [M[0], M[2], M[3]]) {
+      const b = breakdownFor(list, trip, id);
+      expect(b.sponsorHeldN, `成員 ${id}`).toBe(0);
+      expect(b.sponsorHeld, `成員 ${id}`).toBe(0);
+    }
+  });
+
+  it('贊助折抵四個人都有，而且是正數（被抵掉的那一份）', () => {
+    for (const id of M) {
+      const b = breakdownFor(list, trip, id);
+      expect(b.sponsorN, `成員 ${id}`).toBe(1);
+      expect(b.sponsor, `成員 ${id}`).toBeGreaterThan(0);
+    }
+  });
+
+  it('恆等式：fronted − shared − each + sponsor + sponsorHeld，四人加總為 0', () => {
+    const diffs = M.map(id => {
+      const b = breakdownFor(list, trip, id);
+      /* 贊助不算「他幫大家先付的」——那筆錢是進來的，不是他墊出去的 */
+      expect(b.fronted, `成員 ${id} 的 fronted 不該含贊助`).toBeGreaterThanOrEqual(0);
+      return b.fronted - b.shared - b.each + b.sponsor + b.sponsorHeld;
+    });
+    expect(diffs.reduce((a, x) => a + x, 0)).toBe(0);
   });
 });
