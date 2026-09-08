@@ -395,6 +395,12 @@ input:focus { border-color:var(--w) }
 .fieldrow>input:focus { border:0;outline:none }
 .fieldrow.wide>.lbl { width:auto }
 .autotag { font-size:var(--fs-tag);letter-spacing:.06em;color:var(--gr); border:1px solid var(--ln);border-radius:var(--r-base);padding:1px 4px;flex:none }
+/* 🔴 實作-AA-2　各自金額每一列的「換算後台幣」。**唯讀顯示，不是控制項**——
+   `pointer-events:none` 才不會吃掉旁邊輸入框的可點區。
+   外觀走 `:where()` 壓低特異度（這個節次的護欄），不加 !important。 */
+:where(.amttwd) { flex:none;font-size:var(--fs-sub);color:var(--gr);
+  font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;
+  min-width:52px;text-align:right }
 .cmp { margin-top:8px;border-radius:var(--r-base);padding:8px 10px;font-size:var(--fs-sub);font-weight:500; display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap; font-variant-numeric:tabular-nums }
 .cmp .d { font-weight:600;display:inline-flex;align-items:center }
 .note { font-size:var(--fs-sub) }

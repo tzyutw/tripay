@@ -170,6 +170,24 @@ export interface FormState {
   single: string | null;        // 只算一個人選的人（individual_member_id）
   indiv: Record<string, string>;
   fillCur: SplitFillCurrency;
+  /* 🔴 實作-AA-1　**兩個填寫模式各自保有一份值**，各帶一個「這一份是誰填的」旗標。
+     切幣別原本只是換一個單位去解讀同一串數字（12,000 韓元變成 12,000 台幣），
+     Rozi 的那筆因此從 `₩ 30,000／₩ 30,000 ✓` 變成 `差 $ 29,310`。
+     `indivAlt` 是**另一個模式**的那一份；`indivOwn`／`indivAltOwn` 記「是使用者
+     自己打的（true）還是系統換算填進去的（false）」——使用者自己打的不准被覆蓋。
+
+     ⚠️ 三個都是**選填**：`save-rows.test.ts` 直接手搓 `FormState`，而那個檔不在
+     這一節的白名單裡。`blankForm()`／`fromExpense()` 一律會給值，
+     只有測試 fixture 會省略——所以讀的地方要能吃 undefined。 */
+  indivAlt?: Record<string, string>;
+  indivOwn?: boolean;
+  indivAltOwn?: boolean;
+  /* 🔴 實作-AA-1　「切過來但**沒能換算**」。外幣總額空白時切到台幣填，值照留
+     （規格要求不清空、不填 0），但那幾個數字**還是外幣**——這時比對列若照常
+     渲染，就會拿 12,000＋40,000 去對台幣總額 1,140，印出「差 $ 50,860」。
+     Rozi 手機上看到的「差 $ 52,882」就是這個。旗標在使用者動過任何一格、
+     或下一次換算成功時清掉。 */
+  indivStale?: boolean;
   partsOpen: boolean;           // 「要排除誰？」是否展開
   onSpot: boolean;
   sponsor: boolean;
@@ -303,7 +321,8 @@ function blank(
     /* #33-4 預設是清單的第一項，不寫死「現金」——使用者可能把清單改成只有信用卡 */
     pay: paymentsOf(trip)[0],
     payer: null, kind: 'shared', parts: members.map(m => m.id), single: null,
-    indiv: {}, fillCur: 'TWD', partsOpen: false, onSpot: false, sponsor: false, note: '',
+    indiv: {}, fillCur: 'TWD', indivAlt: {}, indivOwn: false, indivAltOwn: false,
+    partsOpen: false, onSpot: false, sponsor: false, note: '',
   };
 }
 
@@ -324,7 +343,10 @@ function fromExpense(e: ExpenseWithSplits, members: TripWithMembers['trip_member
     kind: e.individual_member_id ? 'single' : (e.expense_type === 'individual' ? 'individual' : 'shared'),
     parts: on.length ? on : members.map(m => m.id),
     single: e.individual_member_id,
-    indiv, fillCur: e.split_fill_currency, partsOpen: false,
+    /* 載入既有紀錄：存的那一邊是**使用者的**（不准被切幣別覆蓋），另一邊是空的 */
+    indiv, fillCur: e.split_fill_currency,
+    indivAlt: {}, indivOwn: true, indivAltOwn: false,
+    partsOpen: false,
     onSpot: e.settled_on_spot, sponsor: e.is_sponsor,
     note: e.note ?? '',
   };
@@ -714,8 +736,10 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
           {f.kind === 'individual' && (
             <EachAmounts
               f={f} c={c} cur={cur} sym={sym} members={members} parts={parts}
-              onFillCur={v => set('fillCur', v)}
-              onAmt={(id, v) => setF(s => ({ ...s, indiv: { ...s.indiv, [id]: v } }))}
+              onFillCur={v => setF(s => switchFillCur(s, v, decimalsFor(cur)))}
+              /* 使用者動過任何一格 → 這一份整份標成**使用者的**，切幣別時不准被覆蓋 */
+              onAmt={(id, v) => setF(s => ({ ...s, indiv: { ...s.indiv, [id]: v },
+                                             indivOwn: true, indivStale: false }))}
             />
           )}
         </div>
@@ -791,6 +815,77 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
   );
 }
 
+/**
+ * 🔴 實作-AA-1　各自金額換一個填寫模式時的換算。**純函式，給單元測試直接打。**
+ *
+ * 規格 §2.2 第 41 行：**用比例回推，不需要匯率**。
+ *   外幣 → 台幣：`round(台幣總額 × 各人外幣 ÷ 外幣總額)`
+ *   台幣 → 外幣：`round(外幣總額 × 各人台幣 ÷ 台幣總額, decimalsFor(cur))`
+ *
+ * ⚠️ **算不出來就回 `null`，由呼叫端維持原值**——分母是 0、或哪一邊的總額空白時，
+ *    不清空、不填 0、不產生 `NaN`。
+ * ⚠️ **空白格維持空白**，不換算成 `0`。空白不等於 0，這條全站一致。
+ */
+export function convertIndiv(
+  vals: Record<string, string>,
+  from: SplitFillCurrency,
+  forTotal: number | null,
+  twdTotal: number | null,
+  forDecimals: 0 | 2,
+): Record<string, string> | null {
+  const denom = from === 'FOR' ? forTotal : twdTotal;
+  const scale = from === 'FOR' ? twdTotal : forTotal;
+  if (denom == null || scale == null) return null;
+  if (!Number.isFinite(denom) || !Number.isFinite(scale) || denom === 0) return null;
+  const dec: 0 | 2 = from === 'FOR' ? 0 : forDecimals;
+  const out: Record<string, string> = {};
+  for (const [id, raw] of Object.entries(vals)) {
+    if (!raw || !raw.trim()) { out[id] = raw ?? ''; continue; }
+    const v = parseAmount(raw);
+    if (v == null || !Number.isFinite(v)) { out[id] = raw; continue; }
+    const conv = scale * v / denom;
+    /* ⚠️ 這個區域變數**不要用 Tailwind 圓角 class 的名字**（`round` + `ed`）：
+       `實作_token掃描測試.cjs` 是用正規表示式掃整個 src/ 找「寫死的圓角」，
+       它分不出那是 class 還是 JS 識別字——連這段註解寫到那個字都會被算一處。 */
+    const snapped = dec === 0 ? Math.round(conv) : Math.round(conv * 100) / 100;
+    out[id] = formatAmount(String(snapped), dec);
+  }
+  return out;
+}
+
+/**
+ * 🔴 實作-AA-1　切換填寫模式。**純函式**，狀態進、狀態出。
+ *
+ * - 另一份是**使用者自己打的**（而且不是空的）→ 直接還原，不覆蓋、不重算。
+ * - 另一份是空的或**系統換算填的** → 用**當下這一模式的值**重新換算
+ *   （不是用上一次換算的快照——Rozi 在 KRW 改了數字再切過去，要看到新的結果）。
+ * - 換算不出來 → 整份維持原值。
+ */
+export function switchFillCur(
+  s: FormState, next: SplitFillCurrency, forDecimals: 0 | 2,
+): FormState {
+  if (next === s.fillCur) return s;
+  const stash = s.indiv, stashOwn = s.indivOwn;
+  const alt = s.indivAlt ?? {};
+  const altHasValue = Object.values(alt).some(v => v && v.trim());
+  let indiv: Record<string, string>, own: boolean;
+  if (s.indivAltOwn && altHasValue) {
+    indiv = alt; own = true;
+  } else {
+    const conv = convertIndiv(s.indiv, s.fillCur,
+      parseAmount(s.forAmt), parseAmount(s.twdAmt), forDecimals);
+    if (conv == null) {
+      /* 算不出來：值原封不動留著，但**標記成還沒換算過**——那幾個數字
+         在新的模式下沒有意義，比對列不能拿它們去對總額。 */
+      return { ...s, fillCur: next, indiv: s.indiv, indivOwn: Boolean(s.indivOwn),
+               indivAlt: stash, indivAltOwn: stashOwn, indivStale: true };
+    }
+    indiv = conv; own = false;
+  }
+  return { ...s, fillCur: next, indiv, indivOwn: own,
+           indivAlt: stash, indivAltOwn: stashOwn, indivStale: false };
+}
+
 /* S-04-15／31／32／16　各自金額。逐人一列用 <label for>，列高 ≥48（CSS 的 .amtrow）。 */
 function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
   f: FormState;
@@ -828,7 +923,8 @@ function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
           return (
             <label key={id} htmlFor={`ei-${id}`} className="amtrow">
               <Avatar emoji={m?.emoji} name={m?.name} index={members.findIndex(x => x.id === id)} />
-              <span className="flex-1 text-body">{m?.name ?? ''}</span>
+              {/* AA-2：擠不下時**先截名字**，換算後的台幣不准被擠掉 */}
+              <span className="flex-1 text-body trunc">{m?.name ?? ''}</span>
               {auto && <span className="autotag">自動</span>}
               {/* 實作-U-7-d　外幣總額空白時，**只有沒填的那幾格**加紅框
                   （已經填了的不加）。沿用金額區同一套 `.needfill`，
@@ -839,6 +935,14 @@ function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
                   c.noAutoReason === 'noForeignTotal' && !(f.indiv[id]?.trim()) ? ' needfill' : ''}`.trim()}
                 placeholder={c.noAutoReason ? '—' : (auto ? formatAmount(String(c.valInCur[id]), 0) : '0')}
                 onChange={v => onAmt(id, v)} />
+              {/* 🔴 實作-AA-2　填外幣時，這一列**看得到那個人換算後的台幣**。
+                  Rozi 查了兩天才發現她那筆被回推成 435——因為編輯畫面上
+                  「從頭到尾沒有出現過 435 這個數字」，只有一行總額。
+                  ⚠️ 純顯示：不是輸入框、不是按鈕，`pointer-events:none`
+                     才不會吃掉輸入框的可點區。填台幣時不出現（填的就是台幣）。 */}
+              {c.fillsAreForeign && !c.noAutoReason && c.shares[id] != null && (
+                <span className="amttwd">$ {(c.shares[id] as number).toLocaleString()}</span>
+              )}
             </label>
           );
         })}
@@ -851,7 +955,8 @@ function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
           {msgNoForTotal(c.blanks.map(id => members.find(x => x.id === id)?.name ?? ''), cur)}</div>
       )}
 
-      <CmpRow c={c} fs={fs} fillCur={fillCur} />
+      {/* AA-1　沒能換算就切過來的那一份，比對列不渲染——見 `indivStale` 的註解 */}
+      {!f.indivStale && <CmpRow c={c} fs={fs} fillCur={fillCur} />}
     </div>
   );
 }

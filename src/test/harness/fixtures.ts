@@ -75,6 +75,17 @@ export const settleHub = Q.get('settle') === 'hub';
 /** `?fill=noforetotal`：各自付各的、填的是外幣、**外幣總額空白**、還有人沒填。
  *  這就是 production「藥局」那一筆的形狀——改之前它會把外幣數字當成台幣。 */
 export const fillNoForTotal = Q.get('fill') === 'noforetotal';
+/* 實作-AA-3　`?fill=twd`：**台幣填**的「各自付各的」。
+   `?fill=for` 是外幣填、`?fill=noforetotal` 是外幣總額空白——這兩個不要動。
+   沒有這一筆，「台幣填 → 切外幣 → 再切回來」那條路徑就沒有靶。 */
+export const fillTwd = Q.get('fill') === 'twd';
+/* 實作-AA　`?fill=oy`：**來回換算會掉精度**的形狀，照 Rozi 那筆「OY髮油」抄
+   （整筆台幣 1,118、外幣總額 54,000、兩人 33,000／21,000）。
+   ⚠️ 沒有這一筆，「切回去要還原使用者打的值」那條**驗不到**——
+   `?fill=for` 的 12,000／18,000 來回換算剛好整除，
+   「還原」與「重算」得到一模一樣的結果，金絲雀不會紅。
+   重算會得到 32,989／21,011，還原才是 33,000／21,000。 */
+export const fillOy = Q.get('fill') === 'oy';
 /** `?blanks=1|2|3`：外幣總額空白時**幾個人沒填**——三種文案各要有假資料走過 */
 export const blanksN = Number(Q.get('blanks') || 0);
 
@@ -151,6 +162,8 @@ const fillForExpense = mk({
   indivFor: { [M[0]]: 12000, [M[1]]: 18000 }, payer_member_id: M[0],
 });
 
+
+
 /** `?forOnly=1` 專用：只有外幣、沒有台幣的一筆 shared 消費。 */
 const forOnlyExpense = mk({
   title: '只有外幣沒有台幣', category_emoji: '🛍️', expense_date: '2026-03-15',
@@ -187,6 +200,26 @@ const baseExpenses: ExpenseWithSplits[] = [
   mk({ title: '爸爸贊助', category_emoji: '💝', expense_date: '2026-03-14',
        twd_amount: 50000, payer_member_id: M[0], is_sponsor: true }),
 ];
+
+/* ⚠️ 這兩筆**一定要定義在 `baseExpenses` 後面**：`mk()` 的 `seq` 是模組層級的
+   計數器，插在前面會把 base 那 11 筆的 id 整組往後推，任何寫死 id 的測試都會壞。 */
+/** `?fill=twd` 專用：台幣填的「各自付各的」。整筆台幣 690、外幣總額 30,000，
+ *  兩人已填台幣 276／414（＝ `?fill=for` 那筆換算過來的值，兩邊互為反向）。 */
+const fillTwdExpense = mk({
+  title: '各自付各的（填台幣）', category_emoji: '🛍️', expense_date: '2026-03-16',
+  foreign_amount: 30000, twd_amount: 690, expense_type: 'individual',
+  split_fill_currency: 'TWD', parts: [M[0], M[1]],
+  indiv: { [M[0]]: 276, [M[1]]: 414 }, payer_member_id: M[0],
+});
+
+/** `?fill=oy` 專用：來回換算會掉精度的「各自付各的」。第三人**沒填**，
+ *  用來驗「空白格換算後仍是空白」。 */
+const fillOyExpense = mk({
+  title: '各自付各的（會掉精度）', category_emoji: '💄', expense_date: '2026-03-17',
+  foreign_amount: 54000, twd_amount: 1118, expense_type: 'individual',
+  split_fill_currency: 'FOR', parts: [M[0], M[1], M[2]],
+  indivFor: { [M[0]]: 33000, [M[1]]: 21000 }, payer_member_id: M[0],
+});
 
 /** `?fill=noforetotal` 專用：台幣 1,140、外幣總額空白、兩人填了外幣、兩人沒填。
  *  形狀逐項照 production 的「藥局」抄——那一筆改之前被算成 52,000。 */
@@ -228,6 +261,8 @@ const selfPendingExpense = () => mk({
 export const expenses: ExpenseWithSplits[] =
   selfPending ? [...baseExpenses, selfPendingExpense()]
   : allSelf ? allSelfExpenses
+  : fillOy ? [fillOyExpense]
+  : fillTwd ? [fillTwdExpense]
   : fillFor ? [fillForExpense] : forOnly ? [forOnlyExpense]
   : blanksN > 0 ? [blanksExpense(blanksN)]
   : fillNoForTotal ? [...baseExpenses, noForTotalExpense] : baseExpenses;

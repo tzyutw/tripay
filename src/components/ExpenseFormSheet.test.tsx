@@ -5,7 +5,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import screens from '@/test/fixtures/screens.json';
 import { render, makeSupabaseMock } from '@/test/utils';
-import ExpenseFormSheet, { defaultExpDate, paymentsOf, saveToastFor } from './ExpenseFormSheet';
+import ExpenseFormSheet, { defaultExpDate, paymentsOf, saveToastFor,
+         convertIndiv, switchFillCur } from './ExpenseFormSheet';
 import type { TripWithMembers } from '@/types/database';
 
 const members = [
@@ -424,5 +425,80 @@ describe('U-⑦　存檔後的第五種 toast', () => {
     /* 一律用「他們」，不猜性別 */
     expect(s).toContain('他們');
     expect(msgNoForTotal(['小美'], 'KRW')).toContain('幫他填 0');
+  });
+});
+
+/* 🔴 實作-AA-1　各自金額切幣別的換算。規格 §2.2：**用比例回推，不需要匯率**。
+   靶用 Rozi 那筆「OY髮油」的形狀：整筆台幣 1,118、外幣總額 54,000、
+   兩人 33,000／21,000 → 683／435。她查了兩天才發現 435 這個數字，
+   因為畫面上從來沒出現過它。 */
+describe('AA-①　各自金額換算（convertIndiv）', () => {
+  const A = 'm1', B = 'm2', C = 'm3';
+
+  it('外幣 → 台幣：台幣總額 × 各人外幣 ÷ 外幣總額，取整數', () => {
+    expect(convertIndiv({ [A]: '33,000', [B]: '21,000' }, 'FOR', 54000, 1118, 0))
+      .toEqual({ [A]: '683', [B]: '435' });
+    /* 兩人加起來 1,118 ＝ 整筆台幣總額（差額歸付款人那條沒被動到） */
+    expect(683 + 435).toBe(1118);
+  });
+
+  it('台幣 → 外幣：外幣總額 × 各人台幣 ÷ 台幣總額，取該幣別的小數位', () => {
+    expect(convertIndiv({ [A]: '276', [B]: '414' }, 'TWD', 30000, 690, 0))
+      .toEqual({ [A]: '12,000', [B]: '18,000' });
+  });
+
+  it('分母是 0 或總額空白就不換算（回 null，由呼叫端維持原值）', () => {
+    const vals = { [A]: '12,000' };
+    expect(convertIndiv(vals, 'FOR', 0, 690, 0)).toBeNull();      // 外幣總額 0
+    expect(convertIndiv(vals, 'FOR', null, 690, 0)).toBeNull();   // 外幣總額空白
+    expect(convertIndiv(vals, 'FOR', 30000, null, 0)).toBeNull(); // 台幣總額空白
+    expect(convertIndiv(vals, 'TWD', 30000, 0, 0)).toBeNull();    // 台幣總額 0
+  });
+
+  it('空白格維持空白，不換算成 0（空白不等於 0，全站一致）', () => {
+    expect(convertIndiv({ [A]: '33,000', [B]: '', [C]: '   ' }, 'FOR', 54000, 1118, 0))
+      .toEqual({ [A]: '683', [B]: '', [C]: '   ' });
+  });
+});
+
+describe('AA-②　切幣別（switchFillCur）', () => {
+  const A = 'm1', B = 'm2';
+  const base = {
+    title: '', emoji: '➕', emojiManual: false, date: '2026-03-17',
+    forAmt: '54,000', twdAmt: '1,118', pay: '現金', payer: A,
+    kind: 'individual' as const, parts: [A, B], single: null,
+    partsOpen: false, onSpot: false, sponsor: false, note: '',
+  };
+
+  it('使用者自己打的那一份，切回去要**還原**，不准重算掉精度', () => {
+    const s0 = { ...base, fillCur: 'FOR' as const,
+                 indiv: { [A]: '33,000', [B]: '21,000' },
+                 indivAlt: {}, indivOwn: true, indivAltOwn: false };
+    const s1 = switchFillCur(s0, 'TWD', 0);
+    expect(s1.indiv).toEqual({ [A]: '683', [B]: '435' });
+    expect(s1.indivOwn).toBe(false);            // 這一份是系統換算填的
+    const s2 = switchFillCur(s1, 'FOR', 0);
+    /* 重算會得到 32,989／21,011——還原才會回到原值 */
+    expect(s2.indiv).toEqual({ [A]: '33,000', [B]: '21,000' });
+  });
+
+  it('系統換算填的那一份會被**重算**，用的是當下的值不是上一次的快照', () => {
+    const s0 = { ...base, forAmt: '30,000', twdAmt: '690', fillCur: 'FOR' as const,
+                 indiv: { [A]: '12,000', [B]: '18,000' },
+                 indivAlt: {}, indivOwn: true, indivAltOwn: false };
+    const s1 = switchFillCur(s0, 'TWD', 0);       // 276／414（系統填的）
+    const s2 = switchFillCur(s1, 'FOR', 0);       // 還原 12,000／18,000
+    const edited = { ...s2, indiv: { ...s2.indiv, [A]: '10,000' }, indivOwn: true };
+    const s3 = switchFillCur(edited, 'TWD', 0);
+    expect(s3.indiv).toEqual({ [A]: '230', [B]: '414' });
+  });
+
+  it('換算不出來時值維持原樣，並標成 indivStale（比對列因此不渲染）', () => {
+    const s0 = { ...base, forAmt: '', fillCur: 'FOR' as const,
+                 indiv: { [A]: '12,000', [B]: '40,000' },
+                 indivAlt: {}, indivOwn: true, indivAltOwn: false };
+    const s1 = switchFillCur(s0, 'TWD', 0);
+    expect(s1.indiv).toEqual({ [A]: '12,000', [B]: '40,000' });
+    expect(s1.indivStale).toBe(true);
   });
 });
