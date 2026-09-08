@@ -158,23 +158,102 @@ function serve(dir) {
   ok(v[1] === '' && v[2] === '', `空白格被換算成 ${JSON.stringify([v[1], v[2]])}——空白不等於 0`);
   ok(v[0] === '683', `其他格應該照常換算，實際 ${v[0]}`);
 
-  /* 7／8／9／11　算不出來就不動 */
+  /* 7／8／9／11　🔴 **換算不出來 → 目標模式留空白**（Cowork 2026-09-08 訂正）。
+     原本的做法是「值照留＋把比對列藏起來」。那是錯的：`12,000`／`40,000`（韓元）
+     會頂著「$ 台幣填」的標題待在格子裡，按「記下來」就當台幣存進去
+     ——那正是 C8 守恆式抓到的「藥局灌水 50,860」。藏掉比對列只是把警訊藏起來，
+     錢還是錯的。留空白之後每格自動帶「自動」與均分的 placeholder，比對列是綠的。 */
   console.log('');
   await openExp('&fill=noforetotal');
-  const before = await cells(); const cmpBefore = await cmp();
+  const before = await cells();
+  const warnBefore = (await p.evaluate(() => document.body.innerText)).includes('還沒填');
   await clickFill(0);
-  const after = await cells(); const cmpAfter = await cmp();
-  const all = await p.evaluate(() => document.body.innerText);
-  const tg2 = await twdTags();
-  console.log(`   ?fill=noforetotal：切之前 ${JSON.stringify(before)} → 切之後 ${JSON.stringify(after)}｜` +
-              `比對列 ${cmpBefore ? '有' : '無'}→${cmpAfter ? '有' : '無'}｜列內台幣 ${tg2.length} 個`);
-  ok(before.length > 0, '?fill=noforetotal 一格都沒有，第 7～9 條等於沒驗');
-  ok(JSON.stringify(before) === JSON.stringify(after), `算不出來卻動了值：${JSON.stringify(before)} → ${JSON.stringify(after)}`);
-  ok(!all.includes('NaN'), '畫面上出現 NaN');
-  ok(cmpAfter === null, '外幣總額空白時比對列不該出現（c.noAutoReason → CmpRow 回 null）');
-  ok(after.filter(x => x === '').length >= 1, '應該有空白格，第 9 條等於沒驗');
-  ok(after.every(x => x !== '0' && x !== 'NaN'), `空白格被填成 0 或 NaN：${JSON.stringify(after)}`);
-  ok(tg2.length === 0, `外幣總額空白時還顯示 ${tg2.length} 個列內台幣`);
+  const st = await p.evaluate(() => ({
+    vals: [...document.querySelectorAll('.amtrow input')].map(n => n.value),
+    ph: [...document.querySelectorAll('.amtrow input')].map(n => n.placeholder),
+    auto: [...document.querySelectorAll('.amtrow')].map(r => !!r.querySelector('.autotag')),
+    txt: document.body.innerText,
+  }));
+  const k2 = await cmp();
+  console.log(`   ?fill=noforetotal 切「$ 台幣填」：值 ${JSON.stringify(st.vals)}｜` +
+              `placeholder ${JSON.stringify(st.ph)}｜自動 ${JSON.stringify(st.auto)}｜` +
+              `比對列「${k2 && k2.txt}」cls「${k2 && k2.cls}」`);
+  ok(before.length === 4, `?fill=noforetotal 應該有四格，實際 ${before.length}——這一段等於沒驗`);
+  ok(st.vals.every(v => v === ''), `目標模式沒有留空白：${JSON.stringify(st.vals)}`);
+  ok(st.auto.every(Boolean), `四格應該都有「自動」標籤，實際 ${JSON.stringify(st.auto)}`);
+  ok(st.ph.every(x => x === '285'), `placeholder 應該都是 285，實際 ${JSON.stringify(st.ph)}`);
+  ok(!st.txt.includes('NaN'), '畫面上出現 NaN');
+  ok(k2 !== null && /\bok\b/.test(k2.cls), `比對列應該出現而且是綠的：${k2 && k2.cls}`);
+  ok(k2 !== null && k2.txt.includes('$ 1,140 ／ $ 1,140'), `比對列文字不對：「${k2 && k2.txt}」`);
+  ok(k2 !== null && !k2.txt.includes('差'), `比對列出現「差」：「${k2 && k2.txt}」`);
+
+  /* 切回去要逐字還原，「還沒填」的警語也要回來 */
+  await clickFill(1);
+  const back = await cells();
+  const warnBack = (await p.evaluate(() => document.body.innerText)).includes('還沒填');
+  console.log(`   → 切回 ₩ KRW 填：${JSON.stringify(back)}｜「還沒填」警語 ${warnBefore}→${warnBack}`);
+  ok(JSON.stringify(back) === JSON.stringify(before), `切回去沒有逐字還原：${JSON.stringify(back)}`);
+  ok(warnBefore && warnBack, `「還沒填」的警語沒有回來（${warnBefore}／${warnBack}）`);
+
+  /* 那個舊旗標整個拿掉。⚠️ 只掃 `src/`——掃 `*.cjs` 會把**這一段自己**算進去
+     （檢查器提到那個字，就被自己的檢查器命中），永遠歸不了零。 */
+  const flag = ['indiv', 'Stale'].join('');
+  const srcHits = require('child_process')
+    .execSync(`grep -rn ${flag} src 2>/dev/null | wc -l`).toString().trim();
+  console.log(`   src/ 裡 ${flag} 命中 ${srcHits} 次`);
+  ok(Number(srcHits) === 0, `${flag} 還有 ${srcHits} 處沒清掉`);
+
+  /* §47　?fill=remainder：外幣總額有值、剩餘不為 0、一人沒填 */
+  console.log('');
+  await openExp('&fill=remainder');
+  const rem = await p.evaluate(() => ({
+    vals: [...document.querySelectorAll('.amtrow input')].map(n => n.value),
+    ph: [...document.querySelectorAll('.amtrow input')].map(n => n.placeholder),
+    auto: [...document.querySelectorAll('.amtrow')].map(r => !!r.querySelector('.autotag')),
+    twd: [...document.querySelectorAll('.amtrow .amttwd')].map(n => n.textContent.trim()),
+  }));
+  const remSum = rem.twd.map(t => Number(t.replace(/[^\d]/g, ''))).reduce((a, x) => a + x, 0);
+  console.log(`   ?fill=remainder：值 ${JSON.stringify(rem.vals)}｜placeholder ${JSON.stringify(rem.ph)}` +
+              `｜自動 ${JSON.stringify(rem.auto)}｜列內台幣 ${JSON.stringify(rem.twd)}（合計 ${remSum}）`);
+  ok(rem.vals.length === 4, `?fill=remainder 應該四格，實際 ${rem.vals.length}`);
+  ok(rem.vals[3] === '', `第四人那格應該是空的，實際「${rem.vals[3]}」`);
+  ok(rem.auto[3] === true, '第四人那格沒有「自動」標籤——§47「剩餘歸未填者」沒生效');
+  ok(rem.ph[3] === '24,675', `第四人的 placeholder 應該是剩餘 24,675，實際「${rem.ph[3]}」`);
+  ok(remSum === 1437, `四人換算後台幣加總應為 1,437，實際 ${remSum}`);
+  await clickFill(0);
+  const rem2 = await p.evaluate(() => ({
+    vals: [...document.querySelectorAll('.amtrow input')].map(n => n.value),
+    ph: [...document.querySelectorAll('.amtrow input')].map(n => n.placeholder),
+    auto: [...document.querySelectorAll('.amtrow')].map(r => !!r.querySelector('.autotag')),
+  }));
+  const k3 = await cmp();
+  console.log(`   → $ 台幣填：值 ${JSON.stringify(rem2.vals)}｜placeholder ${JSON.stringify(rem2.ph)}` +
+              `｜比對列「${k3 && k3.txt}」cls「${k3 && k3.cls}」`);
+  ok(JSON.stringify(rem2.vals) === JSON.stringify(['89', '542', '265', '']),
+    `換算錯，或空白格被填進去了：${JSON.stringify(rem2.vals)}`);
+  ok(rem2.auto[3] === true && rem2.ph[3] === '541',
+    `沒填的那一格應該帶「自動」＋ placeholder 541（＝1,437−89−542−265），實際 ${rem2.auto[3]}／「${rem2.ph[3]}」`);
+  ok(k3 !== null && /\bok\b/.test(k3.cls) && k3.txt.includes('$ 1,437 ／ $ 1,437') && !k3.txt.includes('差'),
+    `比對列不對：「${k3 && k3.txt}」cls「${k3 && k3.cls}」`);
+
+  /* §48／R6　?fill=alltyped：外幣總額空白但全員都填了 */
+  console.log('');
+  await openExp('&fill=alltyped');
+  const at1 = await cells(); const kA = await cmp(); const atTwd = await twdTags();
+  const atSum = atTwd.map(t => Number(t.replace(/[^\d]/g, ''))).reduce((a, x) => a + x, 0);
+  console.log(`   ?fill=alltyped：值 ${JSON.stringify(at1)}｜比對列「${kA && kA.txt}」cls「${kA && kA.cls}」` +
+              `｜列內台幣 ${JSON.stringify(atTwd)}（合計 ${atSum}）`);
+  ok(JSON.stringify(at1) === JSON.stringify(['12,000', '40,000', '0', '0']),
+    `?fill=alltyped 的靶不對：${JSON.stringify(at1)}`);
+  ok(kA !== null && /\bok\b/.test(kA.cls),
+    `R6 沒生效——外幣總額空白但全員都填了，分母該用 Σ各人外幣（比對列 ${kA ? kA.cls : '不存在'}）`);
+  ok(atSum === 1140, `換算後台幣總計應為 1,140，實際 ${atSum}`);
+  await clickFill(0);
+  const at2 = await cells(); const kB = await cmp();
+  console.log(`   → $ 台幣填：${JSON.stringify(at2)}｜比對列 cls「${kB && kB.cls}」`);
+  ok(JSON.stringify(at2) === JSON.stringify(['263', '877', '0', '0']),
+    `R6 的分母沒被沿用（應 263／877／0／0）：${JSON.stringify(at2)}`);
+  ok(kB !== null && /\bok\b/.test(kB.cls), `切過去之後比對列不是綠的：${kB && kB.cls}`);
 
   /* 12　AA-2 不得吃掉可點區 */
   console.log('');

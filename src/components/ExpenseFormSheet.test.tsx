@@ -474,10 +474,11 @@ describe('AA-②　切幣別（switchFillCur）', () => {
     const s0 = { ...base, fillCur: 'FOR' as const,
                  indiv: { [A]: '33,000', [B]: '21,000' },
                  indivAlt: {}, indivOwn: true, indivAltOwn: false };
-    const s1 = switchFillCur(s0, 'TWD', 0);
+    const ctx = { forTotalEff: 54000, noAuto: false };
+    const s1 = switchFillCur(s0, 'TWD', 0, ctx);
     expect(s1.indiv).toEqual({ [A]: '683', [B]: '435' });
     expect(s1.indivOwn).toBe(false);            // 這一份是系統換算填的
-    const s2 = switchFillCur(s1, 'FOR', 0);
+    const s2 = switchFillCur(s1, 'FOR', 0, ctx);
     /* 重算會得到 32,989／21,011——還原才會回到原值 */
     expect(s2.indiv).toEqual({ [A]: '33,000', [B]: '21,000' });
   });
@@ -486,19 +487,34 @@ describe('AA-②　切幣別（switchFillCur）', () => {
     const s0 = { ...base, forAmt: '30,000', twdAmt: '690', fillCur: 'FOR' as const,
                  indiv: { [A]: '12,000', [B]: '18,000' },
                  indivAlt: {}, indivOwn: true, indivAltOwn: false };
-    const s1 = switchFillCur(s0, 'TWD', 0);       // 276／414（系統填的）
-    const s2 = switchFillCur(s1, 'FOR', 0);       // 還原 12,000／18,000
+    const ctx = { forTotalEff: 30000, noAuto: false };
+    const s1 = switchFillCur(s0, 'TWD', 0, ctx);  // 276／414（系統填的）
+    const s2 = switchFillCur(s1, 'FOR', 0, ctx);  // 還原 12,000／18,000
     const edited = { ...s2, indiv: { ...s2.indiv, [A]: '10,000' }, indivOwn: true };
-    const s3 = switchFillCur(edited, 'TWD', 0);
+    const s3 = switchFillCur(edited, 'TWD', 0, ctx);
     expect(s3.indiv).toEqual({ [A]: '230', [B]: '414' });
   });
 
-  it('換算不出來時值維持原樣，並標成 indivStale（比對列因此不渲染）', () => {
+  /* 🔴 這一條在 Cowork 複驗後訂正：換算不出來時**目標模式留空白**，不是維持原值。
+     值照留的話韓元數字會頂著「$ 台幣填」的標題待在格子裡，按「記下來」就當台幣
+     存進去——那正是 C8 守恆式抓到的「藥局灌水 50,860」。 */
+  it('換算不出來時目標模式**全空**，原模式那一份切回去逐字還原', () => {
     const s0 = { ...base, forAmt: '', fillCur: 'FOR' as const,
                  indiv: { [A]: '12,000', [B]: '40,000' },
                  indivAlt: {}, indivOwn: true, indivAltOwn: false };
-    const s1 = switchFillCur(s0, 'TWD', 0);
-    expect(s1.indiv).toEqual({ [A]: '12,000', [B]: '40,000' });
-    expect(s1.indivStale).toBe(true);
+    const s1 = switchFillCur(s0, 'TWD', 0, { forTotalEff: null, noAuto: true });
+    expect(s1.indiv).toEqual({ [A]: '', [B]: '' });
+    const s2 = switchFillCur(s1, 'FOR', 0, { forTotalEff: null, noAuto: true });
+    expect(s2.indiv).toEqual({ [A]: '12,000', [B]: '40,000' });
+  });
+
+  /* R6：外幣總額空白但**全員都填了** → 分母用「已填的加總」。
+     判準沿用 calc()，這裡模擬它算出來的 forTotalEff。 */
+  it('R6（總額空白但全員都填了）照樣換算得出來', () => {
+    const s0 = { ...base, forAmt: '', twdAmt: '1,140', fillCur: 'FOR' as const,
+                 indiv: { [A]: '12,000', [B]: '40,000' },
+                 indivAlt: {}, indivOwn: true, indivAltOwn: false };
+    const s1 = switchFillCur(s0, 'TWD', 0, { forTotalEff: 52000, noAuto: false });
+    expect(s1.indiv).toEqual({ [A]: '263', [B]: '877' });
   });
 });

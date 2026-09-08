@@ -86,6 +86,15 @@ export const fillTwd = Q.get('fill') === 'twd';
    「還原」與「重算」得到一模一樣的結果，金絲雀不會紅。
    重算會得到 32,989／21,011，還原才是 33,000／21,000。 */
 export const fillOy = Q.get('fill') === 'oy';
+/* 🔴 規格 §2 第 47～49 行把「各自付各的、填外幣」分成**三種分母來源**，
+   改之前只有第三種有靶：
+     §47 外幣總額有值 → 未填者自動均分**剩餘**外幣　→ `?fill=remainder`
+     §48 外幣總額空白、全員都填了 → 分母＝Σ各人外幣（R6）→ `?fill=alltyped`
+     §49 外幣總額空白、且有人沒填 → 不准猜　　　　　　→ `?fill=noforetotal`
+   ⚠️ `?fill=oy` **不算 §47 的靶**：它的外幣總額 54,000 恰好等於 33,000＋21,000，
+      剩餘是 0，「剩餘歸未填者」那條規則等於沒被執行過。 */
+export const fillRemainder = Q.get('fill') === 'remainder';
+export const fillAllTyped  = Q.get('fill') === 'alltyped';
 /** `?blanks=1|2|3`：外幣總額空白時**幾個人沒填**——三種文案各要有假資料走過 */
 export const blanksN = Number(Q.get('blanks') || 0);
 
@@ -201,6 +210,26 @@ const baseExpenses: ExpenseWithSplits[] = [
        twd_amount: 50000, payer_member_id: M[0], is_sponsor: true }),
 ];
 
+/** `?fill=remainder` 專用（規格 §47）：外幣總額**有值**、剩餘**不為 0**、一人沒填。
+ *  形狀照 production 2/19「OY黑棗汁」抄。 */
+const fillRemainderExpense = mk({
+  title: '各自付各的（有剩餘）', category_emoji: '🛍️', expense_date: '2026-03-16',
+  foreign_amount: 65460, twd_amount: 1437, expense_type: 'individual',
+  split_fill_currency: 'FOR', parts: [M[0], M[1], M[2], M[3]],
+  indivFor: { [M[0]]: 4050, [M[1]]: 24675, [M[2]]: 12060 }, payer_member_id: M[0],
+});
+
+/** `?fill=alltyped` 專用（規格 §48／R6）：外幣總額**空白**、**四人都有值**
+ *  （其中兩個是明確的 0）。形狀照 production 2/15「藥局」抄——
+ *  ⚠️ 那一筆走的是 R6，**不是** `?fill=noforetotal` 的 §49。
+ *  先前假資料掛著「藥局」的名字、形狀卻是 §49，比沒有假資料更糟：會讓人以為驗過了。 */
+const fillAllTypedExpense = mk({
+  title: '各自付各的（總額空白＋全員都填）', category_emoji: '💄', expense_date: '2026-03-17',
+  foreign_amount: null, twd_amount: 1140, expense_type: 'individual',
+  split_fill_currency: 'FOR', parts: [M[0], M[1], M[2], M[3]],
+  indivFor: { [M[0]]: 12000, [M[1]]: 40000, [M[2]]: 0, [M[3]]: 0 }, payer_member_id: M[1],
+});
+
 /* ⚠️ 這兩筆**一定要定義在 `baseExpenses` 後面**：`mk()` 的 `seq` 是模組層級的
    計數器，插在前面會把 base 那 11 筆的 id 整組往後推，任何寫死 id 的測試都會壞。 */
 /** `?fill=twd` 專用：台幣填的「各自付各的」。整筆台幣 690、外幣總額 30,000，
@@ -224,7 +253,9 @@ const fillOyExpense = mk({
 /** `?fill=noforetotal` 專用：台幣 1,140、外幣總額空白、兩人填了外幣、兩人沒填。
  *  形狀逐項照 production 的「藥局」抄——那一筆改之前被算成 52,000。 */
 const noForTotalExpense = mk({
-  title: '藥局（外幣總額空白）', category_emoji: '💄', expense_date: '2026-03-17',
+  /* ⚠️ 不要再叫「藥局」——production 那筆藥局四個人**都有值**，走的是 R6（§48，
+     見 `?fill=alltyped`）。名字對不上形狀，會讓人以為那條路徑驗過了。 */
+  title: '各自付各的（總額空白＋有人沒填）', category_emoji: '💄', expense_date: '2026-03-17',
   twd_amount: 1140, foreign_amount: null, expense_type: 'individual',
   split_fill_currency: 'FOR', indivFor: { [M[0]]: 12000, [M[1]]: 40000 },
   payer_member_id: M[1],
@@ -261,6 +292,8 @@ const selfPendingExpense = () => mk({
 export const expenses: ExpenseWithSplits[] =
   selfPending ? [...baseExpenses, selfPendingExpense()]
   : allSelf ? allSelfExpenses
+  : fillRemainder ? [fillRemainderExpense]
+  : fillAllTyped ? [fillAllTypedExpense]
   : fillOy ? [fillOyExpense]
   : fillTwd ? [fillTwdExpense]
   : fillFor ? [fillForExpense] : forOnly ? [forOnlyExpense]

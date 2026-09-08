@@ -56,7 +56,7 @@ const num = s => Number(String(s).replace(/[^\d.-]/g, ''));
   await go('screen=s03&fill=noforetotal&member=0');
   const mine = await p.evaluate(() => {
     const row = [...document.querySelectorAll('[data-exp-row]')]
-      .find(r => (r.textContent || '').includes('藥局'));
+      .find(r => (r.textContent || '').includes('總額空白＋有人沒填'));
     return row ? { mine: row.dataset.mine, txt: (row.textContent || '').replace(/\s+/g, ' ') } : null;
   });
   console.log(`   那一筆算 Alex 的金額：${mine && mine.mine}（改之前是 12,000＝把韓元當台幣）`);
@@ -91,7 +91,7 @@ const num = s => Number(String(s).replace(/[^\d.-]/g, ''));
       bc: getComputedStyle(r).borderLeftColor, bw: getComputedStyle(r).borderLeftWidth }));
     return rows;
   });
-  const bad = borders.find(r => r.t.includes('藥局'));
+  const bad = borders.find(r => r.t.includes('總額空白＋有人沒填'));
   const normal = borders.find(r => r.t.includes('黑豬肉晚餐'));
   console.log(`   U-6 算不出來的那一列 border-left ${bad && bad.bc} ${bad && bad.bw}｜` +
               `正常列 ${normal && normal.bc} ${normal && normal.bw}`);

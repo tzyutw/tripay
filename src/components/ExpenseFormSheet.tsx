@@ -182,12 +182,6 @@ export interface FormState {
   indivAlt?: Record<string, string>;
   indivOwn?: boolean;
   indivAltOwn?: boolean;
-  /* 🔴 實作-AA-1　「切過來但**沒能換算**」。外幣總額空白時切到台幣填，值照留
-     （規格要求不清空、不填 0），但那幾個數字**還是外幣**——這時比對列若照常
-     渲染，就會拿 12,000＋40,000 去對台幣總額 1,140，印出「差 $ 50,860」。
-     Rozi 手機上看到的「差 $ 52,882」就是這個。旗標在使用者動過任何一格、
-     或下一次換算成功時清掉。 */
-  indivStale?: boolean;
   partsOpen: boolean;           // 「要排除誰？」是否展開
   onSpot: boolean;
   sponsor: boolean;
@@ -736,10 +730,10 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
           {f.kind === 'individual' && (
             <EachAmounts
               f={f} c={c} cur={cur} sym={sym} members={members} parts={parts}
-              onFillCur={v => setF(s => switchFillCur(s, v, decimalsFor(cur)))}
+              onFillCur={v => setF(s => switchFillCur(s, v, decimalsFor(cur),
+                { forTotalEff: c.forTotalEff ?? null, noAuto: c.noAutoReason != null }))}
               /* 使用者動過任何一格 → 這一份整份標成**使用者的**，切幣別時不准被覆蓋 */
-              onAmt={(id, v) => setF(s => ({ ...s, indiv: { ...s.indiv, [id]: v },
-                                             indivOwn: true, indivStale: false }))}
+              onAmt={(id, v) => setF(s => ({ ...s, indiv: { ...s.indiv, [id]: v }, indivOwn: true }))}
             />
           )}
         </div>
@@ -863,6 +857,11 @@ export function convertIndiv(
  */
 export function switchFillCur(
   s: FormState, next: SplitFillCurrency, forDecimals: 0 | 2,
+  /* 🔴 **換算不出來的判準沿用 `calc()`，不要在這裡另寫一套。**
+     外幣總額空白但**全員都填了**時，R6 會用「已填的加總」當分母
+     （`summary.ts` 的 `forTotalEff`／`forTotalAuto`）——正式資料 2/15 那筆就是走這條，
+     算出 877／263 剛好 1,140。自己用 `f.forAmt` 判斷會把它誤判成「算不出來」。 */
+  ctx: { forTotalEff: number | null; noAuto: boolean },
 ): FormState {
   if (next === s.fillCur) return s;
   const stash = s.indiv, stashOwn = s.indivOwn;
@@ -872,18 +871,20 @@ export function switchFillCur(
   if (s.indivAltOwn && altHasValue) {
     indiv = alt; own = true;
   } else {
-    const conv = convertIndiv(s.indiv, s.fillCur,
-      parseAmount(s.forAmt), parseAmount(s.twdAmt), forDecimals);
+    const conv = ctx.noAuto ? null
+      : convertIndiv(s.indiv, s.fillCur, ctx.forTotalEff, parseAmount(s.twdAmt), forDecimals);
     if (conv == null) {
-      /* 算不出來：值原封不動留著，但**標記成還沒換算過**——那幾個數字
-         在新的模式下沒有意義，比對列不能拿它們去對總額。 */
-      return { ...s, fillCur: next, indiv: s.indiv, indivOwn: Boolean(s.indivOwn),
-               indivAlt: stash, indivAltOwn: stashOwn, indivStale: true };
-    }
-    indiv = conv; own = false;
+      /* 🔴 換算不出來 → 目標模式**每一格留空白**。
+         值照留的話，`12,000`／`40,000`（韓元）會頂著「$ 台幣填」的標題待在格子裡，
+         使用者按「記下來」就把它們當台幣存進去——那正是 C8 守恆式抓到的
+         「藥局灌水 50,860」。原模式那一份完全不動（在 `stash` 裡），切回去逐字還原。
+         留空白之後每一格會自動帶「自動」標籤與均分的 placeholder，
+         比對列也會是綠的——使用者看到的是一張乾淨、可以直接填的表。 */
+      indiv = Object.fromEntries(Object.keys(s.indiv).map(id => [id, '']));
+      own = false;
+    } else { indiv = conv; own = false; }
   }
-  return { ...s, fillCur: next, indiv, indivOwn: own,
-           indivAlt: stash, indivAltOwn: stashOwn, indivStale: false };
+  return { ...s, fillCur: next, indiv, indivOwn: own, indivAlt: stash, indivAltOwn: stashOwn };
 }
 
 /* S-04-15／31／32／16　各自金額。逐人一列用 <label for>，列高 ≥48（CSS 的 .amtrow）。 */
@@ -955,8 +956,7 @@ function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
           {msgNoForTotal(c.blanks.map(id => members.find(x => x.id === id)?.name ?? ''), cur)}</div>
       )}
 
-      {/* AA-1　沒能換算就切過來的那一份，比對列不渲染——見 `indivStale` 的註解 */}
-      {!f.indivStale && <CmpRow c={c} fs={fs} fillCur={fillCur} />}
+      <CmpRow c={c} fs={fs} fillCur={fillCur} />
     </div>
   );
 }
