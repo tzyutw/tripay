@@ -210,10 +210,15 @@ const B_BASE = { 's04 .chip': 34.5, 's04 .seg button': 38.5,
     return document.body.textContent || '';
   });
 
+  /* 🔴 實作-AE-1 改寫：**封存態的列不是 `<button>`**（`畫面地圖.md:119`「列表唯讀」）。
+     這一段原本三種狀態都要求 `<button>`，並且要求封存態點下去要講話——
+     那是上一輪為了「點了沒反應跟壞掉分不出來」加的 toast。
+     AE-1 明文要求封存不可點，所以那個 toast 在**消費列**上不會再出現。
+     ⚠️ 已結算**不變**（`畫面地圖.md:118` 有「點擊仍可編輯」那個括號）。 */
   for (const [state, q, wantBtn, wantForm] of [
     ['正常', 'screen=s03', true, true],
     ['已結算', 'screen=s03&state=settled', true, true],
-    ['封存', 'screen=s03&state=archived', true, false],
+    ['封存', 'screen=s03&state=archived', false, false],
   ]) {
     await go(q);
     const r = await rowsOf();
@@ -221,12 +226,11 @@ const B_BASE = { 's04 .chip': 34.5, 's04 .seg button': 38.5,
     const txt = await tapFirstRow();
     const hasForm = !!txt && txt.includes('記下來');
     console.log(`   ${state.padEnd(4)}：.exprow ${r.total}（button ${r.btn} / div ${r.div}）｜點下去出現編輯表單 ${hasForm}`);
-    ok(r.btn === r.total, `${state}態的列應該都是 <button>，實際 ${r.btn}/${r.total}`);
+    ok(wantBtn ? r.btn === r.total : r.btn === 0,
+      `${state}態的列 button 數 ${r.btn}/${r.total}——` +
+      (wantBtn ? '應該全部可點' : '封存要唯讀，一個 button 都不該有'));
     ok(hasForm === wantForm,
       wantForm ? `${state}態點列應該開得了編輯表單` : `${state}態不該開編輯表單（封存維持唯讀）`);
-    if (!wantForm)
-      ok(!!txt && txt.includes('重新開啟行程'), '封存態點下去沒有講話（跟壞掉分不出來）');
-    void wantBtn;
   }
 
   /* 已結算態存檔一筆 → 要跳「重新計算」提示；正常態不得出現那句 */

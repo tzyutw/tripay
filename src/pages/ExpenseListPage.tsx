@@ -396,7 +396,11 @@ export default function ExpenseListPage() {
         {rows.length
           ? <ExpenseGroups S={{ ...S, list: rows }} readonly={isArchived} money={moneyOpts}
               onEdit={openEdit}
-              onReadonlyTap={isArchived ? () => showToast(MSG_ARCHIVED_TAP) : undefined} />
+              /* 🔴 實作-AE-1　封存態的消費列**不可點**（`畫面地圖.md:119`「列表唯讀」）。
+                 原本傳 `onReadonlyTap` 是為了「點了有話講」，但那會把列渲染成
+                 `<button>`——`畫面地圖.md:118` 的**已結算**才是「點擊仍可編輯」，
+                 封存不是。兩者不同，不要順手把已結算也鎖掉。 */
+              onReadonlyTap={undefined} />
           : <div className="empty"><p>沒有自己買給自己的消費。</p></div>}
         <div style={{ height: 18 }} />
       </div>
@@ -455,7 +459,11 @@ export default function ExpenseListPage() {
               S={{ ...S, list: rows.map(r => r.e) }}
               readonly={isArchived} money={moneyOpts}
               onEdit={openEdit}
-              onReadonlyTap={isArchived ? () => showToast(MSG_ARCHIVED_TAP) : undefined} />
+              /* 🔴 實作-AE-1　封存態的消費列**不可點**（`畫面地圖.md:119`「列表唯讀」）。
+                 原本傳 `onReadonlyTap` 是為了「點了有話講」，但那會把列渲染成
+                 `<button>`——`畫面地圖.md:118` 的**已結算**才是「點擊仍可編輯」，
+                 封存不是。兩者不同，不要順手把已結算也鎖掉。 */
+              onReadonlyTap={undefined} />
           : <div className="empty"><p>都算清楚了。</p><p>沒有需要補的筆數</p></div>}
         <div style={{ height: 18 }} />
       </div>
@@ -595,7 +603,11 @@ export default function ExpenseListPage() {
                這裡只換「消費列能不能點」這一件事的依據。 */
             <ExpenseGroups S={S} readonly={isArchived} money={moneyOpts}
               onEdit={openEdit}
-              onReadonlyTap={isArchived ? () => showToast(MSG_ARCHIVED_TAP) : undefined} />
+              /* 🔴 實作-AE-1　封存態的消費列**不可點**（`畫面地圖.md:119`「列表唯讀」）。
+                 原本傳 `onReadonlyTap` 是為了「點了有話講」，但那會把列渲染成
+                 `<button>`——`畫面地圖.md:118` 的**已結算**才是「點擊仍可編輯」，
+                 封存不是。兩者不同，不要順手把已結算也鎖掉。 */
+              onReadonlyTap={undefined} />
           )}
 
           {/* 實作-X-1　被收起來的那幾筆的去處。錢不會憑空消失：

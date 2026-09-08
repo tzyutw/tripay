@@ -310,7 +310,12 @@ describe('B-3　S-03d 未定案清單', () => {
    「不顯示約、不顯示未定案入口、不做結算前檢查」，**一個字都沒提唯讀**。
    ══════════════════════════════════════════════════════════════ */
 describe('R-④　封存唯讀、已結算可編輯', () => {
-  it('封存：列點得下去但不開表單，改跳「重新開啟行程」那句', async () => {
+  /* 🔴 實作-AE-1 改寫：封存態的列**完全不可點**（`畫面地圖.md:119`「列表唯讀」）。
+     這一條原本驗「是 `<button>`、點了要講話」——那是上一輪為了「點了沒反應跟壞掉
+     分不出來」加的 toast。AE-1 明文要求不是 `<button>`，所以那個 toast 在
+     **消費列**上不會再出現了（`{名字} 的帳` 那一頁的列仍然保留它）。
+     ⚠️ 已結算**不受影響**（`畫面地圖.md:118` 有「點擊仍可編輯」那個括號）。 */
+  it('封存：列不可點（不是 button），底部是「重新開啟行程」', async () => {
     state.trips = [{ ...trip, status: 'archived' }];
     render(<Page />, { route: '/trips/t1', path: TRIP_PATHS });
     await waitFor(() => expect(screen.getAllByText('2026 濟州島四寶團').length).toBeGreaterThan(0));
@@ -318,11 +323,10 @@ describe('R-④　封存唯讀、已結算可編輯', () => {
     /* 先確認真的有列，否則這條會在「沒有列」時假通過 */
     const rows = [...document.querySelectorAll('.exprow')];
     expect(rows.length).toBeGreaterThan(0);
-    /* 現在是 <button>——點了完全沒反應跟壞掉分不出來，所以要點得下去、要講話 */
-    expect(rows.every(r => r.tagName === 'BUTTON')).toBe(true);
+    expect(rows.filter(r => r.tagName === 'BUTTON').length,
+      '封存態的消費列不得是 button').toBe(0);
     fireEvent.click(rows[0]);
     expect(flat(), '封存態不該開編輯表單').not.toContain('記下來');
-    expect(screen.getByText('這趟封存了。要改的話，先按下面的「重新開啟行程」')).toBeInTheDocument();
     /* 封存態底部是「重新開啟行程」，不是「記一筆」 */
     expect(document.querySelector('.btnrow .btn')!.textContent).toContain('重新開啟行程');
   });

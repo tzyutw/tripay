@@ -64,7 +64,12 @@ function serve(dir) {
   });
   console.log(`   emoji 就地編輯框 w=${inlineW}`);
   ok(inlineW !== null, '點不開就地編輯，這條等於沒驗');
-  ok(inlineW >= 30 && inlineW <= 34, `就地編輯框寬 ${inlineW}px，應在 30–34`);
+  /* 🔴 實作-AE-3 之後就地編輯框固定 **28px**（與旁邊的 Avatar 一致，
+     進出編輯那一列才不會跳動）。原本的 30–34 是 `w-8`（32px）時代的範圍。
+     ⚠️ 這條真正要守的是「**沒有被全域 input 規則撐滿整列**」——
+     所以除了等於 28，也一併確認它遠小於列寬。 */
+  ok(Math.abs(inlineW - 28) <= 0.5, `就地編輯框寬 ${inlineW}px，應為 28`);
+  ok(inlineW < 120, `就地編輯框被撐滿整列了（${inlineW}px）——全域 input 規則壓過元件寬度`);
 
   /* ── 3 匯率欄位連打四鍵不失焦 ──────────────────────────────────────── */
   await go('screen=s02b');

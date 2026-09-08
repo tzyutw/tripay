@@ -244,9 +244,14 @@ const CASES = [
               `列 right=${inline && inline.rowRight ? inline.rowRight.toFixed(0) : '-'}`);
   ok(opened, '找不到成員列的頭像，點不下去');
   ok(inline && inline.w !== null, '點了但輸入框沒出現，這條等於沒驗');
-  ok(inline && inline.w !== null && inline.w >= 30 && inline.w <= 34,
-    `就地編輯框寬 ${inline && inline.w !== null ? inline.w.toFixed(1) : '(沒開)'}px，`
-    + '應在 30–34（撐滿整列＝全域 input 規則壓過 w-8）');
+  /* 🔴 實作-AE-3 之後就地編輯框固定 **28px**（與旁邊的 Avatar 一致，
+     進出編輯那一列才不會跳動）。原本的 30–34 是 `w-8`（32px）時代的範圍。
+     ⚠️ 這條真正要守的是「**沒有被全域 input 規則撐滿整列**」——
+     所以除了等於 28，也一併確認它遠小於列寬。 */
+  ok(inline && inline.w !== null && Math.abs(inline.w - 28) <= 0.5,
+    `就地編輯框寬 ${inline && inline.w !== null ? inline.w.toFixed(1) : '(沒開)'}px，應為 28`);
+  ok(!inline || inline.w === null || inline.rowRight === null || inline.w < inline.rowRight / 2,
+    '就地編輯框被撐滿整列了（全域 input 規則壓過元件的寬度）');
   ok(!inline || inline.nameRight === null || inline.rowRight === null
      || inline.nameRight <= inline.rowRight + 1,
     `成員名字被擠出框外：${inline.nameRight} > ${inline.rowRight}`);

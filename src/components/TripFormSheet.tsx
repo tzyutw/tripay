@@ -722,7 +722,9 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                         maxLength={4}
                         defaultValue=""
                         aria-label={`換 ${m.name} 的 emoji`}
-                        className="text-strong w-8 h-8 rounded-base border-[1.5px] border-w bg-white text-center flex-shrink-0 outline-none"
+                        /* 🔴 實作-AE-3　`w-8 h-8`（32px）比旁邊的 `Avatar`（28px）大，
+                           進出編輯時那一列會微微跳動。統一成 28px（`w-7 h-7`）。 */
+                        className="text-strong w-7 h-7 rounded-base border-[1.5px] border-w bg-white text-center flex-shrink-0 outline-none"
                         onBlur={e => inline.commit(e.target.value)}
                         onKeyDown={e => {
                           if (e.key === 'Enter') inline.commit((e.target as HTMLInputElement).value);
@@ -750,11 +752,13 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                       disabled={used > 0}
                       title={used > 0 ? '這位已經有消費紀錄，不能移除' : '移除'}
                       /* tap44：24×24 的圖形不變，用透明 ::after 把可點區撐到 44×44。
-                         ⚠️ 不要放大 ✕ 本身，也不要把 border box 撐大——那會把同一列的內容擠掉。 */
+                         ⚠️ 不要放大圖示本身，也不要把 border box 撐大——那會把同一列的內容擠掉。 */
                       className={`tap44 text-sm ml-1 w-6 h-6 flex items-center justify-center ${used > 0 ? 'text-[#D8D2CC] cursor-not-allowed' : 'text-gr'}`}
                     >
-                      {/* 實作-S-2　`✕` 是文字字元，樣子由系統字體決定、大小跟字級走，
-                          違反 `Icon.tsx` 開頭那條規則。換成 Feather 的 close。
+                      {/* 實作-S-2　這裡原本是**文字字元**當 icon（樣子由系統字體決定、
+                          大小跟字級走），違反 `Icon.tsx` 開頭那條規則，換成 Feather 的 close。
+                          ⚠️ 連**註解裡都不要再寫那個字元**——實作-AE 的斷言是用出現次數
+                             判定的，寫在註解裡也會被算一次。
                           ⚠️ `tap44` 與 `w-6 h-6` 都要留著——實作-R 剛把可點區撐到 44×44。 */}
                       <Icon name="close" size={16} />
                     </button>

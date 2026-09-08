@@ -62,7 +62,14 @@ const parseRgb = s => (s.match(/\d+/g) || []).slice(0, 3).map(Number);
   console.log(`   封存態同一頁：開表單 ${unA && unA.includes('記下來')}｜有 toast ${unA && unA.includes('重新開啟行程')}`);
   ok(unA !== null, '封存態那一頁沒有列，這條等於沒驗');
   ok(!unA.includes('記下來'), '封存態不該開編輯表單');
-  ok(unA.includes('重新開啟行程'), '封存態點下去沒講話');
+  /* 🔴 實作-AE-1：封存態的消費列**不可點**（`畫面地圖.md:119`「列表唯讀」），
+     所以那個 toast 不會再出現了。這條改成驗「真的什麼都沒發生」——
+     不開表單，而且**列不是 `<button>`**（不然「點了沒反應」與「壞掉」還是分不出來）。 */
+  {
+    const nBtn = await p.$$eval('.exprow', ns => ns.filter(x => x.tagName === 'BUTTON').length);
+    console.log(`   封存態的列 button 數：${nBtn}`);
+    ok(nBtn === 0, `封存態的消費列不得是 button，實際 ${nBtn} 個`);
+  }
 
   /* ── 3 游標對齊 ──────────────────────────────────────────────────────── */
   console.log('');
