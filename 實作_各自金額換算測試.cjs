@@ -166,7 +166,14 @@ function serve(dir) {
   console.log('');
   await openExp('&fill=noforetotal');
   const before = await cells();
-  const warnBefore = (await p.evaluate(() => document.body.innerText)).includes('還沒填');
+  /* ⚠️ 不能只找「還沒填」——金額欄在整筆未定時也印那三個字，那樣抓到的可能是別的東西。
+     訂正之一的 8b 要的是 `msgNoForTotal()` 那句警語，它會**點名**沒填的人。 */
+  const warnOf = () => p.evaluate(() => {
+    const el = [...document.querySelectorAll('.note.warn')]
+      .find(n => (n.textContent || '').includes('不知道是 0 還是有金額'));
+    return el ? el.textContent.replace(/\s+/g, ' ').trim() : null;
+  });
+  const warnBefore = await warnOf();
   await clickFill(0);
   const st = await p.evaluate(() => ({
     vals: [...document.querySelectorAll('.amtrow input')].map(n => n.value),
@@ -190,10 +197,13 @@ function serve(dir) {
   /* 切回去要逐字還原，「還沒填」的警語也要回來 */
   await clickFill(1);
   const back = await cells();
-  const warnBack = (await p.evaluate(() => document.body.innerText)).includes('還沒填');
-  console.log(`   → 切回 ₩ KRW 填：${JSON.stringify(back)}｜「還沒填」警語 ${warnBefore}→${warnBack}`);
+  const warnBack = await warnOf();
+  console.log(`   → 切回 ₩ KRW 填：${JSON.stringify(back)}｜警語「${warnBack}」`);
   ok(JSON.stringify(back) === JSON.stringify(before), `切回去沒有逐字還原：${JSON.stringify(back)}`);
-  ok(warnBefore && warnBack, `「還沒填」的警語沒有回來（${warnBefore}／${warnBack}）`);
+  ok(warnBefore !== null, '一開始就沒有那句警語，8b 等於沒驗');
+  ok(warnBack === warnBefore, `切回去警語沒有原樣回來：「${warnBefore}」→「${warnBack}」`);
+  ok(warnBack !== null && /Sam|Kai|還有 \d+ 人/.test(warnBack),
+    `警語沒有點名沒填的人：「${warnBack}」`);
 
   /* 那個舊旗標整個拿掉。⚠️ 只掃 `src/`——掃 `*.cjs` 會把**這一段自己**算進去
      （檢查器提到那個字，就被自己的檢查器命中），永遠歸不了零。 */
