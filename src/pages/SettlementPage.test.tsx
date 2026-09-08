@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import screens from '@/test/fixtures/screens.json';
 import { render, makeSupabaseMock } from '@/test/utils';
+import { breakdownFor } from './SettlementPage';
 
 const M = ['m0', 'm1', 'm2', 'm3'];
 const members = [
@@ -171,8 +172,15 @@ describe('B-5　S-05 已結算：逐筆標記付清', () => {
        不是守「剛好幾段」，改動時跟著原型走。 */
     expect((screens as Record<string, { list: string[] }>).s05.list.length).toBe(104);
     const got = flat();
+    /* ⚠️ 實作-AB-2 把「指名算他的」拆成「自己買給自己的」＋「各付各的」，
+       但**這一節的檔案白名單沒有 `Tripay_原型.html`**，所以原型（與從它擷取的
+       `screens.json`）還停在拆之前。下面三段是那一次拆分的已知落差，
+       不是 App 少了東西——原型同步是另一節的事。
+       ⚠️ 只排除這三段，其餘一段都不放過；原型同步之後這個清單要清空。 */
+    const PROTO_BEHIND = ['指名算他的', '−$ 9,605'];
     const missing = (screens as Record<string, { list: string[] }>).s05.list
-      .filter(t => !got.includes(t.replace(/\s+/g, '')));
+      .filter(t => !got.includes(t.replace(/\s+/g, '')))
+      .filter(t => !PROTO_BEHIND.includes(t));
     expect(missing, `原型有、App 沒有：${missing.join(' ｜ ')}`).toEqual([]);
   });
 
@@ -400,5 +408,59 @@ describe('M-⑦　加了標記之後結算金額不變', () => {
     /* 幫小美買的藥 500：Rozi 代墊 → 小美的欠款要**包含**這 500 */
     const owe = tx.filter(x => x.from === M[1]).reduce((a, x) => a + x.amount, 0);
     expect(owe, '代墊的 500 沒有算進小美的欠款').toBeGreaterThanOrEqual(500);
+  });
+});
+
+/* 🔴 實作-AB-2　「應分攤怎麼來的」四行。純函式直接打，不經畫面。 */
+describe('AB　breakdownFor：四行組成', () => {
+  const trip = baseTrip as unknown as Parameters<typeof breakdownFor>[1];
+  /* 自己買給自己的：M1 自己付、也只算 M1（實作-X-0 的 isSelfPaid 判真） */
+  const own   = mk({ title: '紀念品', twd_amount: 860,
+                     parts: [M[1]], individual_member_id: M[1], payer_member_id: M[1] });
+  /* 各付各的：M0 付、只算 M1——會產生欠款，**不是**自己買給自己的 */
+  const forHim = mk({ title: '幫他買的藥', twd_amount: 500,
+                      parts: [M[1]], individual_member_id: M[1], payer_member_id: M[0] });
+  /* 一起分的 */
+  const split = mk({ title: '機場接送', twd_amount: 1600, payer_member_id: M[0] });
+  const list = [own, forHim, split] as unknown as Parameters<typeof breakdownFor>[0];
+
+  it('前三行相加 ＝ 應分攤（只換呈現，不准改計算）', () => {
+    for (const id of M) {
+      const b = breakdownFor(list, trip, id);
+      expect(b.shared + b.self + b.each, `成員 ${id}`).toBe(b.due);
+    }
+  });
+
+  it('isSelfPaid 為真的那筆落在「自己買給自己的」，不是「各付各的」', () => {
+    const b = breakdownFor(list, trip, M[1]);
+    expect(b.selfN).toBe(1);
+    expect(b.self).toBe(860);
+    /* 「別人付、只算他」會產生欠款，一定要留在各付各的 */
+    expect(b.eachN).toBe(1);
+    expect(b.each).toBe(500);
+  });
+
+  it('整行為 0 的照樣回傳（不是被過濾掉）——Rozi 拍板四行固定顯示', () => {
+    const b = breakdownFor(list, trip, M[2]);      // M2 只有一起分的那一筆
+    expect(b.selfN).toBe(0);
+    expect(b.self).toBe(0);
+    expect(b.eachN).toBe(0);
+    expect(b.each).toBe(0);
+    expect(b.sharedN).toBe(1);
+    /* 回傳的是 0，不是 undefined／不存在——畫面才畫得出「0 筆 $ 0」 */
+    expect(Object.keys(b).sort()).toEqual(
+      ['due', 'each', 'eachN', 'paid', 'paidN', 'self', 'selfN', 'shared', 'sharedN']);
+  });
+
+  it('「他先付出去的」定義沒被動到：personal 不算、當場就清了不算', () => {
+    const personal = mk({ title: '他自己的', twd_amount: 300, parts: [],
+                          expense_type: 'personal', payer_member_id: M[0] });
+    const onSpot   = mk({ title: '當場清', twd_amount: 900, settled_on_spot: true,
+                          payer_member_id: M[0] });
+    const withBoth = [...list, personal, onSpot] as unknown as Parameters<typeof breakdownFor>[0];
+    const a = breakdownFor(list, trip, M[0]);
+    const c = breakdownFor(withBoth, trip, M[0]);
+    expect(c.paid).toBe(a.paid);
+    expect(c.paidN).toBe(a.paidN);
   });
 });

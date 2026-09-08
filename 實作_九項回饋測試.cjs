@@ -116,19 +116,24 @@ const parseRgb = s => (s.match(/\d+/g) || []).slice(0, 3).map(Number);
     if (!t) return null;
     t.click(); await new Promise(r => setTimeout(r, 350));
     return { rows: [...document.querySelectorAll('[data-settle-row]')].map(e => ({
-        m: e.dataset.member, shared: +e.dataset.shared, named: +e.dataset.named,
+        /* ⚠️ 實作-AB-2 把「指名算他的」拆成「自己買給自己的」＋「各付各的」
+           （Rozi 2026-09-08 拍板）。`data-named` 不存在了，改讀拆開後的兩個。 */
+        m: e.dataset.member, shared: +e.dataset.shared,
+        self: +e.dataset.self, each: +e.dataset.each,
         due: +e.dataset.due, paid: +e.dataset.paid, diff: +e.dataset.diff,
         parts: (e.querySelector('.detailparts') || {}).textContent || '' })),
       txt: document.body.textContent || '' };
   });
-  console.log(`   結算列 ${st && st.rows.length} 人｜有「一起分的」 ${st && st.txt.includes('一起分的')}｜` +
-              `「指名算他的」 ${st && st.txt.includes('指名算他的')}｜「他先付出去的」 ${st && st.txt.includes('他先付出去的')}`);
+  console.log(`   結算列 ${st && st.rows.length} 人｜四行：` +
+              ['一起分的', '自己買給自己的', '各付各的', '他先付出去的']
+                .map(x => `${x} ${st && st.txt.includes(x)}`).join('｜'));
   ok(st !== null, '找不到「查看計算依據」，這條等於沒驗');
   ok(st.rows.length >= 3, `只有 ${st.rows.length} 列，這條等於沒驗`);
-  ok(st.txt.includes('一起分的') && st.txt.includes('指名算他的') && st.txt.includes('他先付出去的'),
+  ok(['一起分的', '自己買給自己的', '各付各的', '他先付出去的'].every(x => st.txt.includes(x)),
     '三段的白話名稱沒有全部出現');
   for (const r of st.rows) {
-    ok(r.shared + r.named === r.due, `${r.m}：一起分的 ${r.shared} + 指名算他的 ${r.named} ≠ 應分攤 ${r.due}`);
+    ok(r.shared + r.self + r.each === r.due,
+      `${r.m}：一起分 ${r.shared} ＋ 自己買 ${r.self} ＋ 各付各的 ${r.each} ≠ 應分攤 ${r.due}`);
     /* ⚠️ 指令寫「應分攤 − 實際付出 = 差額」，但 App 的正負號是反過來的
        （`v > 0` 顯示「可以拿回」＝付得比分攤多）。這裡照 App 的慣例驗。 */
     ok(r.paid - r.due === r.diff, `${r.m}：實際付出 ${r.paid} − 應分攤 ${r.due} ≠ 差額 ${r.diff}`);
@@ -138,8 +143,15 @@ const parseRgb = s => (s.match(/\d+/g) || []).slice(0, 3).map(Number);
   ok(sum === 0, `每個人的差額加總應為 0，實際 ${sum}`);
   const noPaid = st.rows.filter(r => r.paid === 0);
   ok(noPaid.length > 0, '沒有「完全沒代墊」的人，反向斷言等於沒驗');
-  for (const r of noPaid)
-    ok(!r.parts.includes('他先付出去的'), `${r.m} 沒有代墊，不該出現「他先付出去的」那一段`);
+  /* ⚠️ 這一條**被實作-AB-2 推翻**：原本驗「沒代墊的人不該出現那一段」，
+     Rozi 2026-09-08 拍板改成**四行固定顯示，筆數 0 的也要顯示**
+     ——整行為 0 時仍要出現，使用者才看得懂這一欄在講什麼。
+     改成驗「那一段在，而且寫的是 0 筆」，一樣守得住「不能顯示假的筆數」。 */
+  for (const r of noPaid) {
+    ok(r.parts.includes('他先付出去的'), `${r.m} 的「他先付出去的」那一段不見了（AB-2 要求四行固定顯示）`);
+    ok(/他先付出去的\s*0 筆/.test(r.parts.replace(/\s+/g, ' ')),
+      `${r.m} 沒有代墊，那一段應該寫「0 筆」：${r.parts.replace(/\s+/g, ' ').slice(0, 80)}`);
+  }
 
   /* ── 6 欄位寬度 ──────────────────────────────────────────────────────── */
   console.log('');

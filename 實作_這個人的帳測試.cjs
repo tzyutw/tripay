@@ -281,12 +281,15 @@ const num = s => Number(String(s).replace(/[^\d.-]/g, ''));
     if (!t) return null;
     t.click(); await new Promise(r => setTimeout(r, 350));
     return [...document.querySelectorAll('[data-settle-row]')].map(e => ({
-      m: e.dataset.member, s: +e.dataset.shared, n: +e.dataset.named,
+      /* ⚠️ 實作-AB-2 把「指名算他的」拆成兩行，`data-named` 不存在了 */
+      m: e.dataset.member, s: +e.dataset.shared,
+      self: +e.dataset.self, each: +e.dataset.each,
       due: +e.dataset.due, paid: +e.dataset.paid, diff: +e.dataset.diff })); });
   ok(hubSettle !== null && hubSettle.length > 0, 'hub 模式展不開計算依據，這條等於沒驗');
   if (hubSettle) {
     for (const r of hubSettle) {
-      ok(r.s + r.n === r.due, `hub ${r.m}：一起分 ${r.s} + 指名 ${r.n} ≠ 應分攤 ${r.due}`);
+      ok(r.s + r.self + r.each === r.due,
+        `hub ${r.m}：一起分 ${r.s} ＋ 自己買 ${r.self} ＋ 各付各的 ${r.each} ≠ 應分攤 ${r.due}`);
       ok(r.paid - r.due === r.diff, `hub ${r.m}：實際付出 − 應分攤 ≠ 差額`);
     }
     const z = hubSettle.reduce((a, x) => a + x.diff, 0);
