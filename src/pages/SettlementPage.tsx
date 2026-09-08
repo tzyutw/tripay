@@ -13,6 +13,7 @@ import { tripSummary, settleTrip, prepaidShare, calc, isSelfPaid, toSharedExpens
 import { money, memberLabel, firstGrapheme } from '@/lib/format';
 import { Icon } from '@/components/Icon';
 import TransferView from '@/components/shared/TransferView';
+import SettleBreakdown from '@/components/shared/SettleBreakdown';
 import type { TripWithMembers, SettlementItem, ExpenseWithSplits } from '@/types/database';
 import Avatar from '@/components/shared/Avatar';
 import { MemberTag } from '@/components/shared/Avatar';
@@ -39,13 +40,18 @@ interface SettlementWithItems {
 /** 一位成員的「應分攤怎麼來的」四行。實作-T-4 起用，實作-AB-2 拆成四行。 */
 export interface Breakdown {
   shared: number; sharedN: number;   // 一起分的
-  self: number;   selfN: number;     // 自己買給自己的
+  self: number;   selfN: number;     // 自己買給自己的（不進結算）
   each: number;   eachN: number;     // 各付各的
-  paid: number;   paidN: number;     // 他先付出去的
-  due: number;                       // 應分攤 ＝ 前三行相加
+  paid: number;   paidN: number;     // 他付出去的**全部**（含自己買給自己的）
+  /* 🔴 實作-AC-2　「他**幫大家**先付的」＝ `paid` 扣掉他自己買給自己的那幾筆。
+     實測正式資料：Mei 的「他先付出去的 3 筆 −$2,299」**整筆都是她自己買的**，
+     她一毛錢都沒幫大家墊——那個數字現在正在誤導使用者。 */
+  fronted: number; frontedN: number;
+  due: number;                       // 應分攤 ＝ shared + self + each
 }
 export const EMPTY_BREAKDOWN: Breakdown = {
-  shared: 0, sharedN: 0, self: 0, selfN: 0, each: 0, eachN: 0, paid: 0, paidN: 0, due: 0,
+  shared: 0, sharedN: 0, self: 0, selfN: 0, each: 0, eachN: 0,
+  paid: 0, paidN: 0, fronted: 0, frontedN: 0, due: 0,
 };
 
 /**
@@ -71,25 +77,31 @@ export function breakdownFor(
   trip: TripWithMembers,
   id: string,
 ): Breakdown {
-  let shared = 0, sharedN = 0, self = 0, selfN = 0, each = 0, eachN = 0, paid = 0, paidN = 0;
+  let shared = 0, sharedN = 0, self = 0, selfN = 0, each = 0, eachN = 0;
+  let paid = 0, paidN = 0, fronted = 0, frontedN = 0;
   for (const e of expenses) {
     const c = calc(e, trip, trip.trip_members);
-    /* 「他先付出去的」＝**代別人墊的**。`personal`（自己的）那幾筆沒有任何人分攤，
+    const mine = isSelfPaid(e, toSharedExpense(e, trip.trip_members));
+    /* 「他付出去的」＝**代別人墊的**。`personal`（自己的）那幾筆沒有任何人分攤，
        算進來的話 `實際付出 − 應分攤` 就對不上 `差額`（實測差 300，就是那一筆）。 */
     if (!e.settled_on_spot && e.expense_type !== 'personal'
         && e.payer_member_id === id && !c.twdPending) {
       paid += c.twdTotal; paidN += 1;
+      /* 🔴 AC-2　他自己買給自己的那幾筆**不算幫大家墊**——錢左手換右手，
+         對誰欠誰一點影響都沒有。 */
+      if (!mine) { fronted += c.twdTotal; frontedN += 1; }
     }
     const share = c.shares[id];
     /* 分攤是 0 的**這一筆**不算一段——「指名算他的 1 筆 $ 0」讀起來像壞掉。
        ⚠️ 這是針對單筆，不是針對整行：整行為 0 時仍然要顯示（AB-2，Rozi 拍板）。 */
     if (share == null || share === 0 || e.settled_on_spot) continue;
-    if (isSelfPaid(e, toSharedExpense(e, trip.trip_members))) { self += share; selfN += 1; }
+    if (mine) { self += share; selfN += 1; }
     else if (e.individual_member_id || e.expense_type === 'individual') { each += share; eachN += 1; }
     else { shared += share; sharedN += 1; }
   }
   /* 應分攤 ＝ 前三行相加。**數值與拆之前逐元相同**，這一節只換呈現不改計算。 */
-  return { shared, sharedN, self, selfN, each, eachN, paid, paidN, due: shared + self + each };
+  return { shared, sharedN, self, selfN, each, eachN, paid, paidN, fronted, frontedN,
+           due: shared + self + each };
 }
 
 export default function SettlementPage() {
@@ -325,98 +337,34 @@ export default function SettlementPage() {
     </button>
   );
 
+  /* 🔴 實作-AC-4　**未結算一律用即時值**（`settleTrip` 的 `net`／`tx`），
+     不准吃 `netFromItems`。Rozi 看到「Ziyu 要給出 $24,192」與上面「大家給 Ning
+     $24,209」打架，就是因為差額讀的是**上一次已確認結算**存的凍結值，
+     而「實際付出」「應分攤」是即時的。已結算則維持凍結值（那才是對的）。 */
+  const frozen = items.length > 0;
+  const netNow: Record<string, number> = frozen
+    ? Object.fromEntries(t.members.map(m =>
+        [m.id, netFromItems.find(x => x.id === m.id)?.net ?? net[m.id] ?? 0]))
+    : net;
+  const txNow = frozen
+    ? items.map(i => ({ from: i.from_member_id, to: i.to_member_id, amount: i.amount }))
+    : tx;
+  /* 已結算之後帳又被改過：即時淨額與凍結值任一人差 > 1 元就算有變動。
+     只提示，指向既有的「重新計算」，不新做按鈕。 */
+  const staleSettlement = frozen
+    && t.members.some(m => Math.abs((net[m.id] ?? 0) - (netNow[m.id] ?? 0)) > 1);
+
   const DetailsBlock = showDetails ? (
-        <div className="fld">
-          {/* S-05-11　人話淨額。由多筆轉帳組成時**對象要全部列出**。 */}
-          <div className="gap">
-            {t.members.map((m, i) => {
-              const v = netFromItems.find(x => x.id === m.id)?.net ?? net[m.id] ?? 0;
-              const mine = (items.length
-                ? items.map(i => ({ from: i.from_member_id, to: i.to_member_id, amount: i.amount }))
-                : tx).filter(x => x.from === m.id || x.to === m.id);
-              return (
-                <div className="netcard" key={m.id}>
-                  <div className="netrow">
-                    <Avatar emoji={m.emoji} name={m.name} index={i} />
-                    <span className="flex-1 text-body font-semibold">{m.name}</span>
-                    <span className="money"
-                      style={{ color: v > 0 ? 'var(--in)' : v < 0 ? 'var(--out)' : 'var(--gr)' }}>
-                      {v > 0 ? `可以拿回 ${money(v)}` : v < 0 ? `要給出 ${money(-v)}` : '剛好打平'}
-                    </span>
-                  </div>
-                  {mine.length > 0 && (
-                    <div className="netwho">
-                      {mine.map(x => (
-                        <div key={`${x.from}>${x.to}`}>
-                          {x.from === m.id
-                            ? <>給 {memberLabel(t.members.find(y => y.id === x.to)!)}{' '}
-                                <span className="money inline">{money(x.amount)}</span></>
-                            : <>{memberLabel(t.members.find(y => y.id === x.from)!)} 給你{' '}
-                                <span className="money inline">{money(x.amount)}</span></>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* 🔴 實作-T-4　把「應分攤」拆成組成。
-              Rozi：「應該要看得到怎麼算出來的細節，例如第一段四人均分的費用，
-              第二段是幫人代墊、被代墊的費用」。
-              原本那張四欄表**只給結果不給組成**——她看不出這個數字是從哪幾筆來的。
-              ⚠️ 這一段只是把既有的計算過程攤開，**不准改任何計算邏輯**。
-              名稱用白話，不要用 shared／individual 這種欄位名。 */}
-          <div className="detailtable">
-            <div className="detailhd">
-              <span>成員</span><span>實際付出</span><span>應分攤</span><span>差額</span>
-            </div>
-            {t.members.map((m, i) => {
-              const v = netFromItems.find(x => x.id === m.id)?.net ?? net[m.id] ?? 0;
-              const b = breakdownOf(m.id);
-              return (
-                <div key={m.id}
-                  data-settle-row data-member={m.id}
-                  data-shared={b.shared} data-self={b.self} data-each={b.each}
-                  data-due={b.due} data-paid={b.paid} data-diff={v}>
-                  <div className="detailrow tnum">
-                    <span style={{ fontFamily: 'var(--sans)', display: 'flex',
-                                   alignItems: 'center', gap: 4, minWidth: 0 }}>
-                      <Avatar emoji={m.emoji} name={m.name} index={i} size={20} />
-                      <span className="trunc">{m.name}</span>
-                    </span>
-                    <span>{b.paid.toLocaleString()}</span>
-                    <span>{b.due.toLocaleString()}</span>
-                    <span style={{ color: v >= 0 ? 'var(--in)' : 'var(--out)' }}>
-                      {v >= 0 ? '+' : ''}{v.toLocaleString()}
-                    </span>
-                  </div>
-                  {/* 🔴 實作-AB-2　四行**固定顯示，筆數 0 的也要顯示**（Rozi 拍板）。
-                      舊的「分攤是 0 的不算一段」是針對**單筆**（上面 `continue` 那條），
-                      不是針對整行——整行為 0 時仍要出現，使用者才看得懂這一欄在講什麼。 */}
-                  <div className="detailparts">
-                    <div><span>一起分的</span><i>{b.sharedN} 筆</i>
-                      <b className="money">{signed(b.shared)}</b></div>
-                    <div><span>自己買給自己的</span><i>{b.selfN} 筆</i>
-                      <b className="money">{signed(b.self)}</b></div>
-                    {/* 這一行的錢自己付、也算自己，跟「他先付出去的」左右抵消 */}
-                    <p className="selfnote">這些你自己付、也算你自己，不影響要轉的錢</p>
-                    <div><span>各付各的</span><i>{b.eachN} 筆</i>
-                      <b className="money">{signed(b.each)}</b></div>
-                    <div><span>他先付出去的</span><i>{b.paidN} 筆</i>
-                      <b className="money">−{money(b.paid)}</b></div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* S-05-14。S-05-12（Excel 正負號提醒）已移除 */}
-          <p className="hint">待填的筆不進結算，所以這裡的數字可能小於總花費</p>
-        </div>
-      ) : null;
-
+    <div className="fld">
+      {/* ⚠️ `net` 一律傳**即時值**：卡片上的「要給出／可以拿回」必須跟卡片裡
+          三行算出來的差額是同一個數字——Rozi 抱怨的就是同一張畫面兩個數字打架。
+          `tx`（給誰多少）已結算時仍用凍結值，那是真的要照著轉的金額；
+          兩者若對不上，上面的 `staleSettlement` 提示會說明。 */}
+      <SettleBreakdown t={t} tx={txNow} net={net} breakdownOf={breakdownOf} />
+      {/* S-05-14。S-05-12（Excel 正負號提醒）已移除 */}
+      <p className="hint">待填的筆不進結算，所以這裡的數字可能小於總花費</p>
+    </div>
+  ) : null;
 
   const Nav = (
     <div className="bar">
@@ -605,6 +553,15 @@ export default function SettlementPage() {
 
       {DetailsToggle}
       {DetailsBlock}
+
+      {/* 🔴 實作-AC-4　已結算之後帳又被改過。凍結值本身是對的（錢就是照它轉的），
+          但使用者會拿它跟現在的帳對，對不起來又沒人說一聲。
+          **只提示，指向下面既有的「重新計算」**，不新做按鈕。 */}
+      {staleSettlement && (
+        <p className="note warn" style={{ margin: '0 14px 8px' }}>
+          <Icon name="warn" size={14} />{' '}這次結算之後帳有變動，數字跟現在的帳不一樣了
+        </p>
+      )}
 
       <div className="btnrow">
         <button className="btn qt" disabled={reopenMutation.isPending}

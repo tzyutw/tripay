@@ -38,9 +38,11 @@ const CASES = [
   { id: 's04',  expand: ['要排除誰？'], min: 4, what: '要排除誰逐人列', by: '分帳方式', tag: 'exclude' },
   { id: 's04',  expand: ['只算一個人'], min: 4, what: '只算一個人 chip', by: '算誰的？', tag: 'single' },
   { id: 's04',  expand: ['各付各的'], min: 4, what: '各自金額逐人列', by: '各自多少？', tag: 'each' },
-  { id: 's05',  expand: ['查看計算依據'], min: 4, what: '人話淨額', zone: '.gap', extra: '&state=settled' },
-  { id: 's05',  expand: ['查看計算依據'], min: 4, what: '對帳表逐人列', zone: '.detailtable',
-    extra: '&state=settled', tag: 'table' },
+  /* 實作-AC 之後「人話淨額」與原本的「對帳表逐人列」**合併成同一張卡**，
+     所以這一列就涵蓋了兩者；原本另外那一列（`zone: '.detailtable'`）
+     指的容器已經不存在，整列移除而不是改選擇器——改選擇器會變成同一件事驗兩次。 */
+  { id: 's05',  expand: ['查看計算依據'], min: 4, what: '計算依據每人卡片（含人話淨額）',
+    zone: '.gap', extra: '&state=settled' },
 
   /* ── 實作-J 第一輪退回：Rozi 最常看的三個畫面，先前還是裸字母 ── */
   { id: 's03',  expand: [], min: 5, what: '消費列的付款人（預設狀態）', zone: 'body',

@@ -550,12 +550,19 @@ input.auto { color:#9AA5AB }
 .detailrow { border-bottom:1px solid #F5F6F3 }
 .detailrow:last-child { border-bottom:0 }
 .detailparts { padding:2px 9px 8px;display:flex;flex-direction:column;gap:2px }
-/* 🔴 實作-AB-2　「自己買給自己的」那一行下面的說明。
-   那一行的錢自己付、也算自己，跟「他先付出去的」左右抵消——不說一句的話
-   使用者會讀成「我要分攤這麼多」（正式資料上那一行是 $39,278，
-   真正影響結算的只有 $1,853，差二十幾倍）。
+/* 🔴 實作-AC-1　計算依據每人卡片：分隔線只有一條（在「差額」上面）、
+   差額那一列加重、「自己買給自己的」灰字縮排＋右側「不進結算」標籤。
    外觀走 `:where()` 壓低特異度，不加 !important。 */
-:where(.selfnote) { margin:0 0 2px;font-size:var(--fs-tag);color:var(--gr);line-height:1.45 }
+:where(.partsline) { height:1px;background:var(--ln);margin:5px 0 4px }
+:where(.diffline) > b { color:var(--md);font-weight:700 }
+/* ⚠️ 這一條**不能用 `:where()`**：它要蓋掉 `.detailparts>div`（0,1,1）的三欄 grid，
+   `:where()` 是 (0,0,0)，蓋不過去。用 `.detailparts>div.selfline`（0,2,1）取得
+   足夠的特異度，**不用 `!important`**——那個會連下一個人也一起擋住。 */
+.detailparts > div.selfline { margin-top:5px;padding-left:10px;
+  grid-template-columns:1fr auto auto auto }
+:where(.selfline) > b { color:var(--gr);font-weight:500 }
+:where(.selfline) > em { font-style:normal;font-size:var(--fs-tag);color:var(--gr);
+  border:1px solid var(--ln);border-radius:var(--r-base);padding:1px 5px;white-space:nowrap }
 .detailparts>div { display:grid;grid-template-columns:1fr auto auto;gap:8px; align-items:baseline;font-size:var(--fs-sub);color:var(--gr) }
 .detailparts i { font-style:normal;font-size:var(--fs-tag);color:var(--gr) }
 .detailparts b { font-weight:600;color:var(--md);font-size:var(--fs-sub); font-variant-numeric:tabular-nums;min-width:64px;text-align:right }

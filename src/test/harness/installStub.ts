@@ -6,7 +6,9 @@ import { trip, expenses, members, settlementItems, allSettlementItems, settlemen
 /* `?state=settled`：讓 S-05 走到「已結算、逐筆標記付清」那一態，
    才畫得出「查看計算依據」的逐人列。預設維持 active，不動既有版面基準。 */
 const st = new URLSearchParams(location.search).get('state');
-const settled = st === 'settled';
+/* 🔴 實作-AC-6　`?state=stale` 也是**已結算**（只是凍結值與現在的帳對不上）。
+   少了這一句，`?state=stale` 會停在未結算態，AC-4 那幾條就驗不到東西。 */
+const settled = st === 'settled' || st === 'stale';
 /* `?state=archived`：封存態的列**維持唯讀**（決策 B），但點下去要有話講。
    已結算與封存是**兩件事**，所以兩個狀態都要有假資料走過。 */
 const archived = st === 'archived';

@@ -120,23 +120,28 @@ const parseRgb = s => (s.match(/\d+/g) || []).slice(0, 3).map(Number);
            （Rozi 2026-09-08 拍板）。`data-named` 不存在了，改讀拆開後的兩個。 */
         m: e.dataset.member, shared: +e.dataset.shared,
         self: +e.dataset.self, each: +e.dataset.each,
-        due: +e.dataset.due, paid: +e.dataset.paid, diff: +e.dataset.diff,
+        /* ⚠️ 實作-AC 把四欄表整張拿掉、改成每人一張卡（Rozi 2026-09-08 拍板）。
+           `data-due` 不再輸出（「應分攤」那一欄不存在了），改用卡片上真的印出來的
+           `data-fronted`。恆等式改成卡片自己的那一條：
+           **幫大家先付的 − 一起分的 − 各付各的 ＝ 差額**。 */
+        fronted: +e.dataset.fronted, paid: +e.dataset.paid, diff: +e.dataset.diff,
         parts: (e.querySelector('.detailparts') || {}).textContent || '' })),
       txt: document.body.textContent || '' };
   });
   console.log(`   結算列 ${st && st.rows.length} 人｜四行：` +
-              ['一起分的', '自己買給自己的', '各付各的', '他先付出去的']
+              ['他幫大家先付的', '一起分的', '各付各的', '自己買給自己的']
                 .map(x => `${x} ${st && st.txt.includes(x)}`).join('｜'));
   ok(st !== null, '找不到「查看計算依據」，這條等於沒驗');
   ok(st.rows.length >= 3, `只有 ${st.rows.length} 列，這條等於沒驗`);
-  ok(['一起分的', '自己買給自己的', '各付各的', '他先付出去的'].every(x => st.txt.includes(x)),
+  ok(['他幫大家先付的', '一起分的', '各付各的', '自己買給自己的'].every(x => st.txt.includes(x)),
     '三段的白話名稱沒有全部出現');
   for (const r of st.rows) {
-    ok(r.shared + r.self + r.each === r.due,
-      `${r.m}：一起分 ${r.shared} ＋ 自己買 ${r.self} ＋ 各付各的 ${r.each} ≠ 應分攤 ${r.due}`);
-    /* ⚠️ 指令寫「應分攤 − 實際付出 = 差額」，但 App 的正負號是反過來的
-       （`v > 0` 顯示「可以拿回」＝付得比分攤多）。這裡照 App 的慣例驗。 */
-    ok(r.paid - r.due === r.diff, `${r.m}：實際付出 ${r.paid} − 應分攤 ${r.due} ≠ 差額 ${r.diff}`);
+    /* 卡片上印出來的那條算式，使用者自己就能對一遍 */
+    ok(r.fronted - r.shared - r.each === r.diff,
+      `${r.m}：幫大家先付 ${r.fronted} − 一起分 ${r.shared} − 各付各的 ${r.each} ≠ 差額 ${r.diff}`);
+    /* AC-2：幫大家先付的 ＝ 他付出去的全部 − 他自己買給自己的 */
+    ok(r.paid - r.self === r.fronted,
+      `${r.m}：data-paid ${r.paid} − data-self ${r.self} ≠ data-fronted ${r.fronted}`);
   }
   const sum = st.rows.reduce((a, x) => a + x.diff, 0);
   console.log(`   差額加總 ${sum}`);
@@ -148,8 +153,8 @@ const parseRgb = s => (s.match(/\d+/g) || []).slice(0, 3).map(Number);
      ——整行為 0 時仍要出現，使用者才看得懂這一欄在講什麼。
      改成驗「那一段在，而且寫的是 0 筆」，一樣守得住「不能顯示假的筆數」。 */
   for (const r of noPaid) {
-    ok(r.parts.includes('他先付出去的'), `${r.m} 的「他先付出去的」那一段不見了（AB-2 要求四行固定顯示）`);
-    ok(/他先付出去的\s*0 筆/.test(r.parts.replace(/\s+/g, ' ')),
+    ok(r.parts.includes('他幫大家先付的'), `${r.m} 的「他幫大家先付的」那一段不見了（四行固定顯示）`);
+    ok(/他幫大家先付的\s*0 筆/.test(r.parts.replace(/\s+/g, ' ')),
       `${r.m} 沒有代墊，那一段應該寫「0 筆」：${r.parts.replace(/\s+/g, ' ').slice(0, 80)}`);
   }
 

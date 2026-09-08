@@ -1,0 +1,10 @@
+{
+ "screen=s05": {
+  "text": "結算\n現在的狀況\n還會變 —— 之後記帳會影響這裡\n🐟\nKai\n給\n🐵\nAlex\n約\n$ 20,220\n🍋\nSam\n給\n🐵\nAlex\n約\n$ 17,740\n🐱\nRobin\n給\n🐵\nAlex\n約\n$ 8,720\n這趟有 86% 是 🐵 Alex 先付的。 改成「都轉給同一個人」的話，每個人只要轉一次。去設定\n查看計算依據\n結算行程\n\n結算後金額固定，可以逐筆標記付清",
+  "clearbtn": 0
+ },
+ "screen=s05&state=settled": {
+  "text": "結算\n這趟有 86% 是 🐵 Alex 先付的。 改成「都轉給同一個人」的話，每個人只要轉一次。去設定\n1 / 3 筆已確認\n🐟\nKai\n給\n🐵\nAlex\n$ 20,220\n已付清\n🍋\nSam\n給\n🐵\nAlex\n$ 17,740\n標記付清\n🐱\nRobin\n給\n🐵\nAlex\n$ 8,720\n標記付清\n查看計算依據\n重新計算\n封存行程",
+  "clearbtn": 2
+ }
+}

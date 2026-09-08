@@ -284,13 +284,15 @@ const num = s => Number(String(s).replace(/[^\d.-]/g, ''));
       /* ⚠️ 實作-AB-2 把「指名算他的」拆成兩行，`data-named` 不存在了 */
       m: e.dataset.member, s: +e.dataset.shared,
       self: +e.dataset.self, each: +e.dataset.each,
-      due: +e.dataset.due, paid: +e.dataset.paid, diff: +e.dataset.diff })); });
+      /* ⚠️ 實作-AC 拿掉四欄表，`data-due` 不再輸出；改驗卡片上真的印出來的那條算式 */
+      fronted: +e.dataset.fronted, paid: +e.dataset.paid, diff: +e.dataset.diff })); });
   ok(hubSettle !== null && hubSettle.length > 0, 'hub 模式展不開計算依據，這條等於沒驗');
   if (hubSettle) {
     for (const r of hubSettle) {
-      ok(r.s + r.self + r.each === r.due,
-        `hub ${r.m}：一起分 ${r.s} ＋ 自己買 ${r.self} ＋ 各付各的 ${r.each} ≠ 應分攤 ${r.due}`);
-      ok(r.paid - r.due === r.diff, `hub ${r.m}：實際付出 − 應分攤 ≠ 差額`);
+      ok(r.fronted - r.s - r.each === r.diff,
+        `hub ${r.m}：幫大家先付 ${r.fronted} − 一起分 ${r.s} − 各付各的 ${r.each} ≠ 差額 ${r.diff}`);
+      ok(r.paid - r.self === r.fronted,
+        `hub ${r.m}：data-paid ${r.paid} − data-self ${r.self} ≠ data-fronted ${r.fronted}`);
     }
     const z = hubSettle.reduce((a, x) => a + x.diff, 0);
     console.log(`   hub 三段：差額加總 ${z}`);

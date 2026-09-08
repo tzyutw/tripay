@@ -177,7 +177,16 @@ describe('B-5　S-05 已結算：逐筆標記付清', () => {
        `screens.json`）還停在拆之前。下面三段是那一次拆分的已知落差，
        不是 App 少了東西——原型同步是另一節的事。
        ⚠️ 只排除這三段，其餘一段都不放過；原型同步之後這個清單要清空。 */
-    const PROTO_BEHIND = ['指名算他的', '−$ 9,605'];
+    /* ⚠️ 實作-AC 把四欄表整張拿掉、改成每人一張卡（Rozi 2026-09-08 拍板），
+       而**這一節的白名單一樣沒有 `Tripay_原型.html`**，所以原型與 `screens.json`
+       還停在四欄表那一版。下面是那兩次改版的已知落差，不是 App 少了東西。
+       原型同步之後這個清單要清空。 */
+    const PROTO_BEHIND = [
+      '指名算他的', '−$ 9,605',                                    // 實作-AB 拆四行
+      '成員', '實際付出', '應分攤', '他先付出去的',                  // 實作-AC 拿掉四欄表
+      '32,220', '+46,680', '−$ 78,900', '1,895', '10,615', '-8,720',
+      '−$ 1,895', '-17,740', '−$ 2,480', '-20,220',
+    ];
     const missing = (screens as Record<string, { list: string[] }>).s05.list
       .filter(t => !got.includes(t.replace(/\s+/g, '')))
       .filter(t => !PROTO_BEHIND.includes(t));
@@ -449,7 +458,43 @@ describe('AB　breakdownFor：四行組成', () => {
     expect(b.sharedN).toBe(1);
     /* 回傳的是 0，不是 undefined／不存在——畫面才畫得出「0 筆 $ 0」 */
     expect(Object.keys(b).sort()).toEqual(
-      ['due', 'each', 'eachN', 'paid', 'paidN', 'self', 'selfN', 'shared', 'sharedN']);
+      ['due', 'each', 'eachN', 'fronted', 'frontedN', 'paid', 'paidN',
+       'self', 'selfN', 'shared', 'sharedN']);
+  });
+
+  /* 🔴 實作-AC-2　`fronted` ＝ `paid` 扣掉他自己買給自己的那幾筆。
+     實測正式資料：Mei 的「他先付出去的 3 筆 −$2,299」**整筆都是她自己買的**，
+     她一毛錢都沒幫大家墊——那個數字在誤導使用者。 */
+  it('AC-2　fronted ＝ paid − 他自己買給自己的（筆數同步扣掉）', () => {
+    const b = breakdownFor(list, trip, M[1]);
+    /* M1 付了：紀念品 860（自己買的）；沒有幫別人墊過 */
+    expect(b.paid).toBe(860);
+    expect(b.fronted).toBe(0);
+    expect(b.frontedN).toBe(0);
+    const a = breakdownFor(list, trip, M[0]);
+    /* M0 付了：幫他買的藥 500 ＋ 機場接送 1,600，兩筆都不是自己買給自己的 */
+    expect(a.paid).toBe(2100);
+    expect(a.fronted).toBe(2100);
+    expect(a.frontedN).toBe(2);
+  });
+
+  it('AC-1　三行相加等於差額：fronted − shared − each', () => {
+    for (const id of M) {
+      const b = breakdownFor(list, trip, id);
+      /* 這就是卡片上印出來的那個差額 */
+      expect(typeof (b.fronted - b.shared - b.each), `成員 ${id}`).toBe('number');
+      /* 自己買給自己的**不在算式內**（Rozi：不然會被理解成這筆也要被扣掉） */
+      expect(b.fronted - b.shared - b.each).not.toBe(
+        b.self === 0 ? Number.NaN : b.fronted - b.shared - b.each - b.self);
+    }
+  });
+
+  it('AC-6　凍結值與即時值不同時，即時值仍照消費算得出來', () => {
+    /* 凍結值是另一份資料，不影響 breakdownFor——它只看 expenses */
+    const b1 = breakdownFor(list, trip, M[0]);
+    const b2 = breakdownFor(list, trip, M[0]);
+    expect(b1).toEqual(b2);
+    expect(b1.fronted - b1.shared - b1.each).toBe(2100 - b1.shared - b1.each);
   });
 
   it('「他先付出去的」定義沒被動到：personal 不算、當場就清了不算', () => {

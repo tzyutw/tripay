@@ -16,6 +16,8 @@ import { dateRange } from '@/lib/format';
 import { tripSummary, settleTrip } from '@/lib/summary';
 import ExpenseGroups from '@/components/shared/ExpenseGroups';
 import MemberLedger from '@/components/shared/MemberLedger';
+import SettleBreakdown from '@/components/shared/SettleBreakdown';
+import { breakdownFor } from '@/pages/SettlementPage';
 import { Icon } from '@/components/Icon';
 import TransferView from '@/components/shared/TransferView';
 import NotFound from '@/components/shared/NotFound';
@@ -56,6 +58,8 @@ export function pickConfirmed(
 export default function SharePage() {
   const { token } = useParams<{ token: string }>();
   const [statOpen, setStatOpen] = useState(false);
+  /* 實作-AC-5　分享頁的「查看計算依據」。預設收合，與 S-05 一致。 */
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
   /* 實作-W-3　`?member=<id>` → 唯讀版的「{名字} 的帳」。
      走 query 不走 state：裝置的返回鍵才會如預期回到分享頁。 */
   const [sp, setSp] = useSearchParams();
@@ -91,11 +95,20 @@ export default function SharePage() {
 
   /* 已確認的轉帳用後端那一次的；挑不到 confirmed 就走前端預覽 */
   const confirmed = pickConfirmed(data.settlements ?? []);
+  const frozenItems = confirmed
+    ? data.settlement_items.filter(i => i.settlement_id === confirmed.id)
+    : [];
+  const live = settleTrip(S, expenses, trip as never);
   const tx = confirmed
-    ? data.settlement_items
-        .filter(i => i.settlement_id === confirmed.id)
-        .map(i => ({ from: i.from_member_id, to: i.to_member_id, amount: i.amount }))
-    : settleTrip(S, expenses, trip as never).tx;
+    ? frozenItems.map(i => ({ from: i.from_member_id, to: i.to_member_id, amount: i.amount }))
+    : live.tx;
+  /* 實作-AC-4／AC-5　與 S-05 同一套規則：已確認就用凍結值，未結算用即時值。
+     凍結值反推淨額＝收到的 − 給出去的（與 `SettlementPage` 的 `netFromItems` 同義）。 */
+  const netNow: Record<string, number> = confirmed
+    ? Object.fromEntries(S.t.members.map(m => [m.id,
+        frozenItems.reduce((a, i) =>
+          a + (i.to_member_id === m.id ? i.amount : 0) - (i.from_member_id === m.id ? i.amount : 0), 0)]))
+    : live.net;
 
   /* 🔴 實作-W-3　唯讀版的「{名字} 的帳」。
      ⚠️ 這一頁**不得有任何編輯入口**（驗收案例 A9）：消費列是 `<div>`、沒有
@@ -155,6 +168,21 @@ export default function SharePage() {
           兩處分開寫遲早會走鐘，理由與 statCard()／expenseGroups() 相同。 */}
       <div className="sec">誰付給誰</div>
       <TransferView t={t} tx={tx} variant="arrows" />
+
+      {/* 🔴 實作-AC-5　分享頁也要看得到計算依據。**與 S-05 同一支元件**
+          （`SettleBreakdown`）——分享頁另寫一套就是「移植檢查」那條陷阱。
+          唯讀：這一段裡不得出現任何按鈕或輸入框（「標記付清」「重新計算」都不准）。
+          資料來源用 RPC 已經有的 `expenses`／`splits`，不改 RPC、不改資料庫。 */}
+      <button className="detailtoggle" onClick={() => setBreakdownOpen(o => !o)}>
+        查看計算依據 <Icon name={breakdownOpen ? 'up' : 'down'} size={16} />
+      </button>
+      {breakdownOpen && (
+        <div className="fld">
+          {/* `net` 一律即時（與 S-05 同一套理由），`tx` 已確認時用凍結值 */}
+          <SettleBreakdown t={t} tx={tx} net={live.net} breakdownOf={id => breakdownFor(expenses, trip as never, id)} />
+          <p className="hint">待填的筆不進結算，所以這裡的數字可能小於總花費</p>
+        </div>
+      )}
 
       {/* S-06-9／10／11 */}
       <div className="sec">消費明細</div>

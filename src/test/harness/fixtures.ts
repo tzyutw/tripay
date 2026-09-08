@@ -65,6 +65,11 @@ export const forOnly = Q.get('forOnly') === '1';
 /** `?settlements=many`：**Rozi 真實資料的形狀**——一趟有十幾次結算，
  *  只有一次是 confirmed。不挑就會把同樣三筆轉帳畫十二遍（實作-G 咬過一次）。 */
 export const settlementsMany = Q.get('settlements') === 'many';
+/* 🔴 實作-AC-6　`?state=stale`／`?stale=1`：**已經結算過、之後又改了帳**。
+   凍結的 `settlement_items` 金額刻意與現在的消費算出來的淨額不同
+   （照正式資料的形狀，每人差 17／203／17／169）。
+   沒有這個狀態，「差額不准吃舊結算」那條就驗不到 Rozi 遇到的狀況。 */
+export const staleSettlement = Q.get('state') === 'stale' || Q.get('stale') === '1';
 /** `?view=foreign`：整頁只有外幣的視角。**那裡不准變灰**——
  *  灰是給「台幣與外幣並列時分主從」用的，整頁灰掉會變成沒東西可讀。 */
 export const viewForeign = Q.get('view') === 'foreign';
@@ -319,6 +324,10 @@ export const settlements = settlementsMany
     ]
   : [{ id: CONFIRMED_ID, trip_id: TRIP_ID, status: 'confirmed', settled_at: '2026-03-20' }];
 
+/** `?stale=1` 時把 confirmed 那一次的金額動一動，模擬「結算之後帳又改了」。
+ *  差額照正式資料的形狀：17／203／17／169。 */
+const STALE_DELTA = [17, 203, 17, 169];
+
 /**
  * confirmed 那一次的轉帳。
  *
@@ -335,7 +344,10 @@ export const settlementItems = (() => {
   const { tx } = settleTrip(S, expenses, trip as never);
   return tx.map((x, i) => ({
     id: `i${i + 1}`, settlement_id: CONFIRMED_ID,
-    from_member_id: x.from, to_member_id: x.to, amount: x.amount,
+    from_member_id: x.from, to_member_id: x.to,
+    /* 🔴 實作-AC-6　`?stale=1`：凍結值刻意**與現在的帳算出來的不同**。
+       這就是 Rozi 遇到的狀況——她 2026-09-07 存過一次結算，之後又改了帳。 */
+    amount: x.amount + (staleSettlement ? STALE_DELTA[i % STALE_DELTA.length] : 0),
     is_cleared: i === 0,
   }));
 })();

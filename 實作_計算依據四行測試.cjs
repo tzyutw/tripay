@@ -18,8 +18,13 @@ function serve(dir) {
     srv.listen(0, '127.0.0.1', () => res({ srv, port: srv.address().port }));
   });
 }
-const NOTE = '這些你自己付、也算你自己，不影響要轉的錢';
-const LABELS = ['一起分的', '自己買給自己的', '各付各的', '他先付出去的'];
+/* ⚠️ 實作-AC-3 把那句灰字整句拿掉，改成該行右側的標籤——
+   位置（在差額下面、不在算式內）已經說明了它不進結算，不需要再解釋一次。 */
+const NOTE = '不進結算';
+/* ⚠️ 實作-AC 改了順序與第一行的名字（Rozi 2026-09-08 拍板）：
+   他幫大家先付的 → 一起分的 → 各付各的 →（分隔線）→ 差額 → 自己買給自己的。
+   AB 那一版的順序與「他先付出去的」這個名字都不存在了。 */
+const LABELS = ['他幫大家先付的', '一起分的', '各付各的', '自己買給自己的'];
 const num = t => Number(String(t).replace(/[^\d-]/g, '')) * (/[−-]/.test(String(t)) ? -1 : 1);
 
 (async () => {
@@ -42,14 +47,19 @@ const num = t => Number(String(t).replace(/[^\d-]/g, '')) * (/[−-]/.test(Strin
     return true;
   };
   const rows = () => p.$$eval('[data-settle-row]', ns => ns.map(n => ({
-    member: n.dataset.member, due: Number(n.dataset.due), paid: Number(n.dataset.paid),
+    member: n.dataset.member, paid: Number(n.dataset.paid),
     diff: Number(n.dataset.diff), shared: Number(n.dataset.shared),
     self: Number(n.dataset.self), each: Number(n.dataset.each),
+    fronted: Number(n.dataset.fronted),
     parts: [...n.querySelectorAll('.detailparts > div')].map(d => ({
-      label: d.querySelector('span').textContent.trim(),
-      n: d.querySelector('i').textContent.trim(),
-      amt: d.querySelector('b').textContent.trim() })),
-    notes: [...n.querySelectorAll('.selfnote')].map(x => x.textContent.trim()),
+      /* 分隔線那一列沒有 span／i／b，先濾掉；「差額」不是四行之一，也濾掉 */
+      label: (d.querySelector('span') || {}).textContent,
+      n: (d.querySelector('i') || {}).textContent,
+      amt: (d.querySelector('b') || {}).textContent }))
+      .filter(x => x.label && x.label.trim() !== '差額')
+      .map(x => ({ label: x.label.trim(), n: (x.n || '').trim(), amt: (x.amt || '').trim() })),
+    /* AC-3 把那句灰字換成「不進結算」標籤 */
+    notes: [...n.querySelectorAll('.selfline em')].map(x => x.textContent.trim()),
   })));
 
   console.log('\n=== 實作-AB　計算依據四行 ===\n');
@@ -76,7 +86,7 @@ const num = t => Number(String(t).replace(/[^\d-]/g, '')) * (/[−-]/.test(Strin
     ok(JSON.stringify(labels) === JSON.stringify(LABELS),
       `四行標籤不對：${JSON.stringify(labels)}`);
     ok(m.notes.length === 1 && m.notes[0] === NOTE,
-      `灰字應該每位成員各 1 句且逐字相同，實際 ${JSON.stringify(m.notes)}`);
+      `「不進結算」標籤應該每位成員各 1 個，實際 ${JSON.stringify(m.notes)}`);
   }
   const zeroRow = r0.some(m => m.parts.some(x => x.n === '0 筆' && num(x.amt) === 0));
   console.log(`   有出現「0 筆 $ 0」的行：${zeroRow}`);
@@ -105,21 +115,21 @@ const num = t => Number(String(t).replace(/[^\d-]/g, '')) * (/[−-]/.test(Strin
   /* 5　不准改到數字 */
   console.log('');
   for (const m of r0) {
-    const sum3 = m.shared + m.self + m.each;
-    console.log(`   ${m.member.slice(0, 6)}…　一起分 ${m.shared} ＋ 自己買 ${m.self} ＋ 各付各的 ${m.each}` +
-                ` = ${sum3}｜應分攤 ${m.due}｜先付出去 ${m.paid}｜差額 ${m.diff}`);
-    ok(sum3 === m.due, `前三行相加 ${sum3} ≠ 應分攤 ${m.due}`);
-    ok(Math.abs((m.paid - m.due) - m.diff) <= 1,
-      `實際付出 − 應分攤 ＝ ${m.paid - m.due}，畫面上的差額卻是 ${m.diff}`);
+    /* AC 之後卡片上沒有「應分攤」了，改驗卡片自己印出來的那條算式 */
+    console.log(`   ${m.member.slice(0, 6)}…　幫大家先付 ${m.fronted} − 一起分 ${m.shared}` +
+                ` − 各付各的 ${m.each} = ${m.fronted - m.shared - m.each}｜差額 ${m.diff}｜自己買 ${m.self}`);
+    ok(m.fronted - m.shared - m.each === m.diff,
+      `三行加不起來：${m.fronted - m.shared - m.each} ≠ ${m.diff}`);
   }
   /* 拆之前的「指名算他的」＝ 自己買 ＋ 各付各的（只是換呈現，總額不變） */
   const namedSum = r0.map(m => m.self + m.each);
-  console.log(`   自己買＋各付各的（＝拆之前的「指名算他的」）：${namedSum.join('、')}`);
-  ok(namedSum.some(x => x !== 0), '每位成員的「指名算他的」都是 0——這一組斷言沒有靶');
+  console.log(`   自己買＋各付各的（＝更早以前的「指名算他的」）：${namedSum.join('、')}`);
+  ok(namedSum.some(x => x !== 0), '每位成員的那兩類都是 0——這一組斷言沒有靶');
 
   /* 6　接上既有那一套，不得另寫判斷 */
   const src = fs.readFileSync('src/pages/SettlementPage.tsx', 'utf8');
-  const bd = src.slice(src.indexOf('const breakdownOf'), src.indexOf('// ── Mutations'));
+  /* AC 之後判定搬進模組層級的 `breakdownFor()`，`breakdownOf` 只剩快取 */
+  const bd = src.slice(src.indexOf('export function breakdownFor'), src.indexOf('export default function'));
   console.log(`   SettlementPage import isSelfPaid：${/import\s*{[^}]*\bisSelfPaid\b/.test(src)}｜` +
               `breakdownOf 內另寫的判斷：personal ${(bd.match(/expense_type === 'personal'/g) || []).length} 處`);
   ok(/import\s*{[^}]*\bisSelfPaid\b/.test(src), 'SettlementPage 沒有 import isSelfPaid');
