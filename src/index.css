@@ -528,6 +528,29 @@ input.auto { color:#9AA5AB }
 .fieldrow.datefield>.v { flex:1;min-width:0;font-size:var(--fs-input); font-weight:600;color:#151C21 }
 .fieldrow.datefield>input[type=date] { position:absolute;inset:0;opacity:0;padding:0; line-height:var(--h-field) }
 .s00wrap { background:linear-gradient(158deg,#0B2233 0%,#0F5E9E 48%,#1276C4 100%); padding:0 26px calc(32px + var(--sab)); display:flex;flex-direction:column;align-items:center; min-height:100dvh;box-sizing:border-box }
+/* 🔴 實作-登-1　登入失敗的訊息。在按鈕**上方**、同一個 240px 欄之內（`.s00col`）。
+   底是深色漸層，所以用半透明白膜＋白字（容器是底下顏色的薄膜，不用實色）。
+   外觀走 `:where()` 壓低特異度，不加 !important。 */
+:where(.loginerr) { width:100%;box-sizing:border-box;margin-bottom:12px;
+  padding:12px 14px;border-radius:var(--r-base);
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  color:#fff;text-align:left }
+:where(.loginerr-t) { margin:0 0 4px;font-size:var(--fs-strong);font-weight:700 }
+:where(.loginerr-b) { margin:0 0 8px;font-size:var(--fs-sub);line-height:1.5;color:rgba(255,255,255,.92) }
+:where(.loginerr-s) { margin:0 0 3px;font-size:var(--fs-tag);color:rgba(255,255,255,.72) }
+:where(.loginerr-raw) { margin:0;font-size:var(--fs-tag);line-height:1.45;
+  color:rgba(255,255,255,.86);word-break:break-word }
+/* 實作-登-2／登-3　登入頁最底下的兩個連結 */
+:where(.loginlegal) { margin:14px 0 0;text-align:center;font-size:var(--fs-tag);
+  color:rgba(255,255,255,.72) }
+:where(.loginlegal) a { color:rgba(255,255,255,.86);text-decoration:underline;
+  display:inline-block;padding:8px 6px }
+
+/* 🔴 實作-登-2／登-3　條款頁的內文。沿用站上既有的字級與行高，不新造一套。 */
+:where(.legal) { padding:14px 16px 0;max-width:100%;box-sizing:border-box }
+:where(.legal-h) { margin:18px 0 6px;font-size:var(--fs-strong);font-weight:700;color:var(--ink) }
+:where(.legal-p) { margin:0 0 10px;font-size:var(--fs-sub);line-height:1.7;color:var(--md);
+  white-space:pre-line;word-break:break-word }
 .s00pad { min-height:24px }
 .s00brand { display:flex;flex-direction:column;align-items:center;flex:none;align-self:stretch }
 .s00col { width:min(240px,100%);display:flex;flex-direction:column;align-items:stretch;align-self:center }

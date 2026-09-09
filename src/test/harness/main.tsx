@@ -28,6 +28,8 @@ import ExpenseFormSheet from '@/components/ExpenseFormSheet';
 import SettlementPage from '@/pages/SettlementPage';
 import SharePage from '@/pages/SharePage';
 import SettingsPage from '@/pages/SettingsPage';
+import PrivacyPage from '@/pages/PrivacyPage';
+import TermsPage from '@/pages/TermsPage';
 
 /* ⚠️ **要跟 `src/App.tsx` 的設定一樣**（`retry: 1, staleTime: 30_000`）。
    先前是 `retry:false, gcTime:0`——快取等於不存在，
@@ -58,6 +60,13 @@ interface ScreenDef {
 }
 const SCREENS: Record<string, ScreenDef> = {
   s00:  { route: '/login',    el: <LoginPage /> },
+  /* 🔴 實作-登-4　新開的兩頁**一定要掛進量測靶**。
+     由來：`standing_C6.cjs` 的畫面清單從 `s01` 開始，**登入頁 `s00` 從來沒被掃過**。
+     新頁不掛上來就是同一個錯再犯一次。
+     ⚠️ 但「未登入直接開得起來」**這裡驗不到**——量測靶是 MemoryRouter ＋ 單一畫面掛載，
+        根本沒有 AuthLayout。那兩條要用正式模式建置驗（見 `_停點.md`）。 */
+  s08:  { route: '/privacy',  el: <PrivacyPage /> },
+  s09:  { route: '/terms',    el: <TermsPage /> },
   s01:  { route: '/',         el: <TripListPage /> },
   s02:  { route: '/',         el: <TripFormSheet onClose={() => {}} onCreated={() => {}} /> },
   s02b: { route: '/',         el: <TripFormSheet tripId={TRIP_ID} onClose={() => {}} onCreated={() => {}} /> },

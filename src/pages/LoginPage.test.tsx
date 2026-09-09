@@ -22,8 +22,17 @@ describe('B-2　S-00 登入', () => {
     const missing = want.list.filter(t => !got.includes(t.replace(/\s+/g, '')));
     expect(missing, `原型有、App 沒有：${missing.join(' ｜ ')}`).toEqual([]);
 
-    /* 反向：App 不得多出原型沒有的字。整頁只有這四段，串起來就該等於原型 */
-    expect(got).toBe(want.list.map(t => t.replace(/\s+/g, '')).join(''));
+    /* 反向：App 不得多出原型沒有的字。
+       🔴 實作-登-2／登-3 加了兩個法律連結（Google 發布正式版時，同意畫面要有
+          隱私權政策與服務條款的連結，沒有就發布不了）。原型還沒同步，
+          所以**只允許這兩段**多出來，其餘一個字都不准。 */
+    const LEGAL = ['隱私權政策', '・', '服務條款'];
+    let rest = got;
+    for (const x of LEGAL) {
+      expect(rest, `登入頁少了「${x}」`).toContain(x);
+      rest = rest.replace(x, '');
+    }
+    expect(rest).toBe(want.list.map(t => t.replace(/\s+/g, '')).join(''));
   });
 
   it('S-00-1 App icon 與 S-00-6 幽靈卡已移除', () => {

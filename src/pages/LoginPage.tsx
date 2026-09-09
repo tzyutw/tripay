@@ -1,4 +1,8 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
+import { bootAuthError } from '@/lib/authError';
+import type { AuthError } from '@/lib/authError';
 
 /* 實作-B-2　S-00 登入（4 項）
  *   S-00-1 App icon — 已移除：App 未設計 logo，不放代用圖示
@@ -9,11 +13,17 @@ import { supabase } from '@/lib/supabaseClient';
  * 版面（.s00*）定義在 src/index.css，整段搬自原型。
  */
 export default function LoginPage() {
+  /* 🔴 實作-登-1　開機時抓下來的 OAuth 錯誤（見 `lib/authError.ts`）。
+     `signInWithOAuth` 自己回的 error 也走同一個區塊。 */
+  const [authErr, setAuthErr] = useState<AuthError | null>(bootAuthError);
+
   async function handleGoogleLogin() {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + import.meta.env.BASE_URL },
     });
+    /* 這個 error 原本沒有接——失敗就是靜靜地什麼都不做 */
+    if (error) setAuthErr({ code: error.message, description: null });
   }
 
   return (
@@ -32,12 +42,28 @@ export default function LoginPage() {
       <div className="s00pad" style={{ flex: 1.35 }} />
 
       <div className="s00col s00act">
+        {/* 🔴 實作-登-1　訊息在按鈕**上方**、同一個 240px 欄之內。
+            文案是 Copywriter 定稿，逐字照抄，**不要照 error code 分支寫十種**。 */}
+        {authErr && (
+          <div className="loginerr" role="alert">
+            <p className="loginerr-t">登不進去</p>
+            <p className="loginerr-b">Google 沒有讓這個帳號登入 Tripay。換一個 Google 帳號試試看。</p>
+            <p className="loginerr-s">還是不行的話，把下面這行傳給分享行程給你的人：</p>
+            <p className="loginerr-raw">Google 的回覆：{authErr.description ?? authErr.code}</p>
+          </div>
+        )}
         <button
           onClick={handleGoogleLogin}
           className="gbtn active:scale-[0.97] transition-transform duration-100"
         >
           <GoogleMark /> 用 Google 繼續
         </button>
+        {/* 實作-登-2／登-3　Google 發布正式版時，同意畫面要有這兩個連結 */}
+        <p className="loginlegal">
+          <Link to="/privacy">隱私權政策</Link>
+          <span aria-hidden="true"> ・ </span>
+          <Link to="/terms">服務條款</Link>
+        </p>
       </div>
     </div>
   );

@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from '@/contexts/ToastContext';
 import AuthLayout from '@/components/AuthLayout';
+import PrivacyPage from '@/pages/PrivacyPage';
+import TermsPage from '@/pages/TermsPage';
 import LoginPage from '@/pages/LoginPage';
 import TripListPage from '@/pages/TripListPage';
 import ExpenseListPage from '@/pages/ExpenseListPage';
@@ -44,6 +46,11 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/share/:token" element={<SharePage />} />
+            {/* 🔴 實作-登-2／登-3　**掛在 ProtectedLayout 之外**：
+                Google Cloud Console 的「品牌」頁面要填這兩個連結，
+                而且必須在**未登入狀態**直接開得起來，否則發布不了正式版。 */}
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms"   element={<TermsPage />} />
             <Route element={<ProtectedLayout />}>
               {/* /trips/new auto-opens TripFormSheet in TripListPage */}
               <Route path="/"          element={<TripListPage />} />
