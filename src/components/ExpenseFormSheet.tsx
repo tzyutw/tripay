@@ -18,8 +18,18 @@ import { parseAmount, formatAmount, caretAfterFormat } from '@/lib/amount';
 import { decimalsFor } from '@/lib/currencyTable';
 import { calc, tripRate } from '@/lib/summary';
 import type { ExpenseCalc } from '@/lib/summary';
-import { MSG_NO_RATE, MSG_TWD_PENDING, MSG_FILL_ONE,
-         msgNeedForTotal, msgNoForTotal, msgSavedNoForTotal } from '@/lib/messages';
+import {
+  MSG_NO_RATE,
+  MSG_TWD_PENDING,
+  MSG_FILL_ONE,
+  msgNeedForTotal,
+  msgNoForTotal,
+  msgSavedNoForTotal,
+  isOffline,
+  MSG_SAVE_OFFLINE,
+  MSG_SAVE_FAIL,
+  MSG_DELETE_FAIL,
+} from '@/lib/messages';
 import { useToast } from '@/contexts/ToastContext';
 import { Icon } from '@/components/Icon';
 import Seg from '@/components/shared/Seg';
@@ -480,7 +490,9 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
       }));
       onClose(true);
     },
-    onError: (e: Error) => toast(e.message || '存不起來，請再試一次'),
+    /* 🔴 實作-文-1　不再把後端原文丟到畫面上（斷網時那句是 `Failed to fetch`）。
+       原文留給 console；畫面講的是「發生什麼」＋「下一步能做什麼」。 */
+    onError: (e: Error) => { console.error(e); toast(isOffline(e) ? MSG_SAVE_OFFLINE : MSG_SAVE_FAIL); },
   });
 
   const del = useMutation({
@@ -499,7 +511,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
       /* 刪掉一筆與改掉一筆對結算的影響一樣——都會讓已結算的數字過期 */
       onClose(true);
     },
-    onError: (e: Error) => toast(e.message),
+    onError: (e: Error) => { console.error(e); toast(MSG_DELETE_FAIL); },
   });
 
   function togglePart(id: string) {

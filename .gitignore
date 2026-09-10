@@ -51,3 +51,8 @@ Claude outputs/_cowork暫存_可刪/
 
 # Cowork 複驗用的 harness 建置壓縮檔（暫存，可刪）
 Claude outputs/*.tgz
+
+# 🔴 實作-私-1　Cowork 會把後台截圖暫存在 `Claude outputs/`，
+# 那些圖裡有 Google Cloud 專案 ID、測試使用者名單與 email。
+# **這個 repo 是公開的**（github.com/tzyutw/tripay，private: false），不要掃進來。
+Claude outputs/screenshot-*

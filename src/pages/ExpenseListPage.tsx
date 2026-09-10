@@ -9,7 +9,8 @@ import { destinationOf } from '@/lib/destinations';
 import { dateRange, money } from '@/lib/format';
 import { tripSummary, tripRate } from '@/lib/summary';
 import { useToast } from '@/contexts/ToastContext';
-import { MSG_SETTLED_STALE, MSG_ARCHIVED_TAP } from '@/lib/messages';
+import { MSG_SETTLED_STALE, MSG_ARCHIVED_TAP, MSG_DELETE_FAIL,
+         MSG_READ_FAIL_EXP_T, MSG_READ_FAIL_BODY, MSG_READ_FAIL_RETRY } from '@/lib/messages';
 import type { TripWithMembers, ExpenseWithSplits } from '@/types/database';
 import ExpenseFormSheet from '@/components/ExpenseFormSheet';
 import TripFormSheet from '@/components/TripFormSheet';
@@ -201,7 +202,8 @@ export default function ExpenseListPage() {
     enabled: Boolean(tripId),
   });
 
-  const { data: expenses = [], isLoading: expLoading } = useQuery<ExpenseWithSplits[]>({
+  const { data: expenses = [], isLoading: expLoading,
+          isError: expError, refetch: refetchExpenses } = useQuery<ExpenseWithSplits[]>({
     queryKey: ['expenses', tripId],
     queryFn: async () => {
       if (!tripId) return [];
@@ -242,7 +244,8 @@ export default function ExpenseListPage() {
       showToast('行程已刪除');
       navigate('/', { replace: true });
     },
-    onError: (e: Error) => showToast(e.message || '刪不掉，請再試一次'),
+    /* 實作-文-1　後端原文留給 console，畫面只講下一步 */
+    onError: (e: Error) => { console.error(e); showToast(MSG_DELETE_FAIL); },
   });
 
   const archiveMutation = useMutation({
@@ -583,7 +586,18 @@ export default function ExpenseListPage() {
 
           {expLoading && <div className="spin"><i /></div>}
 
-          {!expLoading && !S.list.length ? (
+          {/* 🔴 實作-讀-1　**讀不到 ≠ 還沒記帳**。查詢有錯誤時走這一段——
+              舊畫面會說「第一筆從哪裡開始？」，那是在告訴使用者他的帳不見了。 */}
+          {!expLoading && expError && (
+            <div className="empty">
+              <p style={{ marginTop: 10 }}>{MSG_READ_FAIL_EXP_T}</p>
+              <p>{MSG_READ_FAIL_BODY}</p>
+              <button className="btn" style={{ minHeight: 44, marginTop: 14 }}
+                onClick={() => refetchExpenses()}>{MSG_READ_FAIL_RETRY}</button>
+            </div>
+          )}
+
+          {!expLoading && !expError && !S.list.length ? (
             /* 實作-X-1　開關把清單篩空時要說一句為什麼，不得是一片空白——
                不然看起來像資料不見了。 */
             onlyShared && selfBucket.list.length > 0 ? (

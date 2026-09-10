@@ -40,6 +40,17 @@ jobs:
       - name: Copy index.html to 404.html for SPA routing
         run: cp dist/index.html dist/404.html
 
+      # 🔴 實作-部-1　`/privacy` 與 `/terms` 要回 **HTTP 200**。
+      # GitHub Pages 的 SPA fallback 是「回 404.html 但**狀態碼仍是 404**」——
+      # 用瀏覽器開畫面完全正常（實測過），但 Google 的 OAuth 驗證
+      # 通常不接受 404 狀態的隱私權政策／服務條款網址。
+      # 這兩個是 Google Cloud Console「品牌」頁面填的網址，產成真檔才會回 200。
+      - name: Emit real index.html for the legal routes (Google needs HTTP 200)
+        run: |
+          mkdir -p dist/privacy dist/terms
+          cp dist/index.html dist/privacy/index.html
+          cp dist/index.html dist/terms/index.html
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -14,6 +14,33 @@ const settled = st === 'settled' || st === 'stale';
 const archived = st === 'archived';
 /* `?expenses=none` 由 fixtures 統一解析——同一個參數不要在兩個檔各判一次 */
 const expenses2 = noExpenses ? [] : expenses;
+
+/* 🔴 實作-掛-1　讓樁**能夠失敗**。常設 C12：使用者會撞到的失敗，畫面必須說出
+   「發生什麼」＋「下一步能做什麼」。「寫入失敗」與「離線」這兩條路徑
+   在量測靶上**根本走不到**，所以從來沒有人在守——功能有，但驗不到。
+
+     `?fail=write`   寫入（insert／update／upsert／delete）失敗，select 不受影響
+     `?fail=read`    select 與 rpc 失敗，寫入不受影響
+     `?fail=offline` 全部失敗，訊息用 supabase-js **斷網時實際會丟的那一句**
+                     （`Failed to fetch`）——不要自己編一個好看的，
+                     文案層要處理的就是這種看不懂的原文。
+   不帶參數時行為完全不變。 */
+const OFFLINE_MSG = 'Failed to fetch';
+/* 🔴 實作-掛-4　**每次呼叫時才讀**，不要在模組載入時定成常數。
+   `?fail=offline` 是載入時決定的，所以「App 已經開著、然後網路斷了」——
+   **真實世界唯一會發生的離線情境**——在量測靶上走不到
+   （offline 連讀取都失敗 → 清單是空的 → 根本點不到任何一筆去編輯）。
+   改成 `window.__FAIL__` 優先、網址參數次之，複驗就能在執行期切換。 */
+const failNow = () =>
+  (window as unknown as { __FAIL__?: string | null }).__FAIL__
+  ?? new URLSearchParams(location.search).get('fail');
+const isFailWrite = () => { const f = failNow(); return f === 'write' || f === 'offline'; };
+const isFailRead  = () => { const f = failNow(); return f === 'read'  || f === 'offline'; };
+const failMsg = (what: string) =>
+  failNow() === 'offline' ? OFFLINE_MSG : `ZZ 樁：${what}失敗`;
+/** supabase-js 的錯誤形狀：`{ data: null, error: { message } }` */
+const failResult = (what: string) =>
+  ({ data: null, error: { message: failMsg(what) }, count: null });
 function recordRpc<T extends { data: { trip?: unknown } | null }>(r: T): T {
   (window as unknown as { __RPC_TRIP__: unknown }).__RPC_TRIP__ = r.data && r.data.trip;
   return r;
@@ -70,14 +97,27 @@ function chain(table: string) {
      於是「改了資料但清單沒更新」看起來像快取沒清（V-1 的斷言就這樣卡住過）。
      真實的網路回應本來就是新物件。 */
   const copy = (a: Record<string, unknown>[]) => a.map(x => ({ ...x }));
-  const res = () => { const d = copy(hits()); return { data: d, error: null, count: d.length }; };
+  const res = () => {
+    if (isFailRead()) return failResult('讀取') as unknown as { data: Record<string, unknown>[]; error: null; count: number };
+    const d = copy(hits()); return { data: d, error: null, count: d.length };
+  };
   /* 寫入之後 `.select()` 要回傳被動到的那幾列（PostgREST 的行為，
      而且「斷言影響列數」那條帳務鐵律靠它） */
   let affected: Record<string, unknown>[] | null = null;
   let pending: null | (() => Record<string, unknown>[]) = null;
-  const flush = () => { if (pending) { affected = pending(); pending = null; } };
-  const out = () => (affected
-    ? { data: copy(affected), error: null, count: affected.length } : res());
+  /** 這一條 chain 上有沒有寫入動作（有的話 `fail=write` 要擋） */
+  let isWrite = false;
+  const flush = () => {
+    /* 失敗時**不要真的改資料**——不然「存不起來」卻已經寫進去了，
+       比不擋更糟（使用者按第二次會變成兩筆）。 */
+    if (isWrite && isFailWrite()) { pending = null; return; }
+    if (pending) { affected = pending(); pending = null; }
+  };
+  const out = () => {
+    if (isWrite && isFailWrite()) return failResult('寫入') as unknown as
+      { data: Record<string, unknown>[]; error: null; count: number };
+    return affected ? { data: copy(affected), error: null, count: affected.length } : res();
+  };
 
   const c: Record<string, unknown> = {
     then: (r: (v: ReturnType<typeof res>) => unknown) => { flush(); return Promise.resolve(out()).then(r); },
@@ -103,6 +143,7 @@ function chain(table: string) {
 
   c.insert = (payload: unknown) => {
     writes.push(`insert:${table}`);
+    isWrite = true;
     pending = () => {
       const arr = (Array.isArray(payload) ? payload : [payload]) as Record<string, unknown>[];
       const added = arr.map(r => ({ id: `x${++seqId}`, ...r }));
@@ -120,6 +161,7 @@ function chain(table: string) {
   };
   c.update = (patch: unknown) => {
     writes.push(`update:${table}`);
+    isWrite = true;
     pending = () => {
       const hit = hits();
       for (const r of hit) Object.assign(r, patch as Record<string, unknown>);
@@ -129,6 +171,7 @@ function chain(table: string) {
   };
   c.upsert = (payload: unknown) => {
     writes.push(`upsert:${table}`);
+    isWrite = true;
     pending = () => {
       const arr = (Array.isArray(payload) ? payload : [payload]) as Record<string, unknown>[];
       return arr.map(r => {
@@ -141,6 +184,7 @@ function chain(table: string) {
   };
   c.delete = () => {
     writes.push(`delete:${table}`);
+    isWrite = true;
     pending = () => {
       const arr = list();
       const hit = hits();
@@ -159,7 +203,9 @@ const stub = {
      原本斷言讀的是 `__HARNESS_FIXTURE__.trip`（＝`rows.trips[0]`，一律套用過
      `?state=`），所以 rpc 回原始 `trip` 的時候它照樣是 settled——
      那條斷言在量「別人」，不是在量分享頁拿到什麼。 */
-  rpc: (_fn: string) => Promise.resolve(recordRpc({
+  rpc: (_fn: string) => isFailRead()
+    ? Promise.resolve(failResult('讀取') as unknown as { data: unknown; error: null })
+    : Promise.resolve(recordRpc({
     /* 分享頁的 RPC 查不到 token 時回 null（get_shared_trip 的實際行為） */
     data: tripMissing ? null : {
       /* 🔴 實作-W-1b　**要端出套用過 `?state=` 的那一份**（`rows.trips[0]`），

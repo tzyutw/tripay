@@ -36,6 +36,13 @@ import TermsPage from '@/pages/TermsPage';
    於是「改完立刻重開會讀到舊資料」這種**快取 key 的 bug 在量測靶上重現不出來**
    （V-1 的金絲雀因此不會紅）。`retry` 留 false 是為了讓失敗立刻顯示，不影響快取行為。 */
 const qc = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 30_000 } } });
+/* 🔴 實作-掛-2　把 QueryClient 露出來給複驗用。
+   由來：`verify_V` 的 0／0b／1b 三條對照組原本靠一份**保存下來的舊建置**當「未修版」，
+   那是常設 C11 禁止的做法——舊建置會跟現在的程式脫節，實際上那三條已經跑不動好幾輪。
+   露出 `qc` 之後就能在**同一份建置**上把 `invalidateQueries` 換成空函式，
+   當場重現「存了但畫面沒更新」，用它證明 V-1 那條斷言驗的是真東西。
+   ⚠️ 只掛在量測靶的 `main.tsx`，`src/main.tsx`（正式進入點）一個字都不准動。 */
+(window as unknown as { __QC__: unknown }).__QC__ = qc;
 
 /* MemoryRouter 不會動到 window.location，所以「按了之後網址有沒有變」量不到。
    把 router 的 pathname 露出來——實作-O-8 的 bug 正是「網址對了但畫面沒東西」，

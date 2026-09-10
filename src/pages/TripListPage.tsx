@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { MSG_READ_FAIL_TRIPS_T, MSG_READ_FAIL_BODY, MSG_READ_FAIL_RETRY } from '@/lib/messages';
 import { supabase } from '@/lib/supabaseClient';
 import { deriveDisplayStatus, STATUS_LABEL, STATUS_BADGE_CLASS } from '@/lib/deriveStatus';
 import { destinationOf } from '@/lib/destinations';
@@ -15,12 +16,13 @@ export default function TripListPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editTripId, setEditTripId] = useState<string | undefined>();
 
-  // Auto-open form when navigated to /trips/new (G-01)
+  /* 使用者自己按「建立第一趟」／「新增行程」導到 /trips/new 時自動開表單。
+     ⚠️ G-01（零行程時**自動**導向）已於 2026-09-10 拿掉，這裡只處理手動導向。 */
   useEffect(() => {
     if (location.pathname === '/trips/new') setFormOpen(true);
   }, [location.pathname]);
 
-  const { data: trips = [], isLoading } = useQuery<TripWithMembers[]>({
+  const { data: trips = [], isLoading, isError, refetch } = useQuery<TripWithMembers[]>({
     queryKey: ['trips'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -99,7 +101,23 @@ export default function TripListPage() {
             </div>
           )}
 
-          {!isLoading && trips.length === 0 && (
+          {/* 🔴 實作-讀-1　**讀不到 ≠ 還沒有**。查詢有錯誤時走這一段，
+              查詢成功但結果是空的才走下面原本的空狀態。 */}
+          {!isLoading && isError && (
+            <div className="py-10 px-6 text-center">
+              <p className="text-strong font-semibold">{MSG_READ_FAIL_TRIPS_T}</p>
+              <p className="text-sub text-gr mt-[5px]">{MSG_READ_FAIL_BODY}</p>
+              <button
+                onClick={() => refetch()}
+                className="mt-[14px] inline-flex items-center gap-1 px-[18px] py-[11px] bg-w text-white rounded-base text-body font-semibold active:scale-95 transition-transform duration-100"
+                style={{ minHeight: 44 }}
+              >
+                {MSG_READ_FAIL_RETRY}
+              </button>
+            </div>
+          )}
+
+          {!isLoading && !isError && trips.length === 0 && (
             <div className="py-10 px-6 text-center">
               <p className="text-strong font-semibold">還沒有行程。</p>
               <p className="text-sub text-gr mt-[5px]">第一趟要去哪？</p>

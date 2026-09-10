@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { deriveDisplayStatus } from '@/lib/deriveStatus';
 import { tripSummary, settleTrip, prepaidShare, calc, isSelfPaid, toSharedExpense } from '@/lib/summary';
 import { money, memberLabel, firstGrapheme } from '@/lib/format';
+import { isOffline, MSG_SETTLE_OFFLINE, MSG_SETTLE_FAIL } from '@/lib/messages';
 import { Icon } from '@/components/Icon';
 import TransferView from '@/components/shared/TransferView';
 import SettleBreakdown from '@/components/shared/SettleBreakdown';
@@ -296,7 +297,8 @@ export default function SettlementPage() {
       if (msg.includes('archived'))             showToast('行程已封存，請先解除封存再結算');
       else if (msg.includes('invalid_amount'))  showToast('有消費金額有誤，請確認後再試');
       else if (msg.includes('invalid_expense')) showToast('有費用未設定分攤成員');
-      else                                      showToast('結算失敗，請稍後再試');
+      /* 🔴 實作-文-1　只改這個 fallback；上面三個分支已經有具體資訊，不動。 */
+      else { console.error(err); showToast(isOffline(err) ? MSG_SETTLE_OFFLINE : MSG_SETTLE_FAIL); }
     },
   });
 
