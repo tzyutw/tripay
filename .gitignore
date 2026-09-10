@@ -63,6 +63,12 @@ Claude outputs/screenshot-*
 # 所以這裡直接擋整個資料夾的 png。要進版控的圖請放在 `docs/` 或 `public/`。
 Claude outputs/*.png
 
+# 🔴 修-4　複驗時寫的重現腳本（`_repro_*.cjs` 這一類）也是**拋棄式**的：
+# 症狀重現完就作廢，不是產品的一部分，也不是回歸清單的一員，不該留在公開 repo 裡。
+# 跟上面的 png 同一個毛病——`git add -A` 會把它們一起掃進來。
+# 要進版控的腳本請放在 `歷史資料匯入/automation/` 或 repo 根目錄。
+Claude outputs/*.cjs
+
 # 🔴 實作-AF-9　開工小程式的執行期檔案，一律不進版控
 # （歸檔後的那幾份也算——`git add -A` 會把它們一起掃進來，這是修-1 同一個毛病）
 Claude outputs/_開工_已處理_*.txt

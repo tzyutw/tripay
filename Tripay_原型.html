@@ -754,7 +754,7 @@ html.dev .ui .s00wrap{min-height:calc(100dvh - var(--devbar-h,54px))}
 .ui .tcard .nm{position:relative;color:#fff;font-size:var(--fs-strong);font-weight:700;letter-spacing:-.01em;margin-top:6px}
 .ui .tcard .dt{position:relative;font-size:var(--fs-sub);color:rgba(255,255,255,.9);margin-top:3px;
   font-variant-numeric:tabular-nums}
-/* 🔴 實作-AF-1　幽靈卡不再「幽靈」——它是可點的「再開一趟」入口，
+/* 🔴 實作-AF-1　幽靈卡不再「幽靈」——它是可點的「新增一趟」入口，
    模糊與半透明讓人看不出可以點（Rozi 2026-09-10）。 */
 .ui .ghost{margin:11px 14px 0;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden;
   display:block;width:calc(100% - 28px)}
@@ -1344,11 +1344,11 @@ function renderS01() {
     }).join('');
     /* 🔴 實作-AF-1（Rozi 2026-09-10）：幽靈卡**搬到第一張**——
        「我們的排序方式是最新的行程在最上面，所以幽靈卡也應該放在最上面。」
-       改成看得出可以點（拿掉模糊與呼吸動畫），文字改成圖示＋「再開一趟」；
+       改成看得出可以點（拿掉模糊與呼吸動畫），文字改成圖示＋「新增一趟」；
        「你的下一趟在哪？」整句移除（「我不要那一句，請拿掉」）。
-       ⚠️ **零行程時不出現**——沒有「再開一趟」可言，而且跟空狀態那顆重複。 */
+       ⚠️ **零行程時不出現**——沒有「新增一趟」可言，而且跟空狀態那顆重複。 */
     body = b('S-01-8', `<button class="ghost" id="s01ghost"><div>
-      <span class="ghostplus">${ic('add',15)}</span><span>再開一趟</span></div></button>`) + body;
+      <span class="ghostplus">${ic('add',15)}</span><span>新增一趟</span></div></button>`) + body;
     body += `<div style="height:18px"></div>`;
   }
   $('#scr-s01').innerHTML = head + body + `<div id="s01sheet"></div>`;
@@ -1677,7 +1677,7 @@ const INDEX = {
     ['S-01-5','行程卡','op','目的地色調＋壓暗遮罩，整張可點；<b>無金額、無成員、無 emoji</b>'],
     ['S-01-6','狀態徽章','st','四態描邊章，由出發日與 status 推導'],
     ['S-01-7','封存卡樣式','st','整張降飽和'],
-    ['S-01-8','幽靈卡（再開一趟）','op','<b>改（實作-AF-1，Rozi 2026-09-10）</b>：搬到列表<b>第一張</b>（排序是新的在最上面）；拿掉模糊與呼吸動畫（那支動畫的優先級高於 inline 的 opacity，2026-08-30 調 0.72 那次<b>從來沒生效</b>）；文字改成 28×28 實心圓的加號＋「再開一趟」，原本那句整句移除。<b>零行程時不出現</b>'],
+    ['S-01-8','幽靈卡（新增一趟）','op','<b>改（實作-AF-1，Rozi 2026-09-10）</b>：搬到列表<b>第一張</b>（排序是新的在最上面）；拿掉模糊與呼吸動畫（那支動畫的優先級高於 inline 的 opacity，2026-08-30 調 0.72 那次<b>從來沒生效</b>）；文字改成 28×28 實心圓的加號＋「新增一趟」，原本那句整句移除。<b>零行程時不出現</b>'],
     ['S-01-9','G-06 分享橫幅','del','已移除：首頁沒有「哪一趟」的 context'],
     ['S-01-10','「複製連結」鈕','del','已移除：隨 S-01-9 一起'],
     ['S-01-11','排序','inv','出發日新→舊，同日以建立時間次要排序'],

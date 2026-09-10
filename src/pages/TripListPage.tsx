@@ -126,7 +126,7 @@ export default function TripListPage() {
                    宣告值與畫面實際渲染值不一致，是這一類 bug 最難抓的形狀。
               - 原本那句問句**整句移除**（Rozi：「我不要那一句，請拿掉」）
 
-              ⚠️ **零行程時不出現**：一趟都沒有的人沒有「再開一趟」，
+              ⚠️ **零行程時不出現**：一趟都沒有的人沒有「新增一趟」，
                  那張卡在空狀態語意錯誤，而且跟中間那顆「建立第一趟」重複。 */}
           {!isLoading && !isError && trips.length > 0 && (
             <button
@@ -149,7 +149,7 @@ export default function TripListPage() {
                   <Icon name="add" size={15} />
                 </span>
                 <span className="text-strong font-semibold" style={{ color: 'var(--md)' }}>
-                  再開一趟
+                  新增一趟
                 </span>
               </div>
             </button>
