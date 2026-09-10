@@ -366,7 +366,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
   const pays    = paymentsOf(trip);
   const { toast } = useToast();
 
-  const { data: existing } = useQuery<ExpenseWithSplits | null>({
+  const { data: existing, error: loadErr } = useQuery<ExpenseWithSplits | null>({
     queryKey: ['expense', expenseId],
     queryFn: async () => {
       if (!expenseId) return null;
@@ -377,6 +377,21 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
     },
     enabled: isEdit,
   });
+
+  /* 🔴 修-2　**讀不到這一筆時，不准畫成空白表單。**
+     這支查詢的 error 原本沒有被接住：離線時它失敗 → `existing` 是 undefined →
+     表單靜靜地停在 `blank()`，看起來像「這筆什麼都沒填」。使用者改個標題按「記下來」，
+     擋下他的是「先選這筆是誰付的」——從頭到尾沒有一個字提到連不上網路。
+     （這與 AF-2／3／4 修的是同一個毛病：讀不到被畫成沒有資料。那一輪修了四個畫面，
+     漏掉這張表單。）
+
+     退回清單那一份：使用者就是從 S-03 的清單點進來的，那份資料**已經在快取裡**，
+     欄位形狀（`*, expense_splits(*)`）與這支查詢完全相同。有它就照舊能編、能存。 */
+  const cachedRow = isEdit && loadErr
+    ? (qc.getQueryData<ExpenseWithSplits[]>(['expenses', tripId]) ?? [])
+        .find(e => e.id === expenseId) ?? null
+    : null;
+  const loaded = existing ?? cachedRow;
 
   /* 事後補記時要跟著「最後建立的那一筆」走（S-4），所以要知道這趟已經有哪些消費。
      只讀 3 個欄位，不是整份消費——這支查詢每次開「記一筆」都會跑。 */
@@ -408,10 +423,20 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
   const payerRowRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (existing) setF(fromExpense(existing, members));
-  }, [existing]);  // eslint-disable-line react-hooks/exhaustive-deps
+    if (loaded) setF(fromExpense(loaded, members));
+  }, [loaded]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF(s => ({ ...s, [k]: v }));
+
+  /* 🔴 修-2　連快取那份都沒有（例：直接從連結進來、又離線）時的最後一道。
+     這時候表單裡是一張空白的 `blank()`，存下去等於**把原本那筆洗成空的**。
+     所以不送出，並且說出真正的原因——不是讓「先選這筆是誰付的」去頂替。
+     回 true 表示「這一次不要存」。 */
+  function blockedByLoad(): boolean {
+    if (!isEdit || loaded) return false;
+    toast(isOffline(loadErr) ? MSG_SAVE_OFFLINE : MSG_SAVE_FAIL);
+    return true;
+  }
 
   /* 存檔前的檢查。**只擋真的存不下去的**——金額空白照樣放行（S-04-8）。 */
   function validate(): boolean {
@@ -793,7 +818,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
         <div className="btnrow flex-shrink-0">
           <button className="btn gh" onClick={() => onClose()}>取消</button>
           <button className="btn" disabled={save.isPending}
-            onClick={() => { if (validate()) save.mutate(); }}>
+            onClick={() => { if (blockedByLoad()) return; if (validate()) save.mutate(); }}>
             {save.isPending ? '存檔中…' : '記下來'}
           </button>
         </div>

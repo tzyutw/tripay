@@ -57,7 +57,15 @@ Claude outputs/*.tgz
 # **這個 repo 是公開的**（github.com/tzyutw/tripay，private: false），不要掃進來。
 Claude outputs/screenshot-*
 
+# 🔴 修-1　Cowork 做的決策對照稿與量測截圖是**拋棄式**的：
+# Rozi 選完方案就作廢，不是產品的一部分，不該留在公開 repo 裡。
+# 上一行的 `screenshot-*` 擋不到中文檔名（例：`幽靈卡_三案.png`），
+# 所以這裡直接擋整個資料夾的 png。要進版控的圖請放在 `docs/` 或 `public/`。
+Claude outputs/*.png
+
 # 🔴 實作-AF-9　開工小程式的執行期檔案，一律不進版控
+# （歸檔後的那幾份也算——`git add -A` 會把它們一起掃進來，這是修-1 同一個毛病）
+Claude outputs/_開工_已處理_*.txt
 _開工.txt
 _停watcher.txt
 .claude/kickoff.lock
