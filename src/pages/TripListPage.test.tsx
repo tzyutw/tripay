@@ -59,7 +59,7 @@ describe('B-2　S-01 首頁', () => {
     render(<TripListPage />, { route: '/trips' });
     await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 
-    /* 🔴 實作-AF-1：頂部列那顆建立按鈕整顆移除、幽靈卡的文案改成「新增一趟」，
+    /* 🔴 實作-AF-1：頂部列那顆建立按鈕整顆移除、幽靈卡的文案改成「記新的一趟」，
        所以段數 12 → 11（少一顆按鈕、原本那句問句換成短的一行）。 */
     expect(want.list.length).toBe(11);          // 基準本身要有東西，否則下面全是假通過
     const got = flat();
@@ -94,14 +94,14 @@ describe('B-2　S-01 首頁', () => {
     expect(flat()).not.toContain('＋');
 
     const ghost = [...container.querySelectorAll('button')]
-      .find(b => (b.textContent ?? '').includes('新增一趟'))!;
+      .find(b => (b.textContent ?? '').includes('記新的一趟'))!;
     expect(ghost, '找不到幽靈卡').toBeTruthy();
     expect(ghost.querySelector('svg')).not.toBeNull();
     expect(ghost.querySelector('svg')!.getAttribute('stroke')).toBe('currentColor');
 
     /* 反向：同一個動作只留一個入口（全站 UX 檢查第 6 條） */
     const creators = [...container.querySelectorAll('button')]
-      .filter(b => /新增一趟|建立第一趟/.test(b.textContent ?? ''));
+      .filter(b => /記新的一趟|建立第一趟/.test(b.textContent ?? ''));
     expect(creators.length, '建立入口不只一個').toBe(1);
   });
 

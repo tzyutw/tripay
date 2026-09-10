@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MSG_READ_FAIL_TRIPS_T } from '@/lib/messages';
 import ReadError from '@/components/shared/ReadError';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -28,12 +28,15 @@ export default function TripListPage() {
 
   const { data: trips = [], isLoading, isError, refetch } = useQuery<TripWithMembers[]>({
     queryKey: ['trips'],
-    queryFn: async () => {
+    /* 🔴 修-7　`signal` 要一路交到 PostgREST：下拉重新整理逾時中止時，
+       這條請求要真的斷掉，不能放著它背景跑完再默默更新畫面。 */
+    queryFn: async ({ signal }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       const { data, error } = await supabase
         .from('trips')
         .select('*, trip_members!trip_members_trip_id_fkey(*)')
+        .abortSignal(signal)
         // Phase 2：帳單週期（kind='statement'）不得混進旅遊列表
         .eq('kind', 'trip')
         .eq('owner_id', user.id)
@@ -49,8 +52,14 @@ export default function TripListPage() {
   /* 🔴 實作-AF-7　下拉重新整理。離線時不要擋——Rozi 要求維持看得到上次的資料，
      只跳一次 toast 說明為什麼沒更新。 */
   const { toast: showToast } = useToast();
-  const ptr = usePullToRefresh(async () => {
+  const qc = useQueryClient();
+  const ptr = usePullToRefresh(async signal => {
     if (isDeviceOffline()) { showToast(MSG_SAVE_OFFLINE); return; }
+    /* 🔴 修-7　十秒逾時的 abort 由 hook 發動，這裡把它接到 react-query：
+       `cancelQueries` 會中止 queryFn 拿到的那個 signal（＝上面的 `.abortSignal`），
+       並且**保留原本的資料**（cancel 預設 revert 回上一個成功狀態）。 */
+    signal.addEventListener(
+      'abort', () => { void qc.cancelQueries({ queryKey: ['trips'] }); }, { once: true });
     await refetch();
   });
 
@@ -105,9 +114,10 @@ export default function TripListPage() {
           ⚠️ 離線時**維持看得到上次存的資料**（Rozi 明確要求），
              只在最上面跳一次 toast。 */}
       <div className="flex-1 overflow-y-auto scrollbar-hide" ref={ptr.ref}>
-        {(ptr.pull > 0 || ptr.refreshing) && (
-          <div className="flex justify-center overflow-hidden"
-            style={{ height: ptr.refreshing ? 44 : ptr.pull, transition: ptr.pull ? 'none' : 'height .2s' }}>
+        {/* 🔴 修-6　高度與回彈的 transition 都由 hook 給（兩頁共用一份，不各寫一個）。
+            回彈期間指示器要**留在畫面上**，不然沒有東西可以跑那段動畫。 */}
+        {ptr.visible && (
+          <div className="flex justify-center overflow-hidden" style={ptr.indicatorStyle}>
             <div className="spin" style={{ padding: 0, alignSelf: 'center' }}><i /></div>
           </div>
         )}
@@ -126,7 +136,7 @@ export default function TripListPage() {
                    宣告值與畫面實際渲染值不一致，是這一類 bug 最難抓的形狀。
               - 原本那句問句**整句移除**（Rozi：「我不要那一句，請拿掉」）
 
-              ⚠️ **零行程時不出現**：一趟都沒有的人沒有「新增一趟」，
+              ⚠️ **零行程時不出現**：一趟都沒有的人沒有「記新的一趟」，
                  那張卡在空狀態語意錯誤，而且跟中間那顆「建立第一趟」重複。 */}
           {!isLoading && !isError && trips.length > 0 && (
             <button
@@ -149,7 +159,7 @@ export default function TripListPage() {
                   <Icon name="add" size={15} />
                 </span>
                 <span className="text-strong font-semibold" style={{ color: 'var(--md)' }}>
-                  新增一趟
+                  記新的一趟
                 </span>
               </div>
             </button>

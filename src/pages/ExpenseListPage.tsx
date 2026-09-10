@@ -191,11 +191,13 @@ export default function ExpenseListPage() {
   const { data: trip, isLoading: tripLoading,
           isError: tripError, refetch: refetchTrip } = useQuery<TripWithMembers | null>({
     queryKey: ['trip', tripId],
-    queryFn: async () => {
+    /* 🔴 修-7　`signal` 交給 PostgREST，下拉逾時中止時請求要真的斷掉 */
+    queryFn: async ({ signal }) => {
       if (!tripId) return null;
       const { data, error } = await supabase
         .from('trips')
         .select('*, trip_members!trip_members_trip_id_fkey(*)')
+        .abortSignal(signal)
         .eq('id', tripId)
         /* `.single()` 查不到列時回 **406 並拋錯**，畫面就只能一直轉 spinner。
            `.maybeSingle()` 回 `data: null`，才有東西可以判斷「查不到」。 */
@@ -209,11 +211,12 @@ export default function ExpenseListPage() {
   const { data: expenses = [], isLoading: expLoading,
           isError: expError, refetch: refetchExpenses } = useQuery<ExpenseWithSplits[]>({
     queryKey: ['expenses', tripId],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!tripId) return [];
       const { data, error } = await supabase
         .from('expenses')
         .select('*, expense_splits(*)')
+        .abortSignal(signal)
         .eq('trip_id', tripId)
         .is('deleted_at', null)
         .order('expense_date', { ascending: true });
@@ -279,8 +282,13 @@ export default function ExpenseListPage() {
   });
 
   /* 🔴 實作-AF-7　下拉重新整理。離線時維持看得到上次的資料，只跳一次 toast。 */
-  const ptr = usePullToRefresh(async () => {
+  const ptr = usePullToRefresh(async signal => {
     if (isDeviceOffline()) { showToast(MSG_SAVE_OFFLINE); return; }
+    /* 🔴 修-7　逾時的 abort 接到 react-query，兩條查詢都要真的中止 */
+    signal.addEventListener('abort', () => {
+      void qc.cancelQueries({ queryKey: ['trip', tripId] });
+      void qc.cancelQueries({ queryKey: ['expenses', tripId] });
+    }, { once: true });
     await Promise.all([refetchTrip(), refetchExpenses()]);
   });
 
@@ -497,9 +505,8 @@ export default function ExpenseListPage() {
   return (
     <div className="min-h-screen bg-bg flex flex-col" style={{ position: 'relative' }} ref={ptr.ref}>
       {/* 🔴 實作-AF-7　下拉重新整理（消費分頁）。回饋沿用既有的 `.spin`。 */}
-      {(ptr.pull > 0 || ptr.refreshing) && (
-        <div className="flex justify-center overflow-hidden"
-          style={{ height: ptr.refreshing ? 44 : ptr.pull, transition: ptr.pull ? 'none' : 'height .2s' }}>
+      {ptr.visible && (
+        <div className="flex justify-center overflow-hidden" style={ptr.indicatorStyle}>
           <div className="spin" style={{ padding: 0, alignSelf: 'center' }}><i /></div>
         </div>
       )}
