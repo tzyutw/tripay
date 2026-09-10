@@ -10,7 +10,10 @@ import { dateRange, money } from '@/lib/format';
 import { tripSummary, tripRate } from '@/lib/summary';
 import { useToast } from '@/contexts/ToastContext';
 import { MSG_SETTLED_STALE, MSG_ARCHIVED_TAP, MSG_DELETE_FAIL,
-         MSG_READ_FAIL_EXP_T, MSG_READ_FAIL_BODY, MSG_READ_FAIL_RETRY } from '@/lib/messages';
+         MSG_READ_FAIL_EXP_T, guardedWrite,
+         isDeviceOffline, MSG_SAVE_OFFLINE } from '@/lib/messages';
+import ReadError from '@/components/shared/ReadError';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import type { TripWithMembers, ExpenseWithSplits } from '@/types/database';
 import ExpenseFormSheet from '@/components/ExpenseFormSheet';
 import TripFormSheet from '@/components/TripFormSheet';
@@ -185,7 +188,8 @@ export default function ExpenseListPage() {
   const { toast: showToast } = useToast();
 
   // ── Queries ──────────────────────────────────────────────────────────────────
-  const { data: trip, isLoading: tripLoading } = useQuery<TripWithMembers | null>({
+  const { data: trip, isLoading: tripLoading,
+          isError: tripError, refetch: refetchTrip } = useQuery<TripWithMembers | null>({
     queryKey: ['trip', tripId],
     queryFn: async () => {
       if (!tripId) return null;
@@ -224,7 +228,7 @@ export default function ExpenseListPage() {
   // 而「留著但不想看到」的需求已由封存負責，軟刪會與封存語意重疊。
   // migration 005 之後子表靠 FK CASCADE 連帶清除，不留孤兒。
   const deleteTripMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: guardedWrite(async () => {
       // 先刪 settlements：settlement_items 對 trip_members 的 FK 雖已改 CASCADE，
       // 顯式先刪可讓「影響列數」可被斷言，避免又一次靜默失敗。
       const { data: sDel, error: sErr } = await supabase
@@ -238,7 +242,7 @@ export default function ExpenseListPage() {
       if (error) throw error;
       if (!data || data.length !== 1) throw new Error('刪除沒有生效（影響 0 列），請重試或回報');
       return data;
-    },
+    }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['trips'] });
       showToast('行程已刪除');
@@ -274,6 +278,12 @@ export default function ExpenseListPage() {
     },
   });
 
+  /* 🔴 實作-AF-7　下拉重新整理。離線時維持看得到上次的資料，只跳一次 toast。 */
+  const ptr = usePullToRefresh(async () => {
+    if (isDeviceOffline()) { showToast(MSG_SAVE_OFFLINE); return; }
+    await Promise.all([refetchTrip(), refetchExpenses()]);
+  });
+
   // ── 行程層彙總（規格 §5.1 §5.2）──────────────────────────────────────────────
   const display = trip ? deriveDisplayStatus(trip) : 'active';
   const S = useMemo(
@@ -290,6 +300,17 @@ export default function ExpenseListPage() {
       </div>
     );
   }
+  /* 🔴 實作-AF-3　**連不上 ≠ 被刪掉**。Rozi 開飛航模式點進一趟行程，
+     畫面說「找不到這趟行程／可能已經被刪掉了」——她的行程好好的。
+     根因：`!trip` 同時涵蓋「查不到」與「查詢失敗」兩種完全不同的情況。
+     ⚠️ **順序不可對調**：先判連不上，再判真的查不到。
+     ⚠️ `NotFound` 的文案一個字都不要改——要修的是「什麼情況下才顯示它」。 */
+  if (tripError) return (
+    <div className="min-h-screen bg-bg flex flex-col">
+      <ReadError title={MSG_READ_FAIL_EXP_T} onRetry={() => refetchTrip()} />
+    </div>
+  );
+
   /* 查不到（連結失效／已被刪／書籤過期／PWA 記住上次的頁面）。
      這一條**必須排在「載入中」之後**——不然載入期間會先閃一下「找不到」。 */
   if (!trip || !S) return <NotFound onBack={() => navigate('/')} />;
@@ -474,7 +495,14 @@ export default function ExpenseListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col" style={{ position: 'relative' }}>
+    <div className="min-h-screen bg-bg flex flex-col" style={{ position: 'relative' }} ref={ptr.ref}>
+      {/* 🔴 實作-AF-7　下拉重新整理（消費分頁）。回饋沿用既有的 `.spin`。 */}
+      {(ptr.pull > 0 || ptr.refreshing) && (
+        <div className="flex justify-center overflow-hidden"
+          style={{ height: ptr.refreshing ? 44 : ptr.pull, transition: ptr.pull ? 'none' : 'height .2s' }}>
+          <div className="spin" style={{ padding: 0, alignSelf: 'center' }}><i /></div>
+        </div>
+      )}
 
       {/* 🔴 實作-Z-2　收合的哨兵。放在**捲得走**的地方（sticky 的 wrapper 裡面的
           東西會跟著黏住，永遠不會離開視窗）。越過 110px 就切 `.is-compact`。
@@ -589,12 +617,7 @@ export default function ExpenseListPage() {
           {/* 🔴 實作-讀-1　**讀不到 ≠ 還沒記帳**。查詢有錯誤時走這一段——
               舊畫面會說「第一筆從哪裡開始？」，那是在告訴使用者他的帳不見了。 */}
           {!expLoading && expError && (
-            <div className="empty">
-              <p style={{ marginTop: 10 }}>{MSG_READ_FAIL_EXP_T}</p>
-              <p>{MSG_READ_FAIL_BODY}</p>
-              <button className="btn" style={{ minHeight: 44, marginTop: 14 }}
-                onClick={() => refetchExpenses()}>{MSG_READ_FAIL_RETRY}</button>
-            </div>
+            <ReadError title={MSG_READ_FAIL_EXP_T} onRetry={() => refetchExpenses()} />
           )}
 
           {!expLoading && !expError && !S.list.length ? (

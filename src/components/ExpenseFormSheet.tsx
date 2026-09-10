@@ -29,6 +29,7 @@ import {
   MSG_SAVE_OFFLINE,
   MSG_SAVE_FAIL,
   MSG_DELETE_FAIL,
+  guardedWrite,
 } from '@/lib/messages';
 import { useToast } from '@/contexts/ToastContext';
 import { Icon } from '@/components/Icon';
@@ -441,7 +442,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
 
   // ── 存檔 ──────────────────────────────────────────────────────────────────────
   const save = useMutation({
-    mutationFn: async () => {
+    mutationFn: guardedWrite(async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('未登入');
 
@@ -470,7 +471,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
         if (error) throw error;
       }
       return eid;
-    },
+    }),
     onSuccess: (eid) => {
       /* 🔴 實作-V-1　編輯表單自己有一支 `['expense', expenseId]`（**單數**）的查詢，
          但存檔後只清了 `['expenses', tripId]`（**複數**，整份清單）。
@@ -496,12 +497,12 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
   });
 
   const del = useMutation({
-    mutationFn: async () => {
+    mutationFn: guardedWrite(async () => {
       const { data, error } = await supabase.from('expenses')
         .update({ deleted_at: new Date().toISOString() }).eq('id', expenseId!).select();
       if (error) throw error;
       if (!data || data.length !== 1) throw new Error('刪除沒有生效（影響 0 列），請重試或回報');
-    },
+    }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['expenses', tripId] });
       /* 刪掉的那一筆也要把單筆快取清掉，不然 30 秒內還讀得到它 */

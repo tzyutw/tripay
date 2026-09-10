@@ -105,11 +105,16 @@ export function isOffline(e: unknown): boolean {
   return /Failed to fetch|NetworkError|network/i.test(m);
 }
 
-export const MSG_SAVE_OFFLINE = '連不上網路，這筆還沒存起來。你打的還在，等收訊回來再按一次。';
-export const MSG_SAVE_FAIL    = '存不起來。你打的還在，再按一次「記下來」試試。';
-export const MSG_DELETE_FAIL  = '刪不掉。再按一次試試看。';
-export const MSG_SETTLE_OFFLINE = '連不上網路，還沒結算成功。等收訊回來再按一次。';
-export const MSG_SETTLE_FAIL    = '結算失敗。再按一次試試看。';
+/* 🔴 實作-AF-6　**會自己消失的提示只講發生什麼事，12 字以內。**
+   `ToastProvider` 的 toast 只活 2200ms，中文那段時間讀得完約 12–15 字——
+   原本那句 30 字的**讀不完就消失，寫了等於沒寫**。
+   「你打的還在」「等收訊回來再按一次」拿掉的理由：表單沒關、值還在畫面上、
+   按鈕也回到可按狀態，**畫面本身已經回答了**，不需要用文字再講一次。 */
+export const MSG_SAVE_OFFLINE   = '現在連不上網路';
+export const MSG_SAVE_FAIL      = '存不起來，再試一次';
+export const MSG_DELETE_FAIL    = '刪不掉，再試一次';
+export const MSG_SETTLE_OFFLINE = '現在連不上網路';
+export const MSG_SETTLE_FAIL    = '結算失敗，再試一次';
 
 /* 🔴 實作-讀-1　**讀不到的時候，不准畫成「你還沒有資料」。**
  *
@@ -126,6 +131,52 @@ export const MSG_SETTLE_FAIL    = '結算失敗。再按一次試試看。';
  *    這一組文案只在**查詢有錯誤**時出現；查詢成功但結果是空的，仍走原本的空狀態。
  */
 export const MSG_READ_FAIL_TRIPS_T = '現在讀不到你的行程';
+/* 🔴 實作-AF-2　結算頁讀不到時**不准端出任何關於錢的結論**。
+   實測 `?screen=s05&fail=read` 顯示「大家剛好打平」——讀不到卻說不用付錢。 */
+export const MSG_READ_FAIL_SETTLE_T = '現在讀不到這趟的帳';
 export const MSG_READ_FAIL_EXP_T   = '現在讀不到這趟的帳';
+/* ⚠️ **這一句是 12 字規則的例外，不要縮短。** 它用在**整頁的錯誤狀態**、
+   會一直停在畫面上讓人看；而且那時候畫面是空白的、本身在暗示「你沒有資料」，
+   需要一句話把它擋回來。它不是會消失的提示。 */
 export const MSG_READ_FAIL_BODY    = '資料還在，只是連不上。等收訊回來再重新整理一次。';
 export const MSG_READ_FAIL_RETRY   = '重新整理';
+
+/* 🔴 實作-AF-5　**斷網時 fetch 不會 reject，而是掛在那裡等**（iOS 飛航模式的行為）。
+ * 所以 `onError` 永遠不會被呼叫，按鈕停在「存檔中…」，離線文案寫好了卻永遠觸發不到
+ * ——Rozi 實測到的就是這個。等網路回來之後那筆才默默存進去。
+ *
+ * 兩道防線（Rozi 拍板「甲案：立刻告訴我沒存成功」）：
+ *   ① 送出前先看 `navigator.onLine`，是 false 就**直接不送出**
+ *   ② 有連上網路但連不到伺服器 → **15 秒逾時**，逾時視同失敗走同一條路
+ */
+export const WRITE_TIMEOUT_MS = 15_000;
+
+/** 送出前的離線守門。回 true 表示「現在不要送」。 */
+export function isDeviceOffline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false;
+}
+
+/** 15 秒還沒回來就當失敗。**不要把逾時做成靜靜地什麼都不做**——那就是原本的 bug。 */
+export function withWriteTimeout<T>(p: Promise<T>, ms = WRITE_TIMEOUT_MS): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('Failed to fetch（逾時）')), ms);
+    p.then(v => { clearTimeout(t); resolve(v); },
+           e => { clearTimeout(t); reject(e); });
+  });
+}
+
+/**
+ * 把一個寫入動作包上**兩道防線**：送出前的離線守門 ＋ 15 秒逾時。
+ * 用法：`mutationFn: guardedWrite(async () => { … })`
+ *
+ * 包成一個函式而不是在每個 `mutationFn` 裡各寫兩行，理由與 `statCard()` 相同——
+ * 四個寫入動作各抄一份，遲早有一個漏掉，而漏掉的那個就是下一次「卡在存檔中…」。
+ */
+export function guardedWrite<A extends unknown[], R>(
+  fn: (...args: A) => Promise<R>,
+): (...args: A) => Promise<R> {
+  return (...args: A) => {
+    if (isDeviceOffline()) return Promise.reject(new Error('Failed to fetch'));
+    return withWriteTimeout(fn(...args));
+  };
+}

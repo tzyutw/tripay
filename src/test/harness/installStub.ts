@@ -36,6 +36,14 @@ const failNow = () =>
   ?? new URLSearchParams(location.search).get('fail');
 const isFailWrite = () => { const f = failNow(); return f === 'write' || f === 'offline'; };
 const isFailRead  = () => { const f = failNow(); return f === 'read'  || f === 'offline'; };
+/* 🔴 實作-AF-8 洞二　`?fail=hang`：**請求掛著不回應**。
+   `?fail=offline` 是「立刻回一個錯誤」，但真機斷網（iOS 飛航模式）是
+   **fetch 不 reject、就掛在那裡等**——所以 `onError` 永遠不會被呼叫，
+   離線文案寫好了卻永遠觸發不到，按鈕停在「存檔中…」。
+   要重現那個形狀，樁就得真的掛住。 */
+const isHang = () => failNow() === 'hang';
+/** 永不 resolve——與真機斷網時的 fetch 同一個形狀 */
+const hangForever = () => new Promise<never>(() => {});
 const failMsg = (what: string) =>
   failNow() === 'offline' ? OFFLINE_MSG : `ZZ 樁：${what}失敗`;
 /** supabase-js 的錯誤形狀：`{ data: null, error: { message } }` */
@@ -119,12 +127,25 @@ function chain(table: string) {
     return affected ? { data: copy(affected), error: null, count: affected.length } : res();
   };
 
+  /* 🔴 實作-AF-8 洞一　`single()`／`maybeSingle()` **原本完全沒看 `isFailRead()`**，
+     直接回 `error: null`。所以任何走 `.maybeSingle()` 的查詢（行程詳情頁的 trip query
+     就是）在測試環境裡**永遠不會失敗**——C12 在 s03 上看起來是綠的，
+     量的卻是一條不可能出錯的路。與 `res()` 對齊。 */
+  const single = () => {
+    if (isHang()) return hangForever();
+    if (isFailRead()) return Promise.resolve(failResult('讀取') as unknown as
+      { data: Record<string, unknown> | null; error: null });
+    flush();
+    const d = affected ? affected[0] : one();
+    return Promise.resolve({ data: d ? { ...d } : null, error: null });
+  };
   const c: Record<string, unknown> = {
-    then: (r: (v: ReturnType<typeof res>) => unknown) => { flush(); return Promise.resolve(out()).then(r); },
-    single: () => { flush(); const d = affected ? affected[0] : one();
-      return Promise.resolve({ data: d ? { ...d } : null, error: null }); },
-    maybeSingle: () => { flush(); const d = affected ? affected[0] : one();
-      return Promise.resolve({ data: d ? { ...d } : null, error: null }); },
+    then: (r: (v: ReturnType<typeof res>) => unknown) => {
+      if (isHang()) return hangForever();
+      flush(); return Promise.resolve(out()).then(r);
+    },
+    single,
+    maybeSingle: single,
   };
   for (const m of ['select', 'neq', 'in', 'is', 'not', 'order', 'limit', 'range',
                    'filter', 'gte', 'lte', 'match', 'or', 'returns', 'abortSignal'])
@@ -203,7 +224,7 @@ const stub = {
      原本斷言讀的是 `__HARNESS_FIXTURE__.trip`（＝`rows.trips[0]`，一律套用過
      `?state=`），所以 rpc 回原始 `trip` 的時候它照樣是 settled——
      那條斷言在量「別人」，不是在量分享頁拿到什麼。 */
-  rpc: (_fn: string) => isFailRead()
+  rpc: (_fn: string) => isHang() ? hangForever() : isFailRead()
     ? Promise.resolve(failResult('讀取') as unknown as { data: unknown; error: null })
     : Promise.resolve(recordRpc({
     /* 分享頁的 RPC 查不到 token 時回 null（get_shared_trip 的實際行為） */

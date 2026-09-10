@@ -17,6 +17,8 @@ import { tripSummary, settleTrip } from '@/lib/summary';
 import ExpenseGroups from '@/components/shared/ExpenseGroups';
 import MemberLedger from '@/components/shared/MemberLedger';
 import SettleBreakdown from '@/components/shared/SettleBreakdown';
+import ReadError from '@/components/shared/ReadError';
+import { MSG_READ_FAIL_EXP_T } from '@/lib/messages';
 import { breakdownFor } from '@/pages/SettlementPage';
 import { Icon } from '@/components/Icon';
 import TransferView from '@/components/shared/TransferView';
@@ -65,7 +67,7 @@ export default function SharePage() {
   const [sp, setSp] = useSearchParams();
   const memberView = sp.get('member');
 
-  const { data, isLoading, isError } = useQuery<SharedPayload | null>({
+  const { data, isLoading, isError, refetch } = useQuery<SharedPayload | null>({
     queryKey: ['share', token],
     queryFn: async () => {
       if (!token) return null;
@@ -79,7 +81,17 @@ export default function SharePage() {
   if (isLoading) return <div className="spin"><i /></div>;
   /* 與 S-03 共用同一份文案。**分享頁不放任何按鈕**——
      訪客沒有帳號，「回到我的行程」是假出口；「開一趟自己的」則已裁示延到共編階段。 */
-  if (isError || !data?.trip) return <NotFound />;
+  /* 🔴 實作-AF-4　**連不上 ≠ 連結被收回**。`isError` 原本直接併進 `NotFound`，
+     旅伴在收訊差的地方打開連結會以為連結失效了。
+     ⚠️ 順序不可對調：先判連不上，再判真的查不到。
+     ⚠️ 分享頁**不傳 onBack、也不放「重新整理」以外的任何入口**——
+        訪客沒有帳號，理由見 `NotFound.tsx` 第 17–19 行。 */
+  if (isError) return (
+    <div className="min-h-screen bg-bg flex flex-col">
+      <ReadError title={MSG_READ_FAIL_EXP_T} onRetry={() => refetch()} />
+    </div>
+  );
+  if (!data?.trip) return <NotFound />;
 
   /* RPC 把 expenses 與 splits 分兩袋回來，這裡接回成引擎吃的形狀 */
   const expenses: ExpenseWithSplits[] = data.expenses.map(e => ({

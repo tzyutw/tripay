@@ -59,7 +59,9 @@ describe('B-2　S-01 首頁', () => {
     render(<TripListPage />, { route: '/trips' });
     await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 
-    expect(want.list.length).toBe(12);          // 基準本身要有東西，否則下面全是假通過
+    /* 🔴 實作-AF-1：頂部列那顆建立按鈕整顆移除、幽靈卡的文案改成「再開一趟」，
+       所以段數 12 → 11（少一顆按鈕、原本那句問句換成短的一行）。 */
+    expect(want.list.length).toBe(11);          // 基準本身要有東西，否則下面全是假通過
     const got = flat();
     const missing = want.list.filter(t => !got.includes(t.replace(/\s+/g, '')));
     expect(missing, `原型有、App 沒有：${missing.join(' ｜ ')}`).toEqual([]);
@@ -82,18 +84,28 @@ describe('B-2　S-01 首頁', () => {
     expect(flat()).not.toContain('🐵');
   });
 
-  it('S-01-2：「＋」是 Feather 的 add，不是全形字元', async () => {
+  /* 🔴 實作-AF-1 改寫：頂部列那顆建立按鈕**整顆移除**（Rozi 2026-09-10：
+     既然幽靈卡點得下去，右上就不需要再放一顆做同一件事的）。
+     原本這兩條分別驗「那顆按鈕用 Feather 的 add」與「設定排在它之後」——
+     按鈕不在了，改成驗**現在唯一的建立入口**（幽靈卡）與「頂部列只剩設定」。 */
+  it('S-01-2：建立入口只剩幽靈卡那一個，圖示是 Feather 不是全形字元', async () => {
     const { container } = render(<TripListPage />, { route: '/trips' });
     await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
     expect(flat()).not.toContain('＋');
-    const newBtn = [...container.querySelectorAll('button')]
-      .find(b => (b.textContent ?? '').includes('新增行程'))!;
-    expect(newBtn).toBeTruthy();
-    expect(newBtn.querySelector('svg')).not.toBeNull();
-    expect(newBtn.querySelector('svg')!.getAttribute('stroke')).toBe('currentColor');
+
+    const ghost = [...container.querySelectorAll('button')]
+      .find(b => (b.textContent ?? '').includes('再開一趟'))!;
+    expect(ghost, '找不到幽靈卡').toBeTruthy();
+    expect(ghost.querySelector('svg')).not.toBeNull();
+    expect(ghost.querySelector('svg')!.getAttribute('stroke')).toBe('currentColor');
+
+    /* 反向：同一個動作只留一個入口（全站 UX 檢查第 6 條） */
+    const creators = [...container.querySelectorAll('button')]
+      .filter(b => /再開一趟|建立第一趟/.test(b.textContent ?? ''));
+    expect(creators.length, '建立入口不只一個').toBe(1);
   });
 
-  it('S-01-15：設定入口在標題列右上、排在「新增行程」之後', async () => {
+  it('S-01-15：設定入口在標題列右上，而且是頂部列唯一的按鈕', async () => {
     const { container } = render(<TripListPage />, { route: '/trips' });
     await waitFor(() => expect(screen.getByText('2026 濟州島四寶團')).toBeInTheDocument());
 
@@ -102,10 +114,9 @@ describe('B-2　S-01 首頁', () => {
     /* 第一層「畫面層級的動作」＝ .ic2，不是裸 icon 也不是第二層 */
     expect(gear.className).toContain('ic2');
 
-    const newBtn = [...container.querySelectorAll('button')]
-      .find(b => (b.textContent ?? '').includes('新增行程'))!;
-    /* 依賴／頻率：新增行程比設定常用，所以設定排在它之後 */
-    expect(newBtn.compareDocumentPosition(gear) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const bar = container.querySelector('.topbar') as HTMLElement;
+    expect(bar, '找不到頂部列').not.toBeNull();
+    expect([...bar.querySelectorAll('button')].length, '頂部列應該只剩設定那一顆').toBe(1);
   });
 
   it('S-01-6：狀態徽章三態都對，而且「已結算」不帶 ✅', async () => {
@@ -132,6 +143,15 @@ describe('B-2　S-01 空狀態', () => {
 
   it('S-01-4：空狀態要有主要按鈕「建立第一趟」', async () => {
     vi.doMock('@/lib/supabaseClient', () => ({ supabase: makeSupabaseMock({ trips: [] }) }));
+    /* ⚠️ `vi.resetModules()` ＋ 動態 import 會讓這一份 `TripListPage` 拿到**新的**
+       `ToastContext` 模組實例，而 `render` 的 Providers 用的是**原本那一份**——
+       兩個不同的 context 物件，`useContext` 回 null，`useToast()` 就丟
+       「must be used inside <ToastProvider>」。那是 `resetModules` 的副作用，
+       不是產品壞掉。這個測試本來就不管 toast，給它一個 no-op 就好。 */
+    vi.doMock('@/contexts/ToastContext', () => ({
+      useToast: () => ({ toast: () => {} }),
+      ToastProvider: ({ children }: { children: unknown }) => children,
+    }));
     const Page = (await import('./TripListPage')).default;
     const { container } = render(<Page />, { route: '/trips' });
     await waitFor(() => expect(screen.getByText('還沒有行程。')).toBeInTheDocument());

@@ -11,7 +11,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { deriveDisplayStatus } from '@/lib/deriveStatus';
 import { tripSummary, settleTrip, prepaidShare, calc, isSelfPaid, toSharedExpense } from '@/lib/summary';
 import { money, memberLabel, firstGrapheme } from '@/lib/format';
-import { isOffline, MSG_SETTLE_OFFLINE, MSG_SETTLE_FAIL } from '@/lib/messages';
+import { isOffline, MSG_SETTLE_OFFLINE, MSG_SETTLE_FAIL, MSG_READ_FAIL_SETTLE_T, guardedWrite } from '@/lib/messages';
+import ReadError from '@/components/shared/ReadError';
 import { Icon } from '@/components/Icon';
 import TransferView from '@/components/shared/TransferView';
 import SettleBreakdown from '@/components/shared/SettleBreakdown';
@@ -144,7 +145,7 @@ export default function SettlementPage() {
 
   // ── Queries ──────────────────────────────────────────────────────────────────
 
-  const { data: trip } = useQuery<TripWithMembers | null>({
+  const { data: trip, isError: tripError, refetch: refetchTrip } = useQuery<TripWithMembers | null>({
     queryKey: ['trip', tripId],
     queryFn: async () => {
       if (!tripId) return null;
@@ -159,13 +160,18 @@ export default function SettlementPage() {
   });
 
   /* 要整列（含 expense_splits）——預覽的淨額與轉帳是前端用同一支引擎算的 */
-  const { data: expenses = [] } = useQuery<ExpenseWithSplits[]>({
+  const { data: expenses = [], isError: expError,
+          refetch: refetchExpenses } = useQuery<ExpenseWithSplits[]>({
     queryKey: ['expenses', tripId],
     queryFn: async () => {
       if (!tripId) return [];
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('expenses').select('*, expense_splits(*)')
         .eq('trip_id', tripId).is('deleted_at', null);
+      /* 🔴 實作-AF-2　這裡原本**整個把 `error` 丟掉**，讀不到就回 `[]`，
+         於是結算頁拿一份空帳算出「大家剛好打平」——**讀不到卻端出關於錢的結論**。
+         使用者看到會以為不用付錢。要拋出來，上面才判得到 `isError`。 */
+      if (error) throw error;
       return (data ?? []) as ExpenseWithSplits[];
     },
     enabled: Boolean(tripId),
@@ -273,7 +279,7 @@ export default function SettlementPage() {
   // ── Mutations ─────────────────────────────────────────────────────────────────
 
   const calculateMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: guardedWrite(async () => {
       const { data: cd, error: calcErr } = await supabase.functions.invoke(
         'calculate-settlement', { body: { trip_id: tripId } }
       );
@@ -285,8 +291,8 @@ export default function SettlementPage() {
       if (confirmErr) throw new Error(confirmErr.message ?? '確認結算失敗');
 
       return cd as CalcData;
-    },
-    onSuccess: (data) => {
+    }),
+    onSuccess: (data: CalcData) => {
       setCalcData(data);
       setShowWarnSheet(false);
       qc.invalidateQueries({ queryKey: ['trip', tripId] });
@@ -342,6 +348,24 @@ export default function SettlementPage() {
       setTimeout(() => navigate('/'), 1500);
     },
   });
+
+  /* 🔴 實作-AF-2　讀不到的時候**不准算、不准顯示任何金額或結論**。
+     ⚠️ 要排在下面那個 spinner 之前：`!trip` 在讀取失敗時也會成立，
+        排在後面的話畫面會永遠轉圈。 */
+  if (tripError || expError) return (
+    <div className="min-h-screen bg-bg flex flex-col">
+      {/* `Nav` 定義在後面，這裡自己畫一條一樣的返回列（同 `.bar` ＋ 同一顆 `.ic2`） */}
+      <div className="bar">
+        <button className="ic2" aria-label="返回" onClick={() => navigate(-1)}>
+          <Icon name="back" size={20} />
+        </button>
+        <span className="ttl">結算</span>
+        <span style={{ width: 40 }} />
+      </div>
+      <ReadError title={MSG_READ_FAIL_SETTLE_T}
+        onRetry={() => { refetchTrip(); refetchExpenses(); }} />
+    </div>
+  );
 
   if (!trip || !S || !preview) {
     return <div className="spin"><i /></div>;

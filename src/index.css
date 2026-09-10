@@ -118,11 +118,10 @@ input, textarea, select { font-size: var(--fs-input); }
 .animate-toast-in { animation: toastIn 150ms ease forwards; }
 
 /* ── Ghost card pulse (G-02) ─────── */
-@keyframes ghostPulse {
-  0%, 100% { opacity: 0.5; }
-  50%       { opacity: 0.28; }
-}
-.animate-ghost-pulse { animation: ghostPulse 3.2s ease-in-out infinite; }
+/* 🔴 實作-AF-1　幽靈卡那支呼吸動畫（keyframes ＋ class）**整段刪除**。
+   由來：幽靈卡 inline 寫 `opacity:0.72`，但這支動畫在 0.28–0.5 之間跑，
+   **動畫的優先級高於 inline style**——2026-08-30 把 0.5 調成 0.72 的那次修改
+   從來沒有生效，跑了十天沒人發現。全站沒有第二處在用。 */
 
 /* ── Celebration pop ─────────────── */
 @keyframes popIn {

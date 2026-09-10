@@ -56,3 +56,10 @@ Claude outputs/*.tgz
 # 那些圖裡有 Google Cloud 專案 ID、測試使用者名單與 email。
 # **這個 repo 是公開的**（github.com/tzyutw/tripay，private: false），不要掃進來。
 Claude outputs/screenshot-*
+
+# 🔴 實作-AF-9　開工小程式的執行期檔案，一律不進版控
+_開工.txt
+_停watcher.txt
+.claude/kickoff.lock
+.claude/kickoff_until
+.claude/kickoff.log

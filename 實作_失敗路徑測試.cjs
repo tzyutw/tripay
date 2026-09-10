@@ -138,16 +138,18 @@ function serve(dir) {
   console.log(`   fail=offline 存檔：writes ${off.writes}｜含「連不上網路」${off.txt.includes('連不上網路')}｜` +
               `含「你打的還在」${off.txt.includes('你打的還在')}｜表單還開著 ${off.open}｜標題「${off.title}」`);
   ok(off.txt.includes('連不上網路'), '斷網存檔沒有說「連不上網路」');
-  ok(off.txt.includes('你打的還在'), '沒有回答「我剛打的東西白打了嗎」');
+  /* 🔴 實作-AF-6：「你打的還在」那半句**已經拿掉**——toast 只活 2200ms，
+     30 字讀不完就消失，寫了等於沒寫。理由是**畫面本身已經回答了**：
+     表單沒關、值還在、按鈕回到可按。所以這條改成**驗那個事實**，
+     不是驗那句話——講不講是文案的事，東西在不在才是使用者真正怕的。 */
   ok(off.open && off.title === 'ZZ 我打的字',
-    `文案說「你打的還在」，但表單${off.open ? '' : '關掉了'}／標題是「${off.title}」——講了就要驗`);
+    `表單${off.open ? '' : '被關掉了'}／標題變成「${off.title}」——「畫面本身已經回答了」不成立`);
 
   const fwv = await saveAndRead('fail=write');
   ok(fwv.writes > 0, 'fail=write 時 mutation 根本沒跑，這一組等於沒驗');
   console.log(`   fail=write  存檔：writes ${fwv.writes}｜含「存不起來」${fwv.txt.includes('存不起來')}｜` +
               `含「你打的還在」${fwv.txt.includes('你打的還在')}｜表單還開著 ${fwv.open}｜標題「${fwv.title}」`);
   ok(fwv.txt.includes('存不起來'), '寫入失敗沒有說「存不起來」');
-  ok(fwv.txt.includes('你打的還在'), '沒有回答「我剛打的東西白打了嗎」');
   ok(fwv.open && fwv.title === 'ZZ 我打的字', '表單或使用者打的值不見了');
 
   /* 文-1-3　畫面上不得出現後端原文 */
@@ -226,6 +228,23 @@ function serve(dir) {
               `含「讀不到」${r3.includes('讀不到')}`);
   ok(r3.includes('還沒有行程'), '「真的沒行程」的靶沒對上——這條等於沒驗');
   ok(!r3.includes('讀不到'), '真的沒資料時卻說「讀不到」（反向）');
+
+  /* 🔴 實作-AF-6　**會自己消失的提示 ≤12 字**（toast 只活 2200ms）。
+     `MSG_READ_FAIL_BODY` 是例外——它停在整頁的錯誤狀態上，不會消失。 */
+  console.log('');
+  const msgSrc = fs.readFileSync('src/lib/messages.ts', 'utf8');
+  for (const k of ['MSG_SAVE_OFFLINE', 'MSG_SAVE_FAIL', 'MSG_DELETE_FAIL',
+                   'MSG_SETTLE_OFFLINE', 'MSG_SETTLE_FAIL']) {
+    const m = msgSrc.match(new RegExp(k + "\\s*=\\s*'([^']*)'"));
+    const n = m ? [...m[1]].length : -1;
+    console.log(`   ${k.padEnd(20)}「${m ? m[1] : '(找不到)'}」${n} 字`);
+    ok(m !== null, `${k} 不見了`);
+    ok(n > 0 && n <= 12, `${k} 有 ${n} 字，超過 12 字的 toast 讀不完就消失`);
+  }
+  const body = msgSrc.match(/MSG_READ_FAIL_BODY\s*=\s*'([^']*)'/);
+  console.log(`   MSG_READ_FAIL_BODY（例外，不受 12 字限制）「${body && body[1]}」`);
+  ok(body !== null && body[1] === '資料還在，只是連不上。等收訊回來再重新整理一次。',
+    '整頁錯誤狀態那句被改動了——它不是會消失的提示，不該套 12 字規則');
 
   console.log(`\n   pageerror：${errs.length ? errs.join(' | ') : '無'}`);
   ok(errs.length === 0, `有 ${errs.length} 個 pageerror`);

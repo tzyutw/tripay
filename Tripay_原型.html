@@ -754,10 +754,19 @@ html.dev .ui .s00wrap{min-height:calc(100dvh - var(--devbar-h,54px))}
 .ui .tcard .nm{position:relative;color:#fff;font-size:var(--fs-strong);font-weight:700;letter-spacing:-.01em;margin-top:6px}
 .ui .tcard .dt{position:relative;font-size:var(--fs-sub);color:rgba(255,255,255,.9);margin-top:3px;
   font-variant-numeric:tabular-nums}
-.ui .ghost{margin:11px 14px 0;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden;opacity:.78;
+/* 🔴 實作-AF-1　幽靈卡不再「幽靈」——它是可點的「再開一趟」入口，
+   模糊與半透明讓人看不出可以點（Rozi 2026-09-10）。 */
+.ui .ghost{margin:11px 14px 0;border:1px solid var(--ln);border-radius:var(--r-base);overflow:hidden;
   display:block;width:calc(100% - 28px)}
-.ui .ghost div{height:60px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#DCDED6,#C9CDC3);font-size:var(--fs-body);color:#5C6660}
+.ui .ghost div{height:60px;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:linear-gradient(135deg,#EDE4DA,#E3D6C9);font-size:var(--fs-strong);
+  font-weight:600;color:var(--md)}
+/* 28×28 實心圓＋白色加號（Rozi 選 A 案）。
+   ⚠️ 加號的視覺中心要落在圓的**正中央**：圓用 flex 置中，svg 用 `display:block`
+      擋掉 inline 元素的基線間隙——那正是「看起來沒對正」的來源。 */
+.ui .ghostplus{width:28px;height:28px;border-radius:var(--r-icon);background:var(--md);color:#fff;
+  display:flex;align-items:center;justify-content:center;flex:none}
+.ui .ghostplus svg{display:block}
 .ui .avatar{width:28px;height:28px;border-radius:var(--r-base);display:flex;align-items:center;justify-content:center;
   font-size:var(--fs-title);background:#fff;border:1px solid var(--ln);flex:none;overflow:hidden}
 .ui .avatar.letter{color:#fff;font-size:var(--fs-body);font-weight:700;border-color:transparent}
@@ -1308,7 +1317,6 @@ function renderS01() {
   const head = `${b('S-01-1', `<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 11px;border-bottom:1px solid var(--ln)">
       <span style="font-size:var(--fs-title);font-weight:700;letter-spacing:-.02em;color:var(--wi)">Tripay</span>
       <span style="display:flex;align-items:center;gap:8px">
-        ${b('S-01-2', `<button id="s01new" style="background:var(--w);color:#fff;font-size:var(--fs-body);font-weight:600;padding:7px 12px;border-radius:var(--r-base)">${ic('add',16)} 新增行程</button>`)}
         ${b('S-01-15', `<button class="ic2" aria-label="設定">${ic('settings',20)}</button>`)}
       </span>
     </div>`)}`;
@@ -1334,7 +1342,13 @@ function renderS01() {
         </div></button>`;
       return st === 'archived' ? b('S-01-7', card) : b('S-01-5', card);
     }).join('');
-    body += b('S-01-8', `<button class="ghost" id="s01ghost"><div>你的下一趟在哪？</div></button>`);
+    /* 🔴 實作-AF-1（Rozi 2026-09-10）：幽靈卡**搬到第一張**——
+       「我們的排序方式是最新的行程在最上面，所以幽靈卡也應該放在最上面。」
+       改成看得出可以點（拿掉模糊與呼吸動畫），文字改成圖示＋「再開一趟」；
+       「你的下一趟在哪？」整句移除（「我不要那一句，請拿掉」）。
+       ⚠️ **零行程時不出現**——沒有「再開一趟」可言，而且跟空狀態那顆重複。 */
+    body = b('S-01-8', `<button class="ghost" id="s01ghost"><div>
+      <span class="ghostplus">${ic('add',15)}</span><span>再開一趟</span></div></button>`) + body;
     body += `<div style="height:18px"></div>`;
   }
   $('#scr-s01').innerHTML = head + body + `<div id="s01sheet"></div>`;
@@ -1657,13 +1671,13 @@ const INDEX = {
   ],
   s01: [
     ['S-01-1','標題列','st','Tripay 字標，不吸頂'],
-    ['S-01-2','新增行程','op','開 S-02 建立表單。<b>改（#33-9）</b>：全形「＋」改用 Feather 的 <code>add</code>——同一個動作全站原本有兩種畫法'],
+    ['S-01-2','頂部列的建立入口','st','<b>移除（Rozi 2026-09-10）</b>：「如果幽靈卡都有辦法做點選的話，那為什麼要增加右上的新增行程？」同一個動作只留一個入口（全站 UX 檢查第 6 條），改由 S-01-8 的幽靈卡承擔。編號保留、不回收'],
     ['S-01-3','載入中','st','置中轉圈（用右側原型控制切換）'],
     ['S-01-4','空狀態','op','「還沒有行程」＋<b>已補上 CTA</b>（讀碼發現 #11）'],
     ['S-01-5','行程卡','op','目的地色調＋壓暗遮罩，整張可點；<b>無金額、無成員、無 emoji</b>'],
     ['S-01-6','狀態徽章','st','四態描邊章，由出發日與 status 推導'],
     ['S-01-7','封存卡樣式','st','整張降飽和'],
-    ['S-01-8','G-02 幽靈卡','op','可點，開 S-02'],
+    ['S-01-8','幽靈卡（再開一趟）','op','<b>改（實作-AF-1，Rozi 2026-09-10）</b>：搬到列表<b>第一張</b>（排序是新的在最上面）；拿掉模糊與呼吸動畫（那支動畫的優先級高於 inline 的 opacity，2026-08-30 調 0.72 那次<b>從來沒生效</b>）；文字改成 28×28 實心圓的加號＋「再開一趟」，原本那句整句移除。<b>零行程時不出現</b>'],
     ['S-01-9','G-06 分享橫幅','del','已移除：首頁沒有「哪一趟」的 context'],
     ['S-01-10','「複製連結」鈕','del','已移除：隨 S-01-9 一起'],
     ['S-01-11','排序','inv','出發日新→舊，同日以建立時間次要排序'],
