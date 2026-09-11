@@ -18,8 +18,12 @@ function serve(dir) {
     srv.listen(0, '127.0.0.1', () => res({ srv, port: srv.address().port }));
   });
 }
+/* 🔴 收尾-AH-3　一個畫面有幾個狀態，掃描清單就要有幾個。
+   `s05` 有 pending／partial／done 三態，清單裡只有前兩個進得去，
+   「帳算清楚了」那一頁從上線到現在沒有任何機器掃過。 */
 const SCREENS = ['s00','s01','s02','s02b','s03','s04','s05','s06','s07',
-                 's03&member=0','s03&unsettled=all'];
+                 's03&member=0','s03&unsettled=all',
+                 's05&state=settled','s05&state=done'];
 
 (async () => {
   const { srv, port } = await serve(DIST);

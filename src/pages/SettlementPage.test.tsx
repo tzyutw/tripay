@@ -258,6 +258,29 @@ describe('B-5　S-05 全員付清', () => {
     expect(recap.textContent).toContain('最大手筆');
   });
 
+  /* 🔴 收尾-AH-1　全部付清之後也要看得到計算依據，而且位置與另外兩個狀態一致 */
+  it('AH-1　全部付清也有「查看計算依據」，展開後每人一張卡', async () => {
+    allCleared();
+    await show();
+    const toggle = screen.getByText(/查看計算依據/);
+    const who = [...document.querySelectorAll('.lbl')].find(x => x.textContent === '誰付給誰')!;
+    const share = [...document.querySelectorAll('.btn')].find(b => b.textContent === '分享給大家')!;
+    expect(who, '找不到「誰付給誰」').toBeTruthy();
+    expect(share, '找不到分享 CTA').toBeTruthy();
+    expect(who.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING,
+      '要排在「誰付給誰」之後').toBeTruthy();
+    expect(toggle.compareDocumentPosition(share) & Node.DOCUMENT_POSITION_FOLLOWING,
+      '要排在「分享給大家」之前').toBeTruthy();
+    fireEvent.click(toggle);
+    expect(document.querySelectorAll('.netcard').length).toBe(members.length);
+  });
+
+  it('AH-1 反向　未結算仍然有「查看計算依據」', async () => {
+    await show();
+    fireEvent.click(screen.getByText(/查看計算依據/));
+    expect(document.querySelectorAll('.netcard').length).toBe(members.length);
+  });
+
   it('S-05-29　分享 CTA 是主要動作，建立新行程／封存降為次級', async () => {
     allCleared();
     await show();

@@ -8,7 +8,13 @@ import { trip, expenses, members, settlementItems, allSettlementItems, settlemen
 const st = new URLSearchParams(location.search).get('state');
 /* 🔴 實作-AC-6　`?state=stale` 也是**已結算**（只是凍結值與現在的帳對不上）。
    少了這一句，`?state=stale` 會停在未結算態，AC-4 那幾條就驗不到東西。 */
-const settled = st === 'settled' || st === 'stale';
+/* 🔴 收尾-AH-2　`?state=done`：已結算、而且 settlement_items **全部**付清——
+   S-05「帳算清楚了」那一頁。`state=settled` 只有第一筆付清（partial 的樣本，不要動），
+   所以 done 這一頁從上線到現在沒有任何機器掃過。 */
+const done = st === 'done';
+const settled = st === 'settled' || st === 'stale' || done;
+const allCleared = <T extends { is_cleared: boolean }>(a: T[]) =>
+  done ? a.map(i => ({ ...i, is_cleared: true })) : a;
 /* `?state=archived`：封存態的列**維持唯讀**（決策 B），但點下去要有話講。
    已結算與封存是**兩件事**，所以兩個狀態都要有假資料走過。 */
 const archived = st === 'archived';
@@ -61,7 +67,7 @@ const rows = {
   expenses: tripMissing ? [] : expenses2, trip_members: tripMissing ? [] : members,
   /* 直接查表的路徑（S-05／ShareSheet）只會拿 confirmed 那一筆 */
   settlements: noExpenses ? [] : [{ id: CONFIRMED_ID, trip_id: 't1', status: 'confirmed',
-                  created_at: '2026-03-20', settlement_items: settlementItems }],
+                  created_at: '2026-03-20', settlement_items: allCleared(settlementItems) }],
 };
 /* 記下有沒有真的送出寫入。「必填沒填就不該送出」這種斷言，
    光看畫面沒變是不夠的——畫面沒變也可能是送出了但回來的資料一樣。 */
@@ -237,7 +243,7 @@ const stub = {
       splits: expenses2.flatMap(e => e.expense_splits),
       /* RPC 回的是這趟**所有**結算與**所有** items——分享頁自己挑 */
       settlements: noExpenses ? [] : settlements,
-      settlement_items: noExpenses ? [] : allSettlementItems,
+      settlement_items: noExpenses ? [] : allCleared(allSettlementItems),
     },
     error: null,
   })),

@@ -382,7 +382,7 @@ export default function SettlementPage() {
 
   /* 🔴 實作-AB-1　「查看計算依據」原本**只在已結算狀態出現**，
      Rozi 在還沒結算那一頁只看得到三個結果數字，沒有一句話說明它們怎麼來的。
-     抽成變數讓兩個狀態掛**同一顆按鈕、同一個展開區塊、同一個 `breakdownOf`**——
+     抽成變數讓三個狀態掛**同一顆按鈕、同一個展開區塊、同一個 `breakdownOf`**——
      為未結算另寫一份就是「移植檢查」那條陷阱，兩套遲早分岔。 */
   const DetailsToggle = (
     <button className="detailtoggle" onClick={() => setShowDetails(o => !o)}>
@@ -560,6 +560,9 @@ export default function SettlementPage() {
             </div>
           ))}
         </div>
+
+        {DetailsToggle}
+        {DetailsBlock}
 
         {/* S-05-29　分享 CTA 升為主要動作，「建立新行程／封存行程」降為次級 */}
         <div className="btnrow" style={{ flexDirection: 'column', gap: 6 }}>
