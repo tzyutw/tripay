@@ -39,10 +39,29 @@ while true; do
   # ── 有工作就做 ───────────────────────────────────────────
   if [ -f "$TASK" ] && [ ! -f "$LOCK" ]; then
     : > "$LOCK"
-    line=$(head -n 1 "$TASK")
+    # 🔴 AG-4　原本只讀指令檔的**第一行**，第二行以後整段被吃掉。
+    # 2026-09-10 就是這樣：Cowork 放了三件事，終端機只收到「三件小事」那一句，
+    # 回問「三件事是什麼？」就停住，白等十分鐘。整份讀進來。
+    line=$(cat "$TASK")
     if [ -n "$line" ]; then
       # 工作目錄寫死，不會跑到別的專案去
-      (cd "$PROJ" && claude -p "$line") >> "$PROJ/.claude/kickoff.log" 2>&1
+      #
+      # 🔴 AG-4 附帶的調查結果：**我沒能重現「連 git commit 都停在權限對話框」**。
+      #   在這個 repo 用 `claude -p` 實跑 `git status --short`（純指令）與
+      #   `git status --short | wc -l`（管線）兩種，都直接執行、沒有停——
+      #   代表 `settings.local.json` 的 `Bash(git:*)` 在 `-p` 模式下是吃得到的。
+      #   合理的解釋是：2026-09-10 那次卡住發生在那三條 allow 加進去**之前**，
+      #   或者卡住的是 `rm -f`／`nohup` 那類當時還沒被允許的指令，不是 git。
+      #
+      # ⚠️ 但**無人看管的背景程式不該有「可能永遠卡住」這件事**。
+      #   `--print` 的權限詢問預設送給 host 回答（`--permission-prompts host`），
+      #   而 `nohup` 起來的殼**沒有 host 可以回答**，於是那個詢問沒有人接 → 掛著。
+      #   加 `--permission-prompts none`：任何**會跳詢問**的動作直接被拒絕，
+      #   白名單內的照跑。這把「靜靜卡十分鐘」換成「立刻失敗並留在 log 裡」。
+      #   **不用 `--dangerously-skip-permissions`**——那會把護欄整個拿掉。
+      # `< /dev/null`：不接 stdin。少了它每次都會先卡 3 秒等輸入再印一行 warning。
+      (cd "$PROJ" && claude -p --permission-prompts none "$line" < /dev/null) \
+        >> "$PROJ/.claude/kickoff.log" 2>&1
     fi
     mkdir -p "$OUT"
     mv -f "$TASK" "$OUT/_開工_已處理_$(date +%Y%m%d-%H%M%S).txt" 2>/dev/null
