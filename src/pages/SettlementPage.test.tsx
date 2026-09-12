@@ -2,9 +2,10 @@
  * 資料沿用原型的 demoExpenses()；fixture s05 是原型在 partial 狀態抓的。
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, waitFor, fireEvent, render as rtlRender } from '@testing-library/react';
+import { Routes, Route } from 'react-router-dom';
 import screens from '@/test/fixtures/screens.json';
-import { render, makeSupabaseMock } from '@/test/utils';
+import { render, makeSupabaseMock, Providers } from '@/test/utils';
 import { breakdownFor } from './SettlementPage';
 
 const M = ['m0', 'm1', 'm2', 'm3'];
@@ -303,6 +304,32 @@ describe('B-5　S-05 全員付清', () => {
     await show();
     fireEvent.click(screen.getByText(/查看計算依據/));
     expect(document.querySelectorAll('.netcard').length).toBe(members.length);
+  });
+
+  /* 🔴 修-8　Rozi 2026-09-12 手機實測：「分享給大家」按了只是跳回行程頁，分享畫面沒開。
+     分享 sheet 掛在 S-03 的 `/trips/:id/share`（`ExpenseListPage` 看 pathname 結尾決定要不要開），
+     所以這裡驗的是**導到那條 route**；sheet 真的彈出來由
+     `實作_分享鈕接回分享sheet測試.cjs` 在真實瀏覽器上驗（jsdom 量不到彈層版面）。
+     ⚠️ 兩個替身都掛上去：只掛 `/share` 的話，導回 `/trips/:id` 會渲染成空白，
+        「有沒有導到分享」與「導到一個沒註冊的 route」在斷言裡長得一模一樣。 */
+  it('修-8　分享 CTA 導到 /trips/:id/share，不是導回行程頁', async () => {
+    allCleared();
+    rtlRender(
+      <Providers route="/trips/t1/settlement">
+        <Routes>
+          <Route path="/trips/:id/settlement" element={<SettlementPage />} />
+          <Route path="/trips/:id/share" element={<div>ZZ分享替身</div>} />
+          <Route path="/trips/:id"       element={<div>ZZ行程頁替身</div>} />
+        </Routes>
+      </Providers>,
+    );
+    await waitFor(() => expect(screen.getAllByText('帳算清楚了').length).toBeGreaterThan(0));
+    const share = [...document.querySelectorAll('.btn')]
+      .find(b => b.textContent === '分享給大家') as HTMLElement;
+    expect(share, '找不到分享 CTA').toBeTruthy();
+    fireEvent.click(share);
+    await waitFor(() => expect(screen.getByText('ZZ分享替身')).toBeInTheDocument());
+    expect(screen.queryByText('ZZ行程頁替身'), '不准只導回行程頁').toBeNull();
   });
 
   it('S-05-29　分享 CTA 是主要動作，建立新行程／封存降為次級', async () => {
