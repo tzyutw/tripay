@@ -6,6 +6,13 @@
  * 沒給 BEFORE 就跳過那一條並明講跳過了。
  */
 const fs = require('fs'), path = require('path');
+/* 同目錄的 md 缺檔時要說出缺哪一個再退出，不要丟 ENOENT 堆疊（AJ-4）。
+   一律相對 __dirname 解析，從別的 cwd 呼叫也找得到。 */
+const needMd = f => {
+  const p = path.join(__dirname, f);
+  if (!fs.existsSync(p)) { console.error(`缺少同目錄的 ${f}——這支測試要拿它對稿註編號，補上該檔再跑。`); process.exit(2); }
+  return fs.readFileSync(p, 'utf8');
+};
 let puppeteer;
 try { puppeteer = require('puppeteer-core'); }
 catch (e) { if (process.env.PUPPETEER_PATH) puppeteer = require(process.env.PUPPETEER_PATH);
@@ -86,8 +93,10 @@ const GEOM = () => {
 
   /* 4　授權檔涵蓋每一個鍵 */
   console.log('\n=== 4　_icon授權.md 涵蓋每一個 icon ===');
-  ok(fs.existsSync('_icon授權.md'), '_icon授權.md 不存在');
-  const lic = fs.existsSync('_icon授權.md') ? fs.readFileSync('_icon授權.md', 'utf8') : '';
+  // 相對 __dirname，否則從別的 cwd 跑會得到一條「檔案不存在」的假紅
+  const licPath = path.join(__dirname, '_icon授權.md');
+  ok(fs.existsSync(licPath), '_icon授權.md 不存在');
+  const lic = fs.existsSync(licPath) ? fs.readFileSync(licPath, 'utf8') : '';
   const keys = await page.evaluate(() => Object.keys(ICON));
   const noLic = keys.filter(k => !lic.includes(k));
   console.log('   未列入授權檔：', noLic.length ? noLic.join(' ') : '（無）');
@@ -302,14 +311,14 @@ const GEOM = () => {
 
   /* 25　盤點表的 S-04-3 不再是「議」 */
   console.log('\n=== 25　盤點表 S-04-3 ===');
-  const invMd = fs.readFileSync('_盤點_畫面功能.md', 'utf8');
+  const invMd = needMd('_盤點_畫面功能.md');
   const row = (invMd.match(/^\| S-04-3 \|.*$/m) || [''])[0];
   console.log('   ' + row.slice(0, 120));
   ok(row && !row.includes('[議]'), '盤點表的 S-04-3 仍標著 [議]');
 
   /* 21／22／23　盤點檔跟著同步 */
   console.log('\n=== 21／22／23　_盤點_實作缺口.md 同步 ===');
-  const gap = fs.readFileSync('_盤點_實作缺口.md', 'utf8');
+  const gap = needMd('_盤點_實作缺口.md');
   const first = gap.split('## 第一段')[1].split('## 第二段')[0];
   const gapRows = [...first.matchAll(/^\| (S-[0-9A-Za-z-]+) \| ([^|]*)\| ([^|]*)\| ([^|]*)\| ([^|]*)\|$/gm)]
     .map(m => ({ id: m[1], cat: m[3].trim(), diff: m[5].trim() }));
@@ -362,7 +371,7 @@ const GEOM = () => {
     });
     return [...s];
   });
-  const inv = [...fs.readFileSync('_盤點_畫面功能.md', 'utf8')
+  const inv = [...needMd('_盤點_畫面功能.md')
     .matchAll(/^\|\s*~*(S-[0-9A-Za-z]+(?:-[0-9A-Za-z]+)*)~*(?:\s*\[[^\]]*\])?\s*\|/gm)].map(mm => mm[1]);
   const invSet = new Set(inv);
   const orphan = proto.filter(x => !invSet.has(x));

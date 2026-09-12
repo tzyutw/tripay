@@ -4,6 +4,13 @@
  *   S05BASE=<#29 之前 renderS05() 的輸出 json>
  */
 const fs = require('fs'), path = require('path');
+/* 同目錄的 md 缺檔時要說出缺哪一個再退出，不要丟 ENOENT 堆疊（AJ-4）。
+   一律相對 __dirname 解析，從別的 cwd 呼叫也找得到。 */
+const needMd = f => {
+  const p = path.join(__dirname, f);
+  if (!fs.existsSync(p)) { console.error(`缺少同目錄的 ${f}——這支測試要拿它對稿註編號，補上該檔再跑。`); process.exit(2); }
+  return fs.readFileSync(p, 'utf8');
+};
 let puppeteer;
 try { puppeteer = require('puppeteer-core'); }
 catch (e) { if (process.env.PUPPETEER_PATH) puppeteer = require(process.env.PUPPETEER_PATH);
@@ -565,7 +572,7 @@ const rgbLum = rgb => {
       const t = td.textContent.trim(); if (/^S-\d/.test(t)) s.add(t); });
     return [...s];
   });
-  const inv = [...fs.readFileSync('_盤點_畫面功能.md', 'utf8')
+  const inv = [...needMd('_盤點_畫面功能.md')
     .matchAll(/^\|\s*~*(S-[0-9A-Za-z]+(?:-[0-9A-Za-z]+)*)~*(?:\s*\[[^\]]*\])?\s*\|/gm)].map(m => m[1]);
   const invSet = new Set(inv);
   const orphan = ids.filter(x => !invSet.has(x));

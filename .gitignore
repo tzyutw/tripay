@@ -77,3 +77,4 @@ _停watcher.txt
 .claude/kickoff.lock
 .claude/kickoff_until
 .claude/kickoff.log
+_tmp_*
