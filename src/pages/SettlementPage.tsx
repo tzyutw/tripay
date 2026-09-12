@@ -578,7 +578,10 @@ export default function SettlementPage() {
 
         {/* S-05-29　分享 CTA 升為主要動作，「建立新行程／封存行程」降為次級 */}
         <div className="btnrow" style={{ flexDirection: 'column', gap: 6 }}>
-          <button className="btn" onClick={() => navigate(`/trips/${tripId}`)}>分享給大家</button>
+          {/* 🔴 修-8　原本導回行程頁本身，等於「按了畫面跳走、看不到分享」（Rozi 手機實測）。
+              分享 sheet 的路由是 `/trips/:id/share`（`ExpenseListPage` 靠 pathname 結尾決定要不要開），
+              **接既有的那一個，不另寫分享畫面**。 */}
+          <button className="btn" onClick={() => navigate(`/trips/${tripId}/share`)}>分享給大家</button>
           <div className="flex gap-2 w-full">
             <button className="btn qt" onClick={() => navigate('/')}>建立新行程</button>
             <button className="btn qt" disabled={archiveMutation.isPending}
