@@ -197,8 +197,11 @@ ok(sel>0,'選取語彙應統一為 selchip');
 // 4 記帳頁無匯率設定入口 ＋ 全站只有一個入口
 ok(!d.querySelector('#scr-s04 .rateinput'),'記帳頁不得有匯率輸入框');
 const rateInputs=d.querySelectorAll('.rateinput').length;
-console.log('   全站匯率輸入框：',rateInputs,'個（應為 2，都在 S-02b）');
-ok(rateInputs===2 && d.querySelectorAll('#scr-s02b .rateinput').length===2,'匯率只能有 S-02b 一個入口');
+/* 🔴 收尾-AJ-3　原本是**雙欄匯率**（台幣欄／外幣欄各一個輸入框），已收斂成
+   **一個欄位、方向自動判斷**——出處 `規格_金額未定案與幣別.md:158`「主要情況只填一個數字。」
+   這條要守的是「入口只有一個地方」，不是「剛好兩個框」。 */
+console.log('   全站匯率輸入框：',rateInputs,'個（單欄版應為 1，且都在 S-02b）');
+ok(rateInputs===1 && d.querySelectorAll('#scr-s02b .rateinput').length===1,'匯率只能有 S-02b 一個入口');
 
 // 10 大家各付各的在「誰付的？」且三型都可選
 ['shared','individual','single'].forEach(ty=>{
@@ -415,13 +418,22 @@ ok(d.querySelectorAll('[data-smode]').length===2,'S-02b 應有兩個模式選項
 ok(d.querySelectorAll('#scr-s05 [data-smode]').length===0,'S-05 不得出現結算模式的設定入口');
 console.log('   S-02b 設定:',d.querySelectorAll('#scr-s02b [data-smode]').length,'個｜S-05 設定:',d.querySelectorAll('#scr-s05 [data-smode]').length,'個');
 
-// 6b：代墊 >70% 且 direct 時才出現引導
+/* 6b：代墊 >70% 且 direct 時才出現引導。
+   🔴 收尾-AJ-3　文案與觸發條件都改過（收尾-AI-3，Rozi 2026-09-12 選甲案）：
+   句子從「每個人只要轉一次」改成「現在要轉 N 次；改成…會變成 M 次」，
+   而且**筆數一樣就整句不顯示**——沒有差別的建議只是雜訊。
+   所以不能再無條件斷言「direct 就一定出現」，要跟著筆數走。 */
 E("tripOf('t1').settleMode='direct'; tripOf('t1').hubMember=null; store.s05='partial'; renderS05()");
-const hasHint = d.querySelector('#scr-s05').innerHTML.includes('每個人只要轉一次');
+const HINT_RE = /現在要轉 \d+ 次/;
+const hasHint = HINT_RE.test(d.querySelector('#scr-s05').innerHTML);
+const nDirect = E("settleTrip('t1').tx.length");
+const nHub = E("hubTimes('t1', prepaidShare('t1').top)");
 E("tripOf('t1').settleMode='hub'; tripOf('t1').hubMember=M0[0]; renderS05()");
-const hintWhenHub = d.querySelector('#scr-s05').innerHTML.includes('每個人只要轉一次');
-console.log('   direct 時出現引導:',hasHint,'｜已是 hub 時:',hintWhenHub);
-ok(hasHint,'代墊比例 >70% 且為 direct 時應出現引導');
+const hintWhenHub = HINT_RE.test(d.querySelector('#scr-s05').innerHTML);
+console.log('   direct 轉',nDirect,'次｜改 hub 轉',nHub,'次｜direct 時出現引導:',hasHint,'｜已是 hub 時:',hintWhenHub);
+ok(!/每個人只要轉一次/.test(d.querySelector('#scr-s05').innerHTML), '舊文案「每個人只要轉一次」還在');
+ok(hasHint === (nDirect !== nHub),
+   `引導的出現與否要跟著筆數走：direct ${nDirect} 次 vs hub ${nHub} 次，出現=${hasHint}`);
 ok(!hintWhenHub,'已經是 hub 時不該再引導');
 E("tripOf('t1').settleMode='direct'; tripOf('t1').hubMember=null; store.expenses.t1=demoExpenses(); render()");
 
@@ -478,6 +490,11 @@ const IDX=E('INDEX'); const seen=new Set();
 const snap=()=>d.querySelectorAll('.bdg').forEach(x=>seen.add(x.dataset.copy));
 E("store.expenses.t1=demoExpenses(); store.s03Filter={kind:'all'}; store.s03StatOpen=true; render()"); snap();
 E("store.s03StatOpen=false; renderS03()"); snap();
+/* 🔴 收尾-AJ-3　S-03-35（「另有 N 筆自己買的」摘要行）只在
+   「只看共同的帳」開著的時候才渲染——不切到那個狀態就永遠掃不到它的徽章。
+   （AH-3 的規則：一個畫面有幾個狀態，掃描清單就要有幾個。） */
+E("store.s03OnlyShared=true; renderS03()"); snap();
+E("store.s03OnlyShared=false; renderS03()"); snap();
 E("tripOf('t1').status='settled'; renderS03()"); snap();
 E("tripOf('t1').status='archived'; renderS03()"); snap();
 E("tripOf('t1').status='planned'; store.expenses.t1=[]; renderS03()"); snap();
@@ -522,7 +539,14 @@ E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
     indiv:{[M[0]]:'12000',[M[1]]:'18000',[M[2]]:'10000',[M[3]]:'5000'},payer:M[0]}); renderS04();})()`); snap();
 d.querySelector('#s04save').click(); snap();
 let missing=[],unexpected=[];
+/* 🔴 收尾-AJ-3　S-05-31（代墊引導）在收尾-AI-3 之後**筆數一樣就整句不顯示**（甲案），
+   而原型這趟假資料 direct 與 hub 都是 3 筆——**這份假資料到不了那個狀態**。
+   不是徽章掉了，是沒有資料能讓它出現。列出來而不是靜靜跳過，才看得見這個缺口。
+   （要真的掃到它，原型的假資料得補一趟「direct 與 hub 筆數不同」的行程。） */
+const UNREACHABLE = { 'S-05-31': '這趟假資料的 direct 與 hub 筆數相同，甲案下整句不顯示' };
+Object.entries(UNREACHABLE).forEach(([k, why]) => console.log(`   （不列入）${k}：${why}`));
 ['s03','s03d','s04','s05'].forEach(k=>IDX[k].forEach(([id,el,kind])=>{
+  if (UNREACHABLE[id]) return;
   const has=seen.has(id);
 // #34-6 hid＝暫時隱藏（程式碼還在、由開關關掉），與 del 一樣不該出現徽章
   if((kind==='op'||kind==='st')&&!has) missing.push(id);

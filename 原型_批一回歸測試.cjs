@@ -134,56 +134,56 @@ const opts=[...d.querySelectorAll('[data-cur]')].map(x=>x.dataset.cur);
 console.log('   搜「泰」→',opts.join(','));
 ok(opts.length===1&&opts[0]==='f:THB','泰銖沒被搜到，結果='+opts.join(','));
 
-console.log('\n=== S-02b-12 現金匯率（#16 收斂後）===');
+console.log('\n=== S-02b-12 現金匯率（單欄版）===');
+/* 🔴 收尾-AJ-2　這一段原本在測**雙欄匯率**（#rate-twd／#rate-for、「1」擺哪一欄）。
+   那個設計已經被收斂成**一個欄位、方向自動判斷**——出處
+   `規格_金額未定案與幣別.md:158`「主要情況只填一個數字。」，
+   原型現在只有一個 `#rate-one`。舊斷言查不到 `#rate-twd` 就 null.value 崩掉，
+   整支從這裡以後全部沒跑到。**改斷言，不動原型。** */
 const rateRows = () => [...d.querySelectorAll('#scr-s02b .raterow')]
   .map(r => ({ side:r.dataset.side, code:r.querySelector('.code').textContent, val:r.querySelector('input').value }));
 const setCur = (tripId, code) => E(`editTripId='${tripId}'; store.trips.find(x=>x.id==='${tripId}').currency='${code}';
   store.trips.find(x=>x.id==='${tripId}').rateTwd=undefined; store.trips.find(x=>x.id==='${tripId}').rateFor=undefined;
   fb=null; renderS02b()`);
-const typeRate = (side, v) => { const el = d.querySelector('#rate-' + side);
+const typeRate = (v) => { const el = d.querySelector('#rate-one');
+  if (!el) return null;
   el.value = v; el.dispatchEvent(new w.Event('input',{bubbles:true})); return el; };
 
 setCur('t1','KRW');
 let rows = rateRows();
-console.log('   KRW 兩列：', rows.map(r => `${r.code}=${r.val||'(空)'}`).join(' / '));
-ok(d.querySelectorAll('#scr-s02b .rateinput').length === 2, '該區塊的輸入框應為 2 個，實際 ' + d.querySelectorAll('#scr-s02b .rateinput').length);
+console.log('   KRW：', rows.map(r => `${r.side}／${r.code}=${r.val||'(空)'}`).join(' / '));
+ok(d.querySelectorAll('#scr-s02b .rateinput').length === 1,
+   '只該有一個匯率輸入框，實際 ' + d.querySelectorAll('#scr-s02b .rateinput').length);
+ok(rows.length === 1 && rows[0].side === 'one', '匯率列應只有一列且 data-side=one，實際 ' + JSON.stringify(rows));
 ok(!d.querySelector('#rateDirect') && !d.querySelector('#rateNote'), '不該再有唯讀的匯率顯示列');
 ok(!/≈/.test(d.querySelector('#scr-s02b').innerHTML), '不該再出現「≈」的唯讀算式');
-ok(rows[0].side === 'twd' && rows[0].val === '1', 'KRW：「1」應在台幣欄且排在上面');
-const keptEl = typeRate('for','45');
+console.log('   KRW 的「1」擺在', E("oneSideOf('KRW')"), '那一欄');
+
+const keptEl = typeRate('45');
+ok(keptEl !== null, '找不到 #rate-one——下面幾條等於沒驗');
 ok(d.contains(keptEl), '匯率欄在輸入時被重建');
-console.log('   KRW 填 45 → 內部匯率', E('rateOf(fb)'), '（1 台幣換得到幾韓元）');
-ok(Math.abs(E('rateOf(fb)') - 45) < 1e-9, 'KRW 匯率應為 45，實際 ' + E('rateOf(fb)'));
+console.log('   KRW 填 45 → rateOf(fb) =', E('rateOf(fb)'));
+ok(Math.abs(E('rateOf(fb)') - 45) < 1e-9, 'KRW 填 45 應得匯率 45，實際 ' + E('rateOf(fb)'));
 
 setCur('t2','JPY');
-rows = rateRows();
-console.log('   JPY 兩列：', rows.map(r => `${r.code}=${r.val||'(空)'}`).join(' / '));
-ok(rows[0].side === 'for' && rows[0].val === '1', 'JPY：「1」應在外幣欄且排在上面');
-typeRate('twd','0.22');
+console.log('   JPY 的「1」擺在', E("oneSideOf('JPY')"), '那一欄');
+typeRate('0.22');
 const twdPer = E('twdPerForeign(fb)');
-console.log('   JPY 台幣欄填 0.22 → 1 JPY =', twdPer, '台幣');
+console.log('   JPY 填 0.22 → 1 JPY =', twdPer, '台幣');
 ok(Math.abs(twdPer - 0.22) < 1e-9, 'JPY 應等價於 1 JPY = 0.22 台幣，實際 ' + twdPer);
-ok(d.querySelector('#rate-twd').value === '0.22', '台幣欄應接受小數');
+ok(d.querySelector('#rate-one').value === '0.22', '欄位應接受小數');
 
 setCur('t3','THB');
-rows = rateRows();
-console.log('   THB 兩列：', rows.map(r => `${r.code}=${r.val||'(空)'}`).join(' / '));
-ok(rows[0].side === 'for' && rows[0].val === '1', 'THB：「1」應在外幣欄');
+console.log('   THB 的「1」擺在', E("oneSideOf('THB')"), '那一欄');
 
-console.log('\n=== 換錢金額寫法與「1 / 45」等價 ===');
+console.log('\n=== 單欄也要吃得下小數 ===');
 setCur('t1','KRW');
-typeRate('for','45');
-const rA = E('rateOf(fb)');
-typeRate('twd','10000'); typeRate('for','450000');
-const rB = E('rateOf(fb)');
-console.log('   1 / 45 →', rA, '｜ 10000 / 450000 →', rB);
-ok(Math.abs(rA - rB) < 1e-9, '兩種填法應算出同一個匯率');
-
-console.log('\n=== 兩欄都接受小數 ===');
-typeRate('twd','1.5'); typeRate('for','67.5');
-console.log('   1.5 / 67.5 →', E('rateOf(fb)'));
-ok(d.querySelector('#rate-twd').value === '1.5' && d.querySelector('#rate-for').value === '67.5', '小數被吃掉了');
-ok(Math.abs(E('rateOf(fb)') - 45) < 1e-9, '小數輸入算出的匯率不對');
+typeRate('1.5');
+console.log('   KRW 填 1.5 →', E('rateOf(fb)'));
+ok(d.querySelector('#rate-one').value === '1.5', '小數被吃掉了');
+/* 舊版是「台幣欄 1.5 ＋ 外幣欄 67.5 應等價於 45」，單欄之後填不出兩個數，
+   剩下要守的是**小數不被截成整數**。 */
+ok(Math.abs(E('rateOf(fb)') - 1.5) < 1e-9, '小數被截掉了，rateOf=' + E('rateOf(fb)'));
 
 console.log('\n=== 匯率區塊的灰字只留兩句 ===');
 setCur('t1','KRW');

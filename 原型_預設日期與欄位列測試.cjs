@@ -17,7 +17,9 @@ const BASE = process.env.BASE, SHOTS = process.env.SHOTS;
 (async () => {
   let pass = 0, fail = 0;
   const ok = (c, m) => { c ? pass++ : (fail++, console.log('   [X] ' + m)); };
-  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new' });
+  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new',
+    /* cloud 上是 root，沒有這兩個旗標 Chrome 起不來；Mac 上多帶著無害 */
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const pg = await browser.newPage();
   await pg.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   const errs = []; pg.on('pageerror', e => errs.push(String(e)));
@@ -136,6 +138,8 @@ const BASE = process.env.BASE, SHOTS = process.env.SHOTS;
         if (r.style.height) out.heightRules.push(r.selectorText);
         if (r.style.webkitAppearance || r.style.getPropertyValue('-webkit-appearance'))
           out.appearRules.push(r.selectorText);
+        /* 收尾-AJ-3：不只記「有幾條」，也把**值**帶回來——守的是「不得寫字面值」 */
+        if (r.style.height) (out.heightValues = out.heightValues || []).push(r.style.height);
       }
     }
     /* 這條選擇器真的同時抓到兩個畫面的欄位嗎 */
@@ -150,7 +154,18 @@ const BASE = process.env.BASE, SHOTS = process.env.SHOTS;
   console.log('   appearance:none 的規則:', ios.appearRules.join(' ｜ '));
   console.log('   ::-webkit-date-and-time-value:', ios.pseudo.join(' ｜ '));
   console.log('   同一條選擇器涵蓋:', JSON.stringify(ios.covers));
-  ok(ios.heightRules.length === 1, `明確 height 應該只有一份，實際 ${ios.heightRules.length} 份`);
+  /* 🔴 收尾-AJ-3　原本要求「明確 height 只有一份」。**實測之後改成守真正的規格。**
+     兩條規則是這樣分工的：
+       `.ui .datefield input[type=date]`（0,3,1）── 有外框的日期欄，`--h-field` 40px
+       `.ui input[type=text],[number],[date]`（0,1,2）── 所有有外框的輸入框，同樣 40px
+     把前者的 height 拿掉之後，`.ui .fieldrow>input`（0,2,1）就贏了，
+     **S-04 的日期欄從 40px 掉到 28px**（改動前後各量一次，40→28）——合併會改壞畫面。
+     原型第 236–242 行那段註解寫的規格其實是「**不要再寫高度字面值**」（#34-4 第三次修同一處），
+     所以這裡改成守那一句：日期欄的明確高度都必須走 token，不得出現 px 字面值。 */
+  const litHeights = (ios.heightValues || []).filter(v => !/var\(--h-/.test(v));
+  console.log('   明確 height 的值:', (ios.heightValues || []).join(' ｜ ') || '（沒抓到）');
+  ok((ios.heightValues || []).length > 0, '一條明確 height 都沒抓到——這條等於沒驗');
+  ok(litHeights.length === 0, `日期欄的高度出現字面值（應一律走 token）：${litHeights.join('／')}`);
   ok(ios.appearRules.length === 1, `appearance:none 應該只有一份，實際 ${ios.appearRules.length} 份`);
   ok(ios.pseudo.length === 1, `::-webkit-date-and-time-value 應該只有一份，實際 ${ios.pseudo.length} 份`);
   ok(ios.covers && ios.covers.s02 && ios.covers.s04,

@@ -191,6 +191,12 @@ html.anno .b .bdg:hover{background:#0F5E9E}
      （#32／#33-2／#34-4），取 40 就完全不必再碰它。 */
   --h-field:40px;     /* 階 1 · 獨立欄位：自己佔一列的輸入框 */
   --h-inline:28px;    /* 階 2 · 列內嵌入：跟標籤或金額並排的 */
+  /* 🔴 收尾-AJ　可點區下限，**不是視覺尺寸**。原型一直有三處在用 `var(--h-tap)`
+     （`.swchip::after`／`.clearbtn::after`／收尾-AI 之後的 `.ic2::after`），
+     但**這個 token 從來沒有在原型裡定義過**——沒定義的 var 沒有 fallback 就解析成空值，
+     那幾個透明擴張區的寬高因此是 **0**，等於可點區補丁完全沒作用，而畫面上看不出來。
+     實作端有（`src/index.css:153`），兩邊要同一個值。 */
+  --h-tap:44px;
   position:relative}
 /* #29-3 placeholder 從來沒有被設定樣式，用的是瀏覽器預設的中性灰 #757575——
    它比「分帳方式」的未選項目還深，層級整個顛倒；而且 #757575 是純中性灰，
@@ -1149,6 +1155,14 @@ const CURRENCIES = [
   ['GBP','英鎊','£'],['MYR','馬來幣','RM'],['VND','越南盾','₫'],['PHP','菲律賓披索','₱'],
   ['IDR','印尼盾','Rp'],['INR','印度盧比','₹'],['CAD','加拿大幣','C$'],['CHF','瑞士法郎','Fr'],
 ];
+/* 🔴 收尾-AJ-2　原型有五處呼叫 `currencyName()`，但**整份檔案沒有這個函式**——
+   一走到現金匯率那幾行就 ReferenceError，三支原型測試因此中途崩潰。
+   不是「腳本叫舊名」，是原型自己少了它。實作端有同一份
+   （`src/lib/currencyTable.ts:30`），照抄以免兩邊的幣別名走鐘。 */
+function currencyName(code) {
+  const f = CURRENCIES.find(c => c[0] === code);
+  return f ? f[1] : code;
+}
 /* 1 單位外幣約值多少台幣。只用來決定「1」擺哪一欄與小數位數，不參與分帳計算 */
 const TWD_PER_UNIT = { JPY:0.22, TWD:1, KRW:0.023, USD:32, EUR:35, HKD:4.1, SGD:24, THB:0.9,
   CNY:4.5, AUD:21, GBP:41, MYR:7.2, VND:0.0013, PHP:0.57, IDR:0.002, INR:0.38, CAD:23, CHF:36 };
@@ -1672,7 +1686,7 @@ const INDEX = {
   ],
   s01: [
     ['S-01-1','標題列','st','Tripay 字標，不吸頂'],
-    ['S-01-2','頂部列的建立入口','st','<b>移除（Rozi 2026-09-10）</b>：「如果幽靈卡都有辦法做點選的話，那為什麼要增加右上的新增行程？」同一個動作只留一個入口（全站 UX 檢查第 6 條），改由 S-01-8 的幽靈卡承擔。編號保留、不回收'],
+    ['S-01-2','頂部列的建立入口','del','<b>移除（Rozi 2026-09-10）</b>：「如果幽靈卡都有辦法做點選的話，那為什麼要增加右上的新增行程？」同一個動作只留一個入口（全站 UX 檢查第 6 條），改由 S-01-8 的幽靈卡承擔。編號保留、不回收'],
     ['S-01-3','載入中','st','置中轉圈（用右側原型控制切換）'],
     ['S-01-4','空狀態','op','「還沒有行程」＋<b>已補上 CTA</b>（讀碼發現 #11）'],
     ['S-01-5','行程卡','op','目的地色調＋壓暗遮罩，整張可點；<b>無金額、無成員、無 emoji</b>'],
@@ -2367,7 +2381,7 @@ function renderS03() {
     <div class="navrow">
       ${b('S-03-2', `<button class="ic2" aria-label="返回">${ic('back',20)}</button>`)}
       <span class="navttl">${esc(t.name)}</span>
-      ${b('S-03-31', `<button class="ic2" id="s03more" aria-label="更多">${ic('more',20)}</button>`)}
+      ${b('S-03-31', `<button class="ic2" id="s03morebtn" aria-label="更多">${ic('more',20)}</button>`)}
     </div>
     ${b('S-03-7', `<div class="tt">${esc(t.name)}</div>`)}
     ${b('S-03-8', `<div class="dt tnum">${dateRange(t.start, t.end)}</div>`)}
@@ -3189,7 +3203,10 @@ document.addEventListener('click', ev => {
     renderS03(); return;
   }
   /* ⋯ 現在是獨立畫面（route /trips/:id/more），不是彈層——在原型上就是切到 s03more 那一格 */
-  if (t.closest('#s03more'))   { devScreen = 's03more'; renderS03More(); renderDevBar(); window.scrollTo({ top: 0 }); return; }
+  /* 🔴 收尾-AJ　這顆按鈕原本也叫 `id="s03more"`，跟**畫面那個 `<section id="s03more">` 撞名**，
+     於是 `closest('#s03more')` 把 s03more 畫面內的每一次點擊都當成「再開一次 ⋯」——
+     包含左上角的返回鍵，按了等於原地不動。改成 `s03morebtn`，只認那顆按鈕。 */
+  if (t.closest('#s03morebtn')) { devScreen = 's03more'; renderS03More(); renderDevBar(); window.scrollTo({ top: 0 }); return; }
   if (t.closest('#s03menux'))  { devScreen = 's03'; renderDevBar(); window.scrollTo({ top: 0 }); return; }
   const sc = hit('data-s03cur');
   if (sc) { const tr = tripOf(store.s03Trip);

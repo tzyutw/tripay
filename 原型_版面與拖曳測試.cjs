@@ -62,7 +62,9 @@ const cr = (a, b) => {
 (async () => {
   let pass = 0, fail = 0;
   const ok = (c, m) => { c ? pass++ : (fail++, console.log('   [X] ' + m)); };
-  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new' });
+  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new',
+    /* cloud 上是 root，沒有這兩個旗標 Chrome 起不來；Mac 上多帶著無害 */
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const open = async (w, h, mobile) => {
     const pg = await browser.newPage();
     await pg.setViewport({ width: w, height: h, isMobile: !!mobile, hasTouch: !!mobile });
@@ -84,12 +86,29 @@ const cr = (a, b) => {
     return seen;
   }, EXPAND.toString());
   Object.entries(films).forEach(([k, v]) => console.log(`   ${k}　←　${v.length} 顆`));
-  const dark = Object.keys(films).find(k => k.includes('rgba(0, 0, 0, 0.28)'));
-  const light = Object.keys(films).find(k => k.includes('rgba(0, 0, 0, 0.05)'));
-  ok(Object.keys(films).length === 2, `應只有兩種組合，實際 ${Object.keys(films).length}`);
-  ok(dark && dark.includes('rgba(255, 255, 255, 0.35)'), '深色底應為 rgba(0,0,0,.28) ＋ 白線 .35');
-  ok(light && light.includes('rgba(0, 0, 0, 0.14)'), '淺色底應維持 rgba(0,0,0,.05) ＋ 黑線 .14');
-  ok(Object.keys(films).every(k => /rgba\([^)]*0?\.\d+\)/.test(k.split(' | ')[0])), '兩者都要是半透明');
+  /* 🔴 收尾-AJ-1　這三條原本守的是**收尾-AI 之前**的規格（深底黑 28%＋白線 .35、
+     淺底黑 5%＋黑線 .14）。Rozi 2026-09-12 拍板 B 案（`專案狀態.md` 決策表）：
+     **純色列完全不上底色、不畫邊框**（純線條），有圖時才給半透明黑 ＋ blur(14px)。
+     原型已經照新規格改，斷言沒跟上。**改斷言，不動原型。**
+     「兩者都要是半透明」這句的意義也變了——淺底現在是**全透明**，所以改成
+     「深底 alpha 落在 0.15–0.30、淺底 alpha 為 0」，訂區間不訂單邊。 */
+  const alphaOf = k => {
+    const m = k.split(' | ')[0].match(/rgba?\(([^)]*)\)/);
+    if (!m) return null;
+    const p = m[1].split(',').map(x => parseFloat(x));
+    return p.length < 4 ? 1 : p[3];
+  };
+  const keys = Object.keys(films), alphas = keys.map(alphaOf);
+  console.log(`   兩種組合的 alpha：${alphas.join(' / ')}`);
+  ok(keys.length === 2, `應只有兩種組合，實際 ${keys.length}`);
+  ok(alphas.every(a => a !== null), `有組合解析不出 alpha：${keys.join(' ／ ')}`);
+  ok(alphas.some(a => a === 0), `淺色底應完全不上底色（alpha 0），實際 ${alphas.join('/')}`);
+  ok(alphas.some(a => a >= 0.15 && a <= 0.30), `深色底 alpha 應落在 0.15–0.30，實際 ${alphas.join('/')}`);
+  const borders = await pg.evaluate(() =>
+    [...document.querySelectorAll('.ui .ic2')].map(el => getComputedStyle(el).borderTopWidth));
+  console.log(`   邊框寬度：${[...new Set(borders)].join('／')}`);
+  ok(borders.length > 0 && borders.every(w => parseFloat(w) === 0),
+     `B 案不畫邊框，實際量到 ${[...new Set(borders)].join('／')}`);
 
   /* 2　8 個色調的對比 */
   console.log('\n=== 2　8 個目的地色調上的 icon 對比 ===');

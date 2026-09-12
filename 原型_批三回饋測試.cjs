@@ -34,7 +34,9 @@ const EXPAND = () => {
 (async () => {
   let pass = 0, fail = 0;
   const ok = (c, m) => { c ? pass++ : (fail++, console.log('   ❌ ' + m)); };
-  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new' });
+  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new',
+    /* cloud 上是 root，沒有這兩個旗標 Chrome 起不來；Mac 上多帶著無害 */
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
   await page.setViewport({ width: 375, height: 900 });
   await page.goto('file://' + FILE, { waitUntil: 'load' });

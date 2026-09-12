@@ -33,7 +33,9 @@ const DRAFT_WORDS = ['移除了', '識別由字標', '列表到此結束', '首�
 (async () => {
   let pass = 0, fail = 0;
   const ok = (c, m) => { c ? pass++ : (fail++, console.log('   [X] ' + m)); };
-  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new' });
+  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new',
+    /* cloud 上是 root，沒有這兩個旗標 Chrome 起不來；Mac 上多帶著無害 */
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
   await page.setViewport({ width: 375, height: 900 });
   const errs = []; page.on('pageerror', e => errs.push(String(e)));
@@ -86,7 +88,10 @@ const DRAFT_WORDS = ['移除了', '識別由字標', '列表到此結束', '首�
   ok(btns.x === 0, `還有 ${btns.x} 個舊的 .x 關閉鍵`);
   ok(!/\.ui \.x\{/.test(SRC), '.x 的 CSS 定義應已刪除');
   ok(btns.ic2.every(x => x.w === 40 && x.h === 40), '有 .ic2 不是 40×40');
-  ok(btns.ic2.every(x => x.border > 0), '有 .ic2 沒有那一圈線');
+  /* 🔴 收尾-AJ-1　B 案（Rozi 2026-09-12 拍板，`專案狀態.md` 決策表）：
+     圖示鈕改成 IG 式——**純線條、不畫邊框**，有圖時才給半透明黑 ＋ blur(14px)。
+     這條原本在守「每一顆都要有一圈線」，守的是舊規格，反過來了。 */
+  ok(btns.ic2.every(x => parseFloat(x.border) === 0), `B 案不畫邊框，仍有 .ic2 帶著線：${btns.ic2.filter(x => parseFloat(x.border) > 0).map(x => x.label).join('／')}`);
   ok(btns.ic2.every(x => x.svg === '20'), '有 .ic2 的 icon 不是 20px');
   ok(btns.ic2.every(x => x.hw >= 44 && x.hh >= 44), '有 .ic2 的可點區不足 44');
   ok(btns.ic2.filter(x => x.label === '關閉').length === 3, '三個關閉鍵都要是 .ic2 且有 aria-label');
@@ -140,6 +145,11 @@ const DRAFT_WORDS = ['移除了', '識別由字標', '列表到此結束', '首�
     renderS04(); out.沒台幣 = document.getElementById('amtnote').textContent.trim();
     g = exp({ forAmt: '45000', twdAmt: '1035', pay: 'card', type: 'shared', parts: M, payer: M[0] });
     renderS04(); out.正常 = document.getElementById('amtnote').textContent.trim();
+    /* 🔴 收尾-AJ-3　「填一邊就好」不在 `#amtnote` 裡，它是金額**區塊標題旁**的
+       `.lblnote`（原型 2649 行 `MSG_FILL_ONE`）。`#amtnote` 只放「這一筆現在缺什麼」，
+       兩邊都填好時本來就該是空的——原本讀錯元素，等於在問一個不會有答案的問題。 */
+    const lblnote = document.querySelector('#scr-s04 .lblnote');
+    out.區塊說明 = lblnote ? lblnote.textContent.trim() : '（找不到 .lblnote）';
     /* 同一句字串在 S-04-16 的 sub2 也出現一次——必須完全相同。
        要讓 sub2 走到 twdPending 那一支：沒匯率、只填外幣、沒有台幣總額。 */
     t.rateTwd = undefined; t.rateFor = undefined;
@@ -156,7 +166,8 @@ const DRAFT_WORDS = ['移除了', '識別由字標', '列表到此結束', '首�
     '沒匯率時要先說東西還在，再講解除條件');
   ok(msgs.沒台幣.includes('先記著了') && msgs.沒台幣.includes('補上台幣金額就會算進結算'),
     '沒台幣金額時同上');
-  ok(msgs.正常.includes('填一邊就好'), '正常狀態維持原句');
+  ok(msgs.區塊說明.includes('填一邊就好'), `金額區塊的說明應是「填一邊就好…」，實際「${msgs.區塊說明}」`);
+  ok(msgs.正常 === '', `兩邊都填好時 #amtnote 應該是空的，實際「${msgs.正常}」`);
   ok(msgs.sub2 === msgs.沒台幣,
     `sub2 與金額提示必須是同一句：「${msgs.sub2}」vs「${msgs.沒台幣}」`);
   const once = SRC.split('補上台幣金額就會算進結算').length - 1;
@@ -221,9 +232,13 @@ const DRAFT_WORDS = ['移除了', '識別由字標', '列表到此結束', '首�
     return out;
   });
   console.log('   ' + JSON.stringify(cur, null, 0));
-  ok(/有 \d+ 筆還沒換算成台幣/.test(cur.沒匯率), '提示要講出後果與筆數，不是只講「換算不了」');
+  /* 🔴 收尾-AJ-3　這句在收尾-AI-1 改過（Rozi 2026-09-12 選 A）：
+     「有 N 筆還沒換算成台幣，上面的總花費不含它們。」→「總花費還少了 N 筆，它們只填了外幣。」
+     由來：它跟下面紅色那條「有 N 筆還沒算清楚」講的是**重疊**的集合，兩句用不同的詞，
+     使用者會以為是兩批不同的問題。要守的東西沒變——**講出後果、講出筆數**，只是換句話說。 */
+  ok(/總花費還少了 \d+ 筆/.test(cur.沒匯率), `提示要講出後果與筆數，實際「${cur.沒匯率}」`);
   ok(cur.沒匯率.includes(String(cur.pendingN)), '筆數要是真的，不是寫死的字');
-  ok(cur.沒匯率.includes('上面的總花費不含它們'), '要講出「上面那個數字是少算的」');
+  ok(cur.沒匯率.includes('只填了外幣'), '要講出那幾筆為什麼沒被算進去');
   ok(cur.沒匯率有連結, '台幣檢視要帶「設現金匯率 ›」的連結');
   ok(cur.有匯率 === '（整條不顯示）', '沒有缺口時整條不顯示，不要講「都換算好了」');
   ok(cur.切到外幣 === 'FOR', '外幣檢視要真的切得動');

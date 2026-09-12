@@ -89,7 +89,9 @@ const rgbLum = rgb => {
 (async () => {
   let pass = 0, fail = 0;
   const ok = (c, m) => { c ? pass++ : (fail++, console.log('   [X] ' + m)); };
-  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new' });
+  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new',
+    /* cloud 上是 root，沒有這兩個旗標 Chrome 起不來；Mac 上多帶著無害 */
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
   await page.setViewport({ width: 375, height: 900 });
   const errs = []; page.on('pageerror', e => errs.push(String(e)));
@@ -158,6 +160,11 @@ const rgbLum = rgb => {
               parts: t.members.map(m => m.id), payer: t.members[0].id });
     renderS04();
     out.有匯率 = document.getElementById('amtnote').textContent.trim();
+    /* 🔴 收尾-AJ-3　「填一邊就好」是金額**區塊標題旁**的 `.lblnote`（原型 2649 行的
+       `MSG_FILL_ONE`），不在 `#amtnote` 裡。`#amtnote` 放的是「這一筆現在缺什麼」，
+       兩邊都填好時本來就空的——原本讀錯元素。 */
+    const ln = document.querySelector('#scr-s04 .lblnote');
+    out.區塊說明 = ln ? ln.textContent.trim() : '（找不到 .lblnote）';
     t.rateTwd = undefined; t.rateFor = undefined;
     g = exp({ forAmt: '20000', pay: 'cash', type: 'shared', parts: t.members.map(m => m.id), payer: t.members[0].id });
     renderS04();
@@ -166,7 +173,7 @@ const rgbLum = rgb => {
     return out;
   });
   console.log('   有匯率：「' + notes.有匯率 + '」\n   沒匯率：「' + notes.沒匯率 + '」');
-  ok(notes.有匯率.includes('填一邊就好'), '有匯率時應出現「填一邊就好，另一邊會自動換算」');
+  ok(notes.區塊說明.includes('填一邊就好'), `金額區塊說明應是「填一邊就好…」，實際「${notes.區塊說明}」`);
   ok(!notes.有匯率.includes('還沒設這趟的匯率'), '有匯率時不該出現匯率警告');
   // #30-5a 文案改成可行動的語氣：先說東西還在，再講解除條件
   ok(notes.沒匯率.includes('設好這趟的現金匯率就會自動換算'), '沒匯率時應出現 S-04-38 的警告');
@@ -356,10 +363,12 @@ const rgbLum = rgb => {
   /* 17　⋯ 選單配 icon */
   console.log('\n=== 17　⋯ 選單的項目配 icon ===');
   const menu = await page.evaluate(() => {
-    store.s03Menu = true; renderS03();
+    /* 🔴 收尾-AJ-2　⋯ 選單改成獨立畫面 `s03more`（Rozi 2026-09-06），
+       `store.s03Menu` 不存在了，掃 `#scr-s03` 只會掃到 0 項。 */
+    renderS03More();
     const dg = getComputedStyle(document.querySelector('.ui')).getPropertyValue('--dg').trim();
     const hex = h => { const m = h.replace('#', '').match(/../g).map(x => parseInt(x, 16)); return `rgb(${m.join(', ')})`; };
-    const r = [...document.querySelectorAll('#scr-s03 .shopt')].map(el => {
+    const r = [...document.querySelectorAll('#scr-s03more .shopt')].map(el => {
       const svg = el.querySelector('svg');
       return { t: el.querySelector('.t').textContent.trim(),
                w: svg ? svg.getAttribute('width') : null,
@@ -367,7 +376,7 @@ const rgbLum = rgb => {
                txColor: getComputedStyle(el.querySelector('.t')).color,
                isDg: getComputedStyle(svg).color === hex(dg) };
     });
-    store.s03Menu = false; renderS03();
+    renderS03();
     return r;
   });
   menu.forEach(m => console.log(`   ${m.t}：icon ${m.w}px ${m.icColor}｜文字 ${m.txColor}`));

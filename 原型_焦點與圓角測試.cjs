@@ -59,7 +59,9 @@ const cr = (a, b) => {
 (async () => {
   let pass = 0, fail = 0;
   const ok = (c, m) => { c ? pass++ : (fail++, console.log('   [X] ' + m)); };
-  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new' });
+  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new',
+    /* cloud 上是 root，沒有這兩個旗標 Chrome 起不來；Mac 上多帶著無害 */
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const phone = async () => {
     const pg = await browser.newPage();
     await pg.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
@@ -177,8 +179,24 @@ const cr = (a, b) => {
   Object.entries(films).forEach(([k, v]) => console.log(`   ${k}　←　${v.join('、')}`));
   const combos = Object.keys(films);
   ok(combos.length === 2, `全站應只有兩種組合（深底／淺底），實際 ${combos.length} 種`);
-  ok(combos.every(k => /rgba\([^)]*0?\.\d+\)/.test(k.split(' | ')[0])),
-    `有 .ic2 的底色不是半透明：${combos.join(' ／ ')}`);
+  /* 🔴 收尾-AJ-1　Rozi 2026-09-12 拍板 B 案（`專案狀態.md` 決策表）：
+     **純色列完全不上底色**（純線條），有圖時才給半透明黑＋毛玻璃。
+     所以「兩種都要是半透明」這句的意義變了——淺底現在是 **alpha 0**。
+     訂區間不訂單邊：深底 alpha 落在 0.15–0.30，淺底 alpha 為 0。 */
+  const alphaOf = k => {
+    const m = k.split(' | ')[0].match(/rgba?\(([^)]*)\)/);
+    if (!m) return null;
+    const p = m[1].split(',').map(x => parseFloat(x));
+    return p.length < 4 ? 1 : p[3];
+  };
+  const alphas = combos.map(alphaOf);
+  console.log(`   兩種組合的 alpha：${alphas.join(' / ')}`);
+  ok(alphas.every(a => a !== null), `有組合的底色解析不出 alpha：${combos.join(' ／ ')}`);
+  ok(alphas.some(a => a === 0), `淺色底應完全不上底色（alpha 0），實際 ${alphas.join('/')}`);
+  ok(alphas.some(a => a >= 0.15 && a <= 0.30),
+    `深色底的圓底 alpha 應落在 0.15–0.30，實際 ${alphas.join('/')}`);
+  ok(alphas.every(a => a === 0 || (a > 0 && a < 1)),
+    `圓底不得寫成實色：${combos.join(' ／ ')}`);
   /* 在 8 種目的地色調上量 icon 對「按鈕實際所在位置」的底色的對比。
      hero 是 160deg 的漸層——把所有色停都當底色會過度悲觀（最亮的那一停在右下角，
      按鈕在頂端）。這裡把按鈕中心投影到漸層軸上、內插出該點的顏色，再疊 14% 白膜。 */
@@ -244,22 +262,33 @@ const cr = (a, b) => {
     eval('(' + exp + ')()');
     return [...document.querySelectorAll('.ui .ic2')].map(el => {
       const r = el.getBoundingClientRect(), a = getComputedStyle(el, '::after');
-      return { w: r.width, h: r.height, svg: el.querySelector('svg').getAttribute('width'),
+      const svg = el.querySelector('svg');
+      return { where: (el.closest('.scr') || {}).id || '?',
+               label: el.getAttribute('aria-label') || el.id || '',
+               w: r.width, h: r.height, svg: svg ? svg.getAttribute('width') : '(沒有 svg)',
                hw: parseFloat(a.width), hh: parseFloat(a.height) };
     });
   }, EXPAND.toString());
-  ok(size.every(x => x.w === 40 && x.h === 40 && x.svg === '20' && x.hw >= 44 && x.hh >= 44),
-    '.ic2 的尺寸或可點區被動到了');
+  /* 只回布林值的話，「量到 0 個」與「全部合格」在輸出裡長得一樣——把不合格的印出來 */
+  const badSize = size.filter(x => !(x.w === 40 && x.h === 40 && x.svg === '20' && x.hw >= 44 && x.hh >= 44));
+  console.log(`   .ic2 共 ${size.length} 顆，不合格 ${badSize.length} 顆`
+    + (badSize.length ? '：' + badSize.map(x => `${x.label}@${x.where} ${x.w}×${x.h} svg=${x.svg} tap=${x.hw}×${x.hh}`).join('、') : ''));
+  ok(size.length > 0, '掃不到任何 .ic2——這條等於沒驗');
+  ok(badSize.length === 0, '.ic2 的尺寸或可點區被動到了');
 
   /* 6　⋯ 選單撐滿寬度、分隔線由面板負責 */
   console.log('\n=== 6　⋯ 選單的項目撐滿 ===');
   const menu = await pg.evaluate(() => {
     const t = tripOf('t1'), out = {};
     for (const st of ['planned', 'settled', 'archived']) {
-      t.status = st; store.s03Tab = 'exp'; store.s03Menu = true; renderS03();
-      const items = [...document.querySelectorAll('#scr-s03 .shopt.mi')];
+      /* 🔴 收尾-AJ-2　⋯ 選單**已經不是底部彈層**：Rozi 2026-09-06「設定頁我不要顯示在
+         最下方，請單獨一頁出來」，改成獨立畫面 `s03more`（原型 2493 行的註解寫著這件事）。
+         `store.s03Menu` 這個狀態早就不存在了，所以 `items[0]` 是 undefined、整支從這裡崩掉。 */
+      t.status = st; store.s03Tab = 'exp'; renderS03(); renderS03More();
+      const items = [...document.querySelectorAll('#scr-s03more .shopt.mi')];
+      if (!items.length) return { __err: `#scr-s03more 掃不到 .shopt.mi（狀態 ${st}）` };
       const panel = items[0].parentElement.getBoundingClientRect().width;
-      const rules = [...document.querySelectorAll('#scr-s03 .mrule')];
+      const rules = [...document.querySelectorAll('#scr-s03more .mrule')];
       /* 只看動作項目——底部的「取消」是有框的按鈕，本來就該有邊 */
       const bordered = items.filter(el => parseFloat(getComputedStyle(el).borderBottomWidth) > 0).length;
       out[st] = { n: items.length, panel: +panel.toFixed(1),
@@ -269,10 +298,11 @@ const cr = (a, b) => {
                   ruleW: rules.map(x => +x.getBoundingClientRect().width.toFixed(1)),
                   bordered };
     }
-    t.status = 'active'; store.s03Menu = false; renderS03();
+    t.status = 'active'; renderS03(); renderS03More();
     return out;
   });
-  Object.entries(menu).forEach(([k, v]) => console.log(`   ${k}: ${v.n} 項｜面板 ${v.panel}｜寬 ${v.w.join(',')}｜高 ${v.h.join(',')}｜分隔線 ${v.rules} 條 寬 ${v.ruleW.join(',')}`));
+  ok(!menu.__err, `選單量不到：${menu.__err}——這幾條等於沒驗`);
+  Object.entries(menu).filter(([, v]) => v && v.n !== undefined).forEach(([k, v]) => console.log(`   ${k}: ${v.n} 項｜面板 ${v.panel}｜寬 ${v.w.join(',')}｜高 ${v.h.join(',')}｜分隔線 ${v.rules} 條 寬 ${v.ruleW.join(',')}`));
   ok(Object.values(menu).every(v => v.w.every(w => Math.abs(w - v.panel) <= 2)), '選單項目沒有撐滿面板');
   ok(Object.values(menu).every(v => v.h.every(h => h >= 44)), '選單項目高度不足 44');
   ok(Object.values(menu).every(v => v.rules === 2), `分隔線應為每種狀態 2 條，實際 ${Object.values(menu).map(v => v.rules).join('/')}`);
@@ -280,7 +310,7 @@ const cr = (a, b) => {
   ok(Object.values(menu).every(v => v.bordered === 0), '選單裡不該還有自帶 border-bottom 的項目');
   const narrow = await pg.evaluate(exp => {
     eval('(' + exp + ')()');
-    store.s03Menu = true; renderS03(); store.s03bView = 'del'; renderS03b();
+    renderS03More(); store.s03bView = 'del'; renderS03b();
     /* 沿用 #25-7 的判準：跟「同一個容器裡該分到的寬度」比，
        不是跟整個面板比——兩顆並排的按鈕各佔一半是正常的。 */
     const bad = [];
@@ -298,7 +328,7 @@ const cr = (a, b) => {
           bad.push(`${el.textContent.trim().slice(0, 6)} ${w.toFixed(0)}/${share.toFixed(0)}`);
       });
     });
-    store.s03Menu = false; renderS03();
+    renderS03();
     return bad;
   }, EXPAND.toString());
   console.log('   .sheet／.dlg 內寬度不足的可點元素:', narrow.length ? narrow.join('、') : '（無）');

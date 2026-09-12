@@ -61,7 +61,9 @@ const IDS = () => {
 (async () => {
   let pass = 0, fail = 0;
   const ok = (c, m) => { c ? pass++ : (fail++, console.log('   [X] ' + m)); };
-  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new' });
+  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new',
+    /* cloud 上是 root，沒有這兩個旗標 Chrome 起不來；Mac 上多帶著無害 */
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
   await page.setViewport({ width: 375, height: 900 });
   const errs = []; page.on('pageerror', e => errs.push(String(e)));
@@ -173,7 +175,7 @@ const IDS = () => {
   /* 10　S-03 頂列只剩兩顆 */
   console.log('\n=== 10　S-03 頂列只有返回與 ⋯ ===');
   const nav = await page.evaluate(() => {
-    store.s03Menu = false; store.s03Tab = 'exp';
+    store.s03Tab = 'exp';
     store.expenses.t1 = demoExpenses(); renderS03();
     const row = document.querySelector('#scr-s03 .navrow');
     return [...row.querySelectorAll('button')].map(b => b.getAttribute('aria-label'));
@@ -203,7 +205,10 @@ const IDS = () => {
   ok(ic2.length > 0, '找不到任何 .ic2');
   ok(ic2.every(x => x.w === 40 && x.h === 40), `有容器不是 40×40：${JSON.stringify(ic2.filter(x => x.w !== 40 || x.h !== 40))}`);
   ok(ic2.every(x => x.radius === '50%' || parseFloat(x.radius) >= 20), '有容器不是正圓');
-  ok(ic2.every(x => parseFloat(x.border) > 0), '有容器沒有那一圈線');
+  /* 🔴 收尾-AJ-1　B 案（Rozi 2026-09-12 拍板，`專案狀態.md` 決策表）：
+     圖示鈕改成 IG 式——**純線條、不畫邊框**，有圖時才給半透明黑 ＋ blur(14px)。
+     這條原本在守「每一顆都要有一圈線」，守的是舊規格，反過來了。 */
+  ok(ic2.every(x => parseFloat(x.border) === 0), `B 案不畫邊框，仍有容器帶著線：${JSON.stringify(ic2.filter(x => parseFloat(x.border) > 0))}`);
   ok(ic2.every(x => x.svg === '20'), `有 icon 不是 20px：${JSON.stringify(ic2.filter(x => x.svg !== '20'))}`);
   ok(ic2.every(x => x.hw >= 44 && x.hh >= 44), '有容器的可點區不足 44');
   ok(dark.length > 0 && light.length > 0, '深底與淺底兩套都要有實際用到');
@@ -232,13 +237,14 @@ const IDS = () => {
     const t = tripOf('t1'), out = {};
     for (const [k, st] of [['active', 'active'], ['settled', 'settled'], ['archived', 'archived']]) {
       t.status = st === 'active' ? 'active' : st;
-      store.s03Tab = 'exp'; store.s03Menu = false; renderS03();
+      store.s03Tab = 'exp'; renderS03();
       const row = document.querySelector('#scr-s03 .btnrow');
       const main = row ? [...row.querySelectorAll('button,span.btn')].map(b => b.textContent.trim()) : null;
-      store.s03Menu = true; renderS03();
-      const menu = [...document.querySelectorAll('#scr-s03 .shopt')].map(b => ({
+      /* 🔴 收尾-AJ-2　⋯ 選單已改成**獨立畫面** `s03more`（Rozi 2026-09-06
+         「設定頁我不要顯示在最下方，請單獨一頁出來」），`store.s03Menu` 這個狀態不存在了。 */
+      renderS03More();
+      const menu = [...document.querySelectorAll('#scr-s03more .shopt')].map(b => ({
         t: b.textContent.trim(), dg: getComputedStyle(b.querySelector('.t')).color }));
-      store.s03Menu = false;
       out[k] = { main, menu: menu.map(m => m.t), dgCount: menu.filter(m => m.dg !== menu[0].dg || m.t === '刪除行程').length,
                  dgItems: menu.filter(m => m.t === '刪除行程').map(m => m.dg) };
     }
@@ -259,8 +265,8 @@ const IDS = () => {
   ok(JSON.stringify(states.archived.menu) === JSON.stringify(['分享', '複製成新的一趟', '刪除行程']),
     `已封存選單不符（不應有「編輯行程」）：${states.archived.menu.join('／')}`);
   const dgColour = await page.evaluate(() => {
-    store.s03Menu = true; renderS03();
-    const items = [...document.querySelectorAll('#scr-s03 .shopt .t')];
+    renderS03More();
+    const items = [...document.querySelectorAll('#scr-s03more .shopt .t')];
     const dg = getComputedStyle(document.querySelector('.ui')).getPropertyValue('--dg').trim();
     const hex = h => h.replace('#', '').match(/../g).map(x => parseInt(x, 16));
     const want = `rgb(${hex(dg).join(', ')})`;

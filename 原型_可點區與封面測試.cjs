@@ -40,7 +40,9 @@ const SETUP = () => {
 (async () => {
   let pass = 0, fail = 0;
   const ok = (c, m) => { c ? pass++ : (fail++, console.log('   [X] ' + m)); };
-  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new' });
+  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new',
+    /* cloud 上是 root，沒有這兩個旗標 Chrome 起不來；Mac 上多帶著無害 */
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const pg = await browser.newPage();
   await pg.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   const errs = []; pg.on('pageerror', e => errs.push(String(e)));
@@ -181,7 +183,11 @@ const SETUP = () => {
     console.log(`   含「${k}」:`, cover.txt.includes(k));
     ok(!cover.txt.includes(k), `S-02b 仍有「${k}」`);
   }
-  ok(cover.first === '誰一起去？', `S-02b 第一個區塊應是「誰一起去？」，實際「${cover.first}」`);
+  /* 🔴 收尾-AJ-3　這條原本斷言封面區拿掉之後第一個區塊是「誰一起去？」。
+     之後 Rozi 2026-09-06 加了 S-02b-14「這趟叫什麼？」（原型稿註 1738 行：
+     「編輯行程要能改行程名⋯只加名稱」），而且**名稱本來就該排在成員之前**
+     （版位層級：必填在前）。原型是對的，斷言沒跟上。 */
+  ok(cover.first === '這趟叫什麼？', `S-02b 第一個區塊應是「這趟叫什麼？」（S-02b-14），實際「${cover.first}」`);
   ok(cover.hasCode && /const COVER_UI = false/.test(SRC), '要用開關關掉，不是刪掉');
   /* 把開關打開跑一次，確認整區完整重現 */
   const pg2 = await browser.newPage();
