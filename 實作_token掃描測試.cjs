@@ -119,8 +119,17 @@ for (const [cls, desc] of [['.ic2', '畫面層級動作'], ['.rmbtn', '列內動
 ok(/\.ic2::after[^}]*var\(--h-tap\)/.test(CSS_SRC.replace(/\n/g, ' ')) &&
    /\.rmbtn::after[^}]*var\(--h-tap\)/.test(CSS_SRC.replace(/\n/g, ' ')),
   '可點區要用透明擴張區補到 44，不是放大看得見的圖形');
-ok(/rgba\(0, 0, 0, \.05\)/.test(CSS_SRC) && /rgba\(255, 255, 255, \.14\)/.test(CSS_SRC),
-  '.ic2 的底色是半透明薄膜，不得寫成實色');
+/* 🔴 收尾-AI-6（Rozi 2026-09-12 選 B）　改成 IG 式之後守的東西換了：
+   純色列**完全不上底色**（純線條），有圖時才給一層半透明黑＋毛玻璃。
+   舊的兩條薄膜色（黑 5%／白 14%）已經不存在，繼續守它們只會守到一個不再有的設計。
+   仍然要守的是**不得寫成實色**——所以圓底那一項只准是 rgba。 */
+ok(/background:\s*var\(--ic2-bg,\s*transparent\)/.test(CSS_SRC),
+  '.ic2 純色列要完全不上底色（純線條）');
+ok(/--ic2-bg:\s*rgba\(0,\s*0,\s*0,\s*\.22\)/.test(CSS_SRC),
+  '有圖時的圓底要是半透明黑 22%，不得寫成實色');
+ok(/--ic2-blur:\s*blur\(14px\)/.test(CSS_SRC)
+   && /-webkit-backdrop-filter/.test(CSS_SRC),
+  '毛玻璃要有 blur(14px)，而且 iOS Safari 需要的 -webkit- 前綴不能少');
 
 /* 8　建置產物：使用者真正下載到的 CSS */
 console.log('\n=== 8　建置產物 ===');

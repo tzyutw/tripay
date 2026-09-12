@@ -129,13 +129,35 @@ describe('B-5　S-05 未結算：完整轉帳預覽', () => {
       else expect(got, `S-05-2 殘留：${bad}`).not.toContain(bad);
   });
 
+  /* 🔴 收尾-AI-3　建議句要講「現在幾次 → 改了幾次」。
+     這一組假資料刻意讓兩者不同：Rozi 先付 20,000 指名算阿明、小美先付 5,000 指名算小魚，
+     於是 direct 剛好兩兩配對成 **2 次**，改成都轉給 Rozi 會變成 **3 次**。 */
+  const lopsided = [
+    mk({ title: '包車', category_emoji: '🚕', twd_amount: 20000,
+         parts: [M[2]], payer_member_id: M[0] }),
+    mk({ title: '門票', category_emoji: '🎡', twd_amount: 5000,
+         parts: [M[3]], payer_member_id: M[1] }),
+  ];
+
   it('S-05-31　代墊集中時出現引導，而且**只給連結不給設定**', async () => {
+    state.expenses = lopsided;
     await show();
     expect(screen.getByText(/先付的/)).toBeInTheDocument();
     expect(screen.getByText(/去設定/)).toBeInTheDocument();
     /* 一個設定只有一個入口：這裡不得出現結算模式的選擇器 */
     expect(flat()).not.toContain('都轉給同一個人的話，要選誰');
     expect(document.querySelector('.note.calm')).not.toBeNull();
+    expect(flat(), '要講現在幾次、改了會變幾次').toContain('現在要轉2次');
+    expect(flat()).toContain('會變成3次');
+  });
+
+  /* 🔴 收尾-AI-3（甲案）　筆數一樣就整句不顯示——沒有差別的建議只是雜訊。
+     預設那組假資料本來就是星形（三筆全部從 Rozi 出去），改成 hub 還是三筆。 */
+  it('S-05-31 反向　轉帳筆數不會變的時候，整句不出現', async () => {
+    await show();
+    expect(document.querySelector('.note.calm'),
+      '筆數一樣卻還是印出建議').toBeNull();
+    expect(flat()).not.toContain('都轉給同一個人');
   });
 });
 
@@ -169,8 +191,10 @@ describe('B-5　S-05 已結算：逐筆標記付清', () => {
     /* 實作-J 之後成員識別自成節點，段數 67→71→77；
        實作-T-4 把「應分攤」拆成三段（每段一個名稱、一個筆數、一個金額），
        所以又多了幾段——**這個數字是守「原型有沒有被誰砍掉一段」用的**，
-       不是守「剛好幾段」，改動時跟著原型走。 */
-    expect((screens as Record<string, { list: string[] }>).s05.list.length).toBe(104);
+       不是守「剛好幾段」，改動時跟著原型走。
+       🔴 收尾-AI-3：104 → 102。原型的代墊建議套上甲案之後，
+       這趟假資料的轉帳筆數改成 hub 也不會變少，整句就不再渲染，少掉兩段。 */
+    expect((screens as Record<string, { list: string[] }>).s05.list.length).toBe(102);
     const got = flat();
     /* ⚠️ 實作-AB-2 把「指名算他的」拆成「自己買給自己的」＋「各付各的」，
        但**這一節的檔案白名單沒有 `Tripay_原型.html`**，所以原型（與從它擷取的

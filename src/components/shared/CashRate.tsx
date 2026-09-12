@@ -108,7 +108,7 @@ export default function CashRate({ currency, value, dir, onChange, onFlip }: Cas
           <button type="button" className="ratelink" onClick={onFlip}>換個方向</button>
         </p>
       ) : (
-        <p className="hint">填一個數字就好，方向由系統判斷；判錯可以按「換個方向」</p>
+        <p className="hint">填一個數字就好，方向會自動判斷，填完檢查一下對不對</p>
       )}
       <p className="hint">刷卡不用這個匯率，直接填台幣</p>
     </div>

@@ -589,7 +589,7 @@ export default function ExpenseListPage() {
             />
             {nGap > 0 && (
               <p className="hint">
-                有 {nGap} 筆還沒換算成台幣，上面的總花費不含它們。
+                總花費還少了 {nGap} 筆，它們只填了外幣。
                 {!rateNow && (
                   <button className="ratelink" onClick={openTripEdit}>
                     設現金匯率 <Icon name="next" size={13} />

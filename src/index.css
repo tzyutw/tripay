@@ -179,17 +179,10 @@ input, textarea, select { font-size: var(--fs-input); }
    薄膜永遠是「底下顏色的薄膜」：底暗就加亮、底亮就加暗，兩邊都半透明，
    所以不管底下是漸層還是白卡片都會透出底色。**不要寫成實色**——
    那會變成一顆貼在畫面上的貼紙。 */
-.ic2 {
-  width: 40px; height: 40px; border-radius: var(--r-icon);
-  display: inline-flex; align-items: center; justify-content: center;
-  flex: none; position: relative; background: rgba(0, 0, 0, .05);
-}
-.ic2.on-dark { background: rgba(255, 255, 255, .14); color: #fff; }
-/* 40×40 自己不到 44——用透明擴張區補足，不放大看得見的圖形 */
-.ic2::after {
-  content: ''; position: absolute; left: 50%; top: 50%;
-  width: var(--h-tap); height: var(--h-tap); transform: translate(-50%, -50%);
-}
+/* 🔴 收尾-AI-6　`.ic2` 原本在這裡與移植區塊各有一份，後者蓋過前者
+   （`_規則由來.md` 記的「CSS 移植陷阱」殘留）。**合併成一份**，
+   唯一定義在下方移植區塊，要改就改 `Tripay_原型.html` 再重跑移植腳本。
+   同時刪掉那個沒人用的深底變體 class。 */
 
 /* 第二層　列內的動作（成員／支付方式的移除鈕）：**裸 icon，無容器**。
    列內動作加圓容器，每一列右邊都會多一個圓，六個圓跟內容搶注意力。
@@ -444,9 +437,9 @@ input:focus { border-color:var(--w) }
 .hero .navrow { position:relative;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px }
 .hero .nb { font-size:var(--fs-body);font-weight:600;color:rgba(255,255,255,.92) }
 .hero .icons { display:flex;gap:6px }
-.ic2 { width:40px;height:40px;border-radius:var(--r-icon);box-sizing:border-box; display:flex;align-items:center;justify-content:center;position:relative;flex:none; background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.14);color:var(--md) }
-.ic2::after { content:'';position:absolute;left:-2px;top:-2px;width:44px;height:44px }
-.hero .ic2 { background:rgba(0,0,0,.28);border-color:rgba(255,255,255,.35);color:#fff }
+.ic2 { width:40px;height:40px;border-radius:var(--r-icon);box-sizing:border-box; display:flex;align-items:center;justify-content:center;position:relative;flex:none; background:var(--ic2-bg,transparent);border:0;color:var(--ic2-fg,var(--md)); -webkit-backdrop-filter:var(--ic2-blur,none);backdrop-filter:var(--ic2-blur,none) }
+.ic2::after { content:'';position:absolute;left:-2px;top:-2px;width:var(--h-tap);height:var(--h-tap) }
+.hero { --ic2-bg:rgba(0,0,0,.22);--ic2-fg:#fff;--ic2-blur:blur(14px) }
 .hero .tt { position:relative;font-size:var(--fs-title);font-weight:700;letter-spacing:-.01em }
 .hero .dt { position:relative;font-size:var(--fs-sub);color:rgba(255,255,255,.86);margin-top:4px }
 .statcard { background:#fff;border-bottom:1px solid var(--ln) }

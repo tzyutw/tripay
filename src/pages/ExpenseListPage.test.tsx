@@ -218,7 +218,7 @@ describe('B-3　S-03 行程頁', () => {
     await show();
     const forBtn = screen.getByRole('tab', { name: /KRW/ }) as HTMLButtonElement;
     expect(forBtn.disabled, '沒有匯率卻切得動外幣').toBe(true);
-    expect(screen.getByText(/有 1 筆還沒換算成台幣，上面的總花費不含它們。/)).toBeInTheDocument();
+    expect(screen.getByText(/總花費還少了 1 筆，它們只填了外幣。/)).toBeInTheDocument();
     expect(screen.getByText(/設現金匯率/)).toBeInTheDocument();
   });
 });

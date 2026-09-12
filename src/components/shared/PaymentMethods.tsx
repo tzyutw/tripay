@@ -81,7 +81,7 @@ export default function PaymentMethods({ pays, used, onChange, onBlocked }: Paym
               </span>
               <button
                 className="rmbtn"
-                aria-label={`移除 ${p}`}
+                aria-label={`移除${p}`}
                 style={{ color: n ? '#CDD3D0' : 'var(--gr)' }}
                 onClick={() => remove(i)}
               >

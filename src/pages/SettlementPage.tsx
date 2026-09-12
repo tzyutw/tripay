@@ -252,9 +252,21 @@ export default function SettlementPage() {
   const prepaid = useMemo(
     () => trip ? prepaidShare(expenses, trip) : null,
     [expenses, trip]);
-  /* #22-6b 只引導，不在這裡提供設定。代墊比例 > 70% 且目前是 direct 才出現。 */
+  /* 🔴 收尾-AI-3　改成 hub 之後要轉幾次。`settleTrip` 已經支援 hub，
+     所以不是另外算——是拿同一份彙總、把模式換掉再跑一次，取 `tx.length`。
+     中心人用 `prepaid.top`（先付最多的那個），因為這句建議就是在叫使用者設成他。 */
+  const hubTxCount = useMemo(() => {
+    if (!trip || !S || !prepaid?.top) return null;
+    return settleTrip(S, expenses,
+      { ...trip, settlement_mode: 'hub' as const, hub_member_id: prepaid.top }).tx.length;
+  }, [trip, S, expenses, prepaid]);
+
+  /* #22-6b 只引導，不在這裡提供設定。代墊比例 > 70% 且目前是 direct 才出現。
+     🔴 收尾-AI-3（甲案）　**筆數一樣就整句不顯示**——沒有差別的建議只是雜訊，
+     真的有差時才出現，使用者才會當一回事。 */
   const suggestHub = Boolean(
-    trip && prepaid && trip.settlement_mode !== 'hub' && prepaid.top && prepaid.ratio > 0.7);
+    trip && prepaid && trip.settlement_mode !== 'hub' && prepaid.top && prepaid.ratio > 0.7
+    && preview && hubTxCount !== null && preview.tx.length !== hubTxCount);
 
   const memberMap = useMemo(
     () => Object.fromEntries((trip?.trip_members ?? []).map(m => [m.id, m])),
@@ -442,7 +454,7 @@ export default function SettlementPage() {
         <span className="notebody">
           這趟有 {Math.round(prepaid.ratio * 100)}% 是{' '}
           {memberLabel(t.members.find(m => m.id === prepaid.top)!)} 先付的。
-          改成「都轉給同一個人」的話，每個人只要轉一次。
+          現在要轉 {tx.length} 次；改成「都轉給同一個人」會變成 {hubTxCount} 次。
           <button className="ratelink" onClick={() => navigate(`/trips/${tripId}/edit`)}>
             去設定 <Icon name="next" size={13} />
           </button>

@@ -508,9 +508,10 @@ html.anno .b .bdg:hover{background:#0F5E9E}
    底暗時用白線、底亮時用黑線。 */
 .ui .ic2{width:40px;height:40px;border-radius:var(--r-icon);box-sizing:border-box;
   display:flex;align-items:center;justify-content:center;position:relative;flex:none;
-  background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.14);color:var(--md)}
-.ui .ic2::after{content:'';position:absolute;left:-2px;top:-2px;width:44px;height:44px}
-.ui .hero .ic2{background:rgba(0,0,0,.28);border-color:rgba(255,255,255,.35);color:#fff}
+  background:var(--ic2-bg,transparent);border:0;color:var(--ic2-fg,var(--md));
+  -webkit-backdrop-filter:var(--ic2-blur,none);backdrop-filter:var(--ic2-blur,none)}
+.ui .ic2::after{content:'';position:absolute;left:-2px;top:-2px;width:var(--h-tap);height:var(--h-tap)}
+.ui .hero{--ic2-bg:rgba(0,0,0,.22);--ic2-fg:#fff;--ic2-blur:blur(14px)}
 .ui .hero .tt{position:relative;font-size:var(--fs-title);font-weight:700;letter-spacing:-.01em}
 .ui .hero .dt{position:relative;font-size:var(--fs-sub);color:rgba(255,255,255,.86);margin-top:4px}
 .ui .statcard{background:#fff;border-bottom:1px solid var(--ln)}
@@ -1559,7 +1560,7 @@ function rateRows(form) {
       ? `<p class="hint" style="margin-top:7px"><b style="color:var(--ink)">${plain}</b><br>
            <span>${ex || ''}</span>
            <button class="ratelink" data-rateflip="1">換個方向</button></p>`
-      : `<p class="hint">填一個數字就好，方向由系統判斷；判錯可以按「換個方向」</p>`}`;
+      : `<p class="hint">填一個數字就好，方向會自動判斷，填完檢查一下對不對</p>`}`;
 }
 
 function renderS02b() {
@@ -2024,7 +2025,7 @@ document.addEventListener('input', ev => {
       if (p2) p2.outerHTML = line
         ? `<p class="hint" style="margin-top:7px"><b style="color:var(--ink)">${line}</b>
              <button class="ratelink" data-rateflip="1">換個方向</button></p>`
-        : `<p class="hint">填一個數字就好，方向由系統判斷；判錯可以按「換個方向」</p>`; }
+        : `<p class="hint">填一個數字就好，方向會自動判斷，填完檢查一下對不對</p>`; }
     return; }
   const cq = t.dataset.curq;
   if (cq) { const form = cq === 'f' ? f : fb; form.curQ = t.value;
@@ -2412,7 +2413,7 @@ function renderS03() {
   h += b('S-03-12', `<div class="curswitch"><div class="seg">
     <button class="${curMode==='TWD'?'on':''}" data-s03cur="TWD">$ 台幣</button>
     <button class="${curMode!=='TWD'?'on':''} ${rateNow?'':'dis'}" data-s03cur="FOR">${RULES_CUR_SYM(t.currency)} ${t.currency}</button></div>
-    ${nGap ? `<p class="hint">有 ${nGap} 筆還沒換算成台幣，上面的總花費不含它們。${
+    ${nGap ? `<p class="hint">總花費還少了 ${nGap} 筆，它們只填了外幣。${
       rateNow ? '' : `<a href="#s02b" class="ratelink">設現金匯率 ${ic('next',13)}</a>`}</p>` : ''}</div>`);
 
   /* 🔴 實作-Z-3　「只看共同的帳」搬進清單標頭那一行的右邊（Rozi：按鈕太大太明顯）。
@@ -2777,7 +2778,9 @@ function tripFormShim(t) { return { currency:t.currency, rateTwd:t.rateTwd ?? (o
    S-05 結算
    ═══════════════════════════════════════════════════════════ */
 store.s05 = 'pending'; store.s05open = false;
-function settleTrip(tid) {
+/* 🔴 收尾-AI-3　多兩個可選參數：不傳＝照行程自己的設定（既有呼叫端一行都不用改），
+   傳了就用傳進來的。代墊建議要講「改成 hub 會變成幾次」，就是拿同一份彙總再跑一次。 */
+function settleTrip(tid, modeOverride, hubOverride) {
   const S = tripSummary(tid), net = {};
   S.t.members.forEach(m => net[m.id] = 0);
   S.list.forEach(e => {
@@ -2789,8 +2792,9 @@ function settleTrip(tid) {
   // #22-6c：兩種模式的「淨額」完全相同，只有轉帳路徑不同。
   // 這裡只改 tx 的產生方式，上面的 net 一行都沒動。
   const tx = [];
-  if (S.t.settleMode === 'hub' && S.t.hubMember) {
-    const hub = S.t.hubMember;
+  const mode = modeOverride || S.t.settleMode, hubId = hubOverride || S.t.hubMember;
+  if (mode === 'hub' && hubId) {
+    const hub = hubId;
     Object.entries(net).forEach(([id,v]) => {
       if (id === hub) return;                                   // 中心人不轉給自己
       if (v < 0) tx.push({ from:id, to:hub, amount:-v });        // 欠錢的人全額轉給中心人
@@ -2841,7 +2845,7 @@ function renderS05() {
         </div>`)
       + (suggestHub(t, S) ? b('S-05-31', `<div class="fld" style="padding-top:10px"><div class="note calm">
           ${ic('warn',14)} 這趟有 ${Math.round(prepaidShare(store.s03Trip).ratio*100)}% 是
-          ${nmText(t, prepaidShare(store.s03Trip).top)} 先付的。改成「都轉給同一個人」的話，每個人只要轉一次。
+          ${nmText(t, prepaidShare(store.s03Trip).top)} 先付的。現在要轉 ${tx.length} 次；改成「都轉給同一個人」會變成 ${hubTimes(store.s03Trip, prepaidShare(store.s03Trip).top)} 次。
           <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div></div>`) : '')
       + b('S-05-3', `<div class="btnrow" style="flex-direction:column;gap:6px">
           <button class="btn" id="s05go">結算行程</button>
@@ -2849,11 +2853,12 @@ function renderS05() {
   } else if (store.s05 === 'partial') {
     // #22-6b：只引導，不在這裡提供設定。代墊比例 > 70% 且目前是 direct 才出現。
     const ps = prepaidShare(store.s03Trip);
-    const suggest = t.settleMode !== 'hub' && ps.top && ps.ratio > 0.7;
+    const suggest = t.settleMode !== 'hub' && ps.top && ps.ratio > 0.7
+      && tx.length !== hubTimes(store.s03Trip, ps.top);
     h = nav
       + (suggest ? b('S-05-31', `<div class="fld" style="padding-top:12px"><div class="note calm">
           ${ic('warn',14)} 這趟有 ${Math.round(ps.ratio*100)}% 是 ${nmText(t, ps.top)} 先付的。
-          改成「都轉給同一個人」的話，每個人只要轉一次。
+          現在要轉 ${tx.length} 次；改成「都轉給同一個人」會變成 ${hubTimes(store.s03Trip, ps.top)} 次。
           <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div></div>`) : '') + b('S-05-6', `<div class="fld" style="padding-top:12px"><div style="background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);padding:11px">
       <div style="font-size:var(--fs-body);font-weight:600;color:var(--md);margin-bottom:6px">1 / ${Math.max(1,tx.length)} 筆已確認</div>
       <div style="height:4px;background:#E4E7E0;border-radius:var(--r-chip);overflow:hidden"><div style="width:${tx.length?100/tx.length:0}%;height:100%;background:var(--in)"></div></div>
@@ -2987,9 +2992,12 @@ function transferView(t, tx, opts) {
 }
 
 /* 代墊 >70% 且目前是 direct 才引導（#22-6b） */
+/* 🔴 收尾-AI-3（甲案）　**筆數一樣就整句不顯示**——沒有差別的建議只是雜訊。 */
+function hubTimes(tid, top) { return settleTrip(tid, 'hub', top).tx.length; }
 function suggestHub(t, S) {
   const ps = prepaidShare(store.s03Trip);
-  return t.settleMode !== 'hub' && ps.top && ps.ratio > 0.7;
+  if (!(t.settleMode !== 'hub' && ps.top && ps.ratio > 0.7)) return false;
+  return settleTrip(store.s03Trip).tx.length !== hubTimes(store.s03Trip, ps.top);
 }
 /* 轉帳列兩端是**識別位**，不是句子——圓底要看得見（實作-J 第一輪）。
    真正的句子（「給 ○○○ $1,234」）另外用 nmText()。 */
