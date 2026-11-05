@@ -409,6 +409,12 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 /* 只改字級。33-3 明講「不要自己加粗或改色補償」——所以顏色、粗細、版面一律不動，
    警示的份量還是只有 icon 在撐。這一條在停點報告裡回報給 Rozi 判斷。 */
 .ui .note{font-size:var(--fs-sub)}
+/* R-10 0 人提示裡的按鈕：.ratelink 用負外距把可點區撐到 45px 高，
+   這裡補回同樣的上距，按鈕才不會蓋住上面那行字 */
+.ui .noparts-act{margin-top:13px}
+/* R-10 0 人被擋下時提示閃一下。只閃底色、不位移（位移會讓 sheet 一瞬間橫向溢出） */
+.ui .note.nudge{border-radius:var(--r-base);animation:nudge .7s ease-out}
+@keyframes nudge{0%,30%{background:#FBF0EC}100%{background:transparent}}
 .ui .cmp .sub2{width:100%;font-weight:400;margin-top:2px;font-size:var(--fs-sub)}
 .ui .cmp.ok{background:#EAF3E9;border:1px solid #C9DFC8;color:var(--in)}
 .ui .cmp.soft{background:#F4F5F1;border:1px solid var(--ln);color:var(--md)}
@@ -843,6 +849,16 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
 .ui .chips.tapgap{row-gap:12px}
 .ui .tapx{position:relative}
 .ui .tapx::after{content:'';position:absolute;inset:-12px}
+
+/* ══ B 里程碑：S-12 貼上帳單明細 ══ 只組合既有 token */
+.ui .pastebox{display:block;width:100%;min-height:150px;box-sizing:border-box;resize:vertical;
+  border:1px solid var(--ln);border-radius:var(--r-base);background:#fff;padding:10px 14px;
+  font-family:inherit;font-size:var(--fs-input);line-height:1.5;color:#151C21;outline:none}
+.ui .pastebox:focus{border-color:var(--w)}
+.ui .btnrow>.b.inl{flex:1;display:flex}
+.ui .btnrow>.b.inl>.btn{flex:1}
+.ui .badline .raw{display:block;font-size:var(--fs-sub);color:var(--md);overflow-wrap:anywhere}
+.ui .impdone p{margin:0 0 6px;font-size:var(--fs-body);color:var(--md)}
 </style>
 
 <div class="top">
@@ -1101,6 +1117,24 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
     <div class="ph"><div class="ui" id="scr-s10"></div></div>
   </div>
   <div><p class="cnt" id="cnt-s10"></p><div class="idx" id="idx-s10"></div></div>
+</section>
+
+
+<!-- ══════════ S-12 ══════════ -->
+<section class="scr" id="s12">
+  <div class="scrhd"><span class="k new">S-12</span><h2>貼上帳單明細（B 里程碑）</h2>
+    <p>從網路銀行複製這期的明細整段貼上，拆成一筆一筆。<b>拆解全部在手機上做，不送到任何外部服務、不用付費</b>。
+      兩道關卡：拆出來的加總要等於帳單總額、先看前 5 筆對不對，兩關都過才能匯入。S-11 編號留給副卡人視角（不在 A／B）。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/bills/import</p>
+    <div class="ph"><div class="ui" id="scr-s12"></div></div>
+    <div class="rig"><div class="t">原型控制（不是產品的一部分）</div>
+      <div class="row" id="s12rig">
+        <button data-imp="sample">貼上範例（第 7 行看不懂）</button><button data-imp="fix">修好第 7 行</button>
+        <button data-imp="wrong">總額填錯</button><button data-imp="clear">清空</button>
+      </div></div>
+  </div>
+  <div><p class="cnt" id="cnt-s12"></p><div class="idx" id="idx-s12"></div></div>
 </section>
 
 <div id="devbar"></div>
@@ -2227,10 +2261,19 @@ function tripRate(t) {
   return fr / twd;
 }
 
+/* 差額／零頭記到付款人頭上；付款人沒參與時，差額不是 0 才多一格 */
+function addRemainder(shares, payer, diff) {
+  if (payer in shares) shares[payer] += diff;
+  else if (diff !== 0) shares[payer] = diff;
+}
+
 /* ── 單筆消費的判定（規格 §1 §2 §3）── */
 function calc(e, t) {
   const rate = tripRate(t);        // #17-4：移除單筆覆寫，匯率只有 S-02b 一個入口
-  const parts = e.parts || [];
+  /* R-10：一個人都沒勾的舊帳（0 人）整筆算付款人自己的，帳永遠平衡。
+     表單擋得住新的 0 人帳；這裡接住舊資料。personal 本來就沒有參與者，不套。 */
+  const parts0 = e.parts || [];
+  const parts = (!parts0.length && !e.personal && e.payer) ? [e.payer] : parts0;
   const forT = parseFloat(e.forAmt), twdIn = parseFloat(e.twdAmt);
 
   // #17-4 換算規則，與支付方式無關：
@@ -2290,14 +2333,16 @@ function calc(e, t) {
         ? Math.round(twdTotal * v / forTotalEff)   // R5 比例回推
         : Math.round(v);
     });
-    if (!twdPending && parts.includes(e.payer) && parts.every(id => shares[id] != null)) {
+    // 差額（含零頭）歸付款人——付款人沒參與也一樣，每筆分攤加總才會等於總額
+    if (!twdPending && e.payer && parts.every(id => shares[id] != null)) {
       const sum = parts.reduce((a,id) => a + shares[id], 0);
-      shares[e.payer] += twdTotal - sum;
+      addRemainder(shares, e.payer, twdTotal - sum);
     }
   } else if (!twdPending && parts.length) {
     const per = Math.round(twdTotal / parts.length);
     parts.forEach(id => { shares[id] = per; valInCur[id] = per; });
-    if (parts.includes(e.payer)) shares[e.payer] += twdTotal - per * parts.length;
+    // 零頭歸付款人；原本只在付款人有參與時才加，沒參與時零頭沒人承擔
+    if (e.payer) addRemainder(shares, e.payer, twdTotal - per * parts.length);
   } else {
     parts.forEach(id => { shares[id] = null; valInCur[id] = null; });
   }
@@ -2355,6 +2400,9 @@ function tripSummary(tid, opts) {
       if (c.shares[id] != null) per[id] += c.shares[id];
       if (c.twdPending || c.estimated[id]) approx[id] = true;     // §5.1 (a)(b)
     });
+    // 付款人不在參與者裡、但承擔了零頭／差額或整筆（R-10 的 0 人舊帳）：另外加
+    if (e.payer && !(e.parts || []).includes(e.payer) && c.shares[e.payer] != null)
+      per[e.payer] += c.shares[e.payer];
     /* 決策 75（Rozi 2026-11-05）統計卡加起來＝總花費：「自己的」算付款人本人；贊助另列「贊助折抵」。
        只動呈現用的 per，不動 shares：轉帳一元都不變。帳單（statement）的贊助本來就算進總花費，不另列 */
     if (e.personal && e.payer && !c.twdPending && !e.sponsor && e.payer in per) per[e.payer] += c.twdTotal;
@@ -2571,6 +2619,41 @@ const P2_SEED = {
     "2026-02-28"
    ]
   }
+ },
+ "importSample": {
+  "_說明": "B 里程碑（貼上帳單明細）的範例。第 7 行故意看不懂（沒有金額）；fixedLine 是把它修好之後的樣子。全聯那一行與既有的 e-px 同日、同卡、同金額，匯入時要略過",
+  "primaryId": "c-main",
+  "today": "2026-11-05",
+  "billTotal": "5,239",
+  "text": "消費日 入帳日 消費明細 新臺幣金額\n09/02 09/03 全聯福利中心 5521 1,280\n09/05 09/06 台灣中油 0937 1,150\n09/06 09/08 誠品書店 0937 420\n2026/09/08 UNIQLO 台北店 2,390\n09/11 09/12 好市多退貨 -350\n09/13 星巴克（金額看不清楚）\n09/14 麥當勞 NT$189\n本期應繳總額 5,239",
+  "badLine": 7,
+  "fixedLine": "09/13 09/14 星巴克 5521 160",
+  "expect": {
+   "rowsBeforeFix": 6,
+   "sumBeforeFix": 5079,
+   "rowsAfterFix": 7,
+   "sumAfterFix": 5239,
+   "duplicates": 1,
+   "imported": 6,
+   "importedSum": 3959,
+   "cards": {
+    "全聯福利中心": "c-mei",
+    "台灣中油": "c-ming2",
+    "誠品書店": "c-ming2",
+    "UNIQLO 台北店": "c-main",
+    "好市多退貨": "c-main",
+    "星巴克": "c-mei",
+    "麥當勞": "c-main"
+   },
+   "afterImport": {
+    "ym": "2026-09",
+    "owe": {
+     "p-mei": 2240,
+     "p-ming": 3870
+    },
+    "total": 9319
+   }
+  }
  }
 };
 
@@ -2747,6 +2830,9 @@ function cardPickerHTML(t) {
    同一句只寫一次，兩處都引用這裡（CLAUDE.md「同一句文案只准寫一次」）。 */
 const MSG_NO_RATE     = '先記著了。設好這趟的現金匯率就會自動換算。';
 const MSG_TWD_PENDING = '先記著了。補上台幣金額就會算進結算。';
+// R-10：「一起分」全部取消勾選時，參與者下方立刻出現；重新勾任何人就消失
+const MSG_NO_PARTS    = '一個人都沒勾。這筆只算某一個人的話：';   // 停在冒號，下一行就是按鈕，不重講一次
+const LABEL_TO_SINGLE = '改成只算一個人';
 /* 實作-S-5　從金額欄下方移到「金額」那一列的右側，改成常駐的小灰字
    （Rozi：兩段說明應該同時顯示）。文案縮短，拿掉「會」。 */
 const MSG_FILL_ONE    = '填一邊就好，另一邊自動換算';
@@ -3209,15 +3295,19 @@ function paintS04() {
         <div class="shareline"><span style="font-size:var(--fs-body);font-weight:600">${n} 人均分</span>
           <span class="sep" aria-hidden="true">·</span>
           ${b('S-04-13', `<span class="money" style="font-size:var(--fs-money);font-weight:600">${
-            c.twdPending ? '每人 —' : '每人 ' + money(Math.round(c.twdTotal / Math.max(1,n)))}</span>`, 'inl')}</div>
-        <button class="expandbtn" data-eexpand>${g._partsOpen ? '收起' : '要排除誰？'}</button>
+            c.twdPending || !n ? '每人 —' : '每人 ' + money(Math.round(c.twdTotal / n))}</span>`, 'inl')}</div>
+        ${n ? `<button class="expandbtn" data-eexpand>${g._partsOpen ? '收起' : '要排除誰？'}</button>` : ''}
       </div>
-      ${g._partsOpen ? `<div class="gap" style="margin-top:9px">${t2.members.map(m => {
+      ${/* R-10：0 人時名單固定展開、不給收合鈕——人全排除了，這時只該把人勾回來 */ ''}
+      ${g._partsOpen || !n ? `<div class="gap" style="margin-top:9px">${t2.members.map(m => {
         const on = (g.parts||[]).includes(m.id);
         return `<button class="rowb${on?' on':''}" data-epart="${m.id}">
           ${avatarHTML(m, t2.members.indexOf(m), 28)}
           <span style="flex:1;font-weight:600">${esc(m.name)}</span>
           <span class="chkchip ${on?'on':''}" aria-hidden="true"></span></button>`; }).join('')}</div>` : ''}
+      ${n ? '' : b('S-04-42', `<div class="note warn" id="noparts" style="display:flex;align-items:flex-start;gap:5px">${ic('warn',14)}
+        <div class="notebody" style="flex:1;min-width:0">${MSG_NO_PARTS}
+          <div class="noparts-act"><button class="ratelink" data-tosingle>${LABEL_TO_SINGLE}</button></div></div></div>`)}
     </div>`);
   } else if (g.type === 'single') {
     tb.innerHTML = b('S-04-17', `<div style="margin-top:10px"><span class="lbl" data-group="chips 多選一，非單一輸入欄">算誰的？</span>
@@ -3599,6 +3689,7 @@ Object.assign(INDEX, {
     ['S-04-37','均分說明灰字','del','已移除（#17-11）：placeholder 已經顯示均分值，句子是重複'],
     ['S-04-38','沒設匯率的提示','op','<b>改（#17-4）</b>：記帳頁<b>不設定匯率</b>，只顯示連結跳到 S-02b。匯率全站只有一個入口'],
     ['S-04-39','換算規則','inv','<b>改（#17-4）</b>：<b>與支付方式無關</b>。有台幣就用台幣；只有外幣用行程匯率；都有則用台幣。單筆覆寫匯率已移除'],
+    ['S-04-42','一個人都沒勾（R-10）','op','<b>新</b>：一起分全部取消勾選時，參與者下方立刻出現提示＋「改成只算一個人」按鈕（可點區 ≥44px）；不彈視窗；0 人時名單固定展開、不顯示「要排除誰？」；重新勾任何人就消失；仍是 0 人時按「記下來」擋下不存，提示閃一下。切到只算一個人預設帶付款人，沒有就第一位成員；切到各付各的把大家勾回來'],
   ],
   s05: [
     ['S-05-1','未結算引導','del','已移除（#24-3）：未結算態改為顯示完整轉帳預覽後，這個空引導失去作用。<b>S-05-16 的摺紙 signature 不受影響</b>'],
@@ -3726,6 +3817,9 @@ document.addEventListener('click', ev => {
   const ep = hit('data-epart');    if (ep) { const id = ep.dataset.epart;
     g.parts = (g.parts||[]).includes(id) ? g.parts.filter(x => x !== id) : (g.parts||[]).concat(id);
     paintS04(); return; }
+  // R-10：0 人提示的按鈕 → 改成只算一個人，預設付款人，沒有就第一位
+  if (hit('data-tosingle')) { g.type = 'single';
+    g.parts = [g.payer || tripOf(store.s03Trip).members[0].id]; renderS04(); return; }
   const es = hit('data-esingle');  if (es) { g.parts = [es.dataset.esingle]; paintS04(); return; }
   const ey = hit('data-epayer');   if (ey) { g.payer = ey.dataset.epayer;
     g.onSpot = false;                       // #20-2 兩者互斥：選了人就不是「大家各付各的」
@@ -3755,6 +3849,14 @@ document.addEventListener('click', ev => {
 
 /* §4 四種存檔提示 */
 function saveExpense() {
+  // R-10：一起分 0 人存不進去。提示已在參與者下方，這裡只擋住並把畫面帶過去
+  if (g.type !== 'single' && !(g.parts || []).length) {
+    // 提示早就在畫面上時，擋下之後畫面毫無變化，跟「按了沒反應」分不出來——閃一下
+    const np = document.getElementById('noparts');
+    if (np) { np.classList.remove('nudge'); void np.offsetWidth; np.classList.add('nudge');
+              np.scrollIntoView({block:'center'}); }
+    return;
+  }
   const cm = !!g.cardId;
   /* Phase 2 A（D5）：不用手動建帳單——選了卡就依日期落到那個月，沒有就這時候建 */
   const t = cm ? commitCardTarget(g) : tripOf(store.s03Trip);
@@ -4132,7 +4234,8 @@ function billListHTML(rowId, noMoney) {
     h += i === 0 ? b('S-10-4', hd) : hd;
     sts.forEach(st => { const row = stmtRow(st, noMoney); h += first ? b(rowId, row) : row; first = false; });
   });
-  h += b('S-10-13', `<div class="btnrow sticky"><button class="btn" data-billadd="1">${ic('add',16)} 記一筆</button></div>`);
+  /* B 里程碑：「貼上明細」排在「記一筆」左邊、用描邊——一個月一次，記一筆是天天用（頻率高的當主鈕） */
+  h += `<div class="btnrow sticky">${b('S-10-14', `<button class="btn gh" data-billimport="1">貼上明細</button>`, 'inl')}${b('S-10-13', `<button class="btn" data-billadd="1">${ic('add',16)} 記一筆</button>`, 'inl')}</div>`;
   return h;
 }
 function renderS10() {
@@ -4446,6 +4549,188 @@ document.addEventListener('input', ev => {
     const note = document.getElementById('s04bill'); if (note) note.textContent = '記在 ' + s04Trip().name;
     paintS04();
   }
+});
+render();
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   B 里程碑：S-12 貼上帳單明細（2026-11-05，擁有者：付費的部分不做）
+   流程沿用歷史資料匯入那套管線的骨架（Phase2_sprint1_cards提案.md §3）：
+   ① 貼上　② 拆成「日期／商家／金額」，拆不出來的那一行標出來　③ **加總要等於帳單總額**
+   ④ 卡號末四碼 → 哪張卡 → 持卡人　⑤ **先看前 5 筆**　⑥ 逐筆寫入（照 D5 自動落月份）
+   ⑦ 回報匯入幾筆、合計多少
+   **全部在瀏覽器裡做，沒有任何網路請求**——帳單內容不離開手機（原型測試會攔截 fetch 驗這件事）。
+   ═══════════════════════════════════════════════════════════ */
+store.s12 = { cardId: 'c-main', total: '', text: '', parsed: null, result: null };
+
+const DATE_RE = /^(?:(\d{4})[\/\-.])?(\d{1,2})[\/\-.](\d{1,2})$/;
+const AMT_RE = /^(-?)(?:NT\$|NT|\$)?(-?)([\d,]+(?:\.\d+)?)(?:元)?$/i;
+/** 沒寫年份的日期：取「不晚於今天」的那一年（帳單一定是過去的消費） */
+function inferDate(tok, todayStr) {
+  const m = tok.match(DATE_RE); if (!m) return null;
+  const mo = +m[2], d = +m[3]; if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  let y = m[1] ? +m[1] : +todayStr.slice(0, 4);
+  if (!m[1] && ymd(y, mo, d) > todayStr) y--;
+  if (d > lastDayOf(y, mo)) return null;
+  return ymd(y, mo, d);
+}
+function parseBill(text, primaryId, todayStr) {
+  const fam = [cardOf(primaryId), ...subCardsOf(primaryId)].filter(Boolean);
+  const rows = [], bad = []; let ignored = 0;
+  (text || '').split(/\r?\n/).forEach((raw, i) => {
+    const line = raw.trim(); if (!line) return;
+    const tok = line.split(/\s+/);
+    const dates = [];
+    while (tok.length && dates.length < 2 && DATE_RE.test(tok[0])) dates.push(tok.shift());
+    if (!dates.length) { ignored++; return; }               // 表頭、總額那類沒有日期的行
+    const date = inferDate(dates[0], todayStr);              // 兩個日期時第一個是消費日
+    if (!date) { bad.push({ line: i + 1, raw: line, why: '日期看不懂' }); return; }
+    const last = tok.length ? tok[tok.length - 1] : '';
+    const am = last.match(AMT_RE);
+    if (!am || !tok.length) { bad.push({ line: i + 1, raw: line, why: '找不到金額' }); return; }
+    tok.pop();
+    const amount = (am[1] || am[2] ? -1 : 1) * parseFloat(am[3].replace(/,/g, ''));
+    // 末四碼：金額以外、剛好是這張主卡家族某張卡的末四碼的那個詞
+    let card = cardOf(primaryId);
+    const ci = tok.findIndex(t => /^\d{4}$/.test(t) && fam.some(c => c.last4 === t));
+    if (ci >= 0) { card = fam.find(c => c.last4 === tok[ci]); tok.splice(ci, 1); }
+    const title = tok.join(' ').trim();
+    if (!title) { bad.push({ line: i + 1, raw: line, why: '找不到消費名稱' }); return; }
+    const dup = Object.keys(store.expenses).filter(k => k.startsWith(`st~${primaryId}~`))
+      .flatMap(k => store.expenses[k]).find(e => e.cardId === card.id && e.date === date && parseFloat(e.twdAmt) === amount);
+    rows.push({ line: i + 1, date, title, amount, cardId: card.id, dupOf: dup ? dup.id : null });
+  });
+  const sum = rows.reduce((a, r) => a + r.amount, 0);
+  return { rows, bad, ignored, sum };
+}
+const parseMoney = v => { const n = parseFloat(String(v || '').replace(/[,\s$元]|NT/gi, '')); return Number.isFinite(n) ? n : null; };
+const fmt$ = v => (v < 0 ? '−' : '') + '$ ' + Math.abs(v).toLocaleString();
+
+function importRowHTML(r) {
+  const c = cardOf(r.cardId);
+  const pills = [r.dupOf ? '<span class="pill gr">已經記過</span>' : '', r.amount < 0 ? '<span class="pill gr">退款</span>' : ''].join(' ');
+  return `<div class="exprow"><span class="ic">${emojiForTitle(r.title)}</span>
+    <span class="mid"><span class="t">${esc(r.title)}</span>
+      <span class="s"><span class="mtag">${personAvatar(c.holderId, 20)}<span class="trunc">${md(r.date)} · ${esc(c.nickname)}</span></span> ${pills}</span></span>
+    <span class="a"><span class="money">${fmt$(r.amount)}</span></span></div>`;
+}
+function renderS12() {
+  const st = store.s12, ps = primaryCards();
+  let h = b('S-12-1', `<div class="bar"><button class="ic2" aria-label="關閉">${ic('close',20)}</button>
+    <span class="ttl">貼上帳單明細</span><span style="width:40px"></span></div>`);
+  if (!ps.length) { $('#scr-s12').innerHTML = h + `<div class="empty">${MSG_NO_CARD}</div>`; return; }
+  if (!cardOf(st.cardId) || cardOf(st.cardId).parentId) st.cardId = ps[0].id;
+
+  if (st.result) {
+    const R = st.result;
+    h += b('S-12-10', `<div class="fld impdone" style="padding-top:16px">
+      <div style="font-size:var(--fs-strong);font-weight:700;margin-bottom:8px">匯入好了</div>
+      <p>新記了 ${R.n} 筆，合計 <b class="money inline">${fmt$(R.sum)}</b>。</p>
+      ${R.dup ? `<p>${R.dup} 筆之前就記過了，沒有重複記。</p>` : ''}
+      <div class="gap" style="margin-top:12px">${R.sts.map(id => { const t = tripOf(id);
+        return `<button class="rowb" data-openst="${id}"><span style="flex:1;font-weight:600">看 ${esc(t.name)}</span>${ic('next',16)}</button>`; }).join('')}
+        <button class="btn gh" id="s12again">再貼一份</button></div></div>`);
+    $('#scr-s12').innerHTML = h; return;
+  }
+
+  h += `<div style="padding-top:12px">`;
+  if (ps.length > 1) h += b('S-12-2', `<div class="fld"><span class="lbl" data-group="chips 多選一，非單一輸入欄">哪張卡的帳單？</span>
+    <div class="chips tapgap">${ps.map(p => `<button class="chip cardchip tapchip${st.cardId === p.id ? ' on' : ''}" data-impcard="${p.id}">${personAvatar(p.holderId, 20)} ${cardName(p)}</button>`).join('')}</div></div>`);
+  h += b('S-12-3', `<div class="fld"><label class="fieldrow" for="imp-total"><span class="lbl">本期應繳</span>
+    <input type="text" inputmode="decimal" id="imp-total" value="${esc(st.total)}" placeholder="帳單上的總額"></label></div>`);
+  h += b('S-12-4', `<div class="fld"><label for="imp-text" class="lbl" data-group="多行貼上框，需要整列寬度">明細</label>
+    <textarea class="pastebox" id="imp-text" placeholder="從網路銀行複製這期的消費明細，整段貼上&#10;例如：09/02 全聯 1,280">${esc(st.text)}</textarea>
+    <button class="btn qt" id="s12parse" style="margin-top:10px">拆開看看</button></div>`);
+
+  h += `</div><div id="s12res"></div>`;
+  $('#scr-s12').innerHTML = h;
+  paintS12();
+}
+/** 只重畫下半部（對帳、前 5 筆、匯入鈕）——不重建正在打字的輸入框 */
+function paintS12() {
+  const st = store.s12, el = document.getElementById('s12res'), P = st.parsed;
+  if (!el) return;
+  if (!P) { el.innerHTML = ''; return; }
+  let h = '';
+  const total = parseMoney(st.total);
+  if (P.bad.length) h += b('S-12-5', `<div class="gap" style="padding-bottom:14px">${P.bad.map(x =>
+    `<div class="exprow pend badline"><span class="mid"><span class="t">第 ${x.line} 行看不懂（${x.why}）</span>
+      <span class="raw">${esc(x.raw)}</span></span></div>`).join('')}</div>`);
+  if (P.rows.length || total != null) {
+    const diff = total == null ? null : Math.round((total - P.sum) * 100) / 100;
+    h += b('S-12-6', `<div class="fld"><div class="cmp ${diff === 0 ? 'ok' : 'bad'}">
+      <span>拆出 ${P.rows.length} 筆 ${fmt$(P.sum)} ／ 帳單 ${total == null ? '還沒填' : fmt$(total)}</span>
+      <span class="d">${diff === 0 ? ic('check',14) : diff == null ? '' : `差 ${fmt$(Math.abs(diff))}`}</span></div></div>`);
+  }
+  if (P.rows.length) {
+    const first = P.rows.slice(0, 5);
+    h += b('S-12-7', `<div class="sec">先看前 ${first.length} 筆對不對 · 共 ${P.rows.length} 筆</div>`);
+    h += `<div class="gap" style="padding-bottom:14px">${first.map((r, i) => i === 0 ? b('S-12-8', importRowHTML(r)) : importRowHTML(r)).join('')}</div>`;
+  }
+  const todo = P.rows.filter(r => !r.dupOf).length;
+  const ok = P.rows.length && !P.bad.length && total != null && Math.abs(total - P.sum) < 0.005 && todo > 0;
+  h += b('S-12-9', `<div class="btnrow"><button class="btn" id="s12go" ${ok ? '' : 'disabled'}>沒問題，匯入 ${todo} 筆</button></div>`);
+  el.innerHTML = h;
+}
+function runImport() {
+  const st = store.s12, P = st.parsed, sts = new Set(); let n = 0, sum = 0, dup = 0;
+  P.rows.forEach(r => {
+    if (r.dupOf) { dup++; return; }
+    const e = blankCardExp(r.cardId, r.date);
+    e.title = r.title; e.emoji = emojiForTitle(r.title); e.twdAmt = String(r.amount);
+    const t = commitCardTarget(e);
+    applyCardDefaults(e);
+    expsOf(t.id).push(e); sts.add(t.id); n++; sum += r.amount;
+  });
+  st.result = { n, sum, dup, sts: [...sts].sort().reverse() };
+  st.parsed = null; st.text = ''; st.total = '';
+}
+
+INDEX.s12 = [
+  ['S-12-1','導覽列','st','從帳單列表的「貼上明細」進來，左上關閉'],
+  ['S-12-2','哪張卡的帳單？','op','只列主卡（一份銀行帳單＝一張主卡，副卡的消費也在裡面）。只有一張主卡時整列不畫'],
+  ['S-12-3','本期應繳','op','<b>對帳基準，一定要填</b>。拆出來的加總要等於它才能匯入'],
+  ['S-12-4','明細','op','整段貼上。<b>拆解全部在手機上做，不送到外部服務、不用付費</b>。認得的寫法：一行一筆；行首一個或兩個日期（兩個時第一個是消費日）；行尾是金額（可帶 NT$、$、逗號、負號＝退款）；中間出現這張主卡或副卡的末四碼就歸那張卡，沒有就歸主卡。沒寫年份就取「不晚於今天」的那一年。沒有日期的行（表頭、總額）略過'],
+  ['S-12-5','看不懂的那幾行','st','有日期卻拆不出金額或名稱的行，標橘紅左框並寫出第幾行、為什麼。<b>有任何一行看不懂就不能匯入</b>——改上面的明細再按一次「拆開看看」'],
+  ['S-12-6','加總對帳','st','「拆出 N 筆 $X ／ 帳單 $Y」，對得上打勾、對不上寫差多少。<b>對不上不能匯入，沒有「先這樣匯入」的逃生門</b>（歷史資料匯入學到的：沒有總額核對就抓不到拆錯的那幾筆）'],
+  ['S-12-7','先看前 5 筆','st','只列前 5 筆讓人核對拆得對不對（日期、名稱、金額、歸哪張卡），標題寫共幾筆'],
+  ['S-12-8','拆出來的一筆','st','與消費列同一個元件（唯讀）。之前就記過的（同卡、同日、同金額）標「已經記過」，匯入時略過；負數標「退款」'],
+  ['S-12-9','匯入','op','鈕上直接寫要匯入幾筆（不含已經記過的）。每一筆照 D5 自動落到月份、照 D2 預設只算持卡人'],
+  ['S-12-10','匯入好了','st','新記了幾筆、合計多少、略過幾筆重複的；每個有新紀錄的月份一列，點了進那個月的帳單'],
+];
+INDEX.s10.push(['S-10-14','貼上明細','op','<b>新（B 里程碑）</b>：開 S-12。排在「記一筆」左邊、用描邊——一個月用一次，記一筆天天用']);
+DEV_SCREENS.push(['s12','貼上明細']);
+Object.assign(DEV_BACK, { s12: 's10' });
+
+const _renderP2a = renderP2;
+renderP2 = function () { _renderP2a(); renderS12();
+  const el = $('#cnt-s12'); if (el) el.textContent = `編號清單 · ${INDEX.s12.length} 項（新畫面）`; };
+
+document.addEventListener('click', ev => {
+  const t = ev.target, hit = a => t.closest('[' + a + ']'), st = store.s12;
+  if (hit('data-billimport')) { st.result = null; renderS12(); go('s12'); return; }
+  const ic2 = hit('data-impcard'); if (ic2) { st.cardId = ic2.dataset.impcard; st.parsed = null; renderS12(); return; }
+  if (t.closest('#s12parse')) { st.parsed = parseBill(st.text, st.cardId, today()); renderS12(); return; }
+  if (t.closest('#s12go')) { if (t.closest('#s12go').disabled) return; runImport(); renderBatch2(); return; }
+  if (t.closest('#s12again')) { st.result = null; renderS12(); return; }
+  const rg = t.closest('#s12rig button');
+  if (rg) {
+    const S = P2_SEED.importSample, v = rg.dataset.imp;
+    if (!cardOf(S.primaryId)) loadP2Seed();
+    st.result = null; st.cardId = S.primaryId;
+    if (v === 'sample') { st.text = S.text; st.total = S.billTotal; }
+    else if (v === 'fix') { const L = (st.text || S.text).split('\n'); L[S.badLine - 1] = S.fixedLine; st.text = L.join('\n'); st.total = S.billTotal; }
+    else if (v === 'wrong') { st.total = '5,000'; if (!st.text) st.text = S.text; }
+    else { st.text = ''; st.total = ''; st.parsed = null; renderS12(); return; }
+    st.parsed = parseBill(st.text, st.cardId, today()); renderS12(); return;
+  }
+});
+document.addEventListener('input', ev => {
+  const t = ev.target, st = store.s12;
+  // 只寫狀態、只重畫下半部，不重建輸入框。明細一改，舊的拆解結果作廢——不能拿過時的結果去匯入
+  if (t.id === 'imp-text') { st.text = t.value; if (st.parsed) { st.parsed = null; paintS12(); } return; }
+  if (t.id === 'imp-total') { st.total = t.value; paintS12(); return; }
 });
 render();
 </script>

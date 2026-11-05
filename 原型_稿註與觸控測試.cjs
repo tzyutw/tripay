@@ -101,7 +101,8 @@ const DRAFT_WORDS = ['移除了', '識別由字標', '列表到此結束', '首�
   ok(btns.ic2.every(x => parseFloat(x.border) === 0), `B 案不畫邊框，仍有 .ic2 帶著線：${btns.ic2.filter(x => parseFloat(x.border) > 0).map(x => x.label).join('／')}`);
   ok(btns.ic2.every(x => x.svg === '20'), '有 .ic2 的 icon 不是 20px');
   ok(btns.ic2.every(x => x.hw >= 44 && x.hh >= 44), '有 .ic2 的可點區不足 44');
-  ok(btns.ic2.filter(x => x.label === '關閉').length === 3, '三個關閉鍵都要是 .ic2 且有 aria-label');
+  /* 2026-11-05 Phase 2 B：S-12 貼上帳單明細多一顆關閉鍵（同為 .ic2＋aria-label），3 → 4 */
+  ok(btns.ic2.filter(x => x.label === '關閉').length === 4, '四個關閉鍵（S-02／S-02b／S-04／S-12）都要是 .ic2 且有 aria-label');
 
   /* 3　hero 副標只留日期 */
   console.log('\n=== 3　S-03-8 hero 副標 ===');

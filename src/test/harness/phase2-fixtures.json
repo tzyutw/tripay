@@ -2,43 +2,230 @@
   "_說明": "Phase 2 A 里程碑（副卡記帳）的假資料。Tripay_原型.html 內的 P2_SEED 必須與本檔逐欄相同，由 原型_Phase2帳單測試.cjs 比對。本檔目前沒有任何程式 import，只是兩邊共用的單一來源；P2-1 實作時 harness 從這裡讀。",
   "today": "2026-11-05",
   "people": [
-    { "id": "p-rozi", "name": "Rozi", "emoji": "🐵" },
-    { "id": "p-mei",  "name": "小美", "emoji": "🐱" },
-    { "id": "p-ming", "name": "小明", "emoji": "" },
-    { "id": "p-yu",   "name": "小魚", "emoji": "🐟" }
+    {
+      "id": "p-rozi",
+      "name": "Rozi",
+      "emoji": "🐵"
+    },
+    {
+      "id": "p-mei",
+      "name": "小美",
+      "emoji": "🐱"
+    },
+    {
+      "id": "p-ming",
+      "name": "小明",
+      "emoji": ""
+    },
+    {
+      "id": "p-yu",
+      "name": "小魚",
+      "emoji": "🐟"
+    }
   ],
   "cards": [
-    { "id": "c-main",  "nickname": "玉山主卡",   "last4": "3821", "parentId": null,     "holderId": "p-rozi", "statementDay": 15 },
-    { "id": "c-mei",   "nickname": "小美的副卡", "last4": "5521", "parentId": "c-main", "holderId": "p-mei" },
-    { "id": "c-ming",  "nickname": "小明的副卡", "last4": "",     "parentId": "c-main", "holderId": "p-ming" },
-    { "id": "c-ming2", "nickname": "小明加油用", "last4": "0937", "parentId": "c-main", "holderId": "p-ming" },
-    { "id": "c-home",  "nickname": "好市多聯名卡全家共用帳戶", "last4": "7788", "parentId": null, "holderId": "p-rozi", "statementDay": 31 }
+    {
+      "id": "c-main",
+      "nickname": "玉山主卡",
+      "last4": "3821",
+      "parentId": null,
+      "holderId": "p-rozi",
+      "statementDay": 15
+    },
+    {
+      "id": "c-mei",
+      "nickname": "小美的副卡",
+      "last4": "5521",
+      "parentId": "c-main",
+      "holderId": "p-mei"
+    },
+    {
+      "id": "c-ming",
+      "nickname": "小明的副卡",
+      "last4": "",
+      "parentId": "c-main",
+      "holderId": "p-ming"
+    },
+    {
+      "id": "c-ming2",
+      "nickname": "小明加油用",
+      "last4": "0937",
+      "parentId": "c-main",
+      "holderId": "p-ming"
+    },
+    {
+      "id": "c-home",
+      "nickname": "好市多聯名卡全家共用帳戶",
+      "last4": "7788",
+      "parentId": null,
+      "holderId": "p-rozi",
+      "statementDay": 31
+    }
   ],
   "expenses": [
-    { "id": "e-px",    "title": "全聯",   "emoji": "🛒", "date": "2026-09-02", "twdAmt": "1280", "cardId": "c-mei",   "type": "single", "parts": ["p-mei"] },
-    { "id": "e-gas",   "title": "加油站", "emoji": "⛽", "date": "2026-08-20", "twdAmt": "900",  "cardId": "c-ming",  "type": "single", "parts": ["p-ming"] },
-    { "id": "e-crf",   "title": "家樂福", "emoji": "🛒", "date": "2026-09-10", "twdAmt": "2400", "cardId": "c-main",  "type": "shared", "parts": ["p-rozi", "p-mei", "p-ming"] },
-    { "id": "e-sb",    "title": "星巴克", "emoji": "☕", "date": "2026-08-28", "twdAmt": "180",  "cardId": "c-mei",   "type": "shared", "parts": ["p-rozi"], "sponsor": true },
-    { "id": "e-book",  "title": "書店",   "emoji": "🛍️", "date": "2026-09-12", "twdAmt": "600",  "cardId": "c-ming2", "type": "single", "parts": ["p-ming"] },
-    { "id": "e-0815",  "title": "超商",   "emoji": "🏪", "date": "2026-08-15", "twdAmt": "500",  "cardId": "c-ming",  "type": "single", "parts": ["p-ming"] },
-    { "id": "e-costco","title": "好市多", "emoji": "🛒", "date": "2026-02-28", "twdAmt": "3200", "cardId": "c-home",  "type": "single", "parts": ["p-rozi"] }
+    {
+      "id": "e-px",
+      "title": "全聯",
+      "emoji": "🛒",
+      "date": "2026-09-02",
+      "twdAmt": "1280",
+      "cardId": "c-mei",
+      "type": "single",
+      "parts": [
+        "p-mei"
+      ]
+    },
+    {
+      "id": "e-gas",
+      "title": "加油站",
+      "emoji": "⛽",
+      "date": "2026-08-20",
+      "twdAmt": "900",
+      "cardId": "c-ming",
+      "type": "single",
+      "parts": [
+        "p-ming"
+      ]
+    },
+    {
+      "id": "e-crf",
+      "title": "家樂福",
+      "emoji": "🛒",
+      "date": "2026-09-10",
+      "twdAmt": "2400",
+      "cardId": "c-main",
+      "type": "shared",
+      "parts": [
+        "p-rozi",
+        "p-mei",
+        "p-ming"
+      ]
+    },
+    {
+      "id": "e-sb",
+      "title": "星巴克",
+      "emoji": "☕",
+      "date": "2026-08-28",
+      "twdAmt": "180",
+      "cardId": "c-mei",
+      "type": "shared",
+      "parts": [
+        "p-rozi"
+      ],
+      "sponsor": true
+    },
+    {
+      "id": "e-book",
+      "title": "書店",
+      "emoji": "🛍️",
+      "date": "2026-09-12",
+      "twdAmt": "600",
+      "cardId": "c-ming2",
+      "type": "single",
+      "parts": [
+        "p-ming"
+      ]
+    },
+    {
+      "id": "e-0815",
+      "title": "超商",
+      "emoji": "🏪",
+      "date": "2026-08-15",
+      "twdAmt": "500",
+      "cardId": "c-ming",
+      "type": "single",
+      "parts": [
+        "p-ming"
+      ]
+    },
+    {
+      "id": "e-costco",
+      "title": "好市多",
+      "emoji": "🛒",
+      "date": "2026-02-28",
+      "twdAmt": "3200",
+      "cardId": "c-home",
+      "type": "single",
+      "parts": [
+        "p-rozi"
+      ]
+    }
   ],
   "emptyStatements": [
-    { "primaryId": "c-home", "ym": "2026-03" }
+    {
+      "primaryId": "c-home",
+      "ym": "2026-03"
+    }
   ],
   "benchmark": {
     "primaryId": "c-main",
     "ym": "2026-09",
     "label": "9 月帳單",
-    "period": ["2026-08-16", "2026-09-15"],
-    "expenseIds": ["e-px", "e-gas", "e-crf", "e-sb", "e-book"],
-    "owe": { "p-mei": 2080, "p-ming": 2300 },
-    "receive": { "p-rozi": 4380 },
+    "period": [
+      "2026-08-16",
+      "2026-09-15"
+    ],
+    "expenseIds": [
+      "e-px",
+      "e-gas",
+      "e-crf",
+      "e-sb",
+      "e-book"
+    ],
+    "owe": {
+      "p-mei": 2080,
+      "p-ming": 2300
+    },
+    "receive": {
+      "p-rozi": 4380
+    },
     "transfers": 2,
     "transfersTo": "p-rozi",
     "sponsorId": "e-sb",
     "outsideId": "e-0815",
     "outsideYm": "2026-08",
-    "feb31": { "primaryId": "c-home", "ym": "2026-02", "period": ["2026-02-01", "2026-02-28"] }
+    "feb31": {
+      "primaryId": "c-home",
+      "ym": "2026-02",
+      "period": [
+        "2026-02-01",
+        "2026-02-28"
+      ]
+    }
+  },
+  "importSample": {
+    "_說明": "B 里程碑（貼上帳單明細）的範例。第 7 行故意看不懂（沒有金額）；fixedLine 是把它修好之後的樣子。全聯那一行與既有的 e-px 同日、同卡、同金額，匯入時要略過",
+    "primaryId": "c-main",
+    "today": "2026-11-05",
+    "billTotal": "5,239",
+    "text": "消費日 入帳日 消費明細 新臺幣金額\n09/02 09/03 全聯福利中心 5521 1,280\n09/05 09/06 台灣中油 0937 1,150\n09/06 09/08 誠品書店 0937 420\n2026/09/08 UNIQLO 台北店 2,390\n09/11 09/12 好市多退貨 -350\n09/13 星巴克（金額看不清楚）\n09/14 麥當勞 NT$189\n本期應繳總額 5,239",
+    "badLine": 7,
+    "fixedLine": "09/13 09/14 星巴克 5521 160",
+    "expect": {
+      "rowsBeforeFix": 6,
+      "sumBeforeFix": 5079,
+      "rowsAfterFix": 7,
+      "sumAfterFix": 5239,
+      "duplicates": 1,
+      "imported": 6,
+      "importedSum": 3959,
+      "cards": {
+        "全聯福利中心": "c-mei",
+        "台灣中油": "c-ming2",
+        "誠品書店": "c-ming2",
+        "UNIQLO 台北店": "c-main",
+        "好市多退貨": "c-main",
+        "星巴克": "c-mei",
+        "麥當勞": "c-main"
+      },
+      "afterImport": {
+        "ym": "2026-09",
+        "owe": {
+          "p-mei": 2240,
+          "p-ming": 3870
+        },
+        "total": 9319
+      }
+    }
   }
 }

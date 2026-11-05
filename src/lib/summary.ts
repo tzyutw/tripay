@@ -39,12 +39,29 @@ export interface ExpenseCalc extends SharedCalc {
   debts: { from: string; to: string; amount: number }[];
 }
 
-/** 參與這一筆的成員 id（照成員順序，不照 split 的建立順序） */
+/** 參與這一筆的成員 id（照成員順序，不照 split 的建立順序）
+ *
+ *  🔴 R-10（2026-11 產品負責人拍板）：一個人都沒勾的舊資料（0 人），
+ *  **整筆算付款人自己的**——回傳 `[付款人]`。原本回空陣列，
+ *  付款人的錢算進「實際付出」卻沒有任何人分攤，帳不平衡。
+ *  表單已經擋得住新的 0 人帳；這裡接住舊資料，讓結算、統計、計算依據三處同一個答案。
+ *  ⚠️ 記一筆表單**不走這裡**（`fromExpense()` 直接讀 splits），
+ *  所以打開舊的 0 人帳仍照實顯示 0 人。 */
 function partsOf(e: ExpenseWithSplits, members: TripMember[]): string[] {
   if (e.expense_type === 'personal') return [];
   if (e.individual_member_id) return [e.individual_member_id];
   const on = new Set((e.expense_splits ?? []).filter(s => s.is_participating).map(s => s.member_id));
-  return members.filter(m => on.has(m.id)).map(m => m.id);
+  const parts = members.filter(m => on.has(m.id)).map(m => m.id);
+  if (parts.length === 0 && e.payer_member_id) return [e.payer_member_id];
+  return parts;
+}
+
+/** 把差額／零頭記到付款人頭上。付款人有參與就加在他那一份；
+ *  沒參與時只在差額不是 0 才多一格——不然每一筆「付款人沒參與」的帳
+ *  都會在他名下多一筆 $0 的分攤。 */
+function addRemainder(shares: Record<string, number | null>, payer: string, diff: number) {
+  if (payer in shares) shares[payer] = (shares[payer] as number) + diff;
+  else if (diff !== 0) shares[payer] = diff;
 }
 
 /** 規格 §1 §2 §3。移植自原型 calc()。 */
@@ -123,16 +140,18 @@ export function calc(
         ? Math.round(twdTotal! * v / forTotalEff!)               // R5 比例回推
         : Math.round(v);
     }
-    if (!twdPending && e.payer_member_id && parts.includes(e.payer_member_id)
-        && parts.every(id => shares[id] != null)) {
+    /* 差額（含四捨五入的零頭）歸付款人——**付款人沒參與也一樣**，
+       與後端引擎同一條規則，每筆分攤加總才會永遠等於總額。 */
+    if (!twdPending && e.payer_member_id && parts.every(id => shares[id] != null)) {
       const sum = parts.reduce((a, id) => a + (shares[id] as number), 0);
-      shares[e.payer_member_id] = (shares[e.payer_member_id] as number) + twdTotal! - sum;
+      addRemainder(shares, e.payer_member_id, twdTotal! - sum);
     }
   } else if (!twdPending && parts.length) {
     const per = Math.round(twdTotal! / parts.length);
     for (const id of parts) { shares[id] = per; valInCur[id] = per; }
-    if (e.payer_member_id && parts.includes(e.payer_member_id))
-      shares[e.payer_member_id] = per + twdTotal! - per * parts.length;
+    /* 零頭歸付款人。原本只在付款人有參與時才加，付款人沒參與時零頭沒人承擔
+       （正式資料「2023 福岡」UQ：2,124.3 兩人均分 → 1,062 × 2，少 0.3）。 */
+    if (e.payer_member_id) addRemainder(shares, e.payer_member_id, twdTotal! - per * parts.length);
   } else {
     for (const id of parts) { shares[id] = null; valInCur[id] = null; }
   }
@@ -263,6 +282,11 @@ export function tripSummary(
       if (s != null) per[id] = (per[id] ?? 0) + s;
       if (c.twdPending || c.estimated[id]) approx[id] = true;     // §5.1 (a)(b)
     }
+    /* 付款人沒參與、但承擔了零頭／差額：那一份不在 parts 裡，要另外加，
+       否則每人加總會比總花費少那幾毛錢。 */
+    const payer = row.payer_member_id;
+    if (payer && !(se.parts ?? []).includes(payer) && c.shares[payer] != null)
+      per[payer] = (per[payer] ?? 0) + (c.shares[payer] as number);
     /* 🔴 決策 75（Rozi 2026-11-05）　統計卡加起來要等於總花費（常設 C8）。
        ①「自己的」（歷史資料 personal，沒有參與列）算進**付款人自己**那一欄——
          改之前它算進總花費卻不屬於任何人（福岡那趟差 98,615）。

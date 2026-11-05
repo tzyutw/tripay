@@ -13,7 +13,7 @@
  *   #2  排除軟刪除費用（.is("deleted_at", null)）
  *   #4  標記舊 draft 為 superseded
  *   #5  改呼叫 shared runSettlement，移除重複演算法
- *   #6  shared 零參與人回 422
+ *   #6  （已由 R-10 推翻）shared 零參與人不再回 422，整筆算付款人自己的
  *   #7  twd_amount 型別驗證（非有限數或負數回 422）
  */
 
@@ -106,21 +106,10 @@ serve(async (req) => {
       allSplits = (data ?? []) as Split[];
     }
 
-    // CR Issue #6：shared 零參與人 → 422
-    const splitsByExpense = new Map<string, Split[]>();
-    for (const s of allSplits) {
-      if (!splitsByExpense.has(s.expense_id)) splitsByExpense.set(s.expense_id, []);
-      splitsByExpense.get(s.expense_id)!.push(s);
-    }
-
-    for (const expense of expenses) {
-      if (expense.expense_type === "shared") {
-        const participants = splitsByExpense.get(expense.id) ?? [];
-        if (participants.length === 0) {
-          return json({ error: "invalid_expense_splits", expense_id: expense.id }, 422);
-        }
-      }
-    }
+    /* CR Issue #6 原本在這裡：shared 零參與人 → 整趟回 422。
+       R-10（2026-11 產品負責人拍板）推翻：0 人的舊資料**整筆算付款人自己的**，
+       由 runSettlement 處理（帳永遠平衡），不再讓一筆舊資料擋住整趟結算。
+       新的 0 人帳由記一筆表單擋下，不會再寫進來。 */
 
     // ── 5. Calculate（CR Issue #5：改呼叫 shared runSettlement）───────────────
     let result: ReturnType<typeof runSettlement>;

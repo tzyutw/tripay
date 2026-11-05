@@ -21,6 +21,7 @@ import type { ExpenseCalc } from '@/lib/summary';
 import {
   MSG_NO_RATE,
   MSG_TWD_PENDING,
+  MSG_NO_PARTS, LABEL_TO_SINGLE,
   MSG_FILL_ONE,
   msgNeedForTotal,
   msgNoForTotal,
@@ -205,6 +206,26 @@ export function partsOfForm(f: FormState): string[] {
   return f.kind === 'single' ? (f.single ? [f.single] : []) : f.parts;
 }
 
+/**
+ * R-10　切換分帳方式。切到「只算一個人」時**一定有人**：
+ * 之前選過的那位 → 付款人 → 第一位成員。不會出現沒選人的狀態。
+ * 抽成純函式，單元測試直接打。
+ */
+export function switchKind(
+  f: FormState, k: SplitKind, members: { id: string }[],
+): FormState {
+  /* 0 人切到「各付各的」→ 大家勾回來（照原型 S-04 的切換規則）。
+     「各付各的」畫面沒有勾選名單，留在 0 人只會變成一個改不了的死角。 */
+  if (k === 'individual' && f.parts.length === 0) return { ...f, kind: k, parts: members.map(m => m.id) };
+  if (k !== 'single') return { ...f, kind: k };
+  return { ...f, kind: k, single: f.single ?? f.payer ?? members[0]?.id ?? null };
+}
+
+/** R-10　這一筆一個人都沒有（一起分全部取消勾選）。存檔要擋、畫面要提示。 */
+export function hasNoParts(f: FormState): boolean {
+  return partsOfForm(f).length === 0;
+}
+
 /** 表單狀態換成 `calc()` 吃的形狀。金額一律用未帶正負號的原值，符號在 row 那層才套。 */
 export function formToExpense(f: FormState, parts: string[]) {
   return {
@@ -346,12 +367,15 @@ function fromExpense(e: ExpenseWithSplits, members: TripWithMembers['trip_member
     pay: e.payment_label ?? e.payment_method,
     payer: e.payer_member_id,
     kind: e.individual_member_id ? 'single' : (e.expense_type === 'individual' ? 'individual' : 'shared'),
-    parts: on.length ? on : members.map(m => m.id),
+    /* 🔴 R-10　0 人的舊帳**照實顯示 0 人**，不准自動變成全部勾選——
+       那等於使用者沒動手、帳就被改掉了。`personal`（自己的）本來就沒有參與列，維持原樣。 */
+    parts: on.length || e.expense_type !== 'personal' ? on : members.map(m => m.id),
     single: e.individual_member_id,
     /* 載入既有紀錄：存的那一邊是**使用者的**（不准被切幣別覆蓋），另一邊是空的 */
     indiv, fillCur: e.split_fill_currency,
     indivAlt: {}, indivOwn: true, indivAltOwn: false,
-    partsOpen: false,
+    /* 0 人時直接展開名單，提示與可以重新勾的人一起出現 */
+    partsOpen: on.length === 0 && e.expense_type !== 'personal' && !e.individual_member_id,
     onSpot: e.settled_on_spot, sponsor: e.is_sponsor,
     note: e.note ?? '',
   };
@@ -421,6 +445,9 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
      使用者只會覺得 App 壞了。用與其他欄位同一套 errors 機制。 */
   const [errors, setErrors] = useState<Record<string, string>>({});
   const payerRowRef = useRef<HTMLDivElement | null>(null);
+  const noPartsRef = useRef<HTMLDivElement | null>(null);
+  /* 每次因為 0 人被擋下就 +1；當作提示的 key，讓閃一下的動畫每次都重播 */
+  const [nudge, setNudge] = useState(0);
 
   useEffect(() => {
     if (loaded) setF(fromExpense(loaded, members));
@@ -443,9 +470,19 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
     const errs: Record<string, string> = {};
     /* 「當場就清了」＝沒有人代墊，本來就不需要付款人 */
     if (!f.onSpot && !f.payer) errs.payer = '先選這筆是誰付的';
+    /* R-10　0 人的帳存不進去（結算時錢算進付款人付出、卻沒有人分攤）。
+       提示本身已經在參與者下方，這裡只負責擋住並把畫面帶過去。 */
+    if (hasNoParts(f)) {
+      errs.parts = MSG_NO_PARTS;
+      /* 提示早就在畫面上時，擋下之後畫面毫無變化，跟「按了沒反應」分不出來——閃一下 */
+      setNudge(x => x + 1);
+    }
     setErrors(errs);
     /* jsdom 沒實作 scrollIntoView，真實瀏覽器有——多一個 ?. 讓測試不要噴 unhandled error */
     if (errs.payer) payerRowRef.current?.scrollIntoView?.({ block: 'center' });
+    /* 等名單展開畫好再捲——先捲的話，展開後提示會被推到「記下來」底下 */
+    else if (errs.parts) requestAnimationFrame(() =>
+      noPartsRef.current?.scrollIntoView?.({ block: 'center' }));
     return Object.keys(errs).length === 0;
   }
 
@@ -714,7 +751,7 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
               { value: 'single',     label: '只算一個人' },
             ]}
             value={f.kind}
-            onChange={k => set('kind', k)}
+            onChange={k => setF(s => switchKind(s, k, members))}
           />
 
           {/* R2（已定案）：預設全員均分、只顯示結果；要排除人才點開 */}
@@ -725,28 +762,47 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
                   <span className="text-body font-semibold">{n} 人均分</span>
                   <span className="sep" aria-hidden="true">·</span>
                   <span className="money">
-                    {c.twdPending ? '每人 —' : `每人 $ ${Math.round(c.twdTotal / Math.max(1, n)).toLocaleString()}`}
+                    {c.twdPending || n === 0 ? '每人 —' : `每人 $ ${Math.round(c.twdTotal / n).toLocaleString()}`}
                   </span>
                 </div>
-                <button className="expandbtn" onClick={() => set('partsOpen', !f.partsOpen)}>
-                  {f.partsOpen ? '收起' : '要排除誰？'}
-                </button>
+                {/* R-10　0 人時名單固定展開、不給收合鈕：人全排除了，「要排除誰？」講反了，
+                    而這時唯一該做的就是把人勾回來，沒有東西可以收 */}
+                {n > 0 && (
+                  <button className="expandbtn" onClick={() => set('partsOpen', !f.partsOpen)}>
+                    {f.partsOpen ? '收起' : '要排除誰？'}
+                  </button>
+                )}
               </div>
-              {f.partsOpen && (
-                <div className="gap" style={{ marginTop: 9 }}>
-                  {members.map(m => {
-                    const on = f.parts.includes(m.id);
-                    return (
-                      <button key={m.id} className={`rowb${on ? ' on' : ''}`}
-                        onClick={() => togglePart(m.id)}>
-                        <Avatar emoji={m.emoji} name={m.name} index={members.indexOf(m)} />
-                        <span className="flex-1 font-semibold">{m.name}</span>
-                        <span className={`chkchip ${on ? 'on' : ''}`} aria-hidden="true" />
-                      </button>
-                    );
-                  })}
-                </div>
+              {(f.partsOpen || n === 0) && (
+                <PartsList members={members} parts={f.parts} onToggle={togglePart} />
               )}
+            </div>
+          )}
+
+          {/* 「各付各的」只會從舊資料以 0 人打開（從 0 人切過來會把大家勾回來）。
+              它沒有自己的勾選名單，給同一份名單，提示裡的「沒勾」才有地方勾 */}
+          {f.kind === 'individual' && n === 0 && (
+            <div style={{ marginTop: 10 }}>
+              <PartsList members={members} parts={f.parts} onToggle={togglePart} />
+            </div>
+          )}
+
+          {/* R-10　一個人都沒勾：參與者下方立刻提示，不彈視窗；重新勾任何人就消失。
+              「各付各的」吃的是同一份參與者名單，所以也會碰到 0 人，同一句提示。 */}
+          {f.kind !== 'single' && n === 0 && (
+            <div key={nudge} className={`note warn${nudge ? ' nudge' : ''}`}
+              ref={noPartsRef} data-testid="noparts">
+              <Icon name="warn" size={14} />
+              <div className="notebody">
+                {MSG_NO_PARTS}
+                <div className="noparts-act">
+                  <button type="button" className="ratelink"
+                    onClick={() => { setF(s => switchKind(s, 'single', members));
+                      setErrors(e => ({ ...e, parts: '' })); }}>
+                    {LABEL_TO_SINGLE}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -765,7 +821,8 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
             </div>
           )}
 
-          {f.kind === 'individual' && (
+          {/* 0 人時不畫金額區：沒有人可以填，底下的比對列會顯示「$0／$0 ✓」，跟紅字提示互相矛盾 */}
+          {f.kind === 'individual' && n > 0 && (
             <EachAmounts
               f={f} c={c} cur={cur} sym={sym} members={members} parts={parts}
               onFillCur={v => setF(s => switchFillCur(s, v, decimalsFor(cur),
@@ -927,6 +984,26 @@ export function switchFillCur(
 }
 
 /* S-04-15／31／32／16　各自金額。逐人一列用 <label for>，列高 ≥48（CSS 的 .amtrow）。 */
+/** 「一起分」的參與者勾選名單。**模組層級**——定義在元件裡面會讓按鈕每次重建。 */
+function PartsList({ members, parts, onToggle }: {
+  members: TripWithMembers['trip_members']; parts: string[]; onToggle: (id: string) => void;
+}) {
+  return (
+    <div className="gap" style={{ marginTop: 9 }}>
+      {members.map(m => {
+        const on = parts.includes(m.id);
+        return (
+          <button key={m.id} className={`rowb${on ? ' on' : ''}`} onClick={() => onToggle(m.id)}>
+            <Avatar emoji={m.emoji} name={m.name} index={members.indexOf(m)} />
+            <span className="flex-1 font-semibold">{m.name}</span>
+            <span className={`chkchip ${on ? 'on' : ''}`} aria-hidden="true" />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function EachAmounts({ f, c, cur, sym, members, parts, onFillCur, onAmt }: {
   f: FormState;
   c: ReturnType<typeof calc>;
