@@ -109,10 +109,16 @@ const canon = v => Array.isArray(v) ? v.map(canon)
   ok(nums.rozi === 4380, `Rozi 應拿回 4,380（＝2,080＋2,300），實際 ${nums.rozi}`);
   ok(nums.sb, '贊助那筆（星巴克 180）要在 9 月列表裡看得到');
   const listTxt = await (async () => { await page.click('#scr-s03 [data-s03tab="exp"]'); return text('#scr-s03'); })();
-  ok(listTxt.includes('星巴克') && listTxt.includes('贊助回饋'), '星巴克要顯示在列表、帶贊助標記');
-  /* 9 月總花費：期望 5,360，現行規則（贊助不算進總花費）算出 5,180——見 PR 說明，待擁有者決定。
-     這裡記錄現況，不當成通過或失敗。 */
-  console.log(`   ⚠️ 總花費：基準期望 5,360，現行規則顯示 ${nums.total.toLocaleString()}（差的 180 就是贊助那筆）`);
+  ok(listTxt.includes('星巴克') && listTxt.includes('不用還'), '星巴克要顯示在列表、帶「不用還」標記');
+  ok(!listTxt.includes('贊助回饋'), '帳單裡不該出現旅遊用的「贊助回饋」');
+  ok(nums.total === 5360, `9 月總花費應為 5,360，實際 ${nums.total}`);
+  ok(nums.total === nums.perSum, `總花費 ${nums.total} 應等於每人分擔加總 ${nums.perSum}（守恆）`);
+  ok(listTxt.includes('5,360'), '9 月帳單畫面上要看得到 5,360');
+  /* 旅遊行程的贊助照舊不算進總花費（反向：這條規則只對帳單放寬） */
+  const tripTot = await page.evaluate(() => { const S = tripSummary('t1');
+    return { total: S.total, hasSp: S.list.some(e => e.sponsor) }; });
+  ok(tripTot.hasSp, '（前提）濟州島有贊助那筆');
+  ok(tripTot.total === 35175, `濟州島總花費應維持 35,175（贊助照舊不算），實際 ${tripTot.total}`);
 
   /* ═══ 3　8/15 落在 8 月 ═══ */
   sec('3　8/15 那筆不在 9 月、在 8 月');
@@ -312,6 +318,17 @@ const canon = v => Array.isArray(v) ? v.map(canon)
     }
     console.log(`   ${w}px：${STATES.length} 個狀態，可點區不合格 ${worst.length} 處`);
   }
+
+  sec('帳單裡勾「不用還」：分帳方式整段不畫、結算不算任何人要還');
+  const nr = await page.evaluate(() => { loadP2Seed(); g = blankCardExp('c-mei', '2026-09-01'); g.sponsor = true; applyCardDefaults(g); renderS04();
+    const txt = document.querySelector('#scr-s04').innerText;
+    g.title = 'ZZ 不用還'; g.twdAmt = '50'; document.getElementById('s04save').click();
+    const st = 'st~c-main~2026-09';
+    return { hasSplit: txt.includes('分帳方式'), hasChip: txt.includes('不用還'), mei: settleTrip(st).net[st + '~p-mei'], total: tripSummary(st).total }; });
+  console.log('   ' + JSON.stringify(nr));
+  ok(nr.hasChip && !nr.hasSplit, '勾了不用還之後不應再出現分帳方式');
+  ok(nr.mei === -2080, `多一筆不用還的 50，小美仍應只要還 2,080，實際 ${-nr.mei}`);
+  ok(nr.total === 5410, `不用還的 50 要算進總花費（5,410），實際 ${nr.total}`);
 
   /* 同一句文案只准寫一次：S-09 與 S-10 的「還沒有卡片」要逐字相同 */
   sec('同一句文案只寫一次：S-09／S-10 的「還沒有卡片」');

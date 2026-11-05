@@ -2342,12 +2342,14 @@ function tripSummary(tid, opts) {
     if (onlyShared && isSelfPaid(e)) {
       self.list.push(e);
       /* 口徑與 total 一致，恆等式才成立：算不出來的只報筆數、不混進金額 */
-      if (!c.twdPending && !e.sponsor) self.total += c.twdTotal;
+      if (!c.twdPending && (!e.sponsor || t.kind === 'statement')) self.total += c.twdTotal;
       else if (c.twdPending) self.pending += 1;
       return;
     }
     list.push(e);
-    if (!c.twdPending && !e.sponsor) total += c.twdTotal;
+    /* Phase 2 A（2026-11-05）：帳單裡的「不用還」是主卡人真的刷出去的錢，算進總花費
+       （基準案例 9 月總花費 5,360）。旅遊行程的贊助是外來的錢，照舊不算。結算 settleTrip 不讀這個數字 */
+    if (!c.twdPending && (!e.sponsor || t.kind === 'statement')) total += c.twdTotal;
     (e.parts || []).forEach(id => {
       if (c.shares[id] != null) per[id] += c.shares[id];
       if (c.twdPending || c.estimated[id]) approx[id] = true;     // §5.1 (a)(b)
@@ -2797,13 +2799,13 @@ function expenseRow(e, c, S, opts) {
       : `<span class="pill gr">只算 ${esc((t.members.find(m=>m.id===e.parts[0])||{}).name||'')}</span>`,'inl'));
   else if (e.personal) badges.push(b('S-03-19','<span class="pill gr">自己的</span>','inl'));
   if (e.onSpot) badges.push(b('S-03-20','<span class="pill gr">當場就清了</span>','inl'));
-  if (e.sponsor) badges.push(b('S-03-21','<span class="pill ind">贊助回饋</span>','inl'));
+  if (e.sponsor) badges.push(b('S-03-21', t.kind === 'statement' ? '<span class="pill ind">不用還</span>' : '<span class="pill ind">贊助回饋</span>','inl'));
   // §5.4：整筆未定 → 橘紅左邊框＋「還沒填」，不再有「待補填」badge
   const pend = c.twdPending;
   const approx = !pend && Object.keys(c.estimated).length > 0;
   // #22-3：贊助是負額共同項，金額顯示負數並用收款綠，與一般支出區隔
   const amt = pend ? '<span style="color:var(--out)">還沒填</span>'
-    : e.sponsor
+    : e.sponsor && t.kind !== 'statement'
       ? `<span class="money" style="color:var(--in)">−${money(c.twdTotal).replace(/^[^\d]*/, m => m)}</span>`
       /* 🔴 實作-W-1　規格 §5.6：已結算／已封存**不顯示「約」**——結算已經定案，
          提醒改變不了任何事，只會製造焦慮。判斷來源與 statCard() 同一個
@@ -2856,7 +2858,7 @@ function renderS03() {
   if (store.s03Tab === 'settle') {
     // S-05 一個字都沒動——這裡只是把它的輸出借過來放進分頁。
     h += `<div id="s03settlepane"></div>`;
-    h += s03MoreSheet(st);
+    if (t.kind !== 'statement') h += s03MoreSheet(st);
     h += `<div id="s03toast"></div>`;
     $('#scr-s03').innerHTML = h;
     renderS05(); syncSettlePane();
@@ -3151,7 +3153,9 @@ function renderS04() {
       ${b('S-04-18', `<button class="chip alt${g.onSpot?' on':''}" data-eflag="onSpot">當場就清了</button>`, 'inl')}
     </div></div>`);
 
-  h += b('S-04-11', `<div class="fld"><span class="lbl" data-group="三選一切換，非單一輸入欄">分帳方式</span>
+  /* 帳單裡勾了「不用還」＝主卡人自己吸收，分帳方式沒有東西可選——整段不畫 */
+  if (cm && g.sponsor) h += `<div id="typebody" hidden></div>`;
+  else h += b('S-04-11', `<div class="fld"><span class="lbl" data-group="三選一切換，非單一輸入欄">分帳方式</span>
     <div class="seg">${[['shared','一起分'],['individual','各付各的'],['single','只算一個人']].map(([k,v]) =>
       `<button class="${g.type===k?'on':''}" data-etype="${k}">${v}</button>`).join('')}</div>
     <div id="typebody"></div></div>`);
@@ -3160,7 +3164,7 @@ function renderS04() {
 
   h += b('S-04-19', `<div class="fld"><span class="lbl" data-group="型別開關，非單一輸入欄">這筆是</span>
       <div class="chips">
-        <button class="chip${g.sponsor?' on':''}" data-eflag="sponsor">贊助／回饋</button></div>
+        <button class="chip${g.sponsor?' on':''}" data-eflag="sponsor">${cm ? '不用還' : '贊助／回饋'}</button></div>
       ${g.sponsor && !cm ? b('S-04-20', `<p class="hint">金額會記成負數，由 ${(g.parts||[]).length} 人均分扣抵。「誰付的」請選<b>實際代收這筆錢的人</b></p>`) : ''}</div>`);
 
   h += b('S-04-22', `<div class="btnrow"><button class="btn gh" id="s04cancel">取消</button>
@@ -3309,6 +3313,7 @@ function settleTrip(tid, modeOverride, hubOverride) {
 
 function renderS05() {
   const { net, tx, S } = settleTrip(store.s03Trip), t = S.t;
+  const bill = t.kind === 'statement';   // Phase 2 A：帳單換掉旅遊用語，旅遊行程一字不動
   const nUn = S.unsettledList.length;
   const nav = `<div class="bar"><button class="ic2" aria-label="返回">${ic('back',20)}</button><span class="ttl">結算</span><span style="width:40px"></span></div>`;
   let h = '';
@@ -3340,7 +3345,7 @@ function renderS05() {
           ${nmText(t, prepaidShare(store.s03Trip).top)} 先付的。現在要轉 ${tx.length} 次；改成「都轉給同一個人」會變成 ${hubTimes(store.s03Trip, prepaidShare(store.s03Trip).top)} 次。
           <a href="#s02b" class="ratelink">去設定 ${ic('next',13)}</a></div></div>`) : '')
       + b('S-05-3', `<div class="btnrow" style="flex-direction:column;gap:6px">
-          <button class="btn" id="s05go">結算行程</button>
+          <button class="btn" id="s05go">${bill ? '結算這個月' : '結算行程'}</button>
           <p class="hint" style="text-align:center;margin:0">結算後金額固定，可以逐筆標記付清</p></div>`);
   } else if (store.s05 === 'partial') {
     // #22-6b：只引導，不在這裡提供設定。代墊比例 > 70% 且目前是 direct 才出現。
@@ -3405,7 +3410,7 @@ function renderS05() {
           </div>`)}
           ${b('S-05-14', `<p class="hint">待填的筆不進結算，所以這裡的數字可能小於總花費</p>`)}
         </div>` : '')
-      + b('S-05-15', `<div class="btnrow"><span class="btn qt">重新計算</span><span class="btn">封存行程</span></div>`);
+      + b('S-05-15', `<div class="btnrow"><span class="btn qt">重新計算</span><span class="btn">${bill ? '封存帳單' : '封存行程'}</span></div>`);
   } else {
     h = nav + b('S-05-16', `<div class="empty" style="padding:30px 22px">
       <svg class="anim fold" viewBox="0 -6 102 82" style="width:86px;height:69px" aria-label="一疊帳摺起來寄出去">
@@ -3419,9 +3424,9 @@ function renderS05() {
         <g class="plane">
           <path pathLength="100" d="M18 44 L84 22 L56 60 L48 46 Z" fill="none" stroke="#0F5E9E" stroke-width="1.8" stroke-linejoin="round"/>
         </g></svg>
-      <p style="font-size:var(--fs-title);margin-top:10px">帳算清楚了</p><p>下次去哪？</p></div>`)
+      <p style="font-size:var(--fs-title);margin-top:10px">帳算清楚了</p>${bill ? '' : '<p>下次去哪？</p>'}</div>`)
       + b('S-05-17', `<div class="fld"><div style="background:#fff;border:1px solid var(--ln);border-radius:var(--r-base);padding:12px;display:flex">
-        ${[['5','天','出遊'],[String(S.list.length),'筆','共記了'],[money(Math.max(0,...S.list.map(e=>calc(e,t).twdTotal||0))),'','最大手筆']]
+        ${[bill ? [String(t.members.length),'人','一起分'] : ['5','天','出遊'],[String(S.list.length),'筆','共記了'],[money(Math.max(0,...S.list.map(e=>calc(e,t).twdTotal||0))),'','最大手筆']]
           .map(([n,u,l],i)=>`<div style="flex:1;text-align:center;${i<2?'border-right:1px solid #F1F2EE':''}">
             <div class="tnum" style="font-size:var(--fs-title);font-weight:600">${n}<span style="font-size:var(--fs-tag);color:var(--md)">${u}</span></div>
             <div style="font-size:var(--fs-sub);color:var(--gr);margin-top:2px">${l}</div></div>`).join('')}
@@ -3431,7 +3436,7 @@ function renderS05() {
         <span class="money" style="font-weight:600">${money(x.amount)}</span></div>`).join('') || '<div class="empty"><p>沒有人欠誰。</p></div>'}</div>`)
       + b('S-05-29', `<div class="fld"><button class="btn">把結果傳給大家</button>
         <p class="hint" style="text-align:center">任何人免登入可看</p></div>`)
-      + b('S-05-19', `<div class="btnrow"><span class="btn qt">${ic('add',16)} 建立新行程</span><span class="btn qt">封存行程</span></div>`);
+      + b('S-05-19', `<div class="btnrow">${bill ? '' : `<span class="btn qt">${ic('add',16)} 建立新行程</span>`}<span class="btn qt">${bill ? '封存帳單' : '封存行程'}</span></div>`);
   }
   h += `<div id="s05toast"></div>`;
   $('#scr-s05').innerHTML = h;
@@ -3934,7 +3939,7 @@ function renderS06() {
     ? `<div style="margin:0 14px">${tx.map(x => `<div class="rowb" style="margin-bottom:6px">
         <span style="flex:1;font-size:var(--fs-body)">${nm2(t,x.from)} <span style="color:var(--gr)">→</span> ${nm2(t,x.to)}</span>
         <span class="money">${money(x.amount)}</span></div>`).join('')}</div>`
-    : b('S-06-8', `<div style="margin:0 14px;width:calc(100% - 28px)" class="rowb"><span style="flex:1;font-size:var(--fs-body);color:var(--gr)">這趟旅程還沒結算。</span></div>`);
+    : b('S-06-8', `<div style="margin:0 14px;width:calc(100% - 28px)" class="rowb"><span style="flex:1;font-size:var(--fs-body);color:var(--gr)">${t.kind === 'statement' ? '這個月還沒結算。' : '這趟旅程還沒結算。'}</span></div>`);
 
   h += b('S-06-9', `<div class="sec">消費明細</div>`);
   if (!list.length) {
@@ -3950,8 +3955,8 @@ function renderS06() {
   // S-06-12 保留——旅伴看到帳算得清清楚楚，是 Phase 1 唯一的獲客時機——但不說沒有的事。
   h += b('S-06-12', `<div style="margin-top:12px;padding:12px 14px 16px;background:#EDEEE8;border-top:1px solid var(--ln);
       display:flex;align-items:center;gap:9px">
-      <p style="margin:0;flex:1;font-size:var(--fs-body);color:var(--md)">這趟帳是用 Tripay 記的</p>
-      <span class="chip" style="background:var(--w);border-color:var(--w);color:#fff;font-weight:600">開一趟自己的</span>
+      <p style="margin:0;flex:1;font-size:var(--fs-body);color:var(--md)">${t.kind === 'statement' ? '這份帳單是用 Tripay 記的' : '這趟帳是用 Tripay 記的'}</p>
+      <span class="chip" style="background:var(--w);border-color:var(--w);color:#fff;font-weight:600">${t.kind === 'statement' ? '我也來記' : '開一趟自己的'}</span>
     </div>`);
   $('#scr-s06').innerHTML = h;
 }
