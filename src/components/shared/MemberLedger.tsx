@@ -21,7 +21,8 @@ const SEGS = [
 /** 每一筆歸到哪一段：只算一個人（參與者 1 位）→ 只算我的；
  *  各付各的 → 各自付各的；其餘（2 人以上一起分）→ 跟大家平分的。 */
 function segOf(e: SharedExpense) {
-  return e.type === 'single' || (e.parts ?? []).length === 1 ? 'mine'
+  /* 決策 75：「自己的」（personal，沒有參與列）也是「只算我的」——它已經算進統計卡付款人那一欄 */
+  return e.personal || e.type === 'single' || (e.parts ?? []).length === 1 ? 'mine'
        : e.type === 'individual' ? 'each' : 'split';
 }
 
@@ -42,13 +43,16 @@ export default function MemberLedger(
   { S, memberId, money: mo, readonly, payerName, onEdit, onRowTap, footer }: MemberLedgerProps,
 ) {
   const rowsOf = (key: string) => S.list
-    .filter(e => (e.parts ?? []).includes(memberId) && segOf(e) === key)
+    /* 決策 75：「自己的」沒有參與列，用付款人認它是誰的，三段加起來才等於統計卡那一欄 */
+    .filter(e => ((e.parts ?? []).includes(memberId) || (e.personal && e.payer === memberId)) && segOf(e) === key)
     /* 🔴 實作-V-2　贊助那一筆在這裡符號相反、而且被算進小計。
        S-03 已經有正確的處理（`e.sponsor` → 負號＋收入色）。
        `爸爸贊助 50,000` 不是他「付了」50,000，所以也不顯示付款人那一行。
        ⚠️ 這裡只管**顯示**，不動 `per[]` 的算法（帳務語意要 Rozi 拍板）。 */
     .map(e => {
-      const raw = S.calcOf(e).shares?.[memberId] ?? null;
+      const raw = e.personal
+        ? (S.calcOf(e).twdPending ? null : S.calcOf(e).twdTotal)
+        : S.calcOf(e).shares?.[memberId] ?? null;
       /* 🔴 實作-AD-1　**贊助不要再取負號**。那個 `-raw` 是假資料的贊助還是
          正數時留下來的補償；production 的贊助 `twd_amount` 是負數，
          `shares` 因此已經是 −12,500，再取負就變成 +12,500 加進段小計——

@@ -220,6 +220,7 @@ export function tripSummary(
   let forTotalRaw = 0, forTotalBackTwd = 0, forTotalHasRaw = false;
   const per: Record<string, number> = {}, approx: Record<string, boolean> = {};
   for (const m of members) { per[m.id] = 0; approx[m.id] = false; }
+  let sponsorAdj = 0;
 
   const calcCache = new Map<string, ExpenseCalc>();
   const unsettledList: { e: SharedExpense; c: ExpenseCalc }[] = [];
@@ -262,10 +263,20 @@ export function tripSummary(
       if (s != null) per[id] = (per[id] ?? 0) + s;
       if (c.twdPending || c.estimated[id]) approx[id] = true;     // §5.1 (a)(b)
     }
+    /* 🔴 決策 75（Rozi 2026-11-05）　統計卡加起來要等於總花費（常設 C8）。
+       ①「自己的」（歷史資料 personal，沒有參與列）算進**付款人自己**那一欄——
+         改之前它算進總花費卻不屬於任何人（福岡那趟差 98,615）。
+       ② 贊助替大家付掉的部分另外記下來，統計卡多一行「贊助折抵」。
+       ⚠️ 只動呈現用的 `per`，**不動 shares／debts**：轉帳與淨額一元都不變（C7 守著）。 */
+    if (row.expense_type === 'personal' && !c.twdPending && !row.is_sponsor
+        && row.payer_member_id && row.payer_member_id in per)
+      per[row.payer_member_id] += c.twdTotal;
+    if (row.is_sponsor && !c.twdPending)
+      for (const id of se.parts ?? []) { const s = c.shares[id]; if (s != null) sponsorAdj -= s; }
   }
 
   return {
-    t, list, readonly, total, per, approx, unsettledList, onlyShared, self,
+    t, list, readonly, total, per, approx, unsettledList, onlyShared, self, sponsorAdj,
     forTotalRaw, forTotalBackTwd, forTotalHasRaw,
     calcOf: (e: SharedExpense) => calcCache.get(e.id) ?? {
       twdTotal: 0, twdPending: true, estimated: {}, forTotalEff: null, forTotalAuto: false,

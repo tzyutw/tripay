@@ -62,6 +62,14 @@ export function StatCardPerList({ S, readonly, money: mo, onPickMember }: StatCa
           ? <div className="perrow ro" key={m.id}>{inner}</div>
           : <button className="perrow" key={m.id} onClick={() => onPickMember?.(m.id)}>{inner}</button>;
       })}
+      {/* 🔴 決策 75　每個人那一欄已經扣過被贊助折抵的份，這一行把它加回來，
+          整張卡才加得起來（Σ每人＋贊助折抵＝總花費）。沒有贊助就不出現。 */}
+      {(S.sponsorAdj ?? 0) > 0 && (
+        <div className="perrow ro" data-sponsor-adj={S.sponsorAdj}>
+          <span className="nm">贊助折抵</span>
+          <span className="am"><span className="money">{money(S.sponsorAdj ?? 0, mo)}</span></span>
+        </div>
+      )}
     </div>
   );
 }
