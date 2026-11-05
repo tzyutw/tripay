@@ -528,7 +528,7 @@ E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
   g=exp({forAmt:'40000',twdAmt:'1000',pay:'card',type:'individual',parts:M,
     indiv:{[M[0]]:'9000',[M[1]]:'9000',[M[2]]:'9000',[M[3]]:'9000'},payer:M[0]}); renderS04();})()`); snap();
 E("g.sponsor=true; renderS04()"); snap();
-/* R-10　「一起分」0 人的狀態：S-04-40 只在這個狀態出現，掃描清單要走到它 */
+/* R-10　「一起分」0 人的狀態：S-04-42 只在這個狀態出現，掃描清單要走到它 */
 E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
   g=exp({forAmt:'',twdAmt:'1000',pay:'card',type:'shared',parts:[],payer:M[0]}); g._partsOpen=true; renderS04();})()`); snap();
 E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
@@ -541,6 +541,10 @@ E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
   g=exp({forAmt:'',twdAmt:'1035',pay:'card',type:'individual',parts:M,
     indiv:{[M[0]]:'12000',[M[1]]:'18000',[M[2]]:'10000',[M[3]]:'5000'},payer:M[0]}); renderS04();})()`); snap();
 d.querySelector('#s04save').click(); snap();
+/* Phase 2 A（2026-11-05）：帳單版的 S-03（S-03-36／37）與帶卡的 S-04（S-04-40／41）
+   只在帳單裡出現——走一次帳單，再切回旅遊行程 */
+E("store.s03Trip='st~c-main~2026-09'; store.s03Tab='exp'; g=blankExp(); renderS03(); renderS04()"); snap();
+E("store.s03Trip='t1'; g=blankExp(); renderS03(); renderS04()");
 let missing=[],unexpected=[];
 /* 🔴 收尾-AJ-3　S-05-31（代墊引導）在收尾-AI-3 之後**筆數一樣就整句不顯示**（甲案），
    而原型這趟假資料 direct 與 hub 都是 3 筆——**這份假資料到不了那個狀態**。
