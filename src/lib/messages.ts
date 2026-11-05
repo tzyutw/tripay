@@ -180,3 +180,10 @@ export function guardedWrite<A extends unknown[], R>(
     return withWriteTimeout(fn(...args));
   };
 }
+
+/* R-10（2026-11 產品負責人拍板）：「一起分」把人全部取消勾選時，參與者下方立刻出現。
+   不彈視窗；重新勾任何一人就消失；仍是 0 人時按「記下來」擋下不存。
+   逐字與 `Tripay_原型.html` 的同名常數相同——同一句只准寫一次。 */
+export const MSG_NO_PARTS = '一個人都沒勾。這筆只算某一個人的話，改用「只算一個人」';
+/** 上面那句提示旁的按鈕 */
+export const LABEL_TO_SINGLE = '改成只算一個人';

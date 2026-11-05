@@ -528,6 +528,9 @@ E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
   g=exp({forAmt:'40000',twdAmt:'1000',pay:'card',type:'individual',parts:M,
     indiv:{[M[0]]:'9000',[M[1]]:'9000',[M[2]]:'9000',[M[3]]:'9000'},payer:M[0]}); renderS04();})()`); snap();
 E("g.sponsor=true; renderS04()"); snap();
+/* R-10　「一起分」0 人的狀態：S-04-40 只在這個狀態出現，掃描清單要走到它 */
+E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
+  g=exp({forAmt:'',twdAmt:'1000',pay:'card',type:'shared',parts:[],payer:M[0]}); g._partsOpen=true; renderS04();})()`); snap();
 E(`(function(){var t=tripOf('t1'),M=t.members.map(m=>m.id);
   g=exp({forAmt:'',twdAmt:'1035',fillCur:'FOR',pay:'card',type:'individual',parts:M,
     indiv:{[M[0]]:'12000',[M[1]]:'18000',[M[2]]:'10000',[M[3]]:'5000'},payer:M[0]}); renderS04();})()`); snap();

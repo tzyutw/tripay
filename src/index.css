@@ -701,3 +701,7 @@ input.auto { color:#9AA5AB }
 input:where([type=text],[type=number],[type=date]):not([class]):not(.fieldrow *) { line-height: normal }
 
 .trunc    { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* R-10 0 人提示裡的「改成只算一個人」：`.ratelink` 用負外距把可點區撐到 45px 高，
+   這裡補回同樣的上距，按鈕才不會蓋住上面那行字。與原型 `.ui .noparts-act` 同值。 */
+.noparts-act { margin-top: 13px }

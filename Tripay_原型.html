@@ -409,6 +409,9 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 /* 只改字級。33-3 明講「不要自己加粗或改色補償」——所以顏色、粗細、版面一律不動，
    警示的份量還是只有 icon 在撐。這一條在停點報告裡回報給 Rozi 判斷。 */
 .ui .note{font-size:var(--fs-sub)}
+/* R-10 0 人提示裡的按鈕：.ratelink 用負外距把可點區撐到 45px 高，
+   這裡補回同樣的上距，按鈕才不會蓋住上面那行字 */
+.ui .noparts-act{margin-top:13px}
 .ui .cmp .sub2{width:100%;font-weight:400;margin-top:2px;font-size:var(--fs-sub)}
 .ui .cmp.ok{background:#EAF3E9;border:1px solid #C9DFC8;color:var(--in)}
 .ui .cmp.soft{background:#F4F5F1;border:1px solid var(--ln);color:var(--md)}
@@ -2142,10 +2145,19 @@ function tripRate(t) {
   return fr / twd;
 }
 
+/* 差額／零頭記到付款人頭上；付款人沒參與時，差額不是 0 才多一格 */
+function addRemainder(shares, payer, diff) {
+  if (payer in shares) shares[payer] += diff;
+  else if (diff !== 0) shares[payer] = diff;
+}
+
 /* ── 單筆消費的判定（規格 §1 §2 §3）── */
 function calc(e, t) {
   const rate = tripRate(t);        // #17-4：移除單筆覆寫，匯率只有 S-02b 一個入口
-  const parts = e.parts || [];
+  /* R-10：一個人都沒勾的舊帳（0 人）整筆算付款人自己的，帳永遠平衡。
+     表單擋得住新的 0 人帳；這裡接住舊資料。personal 本來就沒有參與者，不套。 */
+  const parts0 = e.parts || [];
+  const parts = (!parts0.length && !e.personal && e.payer) ? [e.payer] : parts0;
   const forT = parseFloat(e.forAmt), twdIn = parseFloat(e.twdAmt);
 
   // #17-4 換算規則，與支付方式無關：
@@ -2205,14 +2217,16 @@ function calc(e, t) {
         ? Math.round(twdTotal * v / forTotalEff)   // R5 比例回推
         : Math.round(v);
     });
-    if (!twdPending && parts.includes(e.payer) && parts.every(id => shares[id] != null)) {
+    // 差額（含零頭）歸付款人——付款人沒參與也一樣，每筆分攤加總才會等於總額
+    if (!twdPending && e.payer && parts.every(id => shares[id] != null)) {
       const sum = parts.reduce((a,id) => a + shares[id], 0);
-      shares[e.payer] += twdTotal - sum;
+      addRemainder(shares, e.payer, twdTotal - sum);
     }
   } else if (!twdPending && parts.length) {
     const per = Math.round(twdTotal / parts.length);
     parts.forEach(id => { shares[id] = per; valInCur[id] = per; });
-    if (parts.includes(e.payer)) shares[e.payer] += twdTotal - per * parts.length;
+    // 零頭歸付款人；原本只在付款人有參與時才加，沒參與時零頭沒人承擔
+    if (e.payer) addRemainder(shares, e.payer, twdTotal - per * parts.length);
   } else {
     parts.forEach(id => { shares[id] = null; valInCur[id] = null; });
   }
@@ -2267,6 +2281,9 @@ function tripSummary(tid, opts) {
       if (c.shares[id] != null) per[id] += c.shares[id];
       if (c.twdPending || c.estimated[id]) approx[id] = true;     // §5.1 (a)(b)
     });
+    // 付款人不在參與者裡、但承擔了零頭／差額或整筆（R-10 的 0 人舊帳）：另外加
+    if (e.payer && !(e.parts || []).includes(e.payer) && c.shares[e.payer] != null)
+      per[e.payer] += c.shares[e.payer];
   });
   return { t, list, readonly, total, per, approx, unsettledList, onlyShared, self };
 }
@@ -2282,6 +2299,9 @@ function tripSummary(tid, opts) {
    同一句只寫一次，兩處都引用這裡（CLAUDE.md「同一句文案只准寫一次」）。 */
 const MSG_NO_RATE     = '先記著了。設好這趟的現金匯率就會自動換算。';
 const MSG_TWD_PENDING = '先記著了。補上台幣金額就會算進結算。';
+// R-10：「一起分」全部取消勾選時，參與者下方立刻出現；重新勾任何人就消失
+const MSG_NO_PARTS    = '一個人都沒勾。這筆只算某一個人的話，改用「只算一個人」';
+const LABEL_TO_SINGLE = '改成只算一個人';
 /* 實作-S-5　從金額欄下方移到「金額」那一列的右側，改成常駐的小灰字
    （Rozi：兩段說明應該同時顯示）。文案縮短，拿掉「會」。 */
 const MSG_FILL_ONE    = '填一邊就好，另一邊自動換算';
@@ -2721,7 +2741,7 @@ function paintS04() {
         <div class="shareline"><span style="font-size:var(--fs-body);font-weight:600">${n} 人均分</span>
           <span class="sep" aria-hidden="true">·</span>
           ${b('S-04-13', `<span class="money" style="font-size:var(--fs-money);font-weight:600">${
-            c.twdPending ? '每人 —' : '每人 ' + money(Math.round(c.twdTotal / Math.max(1,n)))}</span>`, 'inl')}</div>
+            c.twdPending || !n ? '每人 —' : '每人 ' + money(Math.round(c.twdTotal / n))}</span>`, 'inl')}</div>
         <button class="expandbtn" data-eexpand>${g._partsOpen ? '收起' : '要排除誰？'}</button>
       </div>
       ${g._partsOpen ? `<div class="gap" style="margin-top:9px">${t2.members.map(m => {
@@ -2730,6 +2750,9 @@ function paintS04() {
           ${avatarHTML(m, t2.members.indexOf(m), 28)}
           <span style="flex:1;font-weight:600">${esc(m.name)}</span>
           <span class="chkchip ${on?'on':''}" aria-hidden="true"></span></button>`; }).join('')}</div>` : ''}
+      ${n ? '' : b('S-04-40', `<div class="note warn" id="noparts">${ic('warn',14)}
+        <div class="notebody">${MSG_NO_PARTS}
+          <div class="noparts-act"><button class="ratelink" data-tosingle>${LABEL_TO_SINGLE}</button></div></div></div>`)}
     </div>`);
   } else if (g.type === 'single') {
     tb.innerHTML = b('S-04-17', `<div style="margin-top:10px"><span class="lbl" data-group="chips 多選一，非單一輸入欄">算誰的？</span>
@@ -3110,6 +3133,7 @@ Object.assign(INDEX, {
     ['S-04-37','均分說明灰字','del','已移除（#17-11）：placeholder 已經顯示均分值，句子是重複'],
     ['S-04-38','沒設匯率的提示','op','<b>改（#17-4）</b>：記帳頁<b>不設定匯率</b>，只顯示連結跳到 S-02b。匯率全站只有一個入口'],
     ['S-04-39','換算規則','inv','<b>改（#17-4）</b>：<b>與支付方式無關</b>。有台幣就用台幣；只有外幣用行程匯率；都有則用台幣。單筆覆寫匯率已移除'],
+    ['S-04-40','一個人都沒勾（R-10）','op','<b>新</b>：一起分全部取消勾選時，參與者下方立刻出現提示＋「改成只算一個人」按鈕（可點區 45px 高）；不彈視窗；重新勾任何人就消失；仍是 0 人時按「記下來」擋下不存。切到只算一個人預設帶付款人，沒有就第一位成員'],
   ],
   s05: [
     ['S-05-1','未結算引導','del','已移除（#24-3）：未結算態改為顯示完整轉帳預覽後，這個空引導失去作用。<b>S-05-16 的摺紙 signature 不受影響</b>'],
@@ -3237,6 +3261,9 @@ document.addEventListener('click', ev => {
   const ep = hit('data-epart');    if (ep) { const id = ep.dataset.epart;
     g.parts = (g.parts||[]).includes(id) ? g.parts.filter(x => x !== id) : (g.parts||[]).concat(id);
     paintS04(); return; }
+  // R-10：0 人提示的按鈕 → 改成只算一個人，預設付款人，沒有就第一位
+  if (hit('data-tosingle')) { g.type = 'single';
+    g.parts = [g.payer || tripOf(store.s03Trip).members[0].id]; renderS04(); return; }
   const es = hit('data-esingle');  if (es) { g.parts = [es.dataset.esingle]; paintS04(); return; }
   const ey = hit('data-epayer');   if (ey) { g.payer = ey.dataset.epayer;
     g.onSpot = false;                       // #20-2 兩者互斥：選了人就不是「大家各付各的」
@@ -3265,6 +3292,11 @@ document.addEventListener('click', ev => {
 /* §4 四種存檔提示 */
 function saveExpense() {
   const t = tripOf(store.s03Trip);
+  // R-10：一起分 0 人存不進去。提示已在參與者下方，這裡只擋住並把畫面帶過去
+  if (g.type !== 'single' && !(g.parts || []).length) {
+    const np = document.getElementById('noparts'); if (np) np.scrollIntoView({block:'center'});
+    return;
+  }
   if (!g.title.trim()) g.title = '（未命名）';
   if (!g.payer) g.payer = t.members[0].id;
   const c = calc(g, t);
