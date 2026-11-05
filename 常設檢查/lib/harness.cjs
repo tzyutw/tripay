@@ -54,7 +54,16 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function open(page, base, q, { width = 390, height = 844, wait = 300, beforeLoad } = {}) {
   await page.setViewport({ width, height, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
   if (beforeLoad) await beforeLoad(page);
-  await page.goto(`${base}/harness.html?${q}`, { waitUntil: 'networkidle0' });
+  if (q.startsWith('admin:')) {
+    /* 後台：另一個量測靶（src/test/harness/admin.html），只能從 vite 開發伺服器開 */
+    if (!module.exports.adminBase) throw new Error('後台量測靶沒有起來（adminBase 未設定）');
+    const [route, ...extra] = q.slice(6).split('&');
+    await page.goto(`${module.exports.adminBase}/src/test/harness/admin.html?route=${encodeURIComponent(route)}${extra.length ? '&' + extra.join('&') : ''}`, { waitUntil: 'networkidle0' });
+    await page.waitForSelector('[data-admin]', { timeout: 15000 });
+    await page.waitForFunction(() => !document.querySelector('.spin'), { timeout: 15000 });
+  } else {
+    await page.goto(`${base}/harness.html?${q}`, { waitUntil: 'networkidle0' });
+  }
   await sleep(wait);
   /* 頁面整片空白＝靶壞了，不是「沒有問題」 */
   /* sheet 會 createPortal 到 body，所以數 body 底下、不只 #root */
@@ -129,6 +138,24 @@ const SCAN = [
   { q: 'screen=s06',                       name: 'S-06 分享頁', expand: ['總花費', '查看計算依據'] },
   { q: 'screen=s06&member=0',              name: 'S-06 分享頁・某人的帳' },
   { q: 'screen=s07',                       name: 'S-07 設定' },
+  /* ── C10 補上的三種假資料（2026-11-05）：長名字、組合字名字、沒有回程日 ── */
+  { q: 'screen=s02b&members=long',         name: 'S-02b 編輯行程（10 字長名字）' },
+  { q: 'screen=s03&members=long',          name: 'S-03 消費列表（10 字長名字，展開）', expand: ['總花費'] },
+  { q: 'screen=s04&members=long',          name: 'S-04 各付各的（10 字長名字）', expand: ['各付各的'] },
+  { q: 'screen=s05&state=settled&members=long', name: 'S-05 計算依據（10 字長名字）', expand: ['查看計算依據'] },
+  { q: 'screen=s06&members=long',          name: 'S-06 分享頁（10 字長名字）', expand: ['總花費', '查看計算依據'] },
+  { q: 'screen=s02b&members=zwj',          name: 'S-02b 編輯行程（組合字名字）' },
+  { q: 'screen=s03&members=zwj',           name: 'S-03 消費列表（組合字名字，展開）', expand: ['總花費'] },
+  { q: 'screen=s01&enddate=none',          name: 'S-01 行程列表（沒有回程日）' },
+  { q: 'screen=s02b&enddate=none',         name: 'S-02b 編輯行程（沒有回程日）' },
+  /* ── 後台（2026-11-05 納入）：只有管理者看得到，但一樣是畫面。路由對照 實作_後台版面測試.cjs ── */
+  { q: 'admin:/admin',                     name: '後台 A 總覽', admin: true },
+  { q: 'admin:/admin/trips/t1',            name: '後台 B 行程詳情', admin: true },
+  { q: 'admin:/admin/trips/t2',            name: '後台 B 已結算行程', admin: true },
+  { q: 'admin:/admin/log',                 name: '後台 C 操作紀錄', admin: true },
+  { q: 'admin:/admin/errors',              name: '後台 D 錯誤紀錄', admin: true },
+  { q: 'admin:/admin/people',              name: '後台 E 用人查（未選）', admin: true },
+  { q: 'admin:/admin/people/u2',           name: '後台 E 用人查（已選）', admin: true },
 ];
 
 /** 準備一個 SCAN 狀態：開頁 → 展開 → 跑 steps。回傳實際展開了什麼。 */
@@ -143,6 +170,18 @@ async function prepare(page, base, sc, opt = {}) {
   return { expanded, stepped };
 }
 
+/** 後台量測靶要開 vite 開發伺服器（harness 模式）。回傳 { base, stop }。 */
+function startAdminServer(cwd = ROOT) {
+  const { spawn } = require('child_process');
+  return new Promise((res, rej) => {
+    const port = 5200 + Math.floor(Math.random() * 500);
+    const p = spawn(path.join(cwd, 'node_modules', '.bin', 'vite'), ['--mode', 'harness', '--port', String(port), '--strictPort'],
+      { cwd, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, VITE_SUPABASE_URL: 'http://stub', VITE_SUPABASE_ANON_KEY: 'stub' } });
+    const t = setTimeout(() => { p.kill(); rej(new Error('後台開發伺服器 30 秒沒起來')); }, 30000);
+    p.stdout.on('data', d => { if (String(d).includes('Local')) { clearTimeout(t); res({ base: `http://localhost:${port}`, stop: () => p.kill() }); } });
+  });
+}
+
 function outDir() {
   const d = process.env.STANDING_OUT || path.join(os.tmpdir(), 'tripay-standing');
   fs.mkdirSync(d, { recursive: true });
@@ -150,4 +189,4 @@ function outDir() {
 }
 
 module.exports = { ROOT, chromePath, buildHarness, serve, launch, open, prepare, clickByText, clickSel,
-                   sleep, SCAN, outDir };
+                   sleep, SCAN, outDir, startAdminServer, adminBase: null };

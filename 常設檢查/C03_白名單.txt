@@ -1,4 +1,18 @@
 # 常設 C3 的白名單（一行一個 glob）。**每一節指令開工時換成那一節的範圍。**
-# 目前這份是「補回常設檢查」那一節的範圍：只新增檢查腳本與說明，不動 src 與原型。
+# 目前這份是 2026-11-05「常設檢查跑出來的 1～6 項」那一節的範圍。
 常設檢查/**
 _需求台帳.md
+專案狀態.md
+規格_金額未定案與幣別.md
+決策符合性檢查表.md
+Tripay_原型.html
+src/components/TripFormSheet.tsx
+src/components/ExpenseFormSheet.tsx
+src/components/shared/StatCard.tsx
+src/components/shared/MemberLedger.tsx
+src/components/shared/types.ts
+src/lib/summary.ts
+src/test/harness/fixtures.ts
+src/test/fixtures/shared-components.json
+src/**/*.test.ts
+src/**/*.test.tsx

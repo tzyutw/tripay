@@ -10,8 +10,8 @@
  * C8 守恆式（每一趟）：
  *   ① 逐筆：各人 shares 加總 ＝ 該筆台幣總額（±1）。整筆算不出台幣的跳過；
  *      有人的份算不出來的跳過（計數會印出來）
- *   ② 全趟：Σ每人金額（S-03 統計卡那一欄）＋ 算不出來那幾筆的未分配部分 ＝ 總花費（±1）
- *      對不上時把差拆成三類列出：贊助（每人含、總花費不含）、「自己的」（總花費含、不屬於任何人）、其他
+ *   ② 全趟：Σ每人金額（S-03 統計卡那一欄）＋「贊助折抵」那一行 ＋ 算不出來那幾筆的未分配部分 ＝ 總花費（±1）
+ *      （決策 75，2026-11-05：「自己的」算進付款人本人、贊助另列一行）。對不上時附上贊助／「自己的」金額供拆差額
  * C7 帳務三欄（每一趟、每個人）：
  *   ③ S-05 卡片的「他幫大家先付的 − 一起分的 − 各付各的 ＋ 贊助折抵 ＋ 代收」＝ 該人淨額（差 < 0.5 元；歷史行程台幣有小數，畫面取整到元）
  *   ④ 全員淨額加總 ＝ 0
@@ -95,11 +95,12 @@ module.exports = {
       const sumPer = Object.values(S.per).reduce((a, b) => a + b, 0);
       /* 規格允許的差只有一種：算不出來的那幾筆（C8 定義：Σ各成員 ＋ Σ算不出來 ＝ 總花費）。
          贊助、「自己的」造成的差**照樣算沒過**，但拆開列出來，看得出是哪一類。 */
-      const gap = sumPer + unalloc - S.total;
-      const other = gap - sponsorShares + personal;
-      rows.push({ where, element: 'C8② 全趟：Σ每人金額＋算不出來的 ＝ 總花費',
-        measured: `總花費 ${r2(S.total)}，Σ每人 ${r2(sumPer)}，算不出來 ${r2(unalloc)}，差 ${r2(gap)}` +
-          (Math.abs(gap) > 1 ? `（其中 贊助負額算進每人但不算進總花費 ${r2(sponsorShares)}、「自己的」算進總花費但不屬於任何人 −${r2(personal)}、其他 ${r2(other)}）` : ''),
+      /* 決策 75（2026-11-05）：統計卡多一行「贊助折抵」＝ S.sponsorAdj，算進加總 */
+      const adj = S.sponsorAdj || 0;
+      const gap = sumPer + adj + unalloc - S.total;
+      rows.push({ where, element: 'C8② 全趟：Σ每人金額＋贊助折抵＋算不出來的 ＝ 總花費',
+        measured: `總花費 ${r2(S.total)}，Σ每人 ${r2(sumPer)}，贊助折抵 ${r2(adj)}，算不出來 ${r2(unalloc)}，差 ${r2(gap)}` +
+          (Math.abs(gap) > 1 ? `（參考：這趟贊助負額 ${r2(sponsorShares)}、「自己的」合計 ${r2(personal)}）` : ''),
         limit: '差 ≤ 1', ok: Math.abs(gap) <= 1 });
       /* ③④ */
       const { net } = E.settleTrip(S, expenses, trip);

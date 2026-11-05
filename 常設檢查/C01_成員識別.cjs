@@ -27,6 +27,7 @@ module.exports = {
     const rows = []; let letters = 0;
     for (const mode of ['', '&members=noemoji']) {
       for (const sc of scan || H.SCAN) {
+        if (mode && sc.admin) continue;   // 後台的假資料沒有 noemoji 開關，只跑有 emoji 那一組
         const where = sc.name + (mode ? '（沒 emoji）' : '（有 emoji）');
         await H.prepare(page, base, { ...sc, q: sc.q + mode });
         if (inject) await inject(page, sc);
