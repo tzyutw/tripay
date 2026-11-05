@@ -165,6 +165,21 @@ describe('R-10 ①　一起分全部取消勾選', () => {
   });
 });
 
+describe('R-10 ①b　名單收起時被擋下', () => {
+  it('收起名單後按「記下來」→ 擋下，而且名單自動展開，可以直接勾人', async () => {
+    open();
+    pickPayer('Rozi');
+    fireEvent.click(screen.getByText('要排除誰？'));
+    for (const r of partRows()) fireEvent.click(r);
+    fireEvent.click(screen.getByText('收起'));
+    expect(partRows().length, '先確認真的收起來了').toBe(0);
+    fireEvent.click(screen.getByText('記下來'));
+    await new Promise(r => setTimeout(r, 30));
+    expect(captured.expenses.length).toBe(0);
+    expect(partRows().length, '被擋下之後要看得到可以勾的人').toBe(3);
+  });
+});
+
 describe('R-10 ②　切到「只算一個人」一定有人', () => {
   it('畫面：已選付款人 → 帶付款人', () => {
     open();

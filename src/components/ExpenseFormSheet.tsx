@@ -467,11 +467,17 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
     if (!f.onSpot && !f.payer) errs.payer = '先選這筆是誰付的';
     /* R-10　0 人的帳存不進去（結算時錢算進付款人付出、卻沒有人分攤）。
        提示本身已經在參與者下方，這裡只負責擋住並把畫面帶過去。 */
-    if (hasNoParts(f)) errs.parts = MSG_NO_PARTS;
+    if (hasNoParts(f)) {
+      errs.parts = MSG_NO_PARTS;
+      /* 名單收起來時被擋下，使用者看不到可以勾的人——直接展開，人就在提示上方 */
+      if (f.kind === 'shared' && !f.partsOpen) setF(s => ({ ...s, partsOpen: true }));
+    }
     setErrors(errs);
     /* jsdom 沒實作 scrollIntoView，真實瀏覽器有——多一個 ?. 讓測試不要噴 unhandled error */
     if (errs.payer) payerRowRef.current?.scrollIntoView?.({ block: 'center' });
-    else if (errs.parts) noPartsRef.current?.scrollIntoView?.({ block: 'center' });
+    /* 等名單展開畫好再捲——先捲的話，展開後提示會被推到「記下來」底下 */
+    else if (errs.parts) requestAnimationFrame(() =>
+      noPartsRef.current?.scrollIntoView?.({ block: 'center' }));
     return Object.keys(errs).length === 0;
   }
 

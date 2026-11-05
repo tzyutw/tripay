@@ -3294,6 +3294,8 @@ function saveExpense() {
   const t = tripOf(store.s03Trip);
   // R-10：一起分 0 人存不進去。提示已在參與者下方，這裡只擋住並把畫面帶過去
   if (g.type !== 'single' && !(g.parts || []).length) {
+    // 名單收起來時被擋下，看不到可以勾的人——直接展開
+    if (g.type === 'shared' && !g._partsOpen) { g._partsOpen = true; paintS04(); }
     const np = document.getElementById('noparts'); if (np) np.scrollIntoView({block:'center'});
     return;
   }
