@@ -10,12 +10,17 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { firstGrapheme } from '@/lib/format';
 import { Icon } from '@/components/Icon';
+import { useIsAdmin } from '@/pages/admin/data';
 import type { User } from '@supabase/supabase-js';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const [showDialog, setShowDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+  /* 後台入口**只有管理者看得到**（資料庫 `admin_check()` 回 true 才渲染）。
+     其他人這裡什麼都不多——畫面與改動前逐字相同。
+     安全不靠這裡：就算有人自己打 /admin，資料庫也不給資料。 */
+  const { data: isAdmin } = useIsAdmin();
 
   const { data: user } = useQuery<User | null>({
     queryKey: ['auth-user'],
@@ -65,6 +70,13 @@ export default function SettingsPage() {
         <button className="btn qt" style={{ color: 'var(--md)' }}
           onClick={() => setShowDialog(true)}>登出</button>
       </div>
+
+      {isAdmin && (
+        <div style={{ margin: '10px 14px 0' }}>
+          <button className="btn qt" style={{ color: 'var(--md)' }}
+            onClick={() => navigate('/admin')}>後台（只有你看得到）</button>
+        </div>
+      )}
 
       {/* S-07-7　版本號是 Rozi 2026-09-06 要求加的（原型沒有）：
           「部署成功了但使用者拿到舊 bundle」這件事光看畫面分不出來，

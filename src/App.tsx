@@ -1,5 +1,7 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
+import { logClientError } from '@/lib/errorLog';
 import { ToastProvider } from '@/contexts/ToastContext';
 import AuthLayout from '@/components/AuthLayout';
 import PrivacyPage from '@/pages/PrivacyPage';
@@ -11,7 +13,17 @@ import SettlementPage from '@/pages/SettlementPage';
 import SettingsPage from '@/pages/SettingsPage';
 import SharePage from '@/pages/SharePage';
 
+/* 後台-0　後台頁**延遲載入**：家人開 app 時不會下載這一包，主程式大小不變。
+   能不能看到資料由資料庫的 `admin_*` 函式決定，不是靠這裡藏起來。 */
+const AdminPage = lazy(() => import('@/pages/admin/AdminPage'));
+
+/* 後台-D　存檔／讀取失敗時記一筆給後台看。
+   掛在 React Query 的全域 cache 上——**各頁面原本的 onError 一行都沒動**，
+   這裡只是多一個旁聽者。`logClientError` 同步回傳、永不拋錯，
+   所以記錄失敗也不會影響原本的錯誤提示或重試。 */
 const queryClient = new QueryClient({
+  queryCache:    new QueryCache({    onError: e => logClientError('sync', e) }),
+  mutationCache: new MutationCache({ onError: e => logClientError('save', e) }),
   defaultOptions: {
     queries: { retry: 1, staleTime: 30_000 },
   },
@@ -70,6 +82,9 @@ export default function App() {
               <Route path="/trips/:id/delete"     element={<ExpenseListPage />} />
               <Route path="/trips/:id/settlement" element={<SettlementPage />} />
               <Route path="/settings"             element={<SettingsPage />} />
+              <Route path="/admin/*" element={
+                <Suspense fallback={<div className="spin"><i /></div>}><AdminPage /></Suspense>
+              } />
             </Route>
           </Routes>
         </BrowserRouter>
