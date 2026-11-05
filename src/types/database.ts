@@ -182,3 +182,31 @@ export type Database = {
     };
   };
 };
+
+/* ═══ Phase 2（副卡記帳）═══ 欄位照 production 實查（2026-11-05，MCP），不照文件抄 */
+
+/** 006　通訊錄：跨行程認得同一個人。卡片的持卡人指向這裡 */
+export interface Person {
+  id: string;
+  owner_id: string;
+  name: string;
+  emoji: string;                      // production 預設 '🙂'；畫面一律走 Avatar 的 fallback 規則
+  created_at: string;
+  updated_at: string;
+}
+
+/** 007／019　卡片。主卡 parent_card_id 為 null；副卡指向主卡（主卡刪除時副卡 CASCADE） */
+export interface Card {
+  id: string;
+  owner_id: string;
+  nickname: string;
+  last4: string | null;               // 沒有就只顯示暱稱，不補遮罩符號
+  card_issuer: string | null;         // 預留，畫面不顯示
+  is_primary: boolean;
+  parent_card_id: string | null;
+  holder_person_id: string | null;
+  sort_order: number;
+  statement_day: number;              // 019　1～31，預設 31＝月底。只有主卡使用
+  created_at: string;
+  updated_at: string;
+}
