@@ -412,6 +412,9 @@ html.anno .b .bdg:hover{background:#0F5E9E}
 /* R-10 0 人提示裡的按鈕：.ratelink 用負外距把可點區撐到 45px 高，
    這裡補回同樣的上距，按鈕才不會蓋住上面那行字 */
 .ui .noparts-act{margin-top:13px}
+/* R-10 0 人被擋下時提示閃一下。只閃底色、不位移（位移會讓 sheet 一瞬間橫向溢出） */
+.ui .note.nudge{border-radius:var(--r-base);animation:nudge .7s ease-out}
+@keyframes nudge{0%,30%{background:#FBF0EC}100%{background:transparent}}
 .ui .cmp .sub2{width:100%;font-weight:400;margin-top:2px;font-size:var(--fs-sub)}
 .ui .cmp.ok{background:#EAF3E9;border:1px solid #C9DFC8;color:var(--in)}
 .ui .cmp.soft{background:#F4F5F1;border:1px solid var(--ln);color:var(--md)}
@@ -2300,7 +2303,7 @@ function tripSummary(tid, opts) {
 const MSG_NO_RATE     = '先記著了。設好這趟的現金匯率就會自動換算。';
 const MSG_TWD_PENDING = '先記著了。補上台幣金額就會算進結算。';
 // R-10：「一起分」全部取消勾選時，參與者下方立刻出現；重新勾任何人就消失
-const MSG_NO_PARTS    = '一個人都沒勾。這筆只算某一個人的話，改用「只算一個人」';
+const MSG_NO_PARTS    = '一個人都沒勾。這筆只算某一個人的話：';   // 停在冒號，下一行就是按鈕，不重講一次
 const LABEL_TO_SINGLE = '改成只算一個人';
 /* 實作-S-5　從金額欄下方移到「金額」那一列的右側，改成常駐的小灰字
    （Rozi：兩段說明應該同時顯示）。文案縮短，拿掉「會」。 */
@@ -2742,16 +2745,17 @@ function paintS04() {
           <span class="sep" aria-hidden="true">·</span>
           ${b('S-04-13', `<span class="money" style="font-size:var(--fs-money);font-weight:600">${
             c.twdPending || !n ? '每人 —' : '每人 ' + money(Math.round(c.twdTotal / n))}</span>`, 'inl')}</div>
-        <button class="expandbtn" data-eexpand>${g._partsOpen ? '收起' : '要排除誰？'}</button>
+        ${n ? `<button class="expandbtn" data-eexpand>${g._partsOpen ? '收起' : '要排除誰？'}</button>` : ''}
       </div>
-      ${g._partsOpen ? `<div class="gap" style="margin-top:9px">${t2.members.map(m => {
+      ${/* R-10：0 人時名單固定展開、不給收合鈕——人全排除了，這時只該把人勾回來 */ ''}
+      ${g._partsOpen || !n ? `<div class="gap" style="margin-top:9px">${t2.members.map(m => {
         const on = (g.parts||[]).includes(m.id);
         return `<button class="rowb${on?' on':''}" data-epart="${m.id}">
           ${avatarHTML(m, t2.members.indexOf(m), 28)}
           <span style="flex:1;font-weight:600">${esc(m.name)}</span>
           <span class="chkchip ${on?'on':''}" aria-hidden="true"></span></button>`; }).join('')}</div>` : ''}
-      ${n ? '' : b('S-04-40', `<div class="note warn" id="noparts">${ic('warn',14)}
-        <div class="notebody">${MSG_NO_PARTS}
+      ${n ? '' : b('S-04-40', `<div class="note warn" id="noparts" style="display:flex;align-items:flex-start;gap:5px">${ic('warn',14)}
+        <div class="notebody" style="flex:1;min-width:0">${MSG_NO_PARTS}
           <div class="noparts-act"><button class="ratelink" data-tosingle>${LABEL_TO_SINGLE}</button></div></div></div>`)}
     </div>`);
   } else if (g.type === 'single') {
@@ -3133,7 +3137,7 @@ Object.assign(INDEX, {
     ['S-04-37','均分說明灰字','del','已移除（#17-11）：placeholder 已經顯示均分值，句子是重複'],
     ['S-04-38','沒設匯率的提示','op','<b>改（#17-4）</b>：記帳頁<b>不設定匯率</b>，只顯示連結跳到 S-02b。匯率全站只有一個入口'],
     ['S-04-39','換算規則','inv','<b>改（#17-4）</b>：<b>與支付方式無關</b>。有台幣就用台幣；只有外幣用行程匯率；都有則用台幣。單筆覆寫匯率已移除'],
-    ['S-04-40','一個人都沒勾（R-10）','op','<b>新</b>：一起分全部取消勾選時，參與者下方立刻出現提示＋「改成只算一個人」按鈕（可點區 45px 高）；不彈視窗；重新勾任何人就消失；仍是 0 人時按「記下來」擋下不存。切到只算一個人預設帶付款人，沒有就第一位成員'],
+    ['S-04-40','一個人都沒勾（R-10）','op','<b>新</b>：一起分全部取消勾選時，參與者下方立刻出現提示＋「改成只算一個人」按鈕（可點區 ≥44px）；不彈視窗；0 人時名單固定展開、不顯示「要排除誰？」；重新勾任何人就消失；仍是 0 人時按「記下來」擋下不存，提示閃一下。切到只算一個人預設帶付款人，沒有就第一位成員；切到各付各的把大家勾回來'],
   ],
   s05: [
     ['S-05-1','未結算引導','del','已移除（#24-3）：未結算態改為顯示完整轉帳預覽後，這個空引導失去作用。<b>S-05-16 的摺紙 signature 不受影響</b>'],
@@ -3294,9 +3298,10 @@ function saveExpense() {
   const t = tripOf(store.s03Trip);
   // R-10：一起分 0 人存不進去。提示已在參與者下方，這裡只擋住並把畫面帶過去
   if (g.type !== 'single' && !(g.parts || []).length) {
-    // 名單收起來時被擋下，看不到可以勾的人——直接展開
-    if (g.type === 'shared' && !g._partsOpen) { g._partsOpen = true; paintS04(); }
-    const np = document.getElementById('noparts'); if (np) np.scrollIntoView({block:'center'});
+    // 提示早就在畫面上時，擋下之後畫面毫無變化，跟「按了沒反應」分不出來——閃一下
+    const np = document.getElementById('noparts');
+    if (np) { np.classList.remove('nudge'); void np.offsetWidth; np.classList.add('nudge');
+              np.scrollIntoView({block:'center'}); }
     return;
   }
   if (!g.title.trim()) g.title = '（未命名）';

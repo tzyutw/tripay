@@ -15,7 +15,7 @@ import ExpenseFormSheet, { switchKind, hasNoParts, type FormState } from './Expe
 import { MSG_NO_PARTS, LABEL_TO_SINGLE } from '@/lib/messages';
 import type { TripWithMembers } from '@/types/database';
 
-const { members, oldZero } = vi.hoisted(() => {
+const { members, oldZero, oldEach } = vi.hoisted(() => {
   const members = [
   { emoji: '🐵', name: 'Rozi' }, { emoji: '🐱', name: '小美' }, { emoji: '🍋', name: '阿明' },
 ].map((m, i) => ({
@@ -38,7 +38,9 @@ const { members, oldZero } = vi.hoisted(() => {
   })),
 };
 
-  return { members, oldZero };
+  const oldEach = { ...oldZero, id: 'e-old-each', title: '舊的各付各的 0 人帳', expense_type: 'individual',
+    expense_splits: oldZero.expense_splits.map(x => ({ ...x, expense_id: 'e-old-each' })) };
+  return { members, oldZero, oldEach };
 });
 
 const trip = {
@@ -53,14 +55,19 @@ const trip = {
 const captured = vi.hoisted(() => ({ expenses: [] as never[], splits: [] as never[] }));
 vi.mock('@/lib/supabaseClient', async () => {
   const { makeSupabaseMock: mk } = await import('@/test/utils');
-  const base = mk({ expenses: [oldZero] as never[] });
+  const base = mk({ expenses: [oldZero, oldEach] as never[] });
   return {
     supabase: {
       ...base,
       from: (table: string) => {
         const chain = base.from(table) as Record<string, unknown>;
         if (table === 'expenses') {
-          const single0 = chain.single as () => Promise<unknown>;
+          /* 單筆查詢照 `.eq('id', …)` 回對的那一筆（共用 mock 永遠回第一筆） */
+          let wantId: string | null = null;
+          const eq0 = chain.eq as (...a: unknown[]) => unknown;
+          chain.eq = vi.fn((col: string, v: string) => { if (col === 'id') wantId = v; return eq0(col, v); });
+          const single0 = () => Promise.resolve({
+            data: [oldZero, oldEach].find(x => x.id === wantId) ?? null, error: null });
           chain.insert = vi.fn((r: never) => {
             captured.expenses.push(r);
             chain.single = vi.fn(() => Promise.resolve({ data: { id: 'new-exp' }, error: null }));
@@ -165,18 +172,45 @@ describe('R-10 ①　一起分全部取消勾選', () => {
   });
 });
 
-describe('R-10 ①b　名單收起時被擋下', () => {
-  it('收起名單後按「記下來」→ 擋下，而且名單自動展開，可以直接勾人', async () => {
+describe('R-10 ①b　0 人時的名單、擋下回饋、各付各的', () => {
+  it('0 人時名單固定展開，不顯示「要排除誰？」／「收起」', () => {
+    open();
+    fireEvent.click(screen.getByText('要排除誰？'));
+    for (const r of partRows()) fireEvent.click(r);
+    expect(document.querySelector('.expandbtn'), '人全排除了，「要排除誰？」講反了').toBeNull();
+    expect(partRows().length, '名單要一直看得到，才勾得回來').toBe(3);
+    /* 勾回一人 → 收合鈕回來 */
+    fireEvent.click(partRows()[0]);
+    expect(screen.getByText('收起')).toBeInTheDocument();
+  });
+
+  it('擋下時提示閃一下（每按一次都重播），不是畫面毫無變化', async () => {
     open();
     pickPayer('Rozi');
     fireEvent.click(screen.getByText('要排除誰？'));
     for (const r of partRows()) fireEvent.click(r);
-    fireEvent.click(screen.getByText('收起'));
-    expect(partRows().length, '先確認真的收起來了').toBe(0);
+    expect(hint()!.classList.contains('nudge'), '還沒按存檔不該閃').toBe(false);
     fireEvent.click(screen.getByText('記下來'));
+    const first = hint()!;
+    expect(first.classList.contains('nudge')).toBe(true);
+    fireEvent.click(screen.getByText('記下來'));
+    expect(hint(), '第二次按要換一個節點，動畫才會重播').not.toBe(first);
+    expect(hint()!.classList.contains('nudge')).toBe(true);
     await new Promise(r => setTimeout(r, 30));
     expect(captured.expenses.length).toBe(0);
-    expect(partRows().length, '被擋下之後要看得到可以勾的人').toBe(3);
+  });
+
+  it('0 人切到「各付各的」→ 大家勾回來（照原型），不會出現沒人可填的死角', () => {
+    open();
+    fireEvent.click(screen.getByText('要排除誰？'));
+    for (const r of partRows()) fireEvent.click(r);
+    fireEvent.click(screen.getByRole('tab', { name: '各付各的' }));
+    expect(hint()).toBeNull();
+    expect(document.querySelectorAll('.amtrow').length).toBe(3);
+  });
+
+  it('提示句不再跟按鈕重講一次', () => {
+    expect(MSG_NO_PARTS).not.toContain(LABEL_TO_SINGLE.replace('改成', ''));
   });
 });
 
@@ -218,6 +252,17 @@ describe('R-10 ④　打開舊的 0 人帳', () => {
     const rows = partRows();
     expect(rows.length).toBe(3);
     expect(rows.filter(r => r.classList.contains('on')).length, '不准自動勾回去').toBe(0);
+  });
+
+  it('舊的「各付各的」0 人帳：給同一份勾選名單，不畫「$0／$0 ✓」', async () => {
+    open('e-old-each');
+    await waitFor(() => expect(screen.getByDisplayValue('舊的各付各的 0 人帳')).toBeInTheDocument());
+    expect(hint()).not.toBeNull();
+    expect(partRows().length).toBe(3);
+    expect(document.querySelector('.cmp'), '0 人不該出現比對列').toBeNull();
+    fireEvent.click(partRows()[1]);
+    expect(hint()).toBeNull();
+    expect(document.querySelectorAll('.amtrow').length).toBe(1);
   });
 
   it('不改就存 → 擋下；勾一個人才存得出去', async () => {

@@ -705,3 +705,9 @@ input:where([type=text],[type=number],[type=date]):not([class]):not(.fieldrow *)
 /* R-10 0 人提示裡的「改成只算一個人」：`.ratelink` 用負外距把可點區撐到 45px 高，
    這裡補回同樣的上距，按鈕才不會蓋住上面那行字。與原型 `.ui .noparts-act` 同值。 */
 .noparts-act { margin-top: 13px }
+
+/* R-10 0 人被擋下時提示閃一下：提示早就在畫面上時，擋下之後畫面毫無變化，
+   跟「按了沒反應」分不出來。只閃底色、不位移（位移會讓 sheet 一瞬間橫向溢出），
+   所以減少動態效果的設定下也照樣可以用。與原型 `.ui .note.nudge` 同值。 */
+.note.nudge { border-radius: var(--r-base); animation: nudge .7s ease-out }
+@keyframes nudge { 0%, 30% { background: #FBF0EC } 100% { background: transparent } }

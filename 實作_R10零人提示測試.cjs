@@ -4,7 +4,7 @@
  *   3 重新勾一人 → 提示消失
  *   4 按「改成只算一個人」→ 切過去、一定有人被選
  *   5 320／375／414 寬都不得整頁或 sheet 橫向捲動
- *   6 名單收起時按「記下來」→ 擋下、名單自動展開、提示在「記下來」上方看得到
+ *   6 0 人時名單固定展開、不給收合鈕；按「記下來」→ 擋下、提示閃一下、在「記下來」上方看得到
  * 執行：npx vite build --mode harness && CHROME_PATH=… node 實作_R10零人提示測試.cjs
  */
 const fs = require('fs'), path = require('path'), http = require('http');
@@ -76,7 +76,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     console.log(`   @${w} 提示：${m ? `「${m.text}」` : '(沒有)'}｜按鈕 ${m && m.bw}×${m && m.bh}｜在名單下方 ${m && m.below}｜蓋到字 ${m && m.overlap}px`);
     ok(m, `@${w} 0 人時沒有出現提示`);
     if (m) {
-      ok(m.text.includes('一個人都沒勾。這筆只算某一個人的話，改用「只算一個人」'), `@${w} 文案不對：${m.text}`);
+      ok(m.text.includes('一個人都沒勾。這筆只算某一個人的話：'), `@${w} 文案不對：${m.text}`);
       ok(m.btn, `@${w} 沒有「改成只算一個人」按鈕`);
       ok(m.bh >= 44, `@${w} 按鈕可點區只有 ${m.bh}px 高，應 ≥ 44`);
       ok(m.below, `@${w} 提示不在參與者名單下方`);
@@ -90,22 +90,27 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       await p.screenshot({ path: path.join(SHOT, `r10_零人提示_${w}.png`) });
     }
 
-    /* 2b 名單收起時按「記下來」→ 擋下、名單自動展開、提示落在「記下來」上方看得到的地方 */
+    /* 2b 0 人時名單固定展開、沒有「要排除誰？」；按「記下來」→ 擋下、提示閃一下、落在「記下來」上方 */
     await p.evaluate(() => { const z = [...document.querySelectorAll('.fld')].find(x => x.textContent.includes('誰付的？'));
       const c = z && z.querySelector('.chip'); if (c && !c.classList.contains('on')) c.click(); });
-    await clickText('收起'); await sleep(60);
-    const collapsed = await p.evaluate(() => document.querySelectorAll('button.rowb').length);
-    await clickText('記下來'); await sleep(400);
+    await sleep(60);
+    const noExpand = await p.evaluate(() => !document.querySelector('.expandbtn'));
+    await clickText('記下來'); await sleep(120);
     const blk = await p.evaluate(() => {
       const h = document.querySelector('[data-testid="noparts"]'), f = document.querySelector('.btnrow');
       if (!h || !f) return null;
       const hr = h.getBoundingClientRect(), fr = f.getBoundingClientRect();
-      return { rows: document.querySelectorAll('button.rowb').length, top: hr.top, bottom: hr.bottom, footer: fr.top };
+      return { rows: document.querySelectorAll('button.rowb').length, nudge: h.classList.contains('nudge'),
+               bg: getComputedStyle(h).backgroundColor, top: hr.top, bottom: hr.bottom, footer: fr.top,
+               over: (document.querySelector('.overflow-y-auto') || document.body).scrollWidth
+                   > (document.querySelector('.overflow-y-auto') || document.body).clientWidth };
     });
-    console.log(`   @${w} 收起後按記下來 → 名單 ${collapsed}→${blk && blk.rows} 列｜提示 ${blk && Math.round(blk.top)}–${blk && Math.round(blk.bottom)}，記下來在 ${blk && Math.round(blk.footer)}`);
-    ok(collapsed === 0, `@${w} 名單沒有收起來，這條等於沒驗`);
-    ok(blk && blk.rows >= 2, `@${w} 被擋下後名單沒有展開，看不到可以勾的人`);
-    ok(blk && blk.top >= 0 && blk.bottom <= blk.footer, `@${w} 被擋下後提示不在可見區（被「記下來」蓋住或捲出畫面）`);
+    console.log(`   @${w} 0 人按記下來 → 收合鈕 ${noExpand ? '無' : '有'}｜名單 ${blk && blk.rows} 列｜閃 ${blk && blk.nudge}（${blk && blk.bg}）｜提示 ${blk && Math.round(blk.top)}–${blk && Math.round(blk.bottom)}，記下來在 ${blk && Math.round(blk.footer)}`);
+    ok(noExpand, `@${w} 0 人時還有「要排除誰？／收起」`);
+    ok(blk && blk.rows >= 2, `@${w} 0 人時名單沒有展開，看不到可以勾的人`);
+    ok(blk && blk.nudge && blk.bg !== 'rgba(0, 0, 0, 0)', `@${w} 擋下時提示沒有閃（畫面毫無變化）`);
+    ok(blk && blk.top >= 0 && blk.bottom <= blk.footer, `@${w} 擋下後提示不在可見區`);
+    ok(blk && !blk.over, `@${w} 閃的時候 sheet 橫向溢出`);
 
     /* 3 重新勾一人 → 消失 */
     await p.evaluate(() => document.querySelector('button.rowb').click());
