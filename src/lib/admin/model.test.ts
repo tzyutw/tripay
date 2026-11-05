@@ -1,6 +1,6 @@
 /* 後台-A／E　總覽排序、綁定帳號、用人查。 */
 import { describe, it, expect } from 'vitest';
-import { buildTrips, sortForOverview, tripsOfUser, boundUserId, fmtTime, ago } from './model';
+import { buildTrips, sortForOverview, tripsOfUser, boundUserId, fmtTime, ago, recorderOf, accountStats } from './model';
 import { baseTrip, mk, M } from '@/test/fixtures/adminFixture';
 import type { TripWithMembers } from '@/types/database';
 
@@ -47,6 +47,27 @@ describe('綁定帳號與用人查', () => {
     expect(tripsOfUser(rows, 'u2').map(r => r.trip.id)).toEqual(['a']);
     expect(tripsOfUser(rows, 'u9').map(r => r.trip.id)).toEqual(['b']);
     void M;
+  });
+});
+
+describe('以登入帳號為主', () => {
+  const known = (id: string) => ['u1', 'u2'].includes(id);
+  it('誰記的：有記錄者用記錄者；沒有或不明就是行程建立者', () => {
+    expect(recorderOf({ created_by: 'u2' }, { owner_id: 'u1' }, known)).toBe('u2');
+    expect(recorderOf({ created_by: null as never }, { owner_id: 'u1' }, known)).toBe('u1');
+    expect(recorderOf({ created_by: 'ghost' }, { owner_id: 'u1' }, known)).toBe('u1');
+  });
+  it('帳號統計：建了哪些行程、被綁進哪些、記了幾筆', () => {
+    const rows = buildTrips([trip('a'), trip('b'), trip('c', { owner_id: 'u2', owner_member_id: null })],
+      [mk({ trip_id: 'a', twd_amount: 1 }), mk({ trip_id: 'b', twd_amount: 1, created_by: null }),
+       mk({ trip_id: 'c', twd_amount: 1, created_by: 'u2' })], []);
+    const u1 = accountStats(rows, 'u1', known);
+    expect(u1.created.map(r => r.trip.id)).toEqual(['a', 'b']);
+    expect(u1.recorded).toBe(2);
+    const u2 = accountStats(rows, 'u2', known);
+    expect(u2.created.map(r => r.trip.id)).toEqual(['c']);
+    expect(u2.joined.map(r => r.trip.id)).toEqual(['a', 'b']);   // fixture 裡小美在 a、b 綁了帳號
+    expect(u2.recorded).toBe(1);
   });
 });
 

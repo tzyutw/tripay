@@ -100,8 +100,8 @@ describe('A 行程總覽', () => {
     const rows = document.querySelectorAll('button.rowb');
     expect(rows[0].textContent).toContain('ZZ 濟州島四寶團');
     expect(rows[1].textContent).toContain('ZZ 沒問題的一趟');
-    /* 4 個資料問題＋1 筆近 7 天錯誤 */
-    expect(within(rows[0] as HTMLElement).getByLabelText('5 個異常')).toBeInTheDocument();
+    /* 3 個資料問題＋1 筆近 7 天錯誤 */
+    expect(within(rows[0] as HTMLElement).getByLabelText('4 個異常')).toBeInTheDocument();
     expect(within(rows[1] as HTMLElement).queryByLabelText(/個異常/)).toBeNull();
     expect(rows[0].textContent).toContain('旅途中');
     expect(rows[0].textContent).toContain('4 人');
@@ -111,20 +111,22 @@ describe('A 行程總覽', () => {
 });
 
 describe('B 行程詳情', () => {
-  it('成員：有沒有綁 Google、最後使用、記了幾筆', async () => {
+  it('成員：建立者／有帳號／沒有帳號（由建立者代記），沒帳號不算異常', async () => {
     show('/admin/trips/t1');
     await screen.findByText('成員 4 人');
     const txt = document.body.textContent!;
-    expect(txt).toContain('已綁 Google（owner@example.test）');
-    expect(txt).toContain('記了 10 筆');                // Rozi 是擁有者那一列
-    expect(txt).toContain('已綁 Google（mei@example.test）');
-    expect(txt).toContain('沒綁 Google 帳號');
+    expect(txt).toContain('行程建立者（owner@example.test）');
+    expect(txt).toContain('記了 10 筆');                // Rozi 是建立者那一列
+    expect(txt).toContain('有帳號（mei@example.test）');
+    expect(screen.getAllByText('沒有帳號（由建立者代記）')).toHaveLength(2);
+    expect(txt).not.toContain('最後使用 —');
+    expect(screen.queryByText(/沒有帳號.*問題|問題.*沒有帳號/)).toBeNull();
     expect(screen.getByText('阿 阿明')).toBeInTheDocument();   // 沒 emoji → 名字第一個字
   });
 
   it('健康檢查：白話寫出哪一筆、什麼問題', async () => {
     show('/admin/trips/t1');
-    await screen.findByText('4 個問題');
+    await screen.findByText('3 個問題');
     expect(screen.getByText(/小美 被算成 −\$10,965/)).toBeInTheDocument();
     expect(screen.getByText('問題 · 3/15 城山日出峰門票')).toBeInTheDocument();
     expect(screen.getByText(/但這趟還沒設現金匯率，換不成台幣/)).toBeInTheDocument();
@@ -145,6 +147,16 @@ describe('B 行程詳情', () => {
     fireEvent.click(within(screen.getByRole('group', { name: '依成員篩選' })).getByText('小魚'));
     await screen.findByText('7 筆');
     expect(screen.queryByText(/紀念品/)).toBeNull();     // 只算小美的那筆不見了
+  });
+
+  it('「誰記的」資料裡沒有記錄者（或不是已知帳號）時，顯示行程建立者', async () => {
+    st.snapshot = snapshot([...demoExpenses(), mk({ id: 'x1', title: '沒記錄者的帳', twd_amount: 100,
+      created_by: null }), mk({ id: 'x2', title: '記錄者不明的帳', twd_amount: 100, created_by: 'ghost' })]);
+    show('/admin/trips/t1');
+    for (const t of ['沒記錄者的帳', '記錄者不明的帳']) {
+      const card = (await screen.findByText(new RegExp(t))).closest('div.bg-white')!;
+      expect(card.textContent).toContain('Rozi 記於');
+    }
   });
 
   it('結算結果在、操作紀錄寫明從哪天開始', async () => {
@@ -238,11 +250,17 @@ describe('C 操作紀錄 / D 錯誤紀錄 / E 用人查', () => {
     expect(t).toContain('當時離線，11/5 11:10 才補送上來');
   });
 
-  it('用人查：選一位家人 → 他參加的行程＋最近 20 筆動作', async () => {
+  it('用人查：列出登入帳號（建了幾趟、記了幾筆、最後使用）→ 選一個看建立的行程＋最近 20 筆動作', async () => {
     show('/admin/people');
-    fireEvent.click(await screen.findByText('小美本人'));
-    await screen.findByText('參加的行程 2 趟');
-    expect(document.body.textContent).toContain('被加為成員');
+    await screen.findByText('登入帳號 2 個');
+    const rozi = screen.getByText('owner@example.test').closest('button')!;
+    expect(rozi.textContent).toContain('建了 2 趟 · 記了 11 筆');
+    const mei = screen.getByText('mei@example.test').closest('button')!;
+    expect(mei.textContent).toContain('建了 0 趟 · 記了 0 筆');
+    fireEvent.click(screen.getByText('小美本人'));
+    await screen.findByText('建立的行程 0 趟');
+    expect(screen.getByText('這個帳號沒有建立過行程。')).toBeInTheDocument();
+    expect(screen.getByText('被綁為成員的行程 2 趟')).toBeInTheDocument();
     await waitFor(() => expect(st.rpcCalls).toContainEqual(
       { fn: 'admin_audit', args: { p_trip: null, p_actor: 'u2', p_limit: 20 } }));
     expect(screen.getByText('最近 20 筆動作')).toBeInTheDocument();

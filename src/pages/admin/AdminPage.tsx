@@ -21,7 +21,7 @@ import { memberLabel } from '@/lib/format';
 import { familySettlementView, PAGE_STATE_LABEL } from '@/lib/admin/settlementView';
 import { describeAudit, namesFromAudit, payLabel, type AuditEntry, type AuditRow } from '@/lib/admin/audit';
 import {
-  ago, boundUserId, buildTrips, fmtTime, involves, sortForOverview, tripsOfUser, type ModelTrip,
+  accountStats, ago, boundUserId, buildTrips, fmtTime, involves, recorderOf, sortForOverview, type ModelTrip,
 } from '@/lib/admin/model';
 import type { ExpenseWithSplits, TripMember } from '@/types/database';
 import {
@@ -101,6 +101,7 @@ export interface Model {
   tripById: Map<string, Trip>;
   userById: Map<string, AdminUser>;
   userName: (id: string | null | undefined) => string;
+  knownUser: (id: string) => boolean;
 }
 
 export function buildModel(snap: Snapshot): Model {
@@ -112,7 +113,8 @@ export function buildModel(snap: Snapshot): Model {
     const u = userById.get(id);
     return u?.display_name || u?.email || '（不明帳號）';
   };
-  return { snap, trips, tripById, userById, userName };
+  const knownUser = (id: string) => userById.has(id);
+  return { snap, trips, tripById, userById, userName, knownUser };
 }
 
 // ── 共用小元件 ────────────────────────────────────────────────────────────────
@@ -253,18 +255,25 @@ function TripDetailBody({ model, r }: { model: Model; r: Trip }) {
 function MembersSection({ model, r }: { model: Model; r: Trip }) {
   return (
     <Section title={`成員 ${r.members.length} 人`}>
+      {/* 產品現況：只有行程建立者能記帳，旅伴只能看分享連結，成員大多沒有帳號。
+          沒綁帳號是正常狀態，照實寫、不算異常。 */}
       {r.members.map(m => {
         const uid = boundUserId(m, r.trip);
         const u = uid ? model.userById.get(uid) : undefined;
-        const count = uid ? r.expenses.filter(e => e.created_by === uid).length : 0;
+        const count = uid
+          ? r.expenses.filter(e => recorderOf(e, r.trip, model.knownUser) === uid).length : 0;
         return (
           <Card key={m.id}>
             <div className="text-body font-semibold text-ink">{memberLabel(m)}</div>
-            <div className="flex flex-wrap gap-x-3 text-sub text-gr">
-              <span>{uid ? `已綁 Google（${u?.email ?? model.userName(uid)}）` : '沒綁 Google 帳號'}</span>
-              <span>最後使用 {uid ? ago(u?.last_active_at) : '—（沒綁帳號就沒有登入紀錄）'}</span>
-              <span>記了 {uid ? `${count} 筆` : '—'}</span>
-            </div>
+            {uid ? (
+              <div className="flex flex-wrap gap-x-3 text-sub text-gr">
+                <span>{uid === r.trip.owner_id ? '行程建立者' : '有帳號'}（{u?.email ?? model.userName(uid)}）</span>
+                <span>最後使用 {ago(u?.last_active_at)}</span>
+                <span>記了 {count} 筆</span>
+              </div>
+            ) : (
+              <div className="text-sub text-gr">沒有帳號（由建立者代記）</div>
+            )}
           </Card>
         );
       })}
@@ -350,7 +359,7 @@ function ExpenseCard({ model, r, e, memberName, problems }: {
         <span>{e.expense_date}</span>
         <span>{memberName(e.payer_member_id)} 付的</span>
         <span>{payLabel(e.payment_method, e.payment_label)}</span>
-        <span>{model.userName(e.created_by)} 記於 {fmtTime(e.created_at)}</span>
+        <span>{model.userName(recorderOf(e, r.trip, model.knownUser))} 記於 {fmtTime(e.created_at)}</span>
         {e.updated_at && e.updated_at !== e.created_at && <span>最後修改 {fmtTime(e.updated_at)}</span>}
         {problems > 0 && <span className="text-dg font-semibold">{problems} 個問題</span>}
       </div>
@@ -514,25 +523,49 @@ function PeoplePage({ model }: { model: Model }) {
   const navigate = useNavigate();
   const users = [...(model.snap.users ?? [])].sort((a, b) =>
     (b.last_active_at ?? '').localeCompare(a.last_active_at ?? ''));
+  const picked = userId ? model.userById.get(userId) : undefined;
   return (
     <div className="pb-8">
-      <Section title="選一位家人">
-        <div className="flex flex-wrap gap-2" role="group" aria-label="選一位家人">
-          {users.map(u => (
-            <button key={u.id} className={`chip${userId === u.id ? ' on' : ''}`}
+      <Section title={`登入帳號 ${users.length} 個`}>
+        {users.length === 0 && <Empty>還沒有人登入過。</Empty>}
+        {users.map(u => {
+          const s = accountStats(model.trips, u.id, model.knownUser);
+          return (
+            <button key={u.id} className={`rowb${userId === u.id ? ' on' : ''}`}
+                    aria-pressed={userId === u.id}
                     onClick={() => navigate(`/admin/people/${u.id}`)}>
-              {u.display_name || u.email}
+              <span className="flex-1 min-w-0">
+                <span className="trunc text-body font-semibold text-ink">{u.display_name || u.email}</span>
+                <span className="trunc text-sub text-gr">{u.email}</span>
+                <span className="block text-sub text-gr">
+                  建了 {s.created.length} 趟 · 記了 {s.recorded} 筆 · 最後使用 {ago(u.last_active_at)}
+                </span>
+              </span>
+              <Icon name="next" size={16} />
             </button>
-          ))}
-        </div>
+          );
+        })}
       </Section>
-      {userId && model.userById.get(userId) && <PersonDetail model={model} u={model.userById.get(userId)!} />}
+      {picked && <PersonDetail model={model} u={picked} />}
     </div>
   );
 }
 
+function TripRow({ r, sub, onOpen }: { r: Trip; sub: string; onOpen: () => void }) {
+  return (
+    <button className="rowb" onClick={onOpen}>
+      <span className="flex-1 min-w-0">
+        <span className="trunc text-body font-semibold text-ink">{r.trip.name}</span>
+        <span className="trunc text-sub text-gr">{sub}</span>
+      </span>
+      <RedDot n={r.anomalyCount} />
+      <Icon name="next" size={16} />
+    </button>
+  );
+}
+
 function PersonDetail({ model, u }: { model: Model; u: AdminUser }) {
-  const trips = tripsOfUser(model.trips, u.id);
+  const s = accountStats(model.trips, u.id, model.knownUser);
   const audit = useAudit(true, { actor: u.id, limit: 20 });
   const errors = useErrors(true, { user: u.id, limit: 20 });
   const navigate = useNavigate();
@@ -543,31 +576,32 @@ function PersonDetail({ model, u }: { model: Model; u: AdminUser }) {
           <div className="flex flex-wrap gap-x-3 text-sub text-gr">
             <span>{u.email}</span>
             <span>最後使用 {ago(u.last_active_at)}</span>
+            <span>記了 {s.recorded} 筆</span>
             <span>最後登入 {fmtTime(u.last_sign_in_at)}</span>
             <span>註冊於 {fmtTime(u.created_at)}</span>
           </div>
         </Card>
       </Section>
-      <Section title={`參加的行程 ${trips.length} 趟`}>
-        {trips.length === 0 && <Empty>沒有參加任何行程（沒有建立過，也沒有被綁進別人的行程）。</Empty>}
-        {trips.map(r => (
-          <button key={r.trip.id} className="rowb" onClick={() => navigate(`/admin/trips/${r.trip.id}`)}>
-            <span className="flex-1 min-w-0">
-              <span className="trunc text-body font-semibold text-ink">{r.trip.name}</span>
-              <span className="trunc text-sub text-gr">
-                {r.statusLabel} · {r.trip.owner_id === u.id ? '他建立的' : '被加為成員'} · {r.expenses.length} 筆帳
-              </span>
-            </span>
-            <RedDot n={r.anomalyCount} />
-            <Icon name="next" size={16} />
-          </button>
+      <Section title={`建立的行程 ${s.created.length} 趟`}>
+        {s.created.length === 0 && <Empty>這個帳號沒有建立過行程。</Empty>}
+        {s.created.map(r => (
+          <TripRow key={r.trip.id} r={r} onOpen={() => navigate(`/admin/trips/${r.trip.id}`)}
+                   sub={`${r.statusLabel} · ${r.members.length} 人 · ${r.expenses.length} 筆帳 · 最後動作 ${ago(r.trip.last_activity_at)}`} />
         ))}
       </Section>
+      {s.joined.length > 0 && (
+        <Section title={`被綁為成員的行程 ${s.joined.length} 趟`}>
+          {s.joined.map(r => (
+            <TripRow key={r.trip.id} r={r} onOpen={() => navigate(`/admin/trips/${r.trip.id}`)}
+                     sub={`${r.statusLabel} · 建立者 ${model.userName(r.trip.owner_id)}`} />
+          ))}
+        </Section>
+      )}
       <Section title="最近 20 筆動作">
         <AuditStart at={model.snap.audit_started_at} />
         <AuditList model={model} rows={audit.data} loading={audit.isLoading} error={audit.isError} showTrip />
       </Section>
-      <Section title="他的錯誤紀錄（最近 20 筆）">
+      <Section title="這個帳號的錯誤紀錄（最近 20 筆）">
         <ErrorList model={model} rows={errors.data} loading={errors.isLoading} error={errors.isError} showTrip />
       </Section>
     </>

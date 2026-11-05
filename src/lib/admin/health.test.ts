@@ -81,10 +81,25 @@ describe('資料健康檢查', () => {
     expect(i[0].text).toBe('各自填的金額加起來超過總額，小美 被算成 −$500');
   });
 
+  it('各自金額有人留空、但填了的已經加到總額（線上舊帳的樣子）：只是提醒，不亮紅點', () => {
+    /* 照 2024 東京「AINZ TULPE 美妝」的形狀：5 人參與、填了 3 人、加起來剛好＝總額 2866.82 */
+    const five = [...M, 'm4'];
+    const trip5 = { ...baseTrip, trip_members: [...baseTrip.trip_members,
+      { ...baseTrip.trip_members[0], id: 'm4', name: '阿嬤', sort_order: 4, user_id: null }] } as TripWithMembers;
+    const e = mk({ title: '美妝', twd_amount: 2866.82, expense_type: 'individual', payer_member_id: M[2],
+                   parts: five, indiv: { m0: 338.37, m2: 2369.84, m4: 158.61 } });
+    const i = checkTripHealth(trip5, [e]);
+    expect(i.map(x => `${x.level}:${x.code}`)).toEqual(['notice:each_blank']);
+    expect(i[0].text).toContain('他們算 $0、結算不會錯');
+    expect(i[0].text).toContain('家人手機上這筆會顯示成「還沒算清楚」');
+    expect(countProblems(i)).toBe(0);
+  });
+
   it('各自金額有 2 人以上沒填', () => {
     const e = mk({ twd_amount: 1000, expense_type: 'individual', indiv: { m0: 100, m1: 300 } });
     const i = checkTripHealth(baseTrip, [e]);
     expect(i[0].code).toBe('each_blank');
+    expect(i[0].level).toBe('problem');
     expect(i[0].text).toContain('2 個人沒填（阿明、小魚）');
   });
 
@@ -101,9 +116,9 @@ describe('資料健康檢查', () => {
   it('結算頁那組 demo 帳：抓到的筆數跟前台「還沒算清楚」對得上', () => {
     const i = checkTripHealth(baseTrip, demoExpenses());
     /* 城山日出峰（現金外幣沒匯率）、計程車（都沒填）；
-       藥妝店：各自金額有 2 人沒填，而且填了的加起來 30,000 > 總額 1,035，小美被算成負的 */
+       藥妝店：填了的加起來 30,000 > 總額 1,035，小美被算成負的（「沒填」不重複報） */
     expect(i.filter(x => x.level === 'problem').map(x => `${x.where}:${x.code}`).sort())
       .toEqual(['3/14 計程車:amount_missing', '3/15 城山日出峰門票:no_cash_rate',
-                '3/15 藥妝店:each_blank', '3/15 藥妝店:negative_share'].sort());
+                '3/15 藥妝店:negative_share'].sort());
   });
 });
