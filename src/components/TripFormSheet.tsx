@@ -639,7 +639,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                       value={currencySearch}
                       onChange={e => setCurrencySearch(e.target.value)}
                       placeholder="搜尋幣別名稱或代碼"
-                      className="w-full px-3 bg-[#F5F4F2] rounded-base text-sm outline-none"
+                      className="w-full px-3 bg-[#F5F4F2] rounded-base text-input outline-none"  /* 常設 C5：原本 text-sm（14px），iOS 聚焦會整頁放大 */
                     />
                   </div>
                   {filteredCurrencies.map(c => (
@@ -716,21 +716,27 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                   <div key={m.key} className="rowb">
                     {/* emoji 就地編輯：不開第二個畫面，點了直接在原位改（B-1 共用元件）*/}
                     {inline.editing === `m:${i}` ? (
-                      <input
-                        ref={inline.inputRef}
-                        type="text"
-                        maxLength={4}
-                        defaultValue=""
-                        aria-label={`換 ${m.name} 的 emoji`}
-                        /* 🔴 實作-AE-3　`w-8 h-8`（32px）比旁邊的 `Avatar`（28px）大，
-                           進出編輯時那一列會微微跳動。統一成 28px（`w-7 h-7`）。 */
-                        className="text-strong w-7 h-7 rounded-base border-[1.5px] border-w bg-white text-center flex-shrink-0 outline-none"
-                        onBlur={e => inline.commit(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') inline.commit((e.target as HTMLInputElement).value);
-                          if (e.key === 'Escape') inline.cancel();
-                        }}
-                      />
+                      /* 🔴 常設 C6（2026-11-05）　輸入框本身只有 28×28，手指按不到。
+                         改成跟 S-04 類別 emoji 同一套（實作-T-3）：外層 `.avatar.tap44` 用透明
+                         `::after` 撐到 44×44，點範圍內任何一處都把焦點交還給裡面的框。
+                         看得見的尺寸維持 28px（實作-AE-3：進出編輯時那一列不能跳）。 */
+                      <span className="avatar tap44"
+                        style={{ width: 28, height: 28, borderWidth: 1.5, borderColor: 'var(--w)' }}
+                        onMouseDown={e => { e.preventDefault(); inline.inputRef.current?.focus(); }}>
+                        <input
+                          ref={inline.inputRef}
+                          type="text"
+                          maxLength={4}
+                          defaultValue=""
+                          aria-label={`換 ${m.name} 的 emoji`}
+                          className="outline-none"
+                          onBlur={e => inline.commit(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') inline.commit((e.target as HTMLInputElement).value);
+                            if (e.key === 'Escape') inline.cancel();
+                          }}
+                        />
+                      </span>
                     ) : (
                       /* S-02c-10 三層 fallback：有 emoji → emoji；沒 emoji 但有名字 →
                          名字第一個 grapheme ＋ 填色圓底；兩者皆無 → 🙂。
@@ -785,7 +791,7 @@ export default function TripFormSheet({ tripId, prefill, onClose, onCreated }: P
                     onChange={e => setNewMemberName(e.target.value.slice(0, 10))}
                     onKeyDown={e => e.key === 'Enter' && addMember()}
                     placeholder="叫什麼名字？"
-                    className="w-full px-3 bg-[#F5F4F2] rounded-base text-body text-ink outline-none mb-3"
+                    className="w-full px-3 bg-[#F5F4F2] rounded-base text-input text-ink outline-none mb-3"  /* 常設 C5：原本 text-body（15px） */
                   />
                   <div className="flex gap-2">
                     <button

@@ -28,10 +28,13 @@ const ORDER = ['C01_成員識別', 'C02_宣告與渲染尺寸', 'C03_檔案白�
     .filter(({ m }) => !only || only.some(o => (m.ids || [m.id]).includes(o)));
 
   const needBrowser = mods.some(({ m }) => m.browser !== false);
-  let srv, browser, page, base;
+  let srv, browser, page, base, adminStop;
   if (needBrowser) {
     H.buildHarness();
     ({ srv } = await H.serve(path.join(H.ROOT, 'dist-harness')).then(x => { base = `http://127.0.0.1:${x.port}`; return x; }));
+    /* 後台另一個量測靶：開發伺服器（起不來就讓後台那幾列報錯，前台照跑） */
+    try { const a = await H.startAdminServer(); H.adminBase = a.base; adminStop = a.stop; }
+    catch (e) { console.log('⚠️ 後台量測靶沒起來：' + e.message); }
     browser = await H.launch();
     page = await browser.newPage();
   }
@@ -51,6 +54,7 @@ const ORDER = ['C01_成員識別', 'C02_宣告與渲染尺寸', 'C03_檔案白�
   }
   if (browser) await browser.close();
   if (srv) srv.close();
+  if (adminStop) adminStop();
 
   fs.writeFileSync(path.join(out, 'report.json'), JSON.stringify(report, null, 2));
   const md = ['| # | 檢查 | 結果 | 紅幾列 |', '|---|---|---|---|',

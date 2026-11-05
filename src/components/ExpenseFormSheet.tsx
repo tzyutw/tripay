@@ -865,7 +865,8 @@ export default function ExpenseFormSheet({ tripId, trip, expenseId, onClose }: P
             它跟著內容捲，不是常駐動作。 */}
         {isEdit && (
           <div className="delrow">
-            <button onClick={() => setShowDelete(true)}>刪除這筆</button>
+            {/* 常設 C6（2026-11-05）：文字鈕只有 60×23，用透明擴張區撐到 44 高，看得見的樣子不變 */}
+            <button className="tap44" onClick={() => setShowDelete(true)}>刪除這筆</button>
           </div>
         )}
         </div>

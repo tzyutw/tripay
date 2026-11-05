@@ -55,6 +55,8 @@ export interface SharedSummary {
   calcOf: (e: SharedExpense) => SharedCalc;
   total: number;
   per: Record<string, number>;            // 每人分擔
+  /** 決策 75　贊助替大家付掉的總額（正數）。統計卡另列一行，Σper＋這一行＝總花費 */
+  sponsorAdj?: number;
   approx: Record<string, boolean>;        // 哪幾個人的分擔是「約」
   readonly?: boolean;
   /* 實作-T-7　外幣視角的總花費：填過外幣的那幾筆用原值加總（`forTotalRaw`），

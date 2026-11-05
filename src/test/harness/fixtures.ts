@@ -13,9 +13,19 @@ export const M = ['m0', 'm1', 'm2', 'm3'];
 const NAMES = ['Alex', 'Robin', 'Sam', 'Kai'];
 const EMOJI = ['🐵', '🐱', '🍋', '🐟'];
 
+/* 🔴 常設 C10（2026-11-05）　規則由來第 6 條列的分岔，原本有三種沒有任何假資料走過：
+     `?members=long`　第二位成員名字 10 個字（新增成員輸入框的上限就是 10 個字）
+     `?members=zwj`　 第二位成員名字是 👨‍👩‍👧（ZWJ 組合字，取第一個字時不能切開）
+   兩者都**拿掉 emoji**，才走得到「名字第一個字＋填色圓底」那一層。不帶參數時完全不變。 */
+const NAME_MODE = new URLSearchParams(location.search).get('members');
+const NAME_OVERRIDE: Record<string, string> = { long: 'Christophe', zwj: '👨‍👩‍👧' };
+
 function mkMembers(withEmoji: boolean): TripMember[] {
-  return NAMES.map((name, i) => ({
-    id: M[i], trip_id: TRIP_ID, name, emoji: withEmoji ? EMOJI[i] : '', sort_order: i,
+  const names = NAME_OVERRIDE[NAME_MODE ?? '']
+    ? NAMES.map((n, i) => (i === 1 ? NAME_OVERRIDE[NAME_MODE!] : n)) : NAMES;
+  const emoji = withEmoji && !NAME_OVERRIDE[NAME_MODE ?? ''];
+  return names.map((name, i) => ({
+    id: M[i], trip_id: TRIP_ID, name, emoji: emoji ? EMOJI[i] : '', sort_order: i,
     linked_profile_id: null, person_id: null, user_id: null, role: null,
     created_at: '2026-03-01',
   })) as TripMember[];
@@ -127,7 +137,8 @@ export const members: TripMember[] = mkMembers(membersHaveEmoji);
 export const trip = {
   id: TRIP_ID, owner_id: 'u1', name: '2026 濟州島四寶團', emoji: '✈️',
   currency: currencyOverride || 'KRW',
-  start_date: '2026-03-14', end_date: '2026-03-18', status: 'active', kind: 'trip',
+  /* 常設 C10　`?enddate=none`：沒有回程日（當天來回）。不帶參數時不變。 */
+  start_date: '2026-03-14', end_date: Q.get('enddate') === 'none' ? null : '2026-03-18', status: 'active', kind: 'trip',
   share_token: 'tok', owner_member_id: M[0], collab_enabled: false, card_id: null,
   cover_path: null, settlement_mode: 'direct', hub_member_id: null,
   payment_methods: noPays ? null : ['現金', '信用卡', 'Linepay'],
