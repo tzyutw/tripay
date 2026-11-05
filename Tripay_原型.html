@@ -811,6 +811,38 @@ html.dev .ui .s00wrap{min-height:calc(100dvh - var(--devbar-h,54px))}
 .ui .drop button.on{color:var(--wi);font-weight:600}
 footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
   color:var(--pgink3);font-size:12.5px;}
+
+/* ══ Phase 2 A：副卡記帳（S-08／S-09／S-10 與帳單版的 S-03／S-04）══
+   **不引進新 token、新字級、新圓角**——下面只組合既有的 --fs-*／--r-*／色票。 */
+.ui .l4{color:var(--gr);font-weight:400;flex:none;font-variant-numeric:tabular-nums}
+.ui .stmtid{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fff;
+  border-bottom:1px solid var(--ln);font-size:var(--fs-body)}
+.ui .stmtid .nm{display:flex;align-items:baseline;gap:6px;flex:1;min-width:0;font-weight:600}
+.ui .stmtid .pd{flex:none;font-size:var(--fs-sub);color:var(--gr)}
+.ui .cardchip{display:inline-flex;align-items:center;gap:5px;min-width:0}
+.ui .cn{min-width:0;overflow-wrap:anywhere}
+.ui .stmtid .pd,.ui .stmtrow .s,.ui .dlg b{font-variant-numeric:tabular-nums}
+.ui .cardchip.on .l4{color:rgba(255,255,255,.8)}
+.ui .cardline{display:flex;align-items:baseline;gap:6px;min-width:0;font-size:var(--fs-body);font-weight:600}
+.ui .rowb .s{display:block;font-size:var(--fs-sub);color:var(--gr)}
+.ui .cardsec{display:flex;align-items:center;gap:6px;min-width:0}
+.ui .stmtrow .mid{flex:1;min-width:0;display:flex;flex-direction:column}
+.ui .stmtrow .t{font-size:var(--fs-body);font-weight:600}
+.ui .stmtrow .owe{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px;font-size:var(--fs-sub);color:var(--md)}
+.ui .stmtrow .owe .mtag{display:inline-flex;align-items:center;gap:4px}
+.ui .stmtrow>.money{flex:none}
+/* 副卡縮排一階：與主卡同一個元件（.rowb），只是往右縮、左邊一條細線把它們串起來 */
+.ui .cardgrp{display:flex;flex-direction:column;gap:6px;margin:0 14px 14px}
+.ui .cardgrp .subs{display:flex;flex-direction:column;gap:6px;margin-left:24px;padding-left:10px;border-left:1px solid var(--ln)}
+.ui .rowb.addsub{border-style:dashed;color:var(--wi);font-size:var(--fs-body);font-weight:600;min-height:44px}
+.ui .fieldrow>.unit{flex:none;font-size:var(--fs-body);color:var(--md)}
+/* 可點區（常設 C6）：看得見的 chip 維持 32px，用透明的 ::after 上下各撐 6px 到 44；
+   同一組的列距拉到 12px，上下兩列的擴張區才不會重疊。不放大看得見的圖形。 */
+.ui .tapchip{position:relative}
+.ui .tapchip::after{content:'';position:absolute;left:0;right:0;top:-6px;bottom:-6px}
+.ui .chips.tapgap{row-gap:12px}
+.ui .tapx{position:relative}
+.ui .tapx::after{content:'';position:absolute;inset:-12px}
 </style>
 
 <div class="top">
@@ -1031,11 +1063,51 @@ footer{padding:32px 0 0;margin-top:32px;border-top:1px solid var(--pgrule);
   <div><p class="cnt">編號清單 · 8 項</p><div class="idx" id="idx-s07"></div></div>
 </section>
 
+
+<!-- ══════════ S-08 ══════════ -->
+<section class="scr" id="s08">
+  <div class="scrhd"><span class="k new">S-08</span><h2>通訊錄</h2>
+    <p>Phase 2 A。帳單的持卡人從這裡挑，不另建一套人名（D2 抽出 people 的目的）。從設定頁進來。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/people</p>
+    <div class="ph"><div class="ui" id="scr-s08"></div></div>
+  </div>
+  <div><p class="cnt" id="cnt-s08"></p><div class="idx" id="idx-s08"></div></div>
+</section>
+
+<!-- ══════════ S-09 ══════════ -->
+<section class="scr" id="s09">
+  <div class="scrhd"><span class="k new">S-09</span><h2>卡片管理 · 主卡與副卡</h2>
+    <p>Phase 2 A。主卡與副卡是<b>同一個卡片元件</b>，副卡在主卡底下縮排一階。點卡片可以編輯、刪除；刪主卡要打字確認。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/cards</p>
+    <div class="ph"><div class="ui" id="scr-s09"></div></div>
+    <div class="rig"><div class="t">原型控制（不是產品的一部分）</div>
+      <div class="row" id="s09rig">
+        <button data-p2="reset">重置假資料</button><button data-p2="edit">編輯玉山主卡</button>
+        <button data-p2="del">刪除玉山主卡的對話框</button><button data-p2="nocard">沒有卡片</button>
+      </div></div>
+  </div>
+  <div><p class="cnt" id="cnt-s09"></p><div class="idx" id="idx-s09"></div></div>
+</section>
+
+<!-- ══════════ S-10 ══════════ -->
+<section class="scr" id="s10">
+  <div class="scrhd"><span class="k new">S-10</span><h2>帳單列表</h2>
+    <p>Phase 2 A。與 S-01「帳單」分段是<b>同一份內容</b>，這裡是從設定頁進來的入口。
+      <b>沒有「開新週期」</b>（D5）：記一筆選了卡，就自動落到那個月。點一個月 → 帳單版的 S-03。</p></div>
+  <div class="phwrap">
+    <p class="phcap">/bills</p>
+    <div class="ph"><div class="ui" id="scr-s10"></div></div>
+  </div>
+  <div><p class="cnt" id="cnt-s10"></p><div class="idx" id="idx-s10"></div></div>
+</section>
+
 <div id="devbar"></div>
 
 <footer>
   Tripay · 唯一原型 · 批一（S-00／S-01／S-02／S-02b）· 2026-09-04<br>
-  批四（S-08～S-11）依 Rozi 裁示延後到 Phase 1＋1.5 上線並實際使用後再做
+  Phase 2 A 里程碑（S-08／S-09／S-10 ＋ 帳單版 S-01／S-03／S-04）· 2026-11-05。S-11 副卡人視角不在 A 範圍
 </footer>
 </div>
 
@@ -1336,6 +1408,16 @@ function renderS01() {
       </span>
     </div>`)}`;
 
+  /* Phase 2 A（D7）：頂部分段「旅遊｜帳單」，與 S-03「消費｜結算」同一個 .seg 元件。 */
+  const seg = b('S-01-16', `<div class="fld" style="padding-top:12px;padding-bottom:0"><div class="seg">
+    <button class="${store.s01Tab!=='bill'?'on':''}" data-s01tab="trip">旅遊</button>
+    <button class="${store.s01Tab==='bill'?'on':''}" data-s01tab="bill">帳單</button></div></div>`);
+  if (store.s01Tab === 'bill' && typeof billListHTML === 'function') {
+    $('#scr-s01').innerHTML = head + seg + billListHTML('S-01-17', true) + `<div id="s01sheet"></div>`;
+    document.querySelectorAll('#s01state button').forEach(x => x.classList.toggle('on', x.dataset.s === store.s01));
+    document.querySelectorAll('#s01dataset button').forEach(x => x.classList.toggle('on', x.dataset.d === store.dataset));
+    return;
+  }
   let body = '';
   if (store.s01 === 'loading') {
     body = b('S-01-3', `<div class="spin"><i></i><div style="font-size:var(--fs-sub);color:var(--gr);margin-top:8px">載入中</div></div>`);
@@ -1366,7 +1448,7 @@ function renderS01() {
       <span class="ghostplus">${ic('add',15)}</span><span>記新的一趟</span></div></button>`) + body;
     body += `<div style="height:18px"></div>`;
   }
-  $('#scr-s01').innerHTML = head + body + `<div id="s01sheet"></div>`;
+  $('#scr-s01').innerHTML = head + (typeof billListHTML === 'function' ? seg : '') + body + `<div id="s01sheet"></div>`;
   document.querySelectorAll('#s01state button').forEach(x => x.classList.toggle('on', x.dataset.s === store.s01));
   document.querySelectorAll('#s01dataset button').forEach(x => x.classList.toggle('on', x.dataset.d === store.dataset));
 }
@@ -2132,7 +2214,10 @@ store.s03Tab = 'exp';       // #28-6a 消費／結算兩個分頁
 store.s06StatOpen = false;  // #29-10 分享頁的統計卡，與 S-03 同一套
 store.s03Cur = 'TWD';       // #17-3 幣別切換
 
-const tripOf = id => store.trips.find(x => x.id === id) || store.realTrips.find(x => x.id === id);
+/* Phase 2 A：帳單（kind='statement'）沿用行程的資料形狀（D1），所以 S-03／S-04／S-05／S-06
+   查得到它就能直接重用。帳單存在 store.statements，S-01 的旅遊列表不讀這裡（S-01-12）。 */
+const tripOf = id => store.trips.find(x => x.id === id) || store.realTrips.find(x => x.id === id)
+  || (store.statements || []).find(x => x.id === id);
 const expsOf = id => store.expenses[id] || (store.expenses[id] = []);
 
 /* 行程現金匯率：外幣 ÷ 台幣。沒設定回 null */
@@ -2274,6 +2359,378 @@ function tripSummary(tid, opts) {
 
 <script>
 /* ═══════════════════════════════════════════════════════════
+   Phase 2 A 里程碑：副卡記帳（2026-11-05）
+   只服務一件事：一個主卡人管幾張副卡，月底知道誰要還我多少。
+   ─ D1 帳單沿用行程的資料形狀，週期內頁就是 S-03／S-04／S-05／S-06
+   ─ D2 帳單裡誰付的固定是主卡人；預設只算持卡人；可改一起分；不用還＝既有的贊助
+   ─ D3 結算算法（calc／tripSummary／settleTrip）一行都不改
+   ─ D4 主卡有結帳日 1～31，預設月底；依主卡結帳日切月份；31 遇到 2 月取 2 月最後一天
+   ─ D5 不手動建帳單：記一筆選了卡 → 依日期落到那個月，沒有就自動建
+   ─ D6 帳單成員＝主卡人＋所有副卡持卡人；後來才加的副卡，第一次記帳時補進當月
+   ═══════════════════════════════════════════════════════════ */
+/* 假資料：與 src/test/harness/phase2-fixtures.json 逐欄相同（原型_Phase2帳單測試.cjs 比對） */
+const P2_SEED = {
+ "_說明": "Phase 2 A 里程碑（副卡記帳）的假資料。Tripay_原型.html 內的 P2_SEED 必須與本檔逐欄相同，由 原型_Phase2帳單測試.cjs 比對。本檔目前沒有任何程式 import，只是兩邊共用的單一來源；P2-1 實作時 harness 從這裡讀。",
+ "today": "2026-11-05",
+ "people": [
+  {
+   "id": "p-rozi",
+   "name": "Rozi",
+   "emoji": "🐵"
+  },
+  {
+   "id": "p-mei",
+   "name": "小美",
+   "emoji": "🐱"
+  },
+  {
+   "id": "p-ming",
+   "name": "小明",
+   "emoji": ""
+  },
+  {
+   "id": "p-yu",
+   "name": "小魚",
+   "emoji": "🐟"
+  }
+ ],
+ "cards": [
+  {
+   "id": "c-main",
+   "nickname": "玉山主卡",
+   "last4": "3821",
+   "parentId": null,
+   "holderId": "p-rozi",
+   "statementDay": 15
+  },
+  {
+   "id": "c-mei",
+   "nickname": "小美的副卡",
+   "last4": "5521",
+   "parentId": "c-main",
+   "holderId": "p-mei"
+  },
+  {
+   "id": "c-ming",
+   "nickname": "小明的副卡",
+   "last4": "",
+   "parentId": "c-main",
+   "holderId": "p-ming"
+  },
+  {
+   "id": "c-ming2",
+   "nickname": "小明加油用",
+   "last4": "0937",
+   "parentId": "c-main",
+   "holderId": "p-ming"
+  },
+  {
+   "id": "c-home",
+   "nickname": "好市多聯名卡全家共用帳戶",
+   "last4": "7788",
+   "parentId": null,
+   "holderId": "p-rozi",
+   "statementDay": 31
+  }
+ ],
+ "expenses": [
+  {
+   "id": "e-px",
+   "title": "全聯",
+   "emoji": "🛒",
+   "date": "2026-09-02",
+   "twdAmt": "1280",
+   "cardId": "c-mei",
+   "type": "single",
+   "parts": [
+    "p-mei"
+   ]
+  },
+  {
+   "id": "e-gas",
+   "title": "加油站",
+   "emoji": "⛽",
+   "date": "2026-08-20",
+   "twdAmt": "900",
+   "cardId": "c-ming",
+   "type": "single",
+   "parts": [
+    "p-ming"
+   ]
+  },
+  {
+   "id": "e-crf",
+   "title": "家樂福",
+   "emoji": "🛒",
+   "date": "2026-09-10",
+   "twdAmt": "2400",
+   "cardId": "c-main",
+   "type": "shared",
+   "parts": [
+    "p-rozi",
+    "p-mei",
+    "p-ming"
+   ]
+  },
+  {
+   "id": "e-sb",
+   "title": "星巴克",
+   "emoji": "☕",
+   "date": "2026-08-28",
+   "twdAmt": "180",
+   "cardId": "c-mei",
+   "type": "shared",
+   "parts": [
+    "p-rozi"
+   ],
+   "sponsor": true
+  },
+  {
+   "id": "e-book",
+   "title": "書店",
+   "emoji": "🛍️",
+   "date": "2026-09-12",
+   "twdAmt": "600",
+   "cardId": "c-ming2",
+   "type": "single",
+   "parts": [
+    "p-ming"
+   ]
+  },
+  {
+   "id": "e-0815",
+   "title": "超商",
+   "emoji": "🏪",
+   "date": "2026-08-15",
+   "twdAmt": "500",
+   "cardId": "c-ming",
+   "type": "single",
+   "parts": [
+    "p-ming"
+   ]
+  },
+  {
+   "id": "e-costco",
+   "title": "好市多",
+   "emoji": "🛒",
+   "date": "2026-02-28",
+   "twdAmt": "3200",
+   "cardId": "c-home",
+   "type": "single",
+   "parts": [
+    "p-rozi"
+   ]
+  }
+ ],
+ "emptyStatements": [
+  {
+   "primaryId": "c-home",
+   "ym": "2026-03"
+  }
+ ],
+ "benchmark": {
+  "primaryId": "c-main",
+  "ym": "2026-09",
+  "label": "9 月帳單",
+  "period": [
+   "2026-08-16",
+   "2026-09-15"
+  ],
+  "expenseIds": [
+   "e-px",
+   "e-gas",
+   "e-crf",
+   "e-sb",
+   "e-book"
+  ],
+  "owe": {
+   "p-mei": 2080,
+   "p-ming": 2300
+  },
+  "receive": {
+   "p-rozi": 4380
+  },
+  "transfers": 2,
+  "transfersTo": "p-rozi",
+  "sponsorId": "e-sb",
+  "outsideId": "e-0815",
+  "outsideYm": "2026-08",
+  "feb31": {
+   "primaryId": "c-home",
+   "ym": "2026-02",
+   "period": [
+    "2026-02-01",
+    "2026-02-28"
+   ]
+  }
+ }
+};
+
+const pad2 = n => String(n).padStart(2, '0');
+const ymd = (y, m, d) => `${y}-${pad2(m)}-${pad2(d)}`;
+function lastDayOf(y, m) { return new Date(Date.UTC(y, m, 0)).getUTCDate(); }   // m 為 1～12
+/** 某個月的結帳日：31 號遇到小月或 2 月，取那個月最後一天（D4） */
+function closeDayOf(y, m, day) { return Math.min(day || 31, lastDayOf(y, m)); }
+/** ym（'2026-09'）這一期的起訖：上一期結帳日的隔天 ～ 這一期結帳日 */
+function periodOfYm(day, ym) {
+  const y = +ym.slice(0, 4), m = +ym.slice(5, 7);
+  const end = ymd(y, m, closeDayOf(y, m, day));
+  let py = y, pm = m - 1; if (pm < 1) { pm = 12; py--; }
+  const pc = closeDayOf(py, pm, day);
+  const start = pc === lastDayOf(py, pm) ? ymd(y, m, 1) : ymd(py, pm, pc + 1);
+  return { ym, start, end };
+}
+/** 一筆消費的日期落在哪一期：日 ≤ 當月結帳日 → 當月；否則下個月 */
+function periodFor(day, date) {
+  let y = +date.slice(0, 4), m = +date.slice(5, 7);
+  if (+date.slice(8, 10) > closeDayOf(y, m, day)) { m++; if (m > 12) { m = 1; y++; } }
+  return periodOfYm(day, `${y}-${pad2(m)}`);
+}
+const billName = ym => `${+ym.slice(5, 7)} 月帳單`;
+
+store.p2 = JSON.parse(JSON.stringify(P2_SEED));
+store.statements = [];
+store.p2Drafts = {};
+store.s01Tab = 'trip';
+const personOf = id => store.p2.people.find(x => x.id === id);
+const cardOf = id => store.p2.cards.find(x => x.id === id);
+const primaryOf = c => (c && c.parentId) ? cardOf(c.parentId) : c;
+const primaryCards = () => store.p2.cards.filter(c => !c.parentId);
+const subCardsOf = pid => store.p2.cards.filter(c => c.parentId === pid);
+const pidOfMember = mid => String(mid).split('~').pop();
+/* 成員識別的 fallback 顏色依「通訊錄裡的第幾位」——同一個人在每個月帳單裡同色 */
+const personIdx = pid => Math.max(0, store.p2.people.findIndex(x => x.id === pid));
+function personAvatar(pid, size) { return avatarHTML(personOf(pid) || { name: '' }, personIdx(pid), size); }
+
+/* 帳單的 id 與成員 id 是**推得出來的**（主卡＋月份、帳單＋人），
+   所以換卡或改日期時，選過的「算誰的」可以直接搬到另一期，不必另外記對照表 */
+const stIdOf = (cid, ym) => `st~${cid}~${ym}`;
+function memberFor(st, pid) {
+  const p = personOf(pid) || { name: '', emoji: '' };
+  return { id: `${st.id}~${pid}`, personId: pid, name: p.name, emoji: p.emoji, used: 0 };
+}
+function newStatement(primary, ym) {
+  const per = periodOfYm(primary.statementDay, ym);
+  const st = { id: stIdOf(primary.id, ym), kind: 'statement', cardId: primary.id, ym,
+    name: billName(ym), start: per.start, end: per.end, status: 'active', tone: null,
+    currency: 'TWD', members: [], pays: [], usedPays: {}, toneSeq: 0 };
+  // D6：主卡人＋所有副卡持卡人（同一人持兩張副卡只算一次）
+  [primary.holderId, ...subCardsOf(primary.id).map(c => c.holderId)].forEach(pid => {
+    if (pid && !st.members.some(m => m.personId === pid)) st.members.push(memberFor(st, pid));
+  });
+  return st;
+}
+const statementOf = (cid, ym) => store.statements.find(x => x.id === stIdOf(cid, ym));
+function ensureMember(st, pid) {
+  if (!st.members.some(m => m.personId === pid)) st.members.push(memberFor(st, pid));
+}
+/** 這筆（帳單模式）會落在哪一期。還沒存檔前不寫進 store——取消就什麼都不留 */
+function cardTargetOf(e) {
+  const c = cardOf(e.cardId), p = primaryOf(c);
+  const ym = periodFor(p.statementDay, e.date).ym, key = stIdOf(p.id, ym);
+  const st = statementOf(p.id, ym) || store.p2Drafts[key] || (store.p2Drafts[key] = newStatement(p, ym));
+  if (st.members.some(m => m.personId === c.holderId)) return st;
+  // D6 後半：新加的副卡第一次記帳——畫面上先出現，存檔時才真的補進當月
+  return Object.assign({}, st, { members: st.members.concat(memberFor(st, c.holderId)) });
+}
+/** S-04 用的「這一筆屬於哪一趟／哪一期」 */
+function s04Trip() {
+  if (g && g.cardId && cardOf(g.cardId)) return cardTargetOf(g);
+  return tripOf(store.s03Trip);
+}
+/** D2 的預設，與換卡／改日期之後把已選的人搬到新的那一期 */
+function applyCardDefaults(e) {
+  const t = cardTargetOf(e), c = cardOf(e.cardId), p = primaryOf(c);
+  const mid = pid => `${t.id}~${pid}`, has = id => t.members.some(m => m.id === id);
+  e.payer = mid(p.holderId);                                    // 誰付的固定是主卡人
+  if (e.sponsor) { e.type = 'shared'; e.parts = [e.payer]; }    // 不用還＝主卡人自己吸收
+  else if (!e._typeTouched) { e.type = 'single'; e.parts = [mid(c.holderId)]; }   // 預設只算持卡人
+  else {
+    e.parts = (e.parts || []).map(id => mid(pidOfMember(id))).filter(has);
+    if (!e.parts.length) e.parts = [mid(c.holderId)];
+    const iv = {}; Object.entries(e.indiv || {}).forEach(([k, v]) => iv[mid(pidOfMember(k))] = v); e.indiv = iv;
+  }
+  e._stId = t.id;
+  return e;
+}
+function blankCardExp(cardId, date) {
+  return applyCardDefaults(exp({ date: date || today(), cardId, pay: '', parts: [], payer: null, type: 'single' }));
+}
+/** 存檔那一刻才建帳單、補成員（D5／D6） */
+function commitCardTarget(e) {
+  const c = cardOf(e.cardId), p = primaryOf(c), ym = periodFor(p.statementDay, e.date).ym;
+  let st = statementOf(p.id, ym);
+  if (!st) {
+    st = store.p2Drafts[stIdOf(p.id, ym)] || newStatement(p, ym);
+    delete store.p2Drafts[st.id];
+    store.statements.push(st); store.expenses[st.id] = [];
+  }
+  ensureMember(st, c.holderId);
+  (e.parts || []).forEach(id => ensureMember(st, pidOfMember(id)));
+  return st;
+}
+/** 改了日期或卡，這筆搬到別的月份：舊的那一期要拿掉它 */
+function removeFromOtherStatements(eid, keepId) {
+  store.statements.forEach(st => { if (st.id !== keepId && store.expenses[st.id])
+    store.expenses[st.id] = store.expenses[st.id].filter(x => x.id !== eid); });
+}
+
+/* 把假資料灌進來：**照 D5 的規則自己算出每一筆落在哪一期**，不寫死月份——
+   這樣 8/15 那一筆會不會落到 8 月，驗的是規則本身 */
+function loadP2Seed() {
+  store.p2 = JSON.parse(JSON.stringify(P2_SEED));
+  store.statements.forEach(st => delete store.expenses[st.id]);
+  store.statements = []; store.p2Drafts = {};
+  P2_SEED.expenses.forEach(r => {
+    const e = exp({ id: r.id, title: r.title, emoji: r.emoji, date: r.date, twdAmt: r.twdAmt,
+      cardId: r.cardId, pay: '', type: r.type, sponsor: !!r.sponsor, _typeTouched: true });
+    const st = commitCardTarget(Object.assign({}, e, { parts: [] }));
+    const mid = pid => `${st.id}~${pid}`;
+    r.parts.forEach(pid => ensureMember(st, pid));
+    e.parts = r.parts.map(mid);
+    e.payer = mid(primaryOf(cardOf(r.cardId)).holderId);
+    e._stId = st.id;
+    store.expenses[st.id].push(e);
+  });
+  (P2_SEED.emptyStatements || []).forEach(x => {
+    if (!statementOf(x.primaryId, x.ym)) { const st = newStatement(cardOf(x.primaryId), x.ym);
+      store.statements.push(st); store.expenses[st.id] = []; }
+  });
+}
+loadP2Seed();
+
+/* 卡片識別＝暱稱＋末四碼。**沒有末四碼就只顯示暱稱**，不補任何遮罩符號 */
+function cardName(c) {
+  /* 不截斷：12 字的卡名在 320px 也要看得完整，寧可折行 */
+  return `<span class="cn">${esc(c.nickname)}</span>${c.last4 ? `<span class="l4">${esc(c.last4)}</span>` : ''}`;
+}
+/* 「還沒有卡片」出現在 S-09 與 S-10 兩處——同一句只寫一次（CLAUDE.md） */
+const MSG_NO_CARD = '<p>還沒有卡片。</p><p>加一張主卡，記一筆時就能選它</p>';
+const dueText = d => (!d || +d >= 31) ? '每月月底結帳' : `每月 ${+d} 號結帳`;
+
+/* S-03 帳單版的頂列：純色 .bar（.ic2 那一套），不用 hero 漸層 */
+function stmtHeader(t) {
+  const p = cardOf(t.cardId) || { nickname: '', holderId: '' };
+  return b('S-03-36', `<div class="bar"><button class="ic2" aria-label="返回">${ic('back',20)}</button>
+      <span class="ttl">${esc(t.name)}</span>
+      <button class="ic2" id="s03stshare" aria-label="分享">${ic('share',20)}</button></div>`)
+    + b('S-03-37', `<div class="stmtid">${personAvatar(p.holderId, 20)}
+      <span class="nm">${cardName(p)}</span>
+      <span class="pd">${md(t.start)} – ${md(t.end)}</span></div>`);
+}
+
+/* S-04「哪張卡？」：主卡在前、它的副卡緊接在後（與 S-09 同一個順序） */
+function cardPickerHTML(t) {
+  const chips = primaryCards().flatMap(p => [p, ...subCardsOf(p.id)]).map(c =>
+    `<button class="chip cardchip tapchip${g.cardId === c.id ? ' on' : ''}" data-ecard="${c.id}">${personAvatar(c.holderId, 20)} ${cardName(c)}</button>`).join('');
+  return b('S-04-40', `<div class="fld"><div class="lblrow"><span class="lbl" data-group="chips 多選一，非單一輸入欄">哪張卡？</span>
+      ${b('S-04-41', `<span class="lblnote" id="s04bill">記在 ${esc(t.name)}</span>`, 'inl')}</div>
+    <div class="chips tapgap">${chips}</div></div>`);
+}
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
    S-03 行程頁
    ═══════════════════════════════════════════════════════════ */
 /* #30-5a 未定案狀態的文案。先說東西還在，再用可行動的語氣講解除條件——
@@ -2293,6 +2750,8 @@ function money(v) {
   return '$ ' + Math.round(v).toLocaleString();
 }
 function dayLabel(t, d) {
+  /* Phase 2 A：帳單沒有「第幾天」「出發前」——那是旅遊的說法。只留日期與星期。 */
+  if (t.kind === 'statement') return `${md(d)}（${'日一二三四五六'[new Date(d).getDay()]}）`;
   if (d < t.start) return '出發前';
   const n = Math.floor((new Date(d) - new Date(t.start)) / 86400000) + 1;
   const wd = '日一二三四五六'[new Date(d).getDay()];
@@ -2375,7 +2834,8 @@ function renderS03() {
   /* 實作-Z-2　hero 外面包一層 `.herowrap`：安全區的留白與塗色由它承擔，
      `.hero` 本身高度固定（iOS 網址列伸縮時才不會跳）。漸層畫在 wrapper 上，
      一路蓋滿安全區，所以沒有接縫。 */
-  let h = b('S-03-1', `<div class="herowrap" style="background:${toneFor(t.name, t.tone, t.toneSeq)}">
+  /* Phase 2 A：帳單不套旅遊封面色調，頂列改用純色列（.bar ＋ .ic2）。 */
+  let h = t.kind === 'statement' ? stmtHeader(t) : b('S-03-1', `<div class="herowrap" style="background:${toneFor(t.name, t.tone, t.toneSeq)}">
     <div class="hero">
     <div class="sc"></div>
     <div class="navrow">
@@ -2424,7 +2884,8 @@ function renderS03() {
     const c = calc(e, t);
     return c.twdPending && Number.isFinite(parseFloat(e.forAmt));
   }).length;
-  h += b('S-03-12', `<div class="curswitch"><div class="seg">
+  /* 帳單恆為台幣，沒有外幣可切 */
+  if (t.kind !== 'statement') h += b('S-03-12', `<div class="curswitch"><div class="seg">
     <button class="${curMode==='TWD'?'on':''}" data-s03cur="TWD">$ 台幣</button>
     <button class="${curMode!=='TWD'?'on':''} ${rateNow?'':'dis'}" data-s03cur="FOR">${RULES_CUR_SYM(t.currency)} ${t.currency}</button></div>
     ${nGap ? `<p class="hint">總花費還少了 ${nGap} 筆，它們只填了外幣。${
@@ -2447,7 +2908,9 @@ function renderS03() {
         <rect class="p2" x="26" y="18" width="30" height="22" rx="2" fill="#fff" stroke="#1276C4" stroke-width="1.6"/>
         <path class="p2" d="M32 25h18M32 30h12" stroke="#7CBEEC" stroke-width="1.6" stroke-linecap="round"/>
       </svg>
-      ${store.s03OnlyShared && S.self.list.length
+      ${t.kind === 'statement'
+        ? '<p style="margin-top:10px">這個月還沒有消費。</p><p>記一筆時選這張卡，就會記在這裡</p>'
+        : store.s03OnlyShared && S.self.list.length
         ? '<p style="margin-top:10px">這趟還沒有共同的帳。</p><p>記的每一筆都是自己買給自己的</p>'
         : '<p style="margin-top:10px">第一筆從哪裡開始？</p><p>早餐、計程車、門票，都可以記</p>'}</div>`);
   } else {
@@ -2608,6 +3071,8 @@ function defaultExpDate(t) {
 
 function blankExp() {
   const t = tripOf(store.s03Trip);
+  /* Phase 2 A：在帳單裡按「記一筆」→ 帶這個月帳單的主卡（D2 的預設由 applyCardDefaults 補） */
+  if (t && t.kind === 'statement') return blankCardExp(t.cardId, defaultExpDate(t));
   // #33-4 預設是清單的第一項，不寫死「現金」——使用者可能把清單改成只有信用卡
   return exp({ date: defaultExpDate(t), parts: t.members.map(m => m.id), payer: null,
                pay: (t.pays || [])[0] || '' });
@@ -2618,8 +3083,8 @@ function loadExp(id) {
 }
 
 function renderS04() {
-  const t = tripOf(store.s03Trip);
   if (!g) g = blankExp();
+  const t = s04Trip(), cm = !!g.cardId;   // cm：帳單模式（記一筆選了卡）
   const c = calc(g, t), cur = t.currency, sym = RULES_CUR_SYM(cur);
 
   let h = b('S-04-1', `<div class="shd" style="padding-top:14px"><h3>${g._edit ? '編輯消費' : '記一筆'}</h3><button class="ic2" id="s04x" aria-label="關閉">${ic('close',20)}</button></div>`);
@@ -2644,7 +3109,16 @@ function renderS04() {
       <input type="text" id="e-title" value="${esc(g.title)}" placeholder="例如：藥妝店"></div></div>`);
 
   // 金額（§2.3 §2.4 §2A.3）
-  h += b('S-04-4', `<div class="fld">
+  /* Phase 2 A：帳單恆為台幣（銀行帳單上就是台幣），只留台幣一列，沒有「填一邊就好」 */
+  if (cm) h += b('S-04-4', `<div class="fld">
+    <div class="lblrow"><span class="lbl">金額</span></div>
+    <div class="amtstack">
+      ${b('S-04-6', `<label for="e-twd" class="amtline">
+        <span class="cur">$ 台幣</span>
+        <input type="text" inputmode="decimal" id="e-twd" value="${esc(g.twdAmt)}" placeholder="0"></label>`)}
+    </div>
+    <div id="amtnote"></div></div>`);
+  else h += b('S-04-4', `<div class="fld">
     <div class="lblrow"><span class="lbl" data-group="兩列各自帶幣別標籤，非單一輸入欄">金額</span>
       <span class="lblnote">${MSG_FILL_ONE}</span></div>
     <div class="amtstack">
@@ -2661,12 +3135,16 @@ function renderS04() {
     </div>
     <div id="amtnote"></div></div>`);
 
-  h += b('S-04-9', `<div class="fld"><span class="lbl" data-group="chips 多選一，非單一輸入欄">怎麼付的？</span>
+  /* Phase 2 A：帳單模式把「怎麼付的？」換成「哪張卡？」——同一個位置、回答同一件事
+     （用什麼付的）。排在「分帳方式」之前：選了卡才知道預設算誰（依賴優先）。 */
+  if (cm) h += cardPickerHTML(t);
+  else h += b('S-04-9', `<div class="fld"><span class="lbl" data-group="chips 多選一，非單一輸入欄">怎麼付的？</span>
     <div class="chips">${(t.pays || []).map(v =>
       `<button class="chip${g.pay===v?' on':''}" data-pay="${esc(v)}">${esc(v)}</button>`).join('')}</div>
     </div>`);
 
-  h += b('S-04-21', `<div class="fld"><span class="lbl" data-group="chips 多選一，非單一輸入欄">誰付的？</span>
+  /* D2：帳單裡「誰付的」固定是主卡人，不給選——所以整列不畫 */
+  if (!cm) h += b('S-04-21', `<div class="fld"><span class="lbl" data-group="chips 多選一，非單一輸入欄">誰付的？</span>
     <div class="chips">${t.members.map(m =>
       `<button class="chip${!g.onSpot && g.payer===m.id?' on':''}" data-epayer="${m.id}">${avatarHTML(m, t.members.indexOf(m), 20)} ${esc(m.name)}</button>`).join('')}
       <span class="paysep"></span>
@@ -2683,7 +3161,7 @@ function renderS04() {
   h += b('S-04-19', `<div class="fld"><span class="lbl" data-group="型別開關，非單一輸入欄">這筆是</span>
       <div class="chips">
         <button class="chip${g.sponsor?' on':''}" data-eflag="sponsor">贊助／回饋</button></div>
-      ${g.sponsor ? b('S-04-20', `<p class="hint">金額會記成負數，由 ${(g.parts||[]).length} 人均分扣抵。「誰付的」請選<b>實際代收這筆錢的人</b></p>`) : ''}</div>`);
+      ${g.sponsor && !cm ? b('S-04-20', `<p class="hint">金額會記成負數，由 ${(g.parts||[]).length} 人均分扣抵。「誰付的」請選<b>實際代收這筆錢的人</b></p>`) : ''}</div>`);
 
   h += b('S-04-22', `<div class="btnrow"><button class="btn gh" id="s04cancel">取消</button>
     <button class="btn" id="s04save">記下來</button></div>`);
@@ -2695,7 +3173,7 @@ function renderS04() {
 
 /* 只更新衍生內容——不重建任何 input（#13 的教訓、規格 §5.5 明訂） */
 function paintS04() {
-  const t = tripOf(store.s03Trip);
+  const t = s04Trip();
   const c = calc(g, t), cur = t.currency, sym = RULES_CUR_SYM(cur);
   const note = document.getElementById('amtnote');
   if (note) {
@@ -2740,9 +3218,9 @@ function paintS04() {
     const fs = fillCur === 'TWD' ? '$' : sym;
     let inner = `<div style="margin-top:10px">` +
       b('S-04-15', `<span class="lbl" data-group="逐人一列，各列已是同列版面" style="display:block">各自多少？</span>`) +
-      b('S-04-31', `<div class="seg" style="margin-bottom:8px">
+      (g.cardId ? '' : b('S-04-31', `<div class="seg" style="margin-bottom:8px">
         <button class="${g.fillCur !== 'FOR' ? 'on' : ''}" data-fillcur="TWD">$ 台幣填</button>
-        <button class="${g.fillCur === 'FOR' ? 'on' : ''}" data-fillcur="FOR">${RULES_CUR_SYM(cur)} ${cur} 填</button></div>`);
+        <button class="${g.fillCur === 'FOR' ? 'on' : ''}" data-fillcur="FOR">${RULES_CUR_SYM(cur)} ${cur} 填</button></div>`));
     inner += `<div class="gap">${(g.parts||[]).map((id, i) => {
       const m = t2.members.find(x => x.id === id) || {};
       const auto = c.valInCur[id] != null && !(id in c.manual);
@@ -3227,9 +3705,9 @@ document.addEventListener('click', ev => {
 
   // S-04
   const pa = hit('data-pay');      if (pa) { g.pay = pa.dataset.pay; renderS04(); return; }
-  const et = hit('data-etype');    if (et) { g.type = et.dataset.etype;
-    if (g.type === 'single' && (!g.parts || g.parts.length !== 1)) g.parts = [g.payer || tripOf(store.s03Trip).members[0].id];
-    if (g.type !== 'single' && (g.parts||[]).length < 2) g.parts = tripOf(store.s03Trip).members.map(m => m.id);
+  const et = hit('data-etype');    if (et) { g.type = et.dataset.etype; g._typeTouched = true;
+    if (g.type === 'single' && (!g.parts || g.parts.length !== 1)) g.parts = [g.payer || s04Trip().members[0].id];
+    if (g.type !== 'single' && (g.parts||[]).length < 2) g.parts = s04Trip().members.map(m => m.id);
     renderS04(); return; }
   const fc = hit('data-fillcur');
   if (fc) { g.fillCur = fc.dataset.fillcur; renderS04(); return; }   // 切幣別不清空已填的數字
@@ -3245,7 +3723,9 @@ document.addEventListener('click', ev => {
   const ef = hit('data-eflag');    if (ef) { const k = ef.dataset.eflag;
     g[k] = !g[k];
     // #20-2：選「大家各付各的」時，成員的高亮要跟著熄掉；payer 仍留著當記錄者
-    if (k === 'onSpot' && g.onSpot && !g.payer) g.payer = tripOf(store.s03Trip).members[0].id;
+    if (k === 'onSpot' && g.onSpot && !g.payer) g.payer = s04Trip().members[0].id;
+    /* Phase 2 A「不用還」沿用贊助：帳單裡標成贊助＝主卡人自己吸收，不算任何人要還 */
+    if (k === 'sponsor' && g.cardId) applyCardDefaults(g);
     renderS04(); return; }
   if (t.closest('#s04cancel') || t.closest('#s04x')) { g = blankExp(); renderS04(); return; }
   if (t.closest('#s04save')) { saveExpense(); return; }
@@ -3264,11 +3744,14 @@ document.addEventListener('click', ev => {
 
 /* §4 四種存檔提示 */
 function saveExpense() {
-  const t = tripOf(store.s03Trip);
+  const cm = !!g.cardId;
+  /* Phase 2 A（D5）：不用手動建帳單——選了卡就依日期落到那個月，沒有就這時候建 */
+  const t = cm ? commitCardTarget(g) : tripOf(store.s03Trip);
   if (!g.title.trim()) g.title = '（未命名）';
   if (!g.payer) g.payer = t.members[0].id;
   const c = calc(g, t);
-  const list = expsOf(store.s03Trip);
+  if (cm) removeFromOtherStatements(g.id, t.id);
+  const list = expsOf(cm ? t.id : store.s03Trip);
   const idx = list.findIndex(x => x.id === g.id);
   const rec = JSON.parse(JSON.stringify(g)); delete rec._edit; delete rec._partsOpen;
   if (idx >= 0) list[idx] = rec; else list.push(rec);
@@ -3282,8 +3765,10 @@ function saveExpense() {
     else if (names.length >= 3) msg = `已存。還有 ${names.length} 人的金額還沒填，先照均分算。`;
     else msg = '已存。';
   }
+  if (cm) msg = msg.replace(/^已存。/, `已存，記在 ${t.name}。`);
   g = blankExp();
   renderS04(); renderS03(); renderS03d(); renderS05();
+  if (typeof renderP2 === 'function') renderP2();
   toast('#s04toast', msg, 'S-04-36');   // §4 四種存檔提示
 }
 
@@ -3306,7 +3791,7 @@ document.addEventListener('input', ev => {
 });
 /* 各自金額：只更新其他欄的自動值與提示，絕不碰正在打字的那一格 */
 function paintIndiv() {
-  const t = tripOf(store.s03Trip), c = calc(g, t);
+  const t = s04Trip(), c = calc(g, t);
   (g.parts||[]).forEach(id => {
     const slot = document.querySelector(`[data-eauto="${id}"]`);
     const inp  = document.querySelector(`input[data-eindiv="${id}"]`);
@@ -3420,7 +3905,8 @@ function renderS06() {
   const per = S.t.members.length ? Math.round(S.total / S.t.members.length) : 0;
   const list = [...S.list].sort((a,c) => a.date.localeCompare(c.date));
 
-  let h = b('S-06-1', `<div class="hero" style="background:${toneFor(t.name, t.tone, t.toneSeq)};padding-top:22px">
+  /* Phase 2 A：帳單不套旅遊封面色調，改純色 */
+  let h = b('S-06-1', `<div class="hero" style="background:${t.kind === 'statement' ? 'var(--w)' : toneFor(t.name, t.tone, t.toneSeq)};padding-top:22px">
     <div class="sc"></div>
     ${b('S-06-2', `<span style="position:absolute;top:10px;right:12px"><span class="stamp">朋友檢視</span></span>`)}
     ${b('S-06-3', `<div style="position:relative"><div class="tt">${esc(t.name)}</div>
@@ -3486,6 +3972,12 @@ function renderS07() {
   // #27-2 S-07-5「顯示／深色模式」整段移除：查證 src/ 沒有任何深色樣式、
   // tailwind.config 也沒設 darkMode——這一列寫著「跟隨系統」又有 ›，點進去後面什麼都沒有。
   // 與 S-06-12 是同一個毛病：畫面承諾了產品沒有的東西。編號保留、標為移除。
+  /* Phase 2 A（D7）：通訊錄／卡片管理／帳單三列。排在帳號卡之後、登出之前——
+     登出是離開 App，永遠在最下面；三列是同類（帳單會用到的東西），放在一起不被插開。
+     順序依依賴：帳單要先有卡、卡要先有持卡人 → 但使用頻率相反（帳單最常開）。
+     依 CLAUDE.md 版位層級第 1 條「依賴優先」排：通訊錄 → 卡片管理 → 帳單。 */
+  const go = (id, scr, txt) => b(id, `<button class="rowb" data-go="${scr}"><span style="flex:1;font-size:var(--fs-body);font-weight:600">${txt}</span>${ic('next',16)}</button>`);
+  h += `<div class="gap" style="margin:16px 14px 0">${go('S-07-9','s08','通訊錄')}${go('S-07-10','s09','卡片管理')}${go('S-07-11','s10','帳單')}</div>`;
   h += b('S-07-6', `<div style="margin:16px 14px 0"><button class="btn qt" id="s07logout2" style="color:var(--md)">登出</button></div>`);
   h += b('S-07-7', `<div style="padding:14px;text-align:center;font-size:var(--fs-sub);color:var(--gr)">Tripay · 每一趟，都記得</div>`);
   if (store.s07dlg) h += b('S-07-8', `<div class="scrim" style="padding:20px 0"><div class="dlg">
@@ -3578,6 +4070,370 @@ document.addEventListener('input', ev => {
     store.delText = ev.target.value;
     const btn = document.querySelector('#scr-s03b .btn.dg');
     if (btn) btn.disabled = store.delText !== '刪除';   // 只切按鈕狀態，不重建輸入框
+  }
+});
+render();
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Phase 2 A：S-08 通訊錄／S-09 卡片管理／S-10 帳單列表 ＋ 互動
+   ═══════════════════════════════════════════════════════════ */
+store.s08 = { adding: false, editId: null, name: '', err: '' };
+store.s09 = { form: null, del: false, delText: '' };
+
+/** 換畫面：真機模式切到那一格，標註模式捲到那一節 */
+function go(scr) {
+  if (document.documentElement.classList.contains('dev')) {
+    devScreen = scr; renderDevBar(); window.scrollTo({ top: 0 });
+  } else { const el = document.getElementById(scr); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+}
+
+/* ── S-10 帳單列表（S-01「帳單」分段用同一份）── */
+/* noMoney：S-01 首頁的「帳單」分段用。決策 22（路線 2）首頁不顯示任何金額，D7 只定了入口位置、
+   沒有推翻它——所以首頁只列月份、起訖與筆數，金額與「誰要還多少」點進去或從 S-10 看。
+   要推翻：billListHTML() 的 noMoney 拿掉即可。 */
+function stmtRow(st, noMoney) {
+  const S = tripSummary(st.id), { net } = settleTrip(st.id);
+  if (noMoney) return `<div class="fld" style="padding-bottom:8px"><button class="rowb stmtrow" data-openst="${st.id}">
+    <span class="mid"><span class="t">${esc(st.name)}</span>
+      <span class="s">${dateRange(st.start, st.end)} · ${S.list.length} 筆</span></span>${ic('next',16)}</button></div>`;
+  // 「誰要還我」：結算淨額是負的人（D3：用的是 settleTrip 原封不動的結果）
+  const owes = st.members.filter(m => net[m.id] < 0);
+  return `<div class="fld" style="padding-bottom:8px"><button class="rowb stmtrow" data-openst="${st.id}">
+    <span class="mid"><span class="t">${esc(st.name)}</span>
+      <span class="s">${dateRange(st.start, st.end)} · ${S.list.length} 筆</span>
+      ${owes.length ? `<span class="owe">${owes.map(m => `<span class="mtag">${avatarHTML(m, personIdx(m.personId), 20)}<span>${esc(m.name)} 要還 <b class="money inline">$ ${(-net[m.id]).toLocaleString()}</b></span></span>`).join('')}</span>` : ''}
+    </span>
+    <span class="money">$ ${S.total.toLocaleString()}</span>${ic('next',16)}</button></div>`;
+}
+function billListHTML(rowId, noMoney) {
+  const ps = primaryCards();
+  if (!ps.length) return b('S-10-11', `<div class="empty">${MSG_NO_CARD}
+    <button class="btn" data-go="s09" style="width:auto;padding:9px 18px;margin-top:14px;display:inline-block">${ic('add',16)} 加一張卡</button></div>`);
+  let h = '', first = true;
+  if (!store.statements.length)
+    h += b('S-10-11', `<div class="empty"><p>還沒有帳單。</p><p>記一筆時選一張卡，就會記進那個月的帳單</p></div>`);
+  ps.forEach((p, i) => {
+    const sts = store.statements.filter(x => x.cardId === p.id).sort((a, c) => c.ym.localeCompare(a.ym));
+    if (!sts.length) return;
+    const hd = `<div class="sec cardsec">${personAvatar(p.holderId, 20)}${cardName(p)}</div>`;
+    h += i === 0 ? b('S-10-4', hd) : hd;
+    sts.forEach(st => { const row = stmtRow(st, noMoney); h += first ? b(rowId, row) : row; first = false; });
+  });
+  h += b('S-10-13', `<div class="btnrow sticky"><button class="btn" data-billadd="1">${ic('add',16)} 記一筆</button></div>`);
+  return h;
+}
+function renderS10() {
+  $('#scr-s10').innerHTML = b('S-10-1', `<div class="bar"><button class="ic2" aria-label="返回">${ic('back',20)}</button>
+    <span class="ttl">帳單</span><span style="width:40px"></span></div>`) + `<div style="height:6px"></div>` + billListHTML('S-10-5');
+}
+
+/* ── S-08 通訊錄 ── */
+function personStats(pid) {
+  const p = personOf(pid);
+  const trips = store.trips.filter(t => t.members.some(m => m.name === p.name)).length;
+  const cards = store.p2.cards.filter(c => c.holderId === pid).length;
+  return { trips, cards };
+}
+function renderS08() {
+  const st = store.s08;
+  let h = b('S-08-1', `<div class="bar"><button class="ic2" aria-label="返回">${ic('back',20)}</button>
+    <span class="ttl">通訊錄</span>${b('S-08-2', `<button class="ic2" id="s08add" aria-label="加人">${ic('add',20)}</button>`, 'inl')}</div>`);
+  if (st.adding) h += b('S-08-12', `<div class="fld" style="padding-top:12px">
+      <label class="fieldrow" for="s08new"><span class="lbl">名字</span>
+        <input type="text" id="s08new" value="${esc(st.name)}" placeholder="例如：小美"></label>
+      ${st.err ? `<p class="err">${esc(st.err)}</p>` : ''}
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn qt" id="s08cancel">取消</button><button class="btn" id="s08save">加進來</button></div></div>`);
+  const list = [...store.p2.people].sort((a, c) => personStats(c.id).trips - personStats(a.id).trips || a.name.localeCompare(c.name, 'zh-Hant'));
+  h += `<div class="gap" style="margin:12px 14px 18px">` + list.map((p, i) => {
+    const s2 = personStats(p.id);
+    const sub = [s2.trips ? `${s2.trips} 趟旅遊` : '', s2.cards ? `${s2.cards} 張卡` : ''].filter(Boolean).join(' · ') || '還沒用到';
+    const row = `<button class="rowb" data-editperson="${p.id}">${personAvatar(p.id, 28)}
+      <span style="flex:1;min-width:0"><span class="trunc" style="font-size:var(--fs-body);font-weight:600">${esc(p.name)}</span>
+      <span class="s">${sub}</span></span>${ic('next',16)}</button>`;
+    let out = i === 0 ? b('S-08-5', row) : row;
+    if (st.editId === p.id) out += b('S-08-9', `<div class="rowb" style="display:block">
+        <label class="fieldrow" for="s08edit"><span class="lbl">名字</span>
+          <input type="text" id="s08edit" value="${esc(st.name)}"></label>
+        ${b('S-08-10', `<p class="hint">改這裡不會改到已經記過的帳</p>`)}
+        ${st.err ? `<p class="err">${esc(st.err)}</p>` : ''}
+        <div style="display:flex;gap:8px;margin-top:10px"><button class="btn qt" id="s08cancel">取消</button><button class="btn" id="s08save">存起來</button></div></div>`);
+    return out;
+  }).join('') + `</div>`;
+  $('#scr-s08').innerHTML = h;
+}
+
+/* ── S-09 卡片管理 ── */
+function cardRow(c) {
+  const sub = c.parentId ? `副卡 · ${esc((personOf(c.holderId) || {}).name || '')}` : `主卡 · ${dueText(c.statementDay)}`;
+  return `<button class="rowb" data-editcard="${c.id}">${personAvatar(c.holderId, 28)}
+    <span style="flex:1;min-width:0"><span class="cardline">${cardName(c)}</span><span class="s">${sub}</span></span>${ic('next',16)}</button>`;
+}
+function cardDeleteStats(c) {
+  if (!c.parentId) {
+    const sts = store.statements.filter(x => x.cardId === c.id);
+    return { months: sts.length, count: sts.reduce((a, x) => a + expsOf(x.id).length, 0), subs: subCardsOf(c.id).length };
+  }
+  let months = 0, count = 0;
+  store.statements.forEach(x => { const n = expsOf(x.id).filter(e => e.cardId === c.id).length; if (n) { months++; count += n; } });
+  return { months, count, subs: 0 };
+}
+function renderS09() {
+  const st = store.s09;
+  let h;
+  if (st.form && st.del) {
+    const c = cardOf(st.form.id), k = cardDeleteStats(c);
+    h = `<div class="scrim" style="padding:26px 0;min-height:100%">` + b('S-09-12', `<div class="dlg">
+      <p style="margin:0 0 8px;font-size:var(--fs-strong);font-weight:700;text-align:center">刪除「${esc(c.nickname)}」？</p>
+      <p style="margin:0 0 7px;font-size:var(--fs-body);color:var(--md);line-height:1.5">刪掉就<b>救不回來</b>，會一起刪掉：</p>
+      <ul style="margin:0 0 11px;padding-left:16px;font-size:var(--fs-body);color:var(--md);line-height:1.7">
+        ${c.parentId ? `<li>這張卡在 <b>${k.months}</b> 個月裡的 <b>${k.count}</b> 筆消費</li>`
+          : `<li><b>${k.months}</b> 個月的帳單、<b>${k.count}</b> 筆消費</li>${k.subs ? `<li>底下 <b>${k.subs}</b> 張副卡</li>` : ''}`}</ul>
+      <p style="margin:0 0 6px;font-size:var(--fs-body);color:var(--md)">請輸入「刪除」兩個字</p>
+      <label class="fieldrow" for="cdelconfirm" style="margin-bottom:11px"><input type="text" id="cdelconfirm" value="${esc(st.delText)}" placeholder="刪除"></label>
+      <div style="display:flex;gap:8px"><button class="btn qt" id="cdelno">算了，留著</button>
+        <button class="btn dg" id="cdelyes" ${st.delText === '刪除' ? '' : 'disabled'}>刪除</button></div></div>`) + `</div>`;
+  } else if (st.form) {
+    const f = st.form, parent = f.parentId ? cardOf(f.parentId) : null;
+    const ttl = f.id ? '編輯卡片' : parent ? '新增副卡' : '新增主卡';
+    h = b('S-09-9', `<div class="bar"><button class="ic2" id="s09x" aria-label="關閉表單">${ic('close',20)}</button>
+        <span class="ttl">${ttl}</span><span style="width:40px"></span></div>`);
+    if (parent) h += b('S-09-10', `<div class="sec cardsec">主卡：${cardName(parent)}</div>`);
+    h += `<div style="padding-top:12px">`;
+    h += `<div class="fld"><label class="fieldrow" for="cf-nick"><span class="lbl">暱稱</span>
+      <input type="text" id="cf-nick" value="${esc(f.nickname)}" placeholder="${parent ? '例如：小美的副卡' : '例如：玉山主卡'}"></label></div>`;
+    h += b('S-09-11', `<div class="fld"><span class="lbl" data-group="chips 多選一，非單一輸入欄">誰的卡？</span>
+      <div class="chips tapgap">${store.p2.people.map(p => `<button class="chip tapchip${f.holderId === p.id ? ' on' : ''}" data-cfholder="${p.id}">${personAvatar(p.id, 20)} ${esc(p.name)}</button>`).join('')}</div></div>`);
+    if (!parent) h += b('S-09-14', `<div class="fld"><label class="fieldrow" for="cf-day"><span class="lbl">結帳日</span>
+      <input type="text" inputmode="numeric" id="cf-day" value="${esc(f.day)}" placeholder="月底"><span class="unit">號</span></label>
+      <p class="hint">銀行每個月哪一天結帳？例如 15 號，那 8/16–9/15 刷的都算 9 月帳單</p></div>`);
+    h += `<div class="fld"><label class="fieldrow" for="cf-l4"><span class="lbl">末四碼</span>
+      <input type="text" inputmode="numeric" id="cf-l4" value="${esc(f.last4)}" placeholder="選填"></label>
+      ${f.err ? `<p class="err">${esc(f.err)}</p>` : ''}</div>`;
+    h += `</div><div class="btnrow"><button class="btn gh" id="s09cancel">取消</button><button class="btn" id="s09save">存起來</button></div>`;
+    if (f.id) h += b('S-09-15', `<div class="delrow"><button id="s09del" class="tapx" style="color:inherit"><span>刪除這張卡</span></button></div>`);
+  } else {
+    h = b('S-09-1', `<div class="bar"><button class="ic2" aria-label="返回">${ic('back',20)}</button>
+      <span class="ttl">卡片管理</span>${b('S-09-2', `<button class="ic2" id="s09add" aria-label="加一張主卡">${ic('add',20)}</button>`, 'inl')}</div>`);
+    const ps = primaryCards();
+    if (!ps.length) h += b('S-09-8', `<div class="empty">${MSG_NO_CARD}</div>`);
+    else h += `<div style="padding-top:12px">` + ps.map((p, i) => {
+      const subs = subCardsOf(p.id);
+      const main = i === 0 ? b('S-09-4', cardRow(p)) : cardRow(p);
+      const subRows = subs.map((c, j) => (i === 0 && j === 0) ? b('S-09-6', cardRow(c)) : cardRow(c)).join('');
+      const add = `<button class="rowb addsub" data-addsub="${p.id}">${ic('add',16)} 加副卡</button>`;
+      const grp = `<div class="subs">${subRows}${i === 0 ? b('S-09-7', add) : add}</div>`;
+      return `<div class="cardgrp">${main}${i === 0 ? b('S-09-5', grp) : grp}</div>`;
+    }).join('') + `</div>`;
+  }
+  $('#scr-s09').innerHTML = h;
+}
+/** 改了主卡的結帳日：這張卡底下的每一筆照新的結帳日重新落到月份（D4／D5） */
+function rehomePrimary(pid) {
+  const all = [];
+  store.statements.filter(x => x.cardId === pid).forEach(x => { all.push(...expsOf(x.id)); delete store.expenses[x.id]; });
+  store.statements = store.statements.filter(x => x.cardId !== pid);
+  all.forEach(e => {
+    const st = commitCardTarget(e), mid = id => `${st.id}~${pidOfMember(id)}`;
+    e.parts = (e.parts || []).map(mid); e.payer = mid(e.payer); e._stId = st.id;
+    const iv = {}; Object.entries(e.indiv || {}).forEach(([k, v]) => iv[mid(k)] = v); e.indiv = iv;
+    (e.parts || []).forEach(id => ensureMember(st, pidOfMember(id)));
+    expsOf(st.id).push(e);
+  });
+}
+function saveCardForm() {
+  const f = store.s09.form;
+  f.err = '';
+  const nick = (f.nickname || '').trim(), l4 = (f.last4 || '').trim(), day = (f.day || '').trim();
+  if (!nick) f.err = '幫這張卡取個名字';
+  else if (!f.holderId) f.err = '選一下這是誰的卡';
+  else if (!f.parentId && day && !(/^\d{1,2}$/.test(day) && +day >= 1 && +day <= 31)) f.err = '結帳日要在 1 到 31 號之間';
+  else if (l4 && !/^\d{4}$/.test(l4)) f.err = '末四碼要是 4 個數字';
+  if (f.err) { renderS09(); return; }
+  const d = f.parentId ? undefined : (day ? +day : 31);
+  if (f.id) {
+    const c = cardOf(f.id), dayChanged = !c.parentId && c.statementDay !== d;
+    Object.assign(c, { nickname: nick, last4: l4, holderId: f.holderId });
+    if (!c.parentId) c.statementDay = d;
+    if (dayChanged) rehomePrimary(c.id);
+  } else {
+    const c = { id: nid(), nickname: nick, last4: l4, parentId: f.parentId || null, holderId: f.holderId };
+    if (!f.parentId) c.statementDay = d;
+    store.p2.cards.push(c);
+  }
+  store.s09.form = null; renderP2(); renderS04();
+}
+function deleteCard(id) {
+  const c = cardOf(id);
+  if (!c) return;
+  if (!c.parentId) {
+    store.statements.filter(x => x.cardId === id).forEach(x => delete store.expenses[x.id]);
+    store.statements = store.statements.filter(x => x.cardId !== id);
+    store.p2.cards = store.p2.cards.filter(x => x.id !== id && x.parentId !== id);
+  } else {
+    store.statements.forEach(x => { store.expenses[x.id] = expsOf(x.id).filter(e => e.cardId !== id); });
+    store.p2.cards = store.p2.cards.filter(x => x.id !== id);
+  }
+  if (g && g.cardId && !cardOf(g.cardId)) g = blankExp();
+  if (!tripOf(store.s03Trip)) store.s03Trip = 't1';
+}
+
+function renderP2() {
+  renderS08(); renderS09(); renderS10();
+  if (store.s01Tab === 'bill') renderS01();
+  const cnt = { s08: INDEX.s08, s09: INDEX.s09, s10: INDEX.s10 };
+  Object.entries(cnt).forEach(([k, rows]) => { const el = $('#cnt-' + k);
+    if (el) el.textContent = `編號清單 · ${rows.length} 項（新畫面${rows.filter(r => r[2] === 'del').length ? `，${rows.filter(r => r[2] === 'del').length} 項已移除或本輪不畫` : ''}）`; });
+}
+
+/* ── 編號清單 ── */
+Object.assign(INDEX, {
+  s08: [
+    ['S-08-1','導覽列','st','從 S-07「通訊錄」進來'],
+    ['S-08-2','加人','op','右上 <code>.ic2</code>，展開 S-08-12。名字重複會擋（<code>(owner_id,name,emoji)</code> 唯一索引）'],
+    ['S-08-3','搜尋','del','<b>本輪不畫</b>：人數少，A 里程碑只有主卡人＋幾位副卡人'],
+    ['S-08-4','排序','inv','參加過的旅遊趟數多→少；同數以名字排序'],
+    ['S-08-5','人員列','op','識別圖（既有 Avatar 規則）＋名字＋「N 趟旅遊 · N 張卡」；點了展開 S-08-9'],
+    ['S-08-6','參與行程清單','del','<b>本輪不畫</b>：A 里程碑只需要「這個人存在、可以當持卡人」'],
+    ['S-08-7','還沒用到','st','沒參加過旅遊、也沒有卡的人顯示「還沒用到」。<b>改</b>：原句「還沒參加過任何一趟」只講旅遊，帳單上線後不完整'],
+    ['S-08-8','空狀態','del','<b>本輪不畫</b>：主卡人自己一定在通訊錄裡，A 里程碑不會出現空的通訊錄'],
+    ['S-08-9','編輯','op','就地展開，改名字'],
+    ['S-08-10','改名的作用範圍','st','「改這裡不會改到已經記過的帳」——<b>後果告知</b>，屬灰字可留的第二種。通訊錄的名字與每一趟／每一期的成員名字是兩份資料'],
+    ['S-08-11','從通訊錄移除','del','<b>本輪不畫</b>：持卡人被移除時卡片要怎麼辦是產品題，A 里程碑不需要'],
+    ['S-08-12','新增表單','op','<b>新</b>：只要名字（與 S-02 新增成員同一款）'],
+  ],
+  s09: [
+    ['S-09-1','導覽列','st','從 S-07「卡片管理」進來'],
+    ['S-09-2','加一張主卡','op','右上 <code>.ic2</code>。<b>改</b>：只加主卡，副卡一律從主卡底下的 S-09-7 加——同一件事只有一個入口'],
+    ['S-09-3','分區標題','del','<b>不畫</b>：層級本身就是資訊，副卡收在主卡底下，不需要再加標題'],
+    ['S-09-4','主卡列','op','持卡人識別圖＋暱稱＋末四碼＋「主卡 · 每月 15 號結帳」。<b>改</b>：末四碼直接顯示，<b>沒有末四碼就只顯示暱稱</b>，不補遮罩符號；發卡行拿掉（卡片識別＝暱稱＋末四碼）'],
+    ['S-09-5','副卡群組','st','與主卡<b>同一個元件</b>（<code>.rowb</code>），往右縮一階、左邊一條細線串起來。沒有副卡時只剩 S-09-7'],
+    ['S-09-6','副卡列','op','持卡人識別圖＋暱稱＋末四碼＋「副卡 · 持卡人」。同一人可持兩張副卡（假資料：小明）'],
+    ['S-09-7','加副卡','op','預填所屬主卡，表單鎖在副卡'],
+    ['S-09-8','空狀態','st','「還沒有卡片。」（原型控制「沒有卡片」可切）'],
+    ['S-09-9','卡片表單','op','暱稱、誰的卡？必填；結帳日預設月底；末四碼選填。<b>依版位層級排</b>：必填在前、選填在後'],
+    ['S-09-10','所屬主卡','st','副卡表單頂端標明掛在哪張主卡底下（不可改，要換主卡就刪掉重加）'],
+    ['S-09-11','持卡人','op','從通訊錄挑，<b>不另建一套人名</b>'],
+    ['S-09-12','刪卡確認','op','<b>D10</b>：列出「會一起刪掉 N 個月的帳單、M 筆消費（＋底下 K 張副卡）」，<b>輸入「刪除」二字才能按</b>，與 S-03c 同一套。副卡：「這張卡在 N 個月裡的 M 筆消費」'],
+    ['S-09-13','刪副卡一般確認','del','<b>推翻</b>：D10 定為刪任何卡都打字確認，副卡也一樣（會刪掉它的消費）'],
+    ['S-09-14','結帳日','op','<b>新（D4）</b>：1～31，留空＝月底；31 遇到 2 月取 2 月最後一天。只有主卡有，副卡跟著主卡。改了結帳日，這張卡的每一筆會照新的日子重新分到月份'],
+    ['S-09-15','刪除這張卡','op','<b>新</b>：只在編輯時出現，<code>.delrow</code> 同 S-04-23'],
+  ],
+  s10: [
+    ['S-10-1','導覽列','st','從 S-07「帳單」進來'],
+    ['S-10-2','開新週期','del','<b>移除（D5）</b>：不用手動建帳單——記一筆選了卡就自動落到那個月，沒有就自動建'],
+    ['S-10-3','卡片篩選','del','<b>改</b>：不做篩選，改成每張主卡一段（S-10-4）。12 字的卡名塞不進分段控制'],
+    ['S-10-4','依主卡分段','st','段頭＝持卡人識別圖＋暱稱＋末四碼；段內由新到舊。年份寫在每一列的日期後面'],
+    ['S-10-5','月份列','op','「9 月帳單」＋起訖與筆數＋<b>誰要還多少</b>（結算淨額為負的人）＋總花費；點了進帳單版的 S-03'],
+    ['S-10-6','狀態章','del','<b>本輪不畫</b>：A 里程碑只回答「誰要還我多少」，那一行已經寫在列上'],
+    ['S-10-7','總花費','st','與 S-03-9 同一個數字（<code>tripSummary().total</code>）'],
+    ['S-10-8','誰要還多少','st','併入 S-10-5：直接寫「小美 要還 $2,080」'],
+    ['S-10-9','分佈條','del','<b>本輪不畫</b>：不在 A 里程碑'],
+    ['S-10-10','待確認提示','del','<b>本輪不畫</b>：沒有匯入就沒有「還沒認領」'],
+    ['S-10-11','空狀態','st','兩種：沒有卡（帶「加一張卡」）／有卡沒帳單'],
+    ['S-10-12','開新週期表單','del','<b>移除（D5）</b>：同 S-10-2'],
+    ['S-10-13','記一筆','op','<b>新</b>：底部主鈕，開帳單模式的 S-04（預設第一張主卡、今天）'],
+  ],
+});
+INDEX.s01.push(['S-01-16','旅遊｜帳單','op','<b>新（D7）</b>：與 S-03「消費｜結算」同一個 <code>.seg</code> 元件。放在標題列正下方——它切換的是整頁內容']);
+INDEX.s01.push(['S-01-17','帳單分段的內容','op','<b>新</b>：與 S-10 同一份（<code>billListHTML()</code>），但<b>不顯示金額</b>——決策 22 首頁不顯示任何金額，D7 沒有推翻它。只列月份、起訖、筆數；金額與誰要還多少點進去看，或從設定 → 帳單（S-10）看']);
+INDEX.s03.push(['S-03-36','帳單頂列','op','<b>新（Phase 2 A）</b>：帳單不套旅遊封面色調，改用純色 <code>.bar</code>＋<code>.ic2</code>。標題「9 月帳單」；右上直接是分享（帳單沒有「編輯行程／複製成新的一趟」）']);
+INDEX.s03.push(['S-03-37','哪張卡 · 哪幾天','st','<b>新</b>：主卡識別＋起訖日。日期分組在帳單裡只寫日期與星期，不寫「第 N 天」']);
+INDEX.s04.push(['S-04-40','哪張卡？','op','<b>新（D1）</b>：只在帳單裡出現，<b>旅遊行程的記一筆沒有這一列</b>。取代「怎麼付的？」的位置（同一件事：用什麼付的），排在分帳方式之前——選了卡才知道預設算誰。選了卡：誰付的固定是主卡人（「誰付的？」整列不畫）、預設只算持卡人（D2）']);
+INDEX.s04.push(['S-04-41','記在 N 月帳單','st','<b>新（D5）</b>：依日期與主卡結帳日即時算出這筆會記在哪個月；存檔提示也會說「已存，記在 9 月帳單。」']);
+INDEX.s07.push(['S-07-9','通訊錄','op','<b>新（D7）</b>：→ S-08']);
+INDEX.s07.push(['S-07-10','卡片管理','op','<b>新（D7）</b>：→ S-09']);
+INDEX.s07.push(['S-07-11','帳單','op','<b>新（D7）</b>：→ S-10。三列排在帳號卡之後、登出之前；依「依賴優先」排成通訊錄 → 卡片管理 → 帳單']);
+
+DEV_SCREENS.push(['s08','通訊錄'], ['s09','卡片管理'], ['s10','帳單']);
+Object.assign(DEV_BACK, { s08: 's07', s09: 's07', s10: 's07' });
+
+const _renderBatch3 = renderBatch2;
+renderBatch2 = function () { _renderBatch3(); renderP2(); };
+
+document.addEventListener('click', ev => {
+  const t = ev.target, hit = a => t.closest('[' + a + ']');
+  const gt = hit('data-go'); if (gt) { go(gt.dataset.go); return; }
+  const st1 = hit('data-s01tab'); if (st1) { store.s01Tab = st1.dataset.s01tab; renderS01(); return; }
+  const os = hit('data-openst');
+  if (os) {
+    store.s03Trip = os.dataset.openst; store.s03Tab = 'exp'; store.s03OnlyShared = false;
+    store.s03StatOpen = false; store.s05 = 'pending'; store.s05open = false; store.s01Tab = 'bill';
+    g = blankExp(); renderBatch2(); go('s03'); return;
+  }
+  if (hit('data-billadd')) {
+    const p = primaryCards()[0]; if (!p) return;
+    g = blankCardExp(p.id, today()); renderS04(); go('s04'); return;
+  }
+  if (t.closest('#s03stshare')) { store.s03bView = 'share'; renderS03b(); go('s03b'); return; }
+  const ec = hit('data-ecard');
+  if (ec) { g.cardId = ec.dataset.ecard; applyCardDefaults(g); renderS04(); return; }
+
+  // S-08
+  if (t.closest('#s08add')) { Object.assign(store.s08, { adding: true, editId: null, name: '', err: '' }); renderS08(); return; }
+  const ep = hit('data-editperson');
+  if (ep) { const p = personOf(ep.dataset.editperson);
+    Object.assign(store.s08, { adding: false, editId: p.id, name: p.name, err: '' }); renderS08(); return; }
+  if (t.closest('#s08cancel')) { Object.assign(store.s08, { adding: false, editId: null, err: '' }); renderS08(); return; }
+  if (t.closest('#s08save')) {
+    const s8 = store.s08, nm = (s8.name || '').trim();
+    const dup = store.p2.people.find(p => p.name === nm && p.id !== s8.editId);
+    if (!nm) { s8.err = '名字還沒填'; renderS08(); return; }
+    if (dup) { s8.err = `通訊錄裡已經有 ${nm} 了`; renderS08(); return; }
+    if (s8.editId) personOf(s8.editId).name = nm;
+    else store.p2.people.push({ id: nid(), name: nm, emoji: '' });
+    Object.assign(s8, { adding: false, editId: null, err: '' }); renderP2(); return;
+  }
+
+  // S-09
+  const s9 = store.s09;
+  if (t.closest('#s09add')) { s9.form = { id: null, parentId: null, nickname: '', last4: '', holderId: 'p-rozi', day: '', err: '' }; renderS09(); return; }
+  const as = hit('data-addsub');
+  if (as) { s9.form = { id: null, parentId: as.dataset.addsub, nickname: '', last4: '', holderId: null, day: '', err: '' }; renderS09(); return; }
+  const edc = hit('data-editcard');
+  if (edc) { const c = cardOf(edc.dataset.editcard);
+    s9.form = { id: c.id, parentId: c.parentId, nickname: c.nickname, last4: c.last4 || '', holderId: c.holderId,
+      day: c.parentId || !c.statementDay || c.statementDay >= 31 ? '' : String(c.statementDay), err: '' };
+    s9.del = false; renderS09(); return; }
+  const cfh = hit('data-cfholder'); if (cfh) { s9.form.holderId = cfh.dataset.cfholder; renderS09(); return; }
+  if (t.closest('#s09x') || t.closest('#s09cancel')) { s9.form = null; renderS09(); return; }
+  if (t.closest('#s09save')) { saveCardForm(); return; }
+  if (t.closest('#s09del')) { s9.del = true; s9.delText = ''; renderS09(); return; }
+  if (t.closest('#cdelno')) { s9.del = false; s9.delText = ''; renderS09(); return; }
+  if (t.closest('#cdelyes')) { if (s9.delText !== '刪除') return;
+    deleteCard(s9.form.id); s9.form = null; s9.del = false; s9.delText = ''; renderBatch2(); return; }
+  const rg = t.closest('#s09rig button');
+  if (rg) {
+    const v = rg.dataset.p2;
+    if (v === 'reset') { loadP2Seed(); s9.form = null; s9.del = false; }
+    else if (v === 'nocard') { store.p2.cards = []; store.statements.forEach(x => delete store.expenses[x.id]); store.statements = []; s9.form = null; s9.del = false; }
+    else { if (!cardOf('c-main')) loadP2Seed();
+      const c = cardOf('c-main');
+      s9.form = { id: c.id, parentId: null, nickname: c.nickname, last4: c.last4, holderId: c.holderId, day: String(c.statementDay), err: '' };
+      s9.del = v === 'del'; s9.delText = ''; }
+    if (!tripOf(store.s03Trip)) store.s03Trip = 't1';
+    g = blankExp(); renderBatch2(); return;
+  }
+});
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if (t.id === 's08new' || t.id === 's08edit') { store.s08.name = t.value; return; }
+  const f = store.s09.form;
+  if (f && t.id === 'cf-nick') { f.nickname = t.value; return; }
+  if (f && t.id === 'cf-l4') { f.last4 = t.value; return; }
+  if (f && t.id === 'cf-day') { f.day = t.value; return; }
+  if (t.id === 'cdelconfirm') {
+    store.s09.delText = t.value;
+    const btn = document.getElementById('cdelyes');
+    if (btn) btn.disabled = t.value !== '刪除';     // 只切按鈕狀態，不重建輸入框
+    return;
+  }
+  // 帳單模式改日期：這筆可能換到別的月份——「記在 N 月帳單」與算誰的人跟著換
+  if (t.id === 'e-date' && g && g.cardId) {
+    applyCardDefaults(g);
+    const note = document.getElementById('s04bill'); if (note) note.textContent = '記在 ' + s04Trip().name;
+    paintS04();
   }
 });
 render();

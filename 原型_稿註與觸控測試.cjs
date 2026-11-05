@@ -128,10 +128,13 @@ const DRAFT_WORDS = ['移除了', '識別由字標', '列表到此結束', '首�
     store.s07dlg = false; renderS07();
     return document.getElementById('scr-s07').textContent;
   });
-  for (const k of ['我的資料', '通訊錄', '卡片管理', '帳單週期', '即將推出']) {
+  /* 2026-11-05 Phase 2 A 的 D7 推翻了「通訊錄／卡片管理不得出現」：三列回來，
+     但「我的資料」小標、舊名「帳單週期」、「即將推出」佔位仍不得出現 */
+  for (const k of ['我的資料', '帳單週期', '即將推出']) {
     console.log(`   含「${k}」:`, s07.includes(k));
     ok(!s07.includes(k), `S-07 仍有「${k}」`);
   }
+  for (const k of ['通訊錄', '卡片管理']) ok(s07.includes(k), `D7：S-07 應有「${k}」`);
   ok(SRC.includes("'S-07-4'"), 'S-07-4 的編號要保留在清單裡');
   console.log('   S-07 剩下:', s07.replace(/\s+/g, ' ').trim());
 

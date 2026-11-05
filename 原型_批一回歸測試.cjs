@@ -40,6 +40,8 @@ snap();
 E("store.s01='loading'; renderS01()"); snap();          // S-01-3
 E("store.s01='empty';   renderS01()"); snap();          // S-01-4
 E("store.s01='list';    renderS01()"); snap();
+E("store.s01Tab='bill'; renderS01()"); snap();          // S-01-17（Phase 2 A 帳單分段）
+E("store.s01Tab='trip'; renderS01()");
 E("f=blankForm(store.trips[0].members); f.owner=0; renderS02()"); snap();   // S-02-11
 E("f.showCur=true; renderS02()"); snap();               // S-02-8
 E("f.adding=true; renderS02()"); snap();                // S-02-15
