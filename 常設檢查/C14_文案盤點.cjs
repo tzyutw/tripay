@@ -39,7 +39,11 @@ module.exports = {
         for (const e of document.querySelectorAll('[placeholder],[aria-label],[title]'))
           for (const a of ['placeholder', 'aria-label', 'title']) { const v = e.getAttribute(a); if (v && v.trim()) s.add(`〔${a}〕${v.trim()}`); }
         /* email 一律遮掉：這個 repo 是公開的，先前已把 email 清乾淨過（Rozi 裁示「甲」），基準檔不能再帶回來 */
-        return [...s].map(t => t.replace(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g, '〔email〕'));
+        /* 每次跑都會變的東西也遮掉，否則每一輪都誤報「有變動」：
+           版號（7 碼 hex）、後台假資料用「現在」往回推的時間 */
+        return [...s].map(t => t.replace(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g, '〔email〕')
+          .replace(/^[0-9a-f]{7}$/, '〔版號〕')
+          .replace(/\d{1,2}\/\d{1,2} \d{1,2}:\d{2}/g, '〔時間〕'));
       });
     }
     const all = new Set(Object.values(dump).flat());
