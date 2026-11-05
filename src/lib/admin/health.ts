@@ -68,8 +68,12 @@ export function checkTripHealth(trip: TripWithMembers, expenses: ExpenseWithSpli
     const parts = se.parts ?? [];
 
     /* ── 分給 0 個人 ─────────────────────────────────────────── */
-    if (parts.length === 0) {
-      push('problem', 'no_participant', '分給 0 個人：這筆沒有任何人分攤，不會進結算');
+    /* R-10 之後 `toSharedExpense().parts` 會把 0 人的帳當成「只算付款人」回傳 [付款人]，
+       所以這裡改看**實際勾了誰**，不看算出來的 parts——否則 0 人的帳就偵測不到了。 */
+    const ticked = e.individual_member_id ? 1
+      : (e.expense_splits ?? []).filter(s => s.is_participating && ids.has(s.member_id)).length;
+    if (ticked === 0 || parts.length === 0) {
+      push('problem', 'no_participant', '分給 0 個人：一個人都沒勾，結算時整筆算付款人自己的');
       continue;
     }
 

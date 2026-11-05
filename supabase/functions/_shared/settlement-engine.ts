@@ -65,7 +65,8 @@ export interface SettlementResult {
  * @returns MemberBalance[]
  *
  * 設計原則：
- *   - shared  → per_person = ROUND(twd_amount / n)，餘數歸付款人
+ *   - shared  → per_person = ROUND(twd_amount / n)，餘數歸付款人（付款人沒參與也一樣）
+ *               零參與人（舊資料）→ 整筆算付款人自己的（R-10）
  *   - individual → split_amount 直接用；差額（twd_amount − Σinput）一律歸付款人
  *                  付款人無論是否參與均承擔差額，確保 Σnet_balance = 0
  *   - personal → 不應傳入此函式（呼叫前過濾）
@@ -97,15 +98,24 @@ export function calculateNetBalances(
     if (expense_type === "shared") {
       const participants = expenseSplits.filter((s) => s.is_participating);
       const n = participants.length;
-      if (n === 0) continue; // 零參與人：跳過（前端應已驗證）
+      /* R-10（2026-11 產品負責人拍板）：一個人都沒勾的舊資料，**整筆算付款人自己的**。
+         原本是 `continue`——付款人的 payout 已經加了、卻沒有任何人的 cost，
+         帳就不平衡（Σnet ≠ 0）。表單現在擋得住新的 0 人帳，這裡接住舊的。 */
+      if (n === 0) {
+        cost.set(payerId, (cost.get(payerId) ?? 0) + twd_amount);
+        continue;
+      }
 
       const perPerson = Math.round(twd_amount / n);
       const remainder = twd_amount - perPerson * n;
 
       for (const s of participants) {
-        const extra = s.member_id === payerId ? remainder : 0;
-        cost.set(s.member_id, (cost.get(s.member_id) ?? 0) + perPerson + extra);
+        cost.set(s.member_id, (cost.get(s.member_id) ?? 0) + perPerson);
       }
+      /* 零頭（除不盡的那幾元／幾毛）一律歸付款人——**付款人自己沒參與也一樣**。
+         原本只在付款人有參與時才加，付款人沒參與時零頭沒有人承擔，
+         分攤加總就比總額少（正式資料「2023 福岡」UQ 那筆少 0.3 元）。 */
+      cost.set(payerId, (cost.get(payerId) ?? 0) + remainder);
     } else if (expense_type === "individual") {
       const participants = expenseSplits.filter((s) => s.is_participating);
       let totalInput = 0;

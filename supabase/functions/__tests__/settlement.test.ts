@@ -8,6 +8,7 @@
  */
 
 import { describe, it, expect } from "vitest";
+import fs from "node:fs";
 import {
   runSettlement,
   calculateNetBalances,
@@ -319,7 +320,10 @@ describe("TC-PERSONAL：personal 費用不進分帳", () => {
 // ─── §4.5 TC-ZERO：零參與人 ───────────────────────────────────────────────────
 
 describe("TC-ZERO：零參與人 / 單人行程", () => {
-  it("TC-ZERO-01：shared 費用零參與人，該筆被跳過（不拋錯）", () => {
+  /* R-10（2026-11 產品負責人拍板）推翻原本的「零參與人跳過」：
+     原本 payout 算了、cost 沒算，帳不平衡（runSettlement 直接拋錯）。
+     現在整筆算付款人自己的。 */
+  it("TC-ZERO-01（R-10 改寫）：shared 費用零參與人 → 整筆算付款人自己的，帳平衡", () => {
     const twoMembers: Member[] = [
       { id: "ning", name: "Ning", emoji: "🍋" },
       { id: "ziyu", name: "Ziyu", emoji: "🐟" },
@@ -331,11 +335,10 @@ describe("TC-ZERO：零參與人 / 單人行程", () => {
     const balances = calculateNetBalances(twoMembers, expenses, []);
 
     const ning = balances.find((b) => b.member_id === "ning")!;
-    // payout 正常累積，但 cost = 0（零參與，跳過計算）
     expect(ning.payout).toBe(1000);
-    // 注意：零參與人情境下 Σcost ≠ Σpayout → net_sum ≠ 0，
-    // runSettlement 的守恆驗證會拋錯；此 case 僅測試 calculateNetBalances 本身
-    expect(ning.cost).toBe(0);
+    expect(ning.cost).toBe(1000);
+    expect(ning.net_balance).toBe(0);
+    expect(() => runSettlement(twoMembers, expenses, [])).not.toThrow();
   });
 
   it("TC-ZERO-02：單人行程，net_balance = 0，無 settlement_items", () => {
@@ -680,41 +683,20 @@ describe("TC-CR：Codex CR 修正補充測試", () => {
   });
 
   /**
-   * TC-CR6：CR Issue #6
-   * shared 費用若無任何參與人（is_participating = true），Edge Function 應回 422。
-   * Guard 在 runSettlement 前檢查，避免零參與人被靜默跳過。
+   * TC-CR6（R-10 改寫）：CR Issue #6 原本要求 shared 零參與人整趟回 422。
+   * R-10 推翻：0 人的舊資料整筆算付款人自己的，不再擋住整趟結算。
+   * 這裡反向斷言 Edge Function 已經沒有那段 guard，並且引擎接得住。
    */
-  it("TC-CR6：shared 零參與人 → Edge Function guard 觸發（確保回 422）", () => {
-    // 模擬 Edge Function 的 guard 邏輯：
-    //   for (const expense of expenses) {
-    //     if (expense.expense_type === 'shared') {
-    //       const participants = splitsByExpense.get(expense.id) ?? [];
-    //       if (participants.length === 0) return json({ error: ... }, 422);
-    //     }
-    //   }
+  it("TC-CR6（R-10 改寫）：shared 零參與人不再回 422，由引擎整筆算付款人", () => {
+    const src = fs.readFileSync("supabase/functions/calculate-settlement/index.ts", "utf8");
+    expect(src).not.toContain("invalid_expense_splits");
 
-    const sharedExpenseWithNoParticipants: Expense = {
-      id:               "A",
-      payer_member_id:  "ning",
-      twd_amount:       1000,
-      expense_type:     "shared",
-    };
-
-    const participants: Split[] = []; // 零參與人（splitsByExpense.get("A") 為 undefined）
-
-    const shouldReturn422 =
-      sharedExpenseWithNoParticipants.expense_type === "shared" &&
-      participants.length === 0;
-
-    expect(shouldReturn422).toBe(true); // Guard 觸發 → 422
-
-    // 若有參與人，guard 不觸發
-    const participantsWithOne: Split[] = makeSharedSplits("A", ["ning"]);
-    const shouldNotReturn422 =
-      sharedExpenseWithNoParticipants.expense_type === "shared" &&
-      participantsWithOne.length === 0;
-
-    expect(shouldNotReturn422).toBe(false); // 有參與人 → 正常計算
+    const expenses: Expense[] = [
+      { id: "A", payer_member_id: "ning", twd_amount: 1000, expense_type: "shared" },
+    ];
+    const r = runSettlement(MEMBERS, expenses, []);
+    expect(r.net_sum).toBe(0);
+    expect(r.items).toHaveLength(0);
   });
 
   /**
@@ -736,5 +718,89 @@ describe("TC-CR：Codex CR 修正補充測試", () => {
       const shouldReject = !Number.isFinite(amount) || amount < 0;
       expect(shouldReject).toBe(false);
     }
+  });
+});
+
+
+// ─── R-10：0 人的舊帳與零頭（2026-11 產品負責人拍板）─────────────────────────
+
+describe("R-10：0 人的舊帳整筆算付款人", () => {
+  const base: Expense[] = [
+    { id: "L", payer_member_id: "ning", twd_amount: 4000, expense_type: "shared" },
+    { id: "T", payer_member_id: "ziyu", twd_amount: 1200, expense_type: "shared" },
+  ];
+  const baseSplits = [
+    ...makeSharedSplits("L", ["ning", "ziyu", "xiu", "mei"]),
+    ...makeSharedSplits("T", ["ziyu", "mei"]),
+  ];
+
+  it("R10-01：一起分 0 人 → 付款人 payout 與 cost 同時加整筆，所有人淨額加總為 0", () => {
+    const zero: Expense = { id: "Z", payer_member_id: "xiu", twd_amount: 5139, expense_type: "shared" };
+    // 參與列存在、但全部是 false（使用者把人全部取消勾選）
+    const offSplits: Split[] = MEMBERS.map((m) => ({
+      expense_id: "Z", member_id: m.id, is_participating: false, split_amount: null, split_pending: false,
+    }));
+    // calculate-settlement 只撈 is_participating = true 的列，照它的方式過濾
+    const splits = [...baseSplits, ...offSplits].filter((s) => s.is_participating);
+    const r = runSettlement(MEMBERS, [...base, zero], splits);
+    const xiu = r.balances.find((b) => b.member_id === "xiu")!;
+    expect(xiu.payout).toBe(5139);
+    expect(xiu.cost).toBe(1000 + 5139);
+    expect(r.balances.reduce((a, b) => a + b.net_balance, 0)).toBe(0);
+  });
+
+  it("R10-02：0 人那筆對轉帳完全沒有影響（等於付款人自己買給自己）", () => {
+    const zero: Expense = { id: "Z", payer_member_id: "xiu", twd_amount: 5139, expense_type: "shared" };
+    const without = runSettlement(MEMBERS, base, baseSplits);
+    const withZero = runSettlement(MEMBERS, [...base, zero], baseSplits);
+    expect(withZero.items).toEqual(without.items);
+  });
+
+  it("R10-03：各付各的 0 人 → 差額整筆歸付款人，帳平衡", () => {
+    const zero: Expense = { id: "Z", payer_member_id: "mei", twd_amount: 800, expense_type: "individual" };
+    const r = runSettlement(MEMBERS, [...base, zero], baseSplits);
+    expect(r.balances.find((b) => b.member_id === "mei")!.cost).toBe(600 + 1000 + 800);
+    expect(r.balances.reduce((a, b) => a + b.net_balance, 0)).toBe(0);
+  });
+});
+
+describe("R-10 零頭：付款人沒參與，除不盡的零頭也歸付款人", () => {
+  it("R10-Z1：$1000 由 Ziyu／Xiu／Mei 三人分、Ning 付但沒參與 → 分攤加總 = 1000", () => {
+    const expenses: Expense[] = [
+      { id: "A", payer_member_id: "ning", twd_amount: 1000, expense_type: "shared" },
+    ];
+    const r = runSettlement(MEMBERS, expenses, makeSharedSplits("A", ["ziyu", "xiu", "mei"]));
+    const cost = Object.fromEntries(r.balances.map((b) => [b.member_id, b.cost]));
+    // 333 × 3 = 999，零頭 1 元歸付款人 Ning
+    expect(cost).toEqual({ ning: 1, ziyu: 333, xiu: 333, mei: 333 });
+    expect(r.balances.reduce((a, b) => a + b.cost, 0)).toBe(1000);
+    expect(r.balances.reduce((a, b) => a + b.net_balance, 0)).toBe(0);
+  });
+
+  it("R10-Z2：正式資料那筆（$2,124.3 兩人分、付款人沒參與）→ 分攤加總 = 2,124.3，淨額加總剛好 0", () => {
+    const expenses: Expense[] = [
+      { id: "UQ", payer_member_id: "ning", twd_amount: 2124.3, expense_type: "shared" },
+    ];
+    const r = runSettlement(MEMBERS, expenses, makeSharedSplits("UQ", ["ziyu", "mei"]));
+    const cost = Object.fromEntries(r.balances.map((b) => [b.member_id, b.cost]));
+    expect(cost.ziyu).toBe(1062);
+    expect(cost.mei).toBe(1062);
+    expect(cost.ning).toBeCloseTo(0.3, 9);
+    expect(r.balances.reduce((a, b) => a + b.cost, 0)).toBeCloseTo(2124.3, 9);
+    expect(Math.abs(r.net_sum)).toBeLessThan(1e-9);
+    // 轉帳不變：兩人各轉 1,062 給 Ning
+    expect(r.items).toEqual([
+      { from_member_id: "ziyu", to_member_id: "ning", amount: 1062 },
+      { from_member_id: "mei",  to_member_id: "ning", amount: 1062 },
+    ]);
+  });
+
+  it("R10-Z3：付款人有參與時零頭照舊歸他（既有規則不變）", () => {
+    const expenses: Expense[] = [
+      { id: "A", payer_member_id: "ning", twd_amount: 1000, expense_type: "shared" },
+    ];
+    const r = runSettlement(MEMBERS, expenses, makeSharedSplits("A", ["ning", "ziyu", "xiu"]));
+    const cost = Object.fromEntries(r.balances.map((b) => [b.member_id, b.cost]));
+    expect(cost).toEqual({ ning: 334, ziyu: 333, xiu: 333, mei: 0 });
   });
 });
