@@ -89,6 +89,28 @@ export function involves(e: ExpenseWithSplits, memberId: string, userId: string 
   return (e.expense_splits ?? []).some(s => s.member_id === memberId && s.is_participating);
 }
 
+/** 這一筆是誰記的。產品現況是**只有行程建立者能記帳**（旅伴只能透過分享連結唯讀查看），
+ *  所以資料裡沒有記錄者、或記錄者不是任何已知帳號時，就是行程建立者。 */
+export function recorderOf(
+  e: Pick<ExpenseWithSplits, 'created_by'>,
+  trip: Pick<TripWithMembers, 'owner_id'>,
+  knownUser: (id: string) => boolean,
+): string {
+  return e.created_by && knownUser(e.created_by) ? e.created_by : trip.owner_id;
+}
+
+/** 一個登入帳號的統計：建了哪些行程、記了幾筆 */
+export function accountStats<T extends TripWithMembers>(
+  rows: ModelTrip<T>[], userId: string, knownUser: (id: string) => boolean,
+): { created: ModelTrip<T>[]; joined: ModelTrip<T>[]; recorded: number } {
+  const created = rows.filter(r => r.trip.owner_id === userId);
+  const joined = tripsOfUser(rows, userId).filter(r => r.trip.owner_id !== userId);
+  let recorded = 0;
+  for (const r of rows) for (const e of r.expenses)
+    if (recorderOf(e, r.trip, knownUser) === userId) recorded += 1;
+  return { created, joined, recorded };
+}
+
 /** 時間：11/5 14:03（不同年才帶年份），一律台灣時間 */
 export function fmtTime(iso: string | null | undefined, now = new Date()): string {
   if (!iso) return '—';

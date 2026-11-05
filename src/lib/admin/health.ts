@@ -93,9 +93,26 @@ export function checkTripHealth(trip: TripWithMembers, expenses: ExpenseWithSpli
           `各自金額是用外幣填的，但外幣總額沒填，每個人的台幣算不出來`);
         continue;
       }
-      if (c.blanks.length >= 2)
-        push('problem', 'each_blank',
-          `各自金額還有 ${c.blanks.length} 個人沒填（${c.blanks.map(nameOf).join('、')}），目前是先平分剩下的`);
+      if (c.blanks.length >= 2) {
+        /* 🔴 用線上真實資料量過：四趟匯入的舊帳有 28 筆「各付各的」只填了有分的人，
+           其他人留空，但**填了的加起來剛好等於總額**——錢已經分完，留空的人算 0，結算不會錯。
+           前台照規格把它們標成「還沒算清楚」（calc 的 unsettled），所以家人手機上會看到警告；
+           這正是家人會覺得「怪怪的」的地方，要講出來，但不能亮紅點，否則紅點全是它。
+           只有「還有錢沒分到人」（剩餘 ≥ 1）才是真的問題。 */
+        const base = c.fillsAreForeign ? c.forTotalEff : c.twdTotal;
+        const filled = parts.filter(id => !c.blanks.includes(id))
+          .reduce((a, id) => a + (c.valInCur[id] ?? 0), 0);
+        const remain = base == null ? null : base - filled;
+        const who = c.blanks.map(nameOf).join('、');
+        if (remain != null && Math.abs(remain) < 1)
+          push('notice', 'each_blank',
+            `各自金額有 ${c.blanks.length} 個人沒填（${who}），但填了的已經加到總額，他們算 $0、結算不會錯。`
+            + `家人手機上這筆會顯示成「還沒算清楚」`);
+        /* 填的已經超過總額：交給下面的「負的分攤」那條講，這裡不重複 */
+        else if (remain == null || remain >= 1)
+          push('problem', 'each_blank',
+            `各自金額還有 ${c.blanks.length} 個人沒填（${who}），目前是先把剩下的平分給他們`);
+      }
     }
 
     /* ── 有人被算成負的分攤 ──────────────────────────────────── */
